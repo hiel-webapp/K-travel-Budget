@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html class="light" lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>HypeHeritage - Final Budget Report</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#000101",
+                    "on-surface-variant": "#44474a",
+                    "on-primary-container": "#838486",
+                    "primary-fixed-dim": "#c6c6c9",
+                    "on-error-container": "#93000a",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#dadad8",
+                    "primary-fixed": "#e2e2e5",
+                    "on-surface": "#1a1c1b",
+                    "tertiary-container": "#0b1f18",
+                    "secondary-fixed-dim": "#ffb4aa",
+                    "on-secondary-fixed": "#410001",
+                    "surface-container": "#efeeec",
+                    "surface-variant": "#e3e2e0",
+                    "on-secondary-fixed-variant": "#8b1914",
+                    "tertiary": "#000000",
+                    "outline-variant": "#c5c6ca",
+                    "error-container": "#ffdad6",
+                    "surface": "#faf9f7",
+                    "surface-container-highest": "#e3e2e0",
+                    "outline": "#75777a",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed": "#d1e8dd",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#2f3130",
+                    "on-tertiary-container": "#73897f",
+                    "primary-container": "#1a1c1e",
+                    "on-tertiary-fixed": "#0b1f18",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#c6c6c9",
+                    "background": "#faf9f7",
+                    "secondary-container": "#fe6d5e",
+                    "on-secondary-container": "#6e0003",
+                    "surface-bright": "#faf9f7",
+                    "surface-tint": "#5d5e61",
+                    "surface-container-high": "#e9e8e6",
+                    "secondary": "#ac3228",
+                    "tertiary-fixed-dim": "#b5ccc1",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#374b43",
+                    "inverse-on-surface": "#f1f1ef",
+                    "secondary-fixed": "#ffdad5",
+                    "on-primary-fixed": "#1a1c1e",
+                    "on-background": "#1a1c1b",
+                    "surface-container-low": "#f4f3f1",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#454749"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "header-height": "72px",
+                    "unit": "8px",
+                    "gutter": "24px",
+                    "margin-desktop": "40px",
+                    "container-max": "1280px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-md": ["Hanken Grotesk"],
+                    "display-lg-mobile": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "body-sm": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "label-sm": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        .shadow-soft { box-shadow: 0px 4px 20px rgba(26, 28, 30, 0.04); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased pt-[72px]">
+    <!-- TopNavBar -->
+    <header class="bg-surface fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-[72px] max-w-container-max mx-auto border-b border-outline-variant">
+        <div class="flex items-center gap-8">
+            <a class="font-headline-lg text-headline-lg font-bold text-primary" href="index.html">HypeHeritage</a>
+            <nav class="hidden md:flex gap-6">
+                <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="trend.html">K-트렌드</a>
+                <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="meal_plan.html">K-가이드</a>
+                <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="#">저장한 여행</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="font-label-md text-label-md text-primary cursor-pointer">KO / EN</span>
+            <span class="material-symbols-outlined text-primary cursor-pointer hover:text-secondary transition-colors" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+        </div>
+    </header>
+
+    <main class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-12">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+            <div>
+                <span class="inline-block bg-[#E8E2D9] text-[#1A1C1E] font-label-sm text-label-sm px-3 py-1 rounded-full mb-3">예산 리포트</span>
+                <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary">나의 한국 여행 예산 리포트</h1>
+            </div>
+            <div class="flex gap-3">
+                <button class="flex items-center gap-2 px-4 py-2 border border-primary rounded-lg text-primary font-label-md text-label-md hover:bg-surface-variant transition-colors" onclick="window.print()">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">download</span> PDF Export
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 border border-primary rounded-lg text-primary font-label-md text-label-md hover:bg-surface-variant transition-colors">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">mail</span> Email
+                </button>
+                <button class="flex items-center gap-2 px-4 py-2 bg-[#E55B4D] text-on-primary rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">share</span> Share
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-soft">
+                <p class="font-body-sm text-body-sm text-on-surface-variant mb-2">총 예상 비용</p>
+                <p id="txt-report-total" class="font-headline-lg text-headline-lg text-primary">₩3,450,000</p>
+            </div>
+            <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-soft">
+                <p class="font-body-sm text-body-sm text-on-surface-variant mb-2">1인당 비용</p>
+                <p id="txt-report-per-person" class="font-headline-lg text-headline-lg text-primary">₩1,725,000</p>
+            </div>
+            <div id="card-usage-status" class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-soft border-l-4">
+                <p class="font-body-sm text-body-sm text-on-surface-variant mb-2">예산 사용률</p>
+                <div class="flex items-end gap-3">
+                    <p id="txt-report-pct" class="font-headline-lg text-headline-lg">115%</p>
+                    <p id="txt-report-diff" class="font-body-sm text-body-sm mb-1">₩450,000 초과</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Left Analytics (42%) -->
+            <div class="lg:w-[42%] flex flex-col gap-6">
+                <!-- Donut Chart Card -->
+                <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-soft">
+                    <h2 class="font-headline-md text-headline-md text-primary mb-6">카테고리별 예산 사용</h2>
+                    <div class="relative w-48 h-48 mx-auto mb-8">
+                        <svg class="transform -rotate-90 w-full h-full" viewBox="0 0 100 100">
+                            <!-- Background track -->
+                            <circle cx="50" cy="50" fill="none" r="40" stroke="#E8E2D9" stroke-width="12"></circle>
+                            <!-- Donut segments to be rendered via JS -->
+                            <circle id="seg-acc" cx="50" cy="50" fill="none" r="40" stroke="#8DA399" stroke-width="12" stroke-dasharray="0 251.2" stroke-dashoffset="0"></circle>
+                            <circle id="seg-meal" cx="50" cy="50" fill="none" r="40" stroke="#1A1C1E" stroke-width="12" stroke-dasharray="0 251.2" stroke-dashoffset="0"></circle>
+                            <circle id="seg-trans" cx="50" cy="50" fill="none" r="40" stroke="#c5c6ca" stroke-width="12" stroke-dasharray="0 251.2" stroke-dashoffset="0"></circle>
+                            <circle id="seg-misc" cx="50" cy="50" fill="none" r="40" stroke="#E55B4D" stroke-width="12" stroke-dasharray="0 251.2" stroke-dashoffset="0"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="txt-chart-center-pct" class="font-headline-md text-headline-md">115%</span>
+                            <span id="txt-chart-center-label" class="font-label-sm text-label-sm text-on-surface-variant">사용</span>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-[#8DA399]"></span>
+                                <span class="font-body-sm text-body-sm text-on-surface">숙박</span>
+                            </div>
+                            <span id="txt-legend-acc" class="font-label-md text-label-md text-primary">₩1,035,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-[#1A1C1E]"></span>
+                                <span class="font-body-sm text-body-sm text-on-surface">식음료</span>
+                            </div>
+                            <span id="txt-legend-meal" class="font-label-md text-label-md text-primary">₩1,380,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-[#c5c6ca]"></span>
+                                <span class="font-body-sm text-body-sm text-on-surface">교통</span>
+                            </div>
+                            <span id="txt-legend-trans" class="font-label-md text-label-md text-primary">₩690,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-[#E55B4D]"></span>
+                                <span class="font-body-sm text-body-sm text-on-surface">관광 및 비상금</span>
+                            </div>
+                            <span id="txt-legend-misc" class="font-label-md text-label-md text-primary">₩190,000</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Insights Cards -->
+                <div class="bg-surface-container-low p-6 rounded-xl">
+                    <div class="flex items-start gap-4 mb-4">
+                        <span id="txt-insight-icon" class="material-symbols-outlined mt-1">health_and_safety</span>
+                        <div>
+                            <h3 id="txt-insight-title" class="font-label-md text-label-md text-primary mb-1">예산 건강도: 양호</h3>
+                            <p id="txt-insight-desc" class="font-body-sm text-body-sm text-on-surface-variant">설정한 한도 안에서 계획적인 여행 설계가 완료되었습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Detailed Receipt (58%) -->
+            <div class="lg:w-[58%]">
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-soft overflow-hidden">
+                    <!-- Receipt Header -->
+                    <div class="p-6 border-b border-outline-variant bg-[#F9F8F6]">
+                        <div class="flex justify-between items-center mb-2">
+                            <h2 class="font-headline-md text-headline-md text-primary">내 한국 여행 영수증</h2>
+                            <span class="bg-primary text-white font-label-sm text-label-sm px-3 py-1 rounded-full">최종 예상</span>
+                        </div>
+                        <p id="txt-receipt-dates" class="font-body-sm text-body-sm text-on-surface-variant">서울 - 부산 (5박 6일)</p>
+                    </div>
+                    <!-- Receipt Content -->
+                    <div class="p-6 space-y-8" id="receipt-container">
+                        <!-- Seoul Section -->
+                        <div>
+                            <div class="flex justify-between items-center border-b border-outline-variant pb-2 mb-4">
+                                <h3 class="font-label-md text-label-md text-primary" id="txt-receipt-seoul-title">서울 (3박)</h3>
+                                <span class="font-label-md text-label-md text-primary" id="txt-receipt-seoul-subtotal">소계: ₩1,800,000</span>
+                            </div>
+                            <!-- Item 1: Hotel -->
+                            <div class="flex justify-between items-start py-3">
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 rounded bg-surface-container-low flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-outline">hotel</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-label-md text-label-md text-primary" id="txt-receipt-hotel-title">홍대 부티크 호텔</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant" id="txt-receipt-hotel-calc">3박 x ₩150,000</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-label-md text-label-md text-primary" id="txt-receipt-hotel-price">₩450,000</p>
+                                </div>
+                            </div>
+                            <!-- Item 2: Food (Base) -->
+                            <div class="flex justify-between items-start py-3">
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 rounded bg-surface-container-low flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-outline">restaurant_menu</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-label-md text-label-md text-primary" id="txt-receipt-food-title">스탠다드 식사 플랜</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant" id="txt-receipt-food-calc">3박 기본 식대</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-label-md text-label-md text-primary" id="txt-receipt-food-price">₩286,000</p>
+                                </div>
+                            </div>
+                            <!-- Item 3: Custom Food (Samgyeopsal) -->
+                            <div id="receipt-samgyeopsal-box" class="hidden flex flex-col py-3">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex gap-4">
+                                        <div class="w-12 h-12 rounded bg-surface-container-low overflow-hidden">
+                                            <img class="w-full h-full object-cover" alt="Samgyeopsal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_fVYu9MfeT0EtxFYAPPCjzBIbIht1YZ7NAZfSCkHVLDGBOE_VvHt7jpKkxt3za4UFPSPjntICuvoNYMUiEQnwqh9kankU7r8s3K0qNBT534i15_5j-oc_3Z97LT1oRINqL59zY-r3Fex2bqgYsZNQZGjsRLAN58rDYH790kG6oaF8ZpICkcXQHp-r7nkkHy1dMl9CJnUVPpRwjtaHIvN-NZzcri5RCldEZrTmUSB-9P8r0rZ3X-8"/>
+                                        </div>
+                                        <div>
+                                            <p class="font-label-md text-label-md text-primary" id="txt-receipt-custom-meal-title">삼겹살 디너 (2인)</p>
+                                            <p class="font-body-sm text-body-sm text-on-surface-variant" id="txt-receipt-custom-meal-calc">2인분</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-label-md text-label-md text-primary" id="txt-receipt-custom-meal-price">₩36,000</p>
+                                    </div>
+                                </div>
+                                <!-- Inside Guide -->
+                                <div class="bg-[#F9F8F6] p-4 rounded-lg ml-16 border border-[#E8E2D9]">
+                                    <p class="font-label-md text-label-md text-primary mb-2 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[#E55B4D]" style="font-size: 16px;">restaurant</span> 한국에서는 이렇게 주문해요
+                                    </p>
+                                    <ul class="font-body-sm text-body-sm text-on-surface-variant space-y-2 list-disc pl-4 mb-3">
+                                        <li>보통 2인이 가면 고기 3인분을 주문하는 것이 일반적입니다.</li>
+                                        <li>된장찌개, 공기밥, 냉면 등은 고기를 먹은 후 후식으로 추가합니다.</li>
+                                        <li>소주/맥주 1~2병 추가 (₩10,000).</li>
+                                    </ul>
+                                    <div class="flex items-center gap-2 text-label-sm text-[#8DA399] font-medium bg-white px-3 py-2 rounded">
+                                        <span class="material-symbols-outlined" style="font-size: 14px;">lightbulb</span> 팁: 상차림비가 따로 없는 곳이 대부분입니다. 반찬은 무한 리필!
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Busan Section (Only if dual city) -->
+                        <div id="receipt-busan-section">
+                            <div class="flex justify-between items-center border-b border-outline-variant pb-2 mb-4">
+                                <h3 class="font-label-md text-label-md text-primary" id="txt-receipt-busan-title">부산 (2박)</h3>
+                                <span class="font-label-md text-label-md text-primary" id="txt-receipt-busan-subtotal">소계: ₩270,000</span>
+                            </div>
+                            <!-- Item: Hotel -->
+                            <div class="flex justify-between items-start py-3">
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 rounded bg-surface-container-low flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-outline">hotel</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-label-md text-label-md text-primary" id="txt-receipt-busan-hotel-title">해운대 레지던스</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant" id="txt-receipt-busan-hotel-calc">2박 x ₩150,000</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-label-md text-label-md text-primary" id="txt-receipt-busan-hotel-price">₩270,000</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section: Transport -->
+                        <div>
+                            <div class="flex justify-between items-center border-b border-outline-variant pb-2 mb-4">
+                                <h3 class="font-label-md text-label-md text-primary">교통 및 고정비</h3>
+                                <span class="font-label-md text-label-md text-primary" id="txt-receipt-transport-subtotal">소계: ₩1,320,000</span>
+                            </div>
+                            <!-- Flight -->
+                            <div class="flex justify-between items-start py-3">
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 rounded bg-surface-container-low flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-outline">flight</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-label-md text-label-md text-primary">왕복 항공권 (가상)</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant">국제선 항공 예산</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-label-md text-label-md text-primary">₩1,200,000</p>
+                                </div>
+                            </div>
+                            <!-- KTX (If dual city) -->
+                            <div id="receipt-trans-ktx" class="flex justify-between items-start py-3">
+                                <div class="flex gap-4">
+                                    <div class="w-12 h-12 rounded bg-surface-container-low flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-outline">train</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-label-md text-label-md text-primary">도시 간 KTX 열차</p>
+                                        <p class="font-body-sm text-body-sm text-on-surface-variant">서울역 ↔ 부산역 왕복</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-label-md text-label-md text-primary" id="txt-receipt-ktx-price">₩120,000</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Receipt Footer -->
+                    <div class="bg-surface-container-low p-6 border-t border-outline-variant">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-headline-md text-headline-md text-primary">최종 합계</span>
+                            <span id="txt-receipt-total-cost" class="font-headline-md text-headline-md text-primary font-bold">₩3,450,000</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-6 text-on-surface-variant font-body-sm text-body-sm">
+                            <span>USD 환산 (예상)</span>
+                            <span id="txt-receipt-usd">~$2,650 USD</span>
+                        </div>
+                        <p class="text-label-sm font-label-sm text-outline text-center">이 리포트는 현재 환율 및 평균 물가를 바탕으로 한 예상 수치이며, 실제 지출과 다를 수 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-8 px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4 bg-surface-container-low border-t border-outline-variant">
+        <div class="font-headline-md text-headline-md font-bold text-primary">HypeHeritage</div>
+        <div class="flex gap-4 font-body-sm text-body-sm text-on-surface-variant">
+            <a class="hover:text-secondary underline" href="#">Intro</a>
+            <a class="hover:text-secondary underline" href="#">Terms</a>
+            <a class="hover:text-secondary underline" href="#">Privacy</a>
+            <span>Region: 대한민국</span>
+        </div>
+        <div class="font-label-sm text-label-sm text-on-surface-variant">
+            © 2026 HypeHeritage. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Load state
+        let state = JSON.parse(localStorage.getItem('k_travel_state'));
+        if (!state) {
+            state = {
+                cities: ["Seoul", "Busan"],
+                nights: 5,
+                seoulNights: 3,
+                busanNights: 2,
+                people: 2,
+                budgetType: "standard",
+                budgetGoal: 1500000,
+                accommodationType: 'standard',
+                hasCustomMeal: false,
+                customMeal: '',
+                customMealPortions: 0,
+                customMealPrice: 0,
+                seoulAccCost: 405000,
+                busanAccCost: 270000,
+                ktxCost: 120000,
+                mealCost: 286000,
+                flightCost: 1200000,
+                emergencyFunds: 100000,
+                activityCost: 90000,
+                finalTotal: 2471000
+            };
+        }
+
+        const isDualCity = state.cities.includes("Busan") && state.cities.includes("Seoul");
+        const rooms = Math.ceil(state.people / 2);
+
+        // Hotel tier strings
+        const hotelTiers = {
+            budget: "실속형 호텔/비즈니스",
+            standard: "스탠다드 부티크 호텔",
+            premium: "5성급 럭셔리/헤리티지"
+        };
+        const hotelRates = {
+            budget: 70000,
+            standard: 135000,
+            premium: 310000
+        };
+
+        function formatKRW(val) {
+            return '₩' + Math.round(val).toLocaleString('ko-KR');
+        }
+
+        function renderReport() {
+            // Summary Info
+            document.getElementById('txt-report-total').textContent = formatKRW(state.finalTotal);
+            const perPerson = Math.round(state.finalTotal / state.people);
+            document.getElementById('txt-report-per-person').textContent = formatKRW(perPerson);
+            
+            const pct = Math.round((state.finalTotal / state.budgetGoal) * 100);
+            document.getElementById('txt-report-pct').textContent = pct + '%';
+            
+            const cardUsageStatus = document.getElementById('card-usage-status');
+            const txtReportDiff = document.getElementById('txt-report-diff');
+            
+            if (state.finalTotal > state.budgetGoal) {
+                const overage = state.finalTotal - state.budgetGoal;
+                txtReportDiff.textContent = `${formatKRW(overage)} 초과`;
+                txtReportDiff.className = "font-body-sm text-body-sm text-error mb-1";
+                cardUsageStatus.className = "bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-soft border-l-4 border-l-[#ba1a1a]";
+                document.getElementById('txt-report-pct').className = "font-headline-lg text-headline-lg text-error";
+                
+                document.getElementById('txt-insight-icon').textContent = "warning";
+                document.getElementById('txt-insight-icon').className = "material-symbols-outlined text-error mt-1";
+                document.getElementById('txt-insight-title').textContent = "예산 건강도: 주의 요망";
+                document.getElementById('txt-insight-desc').textContent = `설정하신 예산 한도(${formatKRW(state.budgetGoal)})를 초과했습니다. 숙소 등급이나 식음료 일정을 조정하여 예산을 절감하실 수 있습니다.`;
+            } else {
+                const remains = state.budgetGoal - state.finalTotal;
+                txtReportDiff.textContent = `${formatKRW(remains)} 남음`;
+                txtReportDiff.className = "font-body-sm text-body-sm text-[#8DA399] mb-1";
+                cardUsageStatus.className = "bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-soft border-l-4 border-l-[#8DA399]";
+                document.getElementById('txt-report-pct').className = "font-headline-lg text-headline-lg text-[#8DA399]";
+                
+                document.getElementById('txt-insight-icon').textContent = "health_and_safety";
+                document.getElementById('txt-insight-icon').className = "material-symbols-outlined text-[#8DA399] mt-1";
+                document.getElementById('txt-insight-title').textContent = "예산 건강도: 양호";
+                document.getElementById('txt-insight-desc').textContent = "설정한 한도 안에서 계획적인 여행 설계가 완료되었습니다.";
+            }
+
+            // Categories calculation
+            const accommodationCost = state.seoulAccCost + (state.busanAccCost || 0);
+            const foodCost = state.mealCost;
+            const transportCost = state.flightCost + (state.ktxCost || 0);
+            const miscCost = state.emergencyFunds + state.activityCost;
+
+            document.getElementById('txt-legend-acc').textContent = formatKRW(accommodationCost);
+            document.getElementById('txt-legend-meal').textContent = formatKRW(foodCost);
+            document.getElementById('txt-legend-trans').textContent = formatKRW(transportCost);
+            document.getElementById('txt-legend-misc').textContent = formatKRW(miscCost);
+
+            // Donut Chart logic
+            document.getElementById('txt-chart-center-pct').textContent = pct + '%';
+            document.getElementById('txt-chart-center-pct').className = (state.finalTotal > state.budgetGoal) ? "font-headline-md text-headline-md text-error" : "font-headline-md text-headline-md text-[#8DA399]";
+            document.getElementById('txt-chart-center-label').textContent = (state.finalTotal > state.budgetGoal) ? "초과" : "사용";
+
+            // SVG segments rendering
+            const totalCost = state.finalTotal;
+            const segAcc = document.getElementById('seg-acc');
+            const segMeal = document.getElementById('seg-meal');
+            const segTrans = document.getElementById('seg-trans');
+            const segMisc = document.getElementById('seg-misc');
+
+            const accLen = (accommodationCost / totalCost) * 251.2;
+            const mealLen = (foodCost / totalCost) * 251.2;
+            const transLen = (transportCost / totalCost) * 251.2;
+            const miscLen = (miscCost / totalCost) * 251.2;
+
+            // Offset calculations (stacking segments)
+            let offset = 0;
+            
+            // Acc segment
+            segAcc.setAttribute('stroke-dasharray', `${accLen} 251.2`);
+            segAcc.setAttribute('stroke-dashoffset', offset);
+            offset -= accLen;
+
+            // Meal segment
+            segMeal.setAttribute('stroke-dasharray', `${mealLen} 251.2`);
+            segMeal.setAttribute('stroke-dashoffset', offset);
+            offset -= mealLen;
+
+            // Trans segment
+            segTrans.setAttribute('stroke-dasharray', `${transLen} 251.2`);
+            segTrans.setAttribute('stroke-dashoffset', offset);
+            offset -= transLen;
+
+            // Misc segment
+            segMisc.setAttribute('stroke-dasharray', `${miscLen} 251.2`);
+            segMisc.setAttribute('stroke-dashoffset', offset);
+
+            // Right Sidebar values
+            document.getElementById('txt-receipt-dates').textContent = isDualCity ? `서울 - 부산 (${state.nights}박 ${state.nights+1}일)` : `${state.cities[0]} (${state.nights}박 ${state.nights+1}일)`;
+            
+            // Seoul block
+            document.getElementById('txt-receipt-seoul-title').textContent = `서울 (${state.seoulNights}박)`;
+            
+            const seoulSubtotal = state.seoulAccCost + state.mealCost + state.activityCost;
+            document.getElementById('txt-receipt-seoul-subtotal').textContent = `소계: ${formatKRW(seoulSubtotal)}`;
+            
+            document.getElementById('txt-receipt-hotel-title').textContent = hotelTiers[state.accommodationType];
+            document.getElementById('txt-receipt-hotel-calc').textContent = `${state.seoulNights}박 x ${formatKRW(hotelRates[state.accommodationType])} x ${rooms}객실`;
+            document.getElementById('txt-receipt-hotel-price').textContent = formatKRW(state.seoulAccCost);
+
+            const baseMealPerDayPerTwoPeople = 286000 / 3;
+            let baseMealTotal = Math.round(baseMealPerDayPerTwoPeople * state.seoulNights * (state.people / 2));
+            if (state.hasCustomMeal) {
+                const singleDinnerCost = Math.round((80000 / 3) * (state.people / 2));
+                baseMealTotal -= singleDinnerCost;
+                
+                document.getElementById('txt-receipt-food-title').textContent = "스탠다드 식사 (일부 교체됨)";
+                document.getElementById('txt-receipt-food-calc').textContent = `${state.seoulNights}일 기본 식대 (저녁 1회 제외)`;
+                
+                // Show customized Samgyeopsal box
+                const samgyeopsalBox = document.getElementById('receipt-samgyeopsal-box');
+                samgyeopsalBox.classList.remove('hidden');
+                document.getElementById('txt-receipt-custom-meal-title').textContent = `${state.customMeal} 디너 (${state.people}인)`;
+                document.getElementById('txt-receipt-custom-meal-calc').textContent = `${state.customMealPortions}인분 (식사 포함)`;
+                document.getElementById('txt-receipt-custom-meal-price').textContent = formatKRW(state.customMealPrice);
+            } else {
+                document.getElementById('txt-receipt-food-title').textContent = "스탠다드 식사 플랜";
+                document.getElementById('txt-receipt-food-calc').textContent = `${state.seoulNights}일 기본 식대`;
+                document.getElementById('receipt-samgyeopsal-box').classList.add('hidden');
+            }
+            document.getElementById('txt-receipt-food-price').textContent = formatKRW(baseMealTotal);
+
+            // Busan block
+            const busanSection = document.getElementById('receipt-busan-section');
+            if (isDualCity) {
+                busanSection.classList.remove('hidden');
+                document.getElementById('txt-receipt-busan-title').textContent = `부산 (${state.busanNights}박)`;
+                document.getElementById('txt-receipt-busan-subtotal').textContent = `소계: ${formatKRW(state.busanAccCost)}`;
+                document.getElementById('txt-receipt-busan-hotel-title').textContent = hotelTiers[state.accommodationType];
+                document.getElementById('txt-receipt-busan-hotel-calc').textContent = `${state.busanNights}박 x ${formatKRW(hotelRates[state.accommodationType])} x ${rooms}객실`;
+                document.getElementById('txt-receipt-busan-hotel-price').textContent = formatKRW(state.busanAccCost);
+            } else {
+                busanSection.classList.add('hidden');
+            }
+
+            // Transport block
+            const transportSubtotal = state.flightCost + state.ktxCost;
+            document.getElementById('txt-receipt-transport-subtotal').textContent = `소계: ${formatKRW(transportSubtotal)}`;
+            if (isDualCity) {
+                document.getElementById('receipt-trans-ktx').classList.remove('hidden');
+                document.getElementById('txt-receipt-ktx-price').textContent = formatKRW(state.ktxCost);
+            } else {
+                document.getElementById('receipt-trans-ktx').classList.add('hidden');
+            }
+
+            // Aggregates
+            document.getElementById('txt-receipt-total-cost').textContent = formatKRW(state.finalTotal);
+            
+            const usdRate = 1300;
+            const usdTotal = Math.round(state.finalTotal / usdRate);
+            document.getElementById('txt-receipt-usd').textContent = `~$${usdTotal.toLocaleString('en-US')} USD`;
+        }
+
+        renderReport();
+    </script>
+</body>
+</html>

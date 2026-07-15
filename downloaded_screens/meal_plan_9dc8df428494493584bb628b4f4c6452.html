@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HypeHeritage - Smart Planner: Food Base Plan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#000101",
+                        "on-surface-variant": "#44474a",
+                        "on-primary-container": "#838486",
+                        "primary-fixed-dim": "#c6c6c9",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dadad8",
+                        "primary-fixed": "#e2e2e5",
+                        "on-surface": "#1a1c1b",
+                        "tertiary-container": "#0b1f18",
+                        "secondary-fixed-dim": "#ffb4aa",
+                        "on-secondary-fixed": "#410001",
+                        "surface-container": "#efeeec",
+                        "surface-variant": "#e3e2e0",
+                        "on-secondary-fixed-variant": "#8b1914",
+                        "tertiary": "#000000",
+                        "outline-variant": "#c5c6ca",
+                        "error-container": "#ffdad6",
+                        "surface": "#faf9f7",
+                        "surface-container-highest": "#e3e2e0",
+                        "outline": "#75777a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#d1e8dd",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3130",
+                        "on-tertiary-container": "#73897f",
+                        "primary-container": "#1a1c1e",
+                        "on-tertiary-fixed": "#0b1f18",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#fe6d5e",
+                        "on-secondary-container": "#6e0003",
+                        "surface-bright": "#faf9f7",
+                        "surface-tint": "#5d5e61",
+                        "surface-container-high": "#e9e8e6",
+                        "secondary": "#ac3228",
+                        "tertiary-fixed-dim": "#b5ccc1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#374b43",
+                        "inverse-on-surface": "#f1f1ef",
+                        "secondary-fixed": "#ffdad5",
+                        "on-primary-fixed": "#1a1c1e",
+                        "on-background": "#1a1c1b",
+                        "surface-container-low": "#f4f3f1",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#454749"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "header-height": "72px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "container-max": "1280px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        .shadow-elevation-2 {
+            box-shadow: 0px 4px 20px rgba(26, 28, 30, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface dark:bg-surface-container-lowest h-[72px] border-b border-outline-variant dark:border-outline">
+<div class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-header-height max-w-container-max mx-auto">
+<div class="flex items-center gap-8">
+<a class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed" href="#">HypeHeritage</a>
+<nav class="hidden md:flex gap-6">
+<a class="text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-secondary dark:hover:text-secondary-container transition-colors" href="#">K-트렌드</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-secondary dark:hover:text-secondary-container transition-colors" href="#">K-가이드</a>
+<a class="text-primary dark:text-primary-fixed font-bold border-b-2 border-secondary opacity-80 transition-all duration-200" href="#">저장한 여행</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-label-md font-label-md text-on-surface-variant hidden md:block">KO / EN</span>
+<button aria-label="Account" class="text-on-surface-variant hover:text-secondary transition-colors">
+<span class="material-symbols-outlined text-[24px]">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-grow pt-[104px] pb-16 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full flex flex-col lg:flex-row gap-gutter">
+<!-- Left Content Area (Planner) -->
+<div class="flex-grow w-full lg:w-2/3 flex flex-col gap-8">
+<!-- Category Navigation & Title -->
+<div class="flex flex-col gap-6">
+<!-- Smart Planner Steps / Categories -->
+<div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+<button class="px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap bg-surface">일정 &amp; 예산</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap bg-surface">교통</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap bg-surface">숙박</button>
+<button class="px-4 py-2 rounded-full border-none bg-primary text-on-primary font-label-md text-label-md whitespace-nowrap shadow-elevation-2">음식</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap bg-surface">쇼핑</button>
+<button class="px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-md text-label-md whitespace-nowrap bg-surface">액티비티</button>
+</div>
+<!-- City Selector (Context) -->
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">location_on</span>
+<span class="font-label-md text-label-md text-on-surface-variant">서울 (Seoul)</span>
+</div>
+<div>
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">서울 식사 예산</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mt-2">먹고 싶은 음식이 따로 없다면...</p>
+</div>
+</div>
+<!-- Base Meal Plan Card -->
+<div class="bg-surface-container-lowest border border-surface-variant rounded-xl p-6 shadow-elevation-2">
+<div class="flex justify-between items-start mb-6">
+<h2 class="font-headline-md text-headline-md text-on-surface">스탠다드 식사 플랜</h2>
+<span class="font-label-sm text-label-sm px-2 py-1 bg-[#E8E2D9] text-[#1A1C1E] rounded">추천</span>
+</div>
+<!-- Meal Rows -->
+<div class="flex flex-col gap-0 border-t border-outline-variant">
+<div class="flex flex-col sm:flex-row justify-between py-4 border-b border-surface-variant gap-2 sm:gap-0">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-weight="fill">bakery_dining</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">아침 (Breakfast) <span class="text-on-surface-variant font-body-sm text-body-sm ml-1">x 3</span></p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">간단한 베이커리, 샌드위치, 카페 등</p>
+</div>
+</div>
+<div class="text-right sm:text-left">
+<span class="font-body-md text-body-md text-on-surface-variant block">~ ₩30,000 / 일</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row justify-between py-4 border-b border-surface-variant gap-2 sm:gap-0">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-weight="fill">ramen_dining</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">점심 (Lunch) <span class="text-on-surface-variant font-body-sm text-body-sm ml-1">x 3</span></p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">김밥, 떡볶이, 냉면 등 캐주얼 한식</p>
+</div>
+</div>
+<div class="text-right sm:text-left">
+<span class="font-body-md text-body-md text-on-surface-variant block">~ ₩45,000 / 일</span>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row justify-between py-4 border-b border-surface-variant gap-2 sm:gap-0">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant" data-weight="fill">restaurant</span>
+<div>
+<p class="font-label-md text-label-md text-on-surface">저녁 (Dinner) <span class="text-on-surface-variant font-body-sm text-body-sm ml-1">x 3</span></p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">삼겹살, 치맥, 찌개 등 든든한 식사</p>
+</div>
+</div>
+<div class="text-right sm:text-left">
+<span class="font-body-md text-body-md text-on-surface-variant block">~ ₩80,000 / 일</span>
+</div>
+</div>
+</div>
+<!-- Total & Actions -->
+<div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-surface-container-low p-4 rounded-lg">
+<div class="text-center sm:text-left">
+<p class="font-label-sm text-label-sm text-on-surface-variant">예상 총액 (3일 기준)</p>
+<p class="font-headline-md text-headline-md text-primary font-bold">₩286,000 <span class="text-body-sm font-body-sm text-on-surface-variant font-normal">(₩240k - ₩340k)</span></p>
+</div>
+<div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+<button class="px-6 py-3 rounded-lg border border-primary-container text-primary-container font-label-md text-label-md hover:bg-surface-variant transition-colors w-full sm:w-auto">식사 수준 조정</button>
+<button class="px-6 py-3 rounded-lg bg-[#E55B4D] text-white font-label-md text-label-md font-bold shadow-elevation-2 hover:opacity-90 transition-opacity w-full sm:w-auto">기본 식사 플랜 적용</button>
+</div>
+</div>
+</div>
+<!-- Food Wishlist Section (Bento Grid Style) -->
+<div class="mt-8">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6">꼭 먹어보고 싶은 음식이 있나요?</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Card 1 -->
+<div class="relative rounded-xl overflow-hidden group cursor-pointer h-64 border border-outline-variant shadow-elevation-2">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A high-end editorial photo of traditional Korean food like bibimbap and banchan set on a clean minimalist table, well-lit with soft natural light, conveying a modern culinary experience, light mode aesthetic, high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz-VoVCd4GH3_D4PwfVASC8zbnIfccPOLKUbgC6pv7aR0REKQreKk7EjwHHJfbgpbOJr0xYfT7aTn69gCJbbneUMEqjV2H81llMeLjmWoava5KdpXgIosSYmrNwArC2O4JLTSTt070FpIswxbCzp7wo3jC2CGaffvjhkBcf0qKmoyuYyYyROAwqU52hhUUIVLOomauXxiSe52b6EaPmCn1mQWX0j67rg-BjlHeMMz3cp5DS3zsuV4"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4 w-full">
+<h4 class="font-headline-sm text-headline-sm text-white font-bold mb-1">한국 대표 음식</h4>
+<div class="flex justify-between items-center">
+<p class="font-body-sm text-body-sm text-white/80">비빔밥, 불고기, 김치찌개 등</p>
+<span class="bg-white/20 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-full border border-white/30">12 items</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="relative rounded-xl overflow-hidden group cursor-pointer h-64 border border-outline-variant shadow-elevation-2">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A modern editorial photo of popular Korean street food like tteokbokki and fried chicken served in clean, contemporary packaging, bright minimalist background, appetizing and approachable, soft lighting, light mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKC8K8dV_I3ZBT50e6VIckj-CvBn1VJFhM71Qa4e2_POdD0KjD11zOVBsW6DIRsg4EvaR27Jwix-JaYk0HKYQu16a80OXj_-LZ7TDQFltVCqYYtmHsQKYf7fIEZdmrlF_JT5SZPTUHuYsB9CoVrc1BMocdp_zU-G6dTURVHbwJE593-8d0XVyfEtkAU4emhCG2JCDgDCVLIDB4hg4pnOUA9ZOAnf60ye0iVszZN9qtffG6R9v5w38"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4 w-full">
+<h4 class="font-headline-sm text-headline-sm text-white font-bold mb-1">외국인 인기 음식</h4>
+<div class="flex justify-between items-center">
+<p class="font-body-sm text-body-sm text-white/80">코리안 바베큐, 치맥, 떡볶이</p>
+<span class="bg-white/20 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-full border border-white/30">8 items</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="relative rounded-xl overflow-hidden group cursor-pointer h-64 border border-outline-variant shadow-elevation-2">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A highly stylized shot of trendy Korean desserts like tanghulu and croffles, set against a pristine pastel background, minimalist cafe aesthetic, bright and airy, highly detailed, light mode styling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQ--v86E459C8iiJe-swub7xbMMH8kLHf7dfB3mu30CjUePHzrMB-djpPOUEAl2GimQ-fICA0iMD-5JqbDTwpBRYeuNhwcajGwmE9wnbrUwO3HUueJ9WUMN6AHZleIpHPsuE4g8V0tHnP0l3bcD2AO8QI3YGEwsG1VCA7kGgWH-YUW0pwZgCRvkEKYD5mqE5SjFONH3zdmIxQ0HaXwUqauYBry-DysPT_DBJEG7mC_cGEmuXh0TtY"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4 w-full">
+<h4 class="font-headline-sm text-headline-sm text-white font-bold mb-1">한국의 요즘 유행 음식</h4>
+<div class="flex justify-between items-center">
+<p class="font-body-sm text-body-sm text-white/80">탕후루, 마라탕, 크로플 등</p>
+<span class="bg-white/20 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-full border border-white/30">15 items</span>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="relative rounded-xl overflow-hidden group cursor-pointer h-64 border border-outline-variant shadow-elevation-2">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="An elegant photo of Seoul specialty foods like seolleongtang served in fine ceramic bowls on a sleek minimalist table, professional editorial lighting, conveying heritage and quality, light mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtfxbD0tJ58mfrtmcy5hILaERY_OJsDxUErxT0epCuCCYBzrdCOCrKYZA1uSSfhO_oLJ7BGPGygTV2ZXlfgwlPIpEp3zx-aJ0unMShTyN5fKXH1W0lTiE1QqO9WA45W_2XmB3niqmtyH4nEm2XRaxYuzr2unmdydVVjpbhBhPzL46HzotTkvx5l6UF0oskOaAH4cjx2Cd0kv_3ByUTFZPkyZ5tkg3cXv487lJYgeekomYvrv80UYE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-4 w-full">
+<h4 class="font-headline-sm text-headline-sm text-white font-bold mb-1">서울 대표 음식</h4>
+<div class="flex justify-between items-center">
+<p class="font-body-sm text-body-sm text-white/80">설렁탕, 평양냉면, 족발</p>
+<span class="bg-white/20 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-full border border-white/30">10 items</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Content Area (Sticky Receipt) -->
+<aside class="w-full lg:w-1/3 relative">
+<div class="sticky top-[104px] bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-elevation-2 flex flex-col h-[calc(100vh-140px)]">
+<div class="flex justify-between items-center mb-6 pb-4 border-b border-surface-variant">
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">예상 여행 예산</h3>
+<span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
+</div>
+<div class="flex-grow overflow-y-auto pr-2 custom-scrollbar">
+<!-- Global Section -->
+<div class="mb-6">
+<h4 class="font-label-md text-label-md text-on-surface-variant mb-3 uppercase tracking-wider">기본 항목 (전체)</h4>
+<div class="flex justify-between items-center mb-2">
+<span class="font-body-md text-body-md text-on-surface">왕복 항공권 (가상)</span>
+<span class="font-label-md text-label-md text-on-surface">₩1,200,000</span>
+</div>
+</div>
+<!-- Seoul Section -->
+<div class="mb-6">
+<div class="flex items-center gap-2 mb-3">
+<span class="w-2 h-2 rounded-full bg-[#E55B4D]"></span>
+<h4 class="font-label-md text-label-md text-on-surface font-bold">서울 (3일)</h4>
+</div>
+<!-- Added Food Base Plan -->
+<div class="flex justify-between items-center mb-2 pl-4 border-l-2 border-[#8DA399] py-1 bg-surface-container-low rounded-r">
+<div>
+<span class="font-body-md text-body-md text-on-surface block">음식: 스탠다드 식사 플랜</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">3일 기본 식대</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface">₩286,000</span>
+</div>
+<!-- Placeholders for other categories -->
+<div class="flex justify-between items-center mb-2 pl-4 border-l-2 border-surface-variant py-1">
+<span class="font-body-md text-body-md text-on-surface-variant italic">숙박 (미정)</span>
+<span class="font-label-md text-label-md text-on-surface-variant">-</span>
+</div>
+</div>
+</div>
+<!-- Total Area -->
+<div class="pt-4 border-t border-surface-variant mt-auto">
+<div class="flex justify-between items-end mb-4">
+<span class="font-body-lg text-body-lg text-on-surface">총 예상 금액</span>
+<span class="font-headline-lg text-headline-lg text-primary font-bold">₩1,486,000</span>
+</div>
+<!-- Budget Progress -->
+<div class="mb-4">
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant mb-1">
+<span>예산 한도: ₩2,500,000</span>
+<span>남은 예산: ₩1,014,000</span>
+</div>
+<div class="w-full h-1 bg-[#E8E2D9] rounded-full overflow-hidden">
+<div class="h-full bg-[#8DA399]" style="width: 59%;"></div>
+</div>
+</div>
+<button class="w-full py-3 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary/90 transition-colors">다음 단계: 숙박 선택</button>
+</div>
+</div>
+</aside>
+</main>
+<!-- Footer -->
+<footer class="w-full py-8 px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4 bg-surface-container-low dark:bg-surface-container-highest border-t border-outline-variant dark:border-outline">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">HypeHeritage</div>
+<div class="flex gap-4 font-body-sm text-body-sm text-on-surface-variant dark:text-on-surface-variant">
+<a class="hover:text-secondary dark:hover:text-secondary-container underline Transition-opacity duration-150" href="#">Intro</a>
+<a class="hover:text-secondary dark:hover:text-secondary-container underline Transition-opacity duration-150" href="#">Terms</a>
+<a class="hover:text-secondary dark:hover:text-secondary-container underline Transition-opacity duration-150" href="#">Privacy</a>
+<a class="hover:text-secondary dark:hover:text-secondary-container underline Transition-opacity duration-150" href="#">Region: 대한민국</a>
+</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant dark:text-on-surface-variant">© 2024 HypeHeritage. All rights reserved.</div>
+</footer>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #e3e2e0;
+            border-radius: 20px;
+        }
+    </style>
+</body></html>

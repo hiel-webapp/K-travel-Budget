@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html class="light" lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>HypeHeritage - Smart Planner</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#000101",
+                        "on-surface-variant": "#44474a",
+                        "on-primary-container": "#838486",
+                        "primary-fixed-dim": "#c6c6c9",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dadad8",
+                        "primary-fixed": "#e2e2e5",
+                        "on-surface": "#1a1c1b",
+                        "tertiary-container": "#0b1f18",
+                        "secondary-fixed-dim": "#ffb4aa",
+                        "on-secondary-fixed": "#410001",
+                        "surface-container": "#efeeec",
+                        "surface-variant": "#e3e2e0",
+                        "on-secondary-fixed-variant": "#8b1914",
+                        "tertiary": "#000000",
+                        "outline-variant": "#c5c6ca",
+                        "error-container": "#ffdad6",
+                        "surface": "#faf9f7",
+                        "surface-container-highest": "#e3e2e0",
+                        "outline": "#75777a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#d1e8dd",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3130",
+                        "on-tertiary-container": "#73897f",
+                        "primary-container": "#1a1c1e",
+                        "on-tertiary-fixed": "#0b1f18",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#fe6d5e",
+                        "on-secondary-container": "#6e0003",
+                        "surface-bright": "#faf9f7",
+                        "surface-tint": "#5d5e61",
+                        "surface-container-high": "#e9e8e6",
+                        "secondary": "#ac3228",
+                        "tertiary-fixed-dim": "#b5ccc1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#374b43",
+                        "inverse-on-surface": "#f1f1ef",
+                        "secondary-fixed": "#ffdad5",
+                        "on-primary-fixed": "#1a1c1e",
+                        "on-background": "#1a1c1b",
+                        "surface-container-low": "#f4f3f1",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#454749"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "header-height": "72px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "container-max": "1280px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Hanken Grotesk', sans-serif; background-color: #faf9f7; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col pt-header-height">
+    <!-- TopNavBar -->
+    <header class="bg-surface dark:bg-surface-container-lowest border-b border-outline-variant fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-[72px] max-w-container-max mx-auto">
+        <div class="flex items-center">
+            <a class="font-headline-lg text-headline-lg font-bold text-primary" href="index.html">HypeHeritage</a>
+        </div>
+        <nav class="hidden md:flex gap-8">
+            <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="trend.html">K-트렌드</a>
+            <a class="text-on-surface-variant font-medium hover:text-secondary transition-colors" href="meal_plan.html">K-가이드</a>
+            <a class="text-primary font-bold border-b-2 border-secondary opacity-80 transition-all duration-200" href="#">저장한 여행</a>
+        </nav>
+        <div class="flex items-center gap-4">
+            <span class="font-label-md text-label-md text-primary">KO / EN</span>
+            <button class="text-primary hover:text-secondary transition-colors">
+                <span class="material-symbols-outlined">account_circle</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+            <!-- Left Column: Planning Flow -->
+            <div class="lg:col-span-8 flex flex-col gap-8">
+                <!-- Header -->
+                <div>
+                    <a class="inline-flex items-center text-on-surface-variant hover:text-secondary mb-4 font-label-md text-label-md transition-colors" href="meal_plan.html">
+                        <span class="material-symbols-outlined mr-2">arrow_back</span>
+                        Back to Search
+                    </a>
+                    <h1 class="font-display-lg-mobile md:font-display-lg text-primary mb-2">먹고 싶은 음식을 식사 플랜에 추가하기</h1>
+                    <p class="font-body-md text-body-md text-on-surface-variant">선택하신 식사는 스탠다드 저녁 1회를 대체하게 됩니다.</p>
+                </div>
+
+                <!-- Selected Food Card -->
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 flex flex-col md:flex-row gap-6 shadow-[0px_4px_20px_rgba(26,28,30,0.04)]">
+                    <div class="w-full md:w-1/3 aspect-[4/3] rounded-lg overflow-hidden flex-shrink-0">
+                        <img class="w-full h-full object-cover" alt="Samgyeopsal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_fVYu9MfeT0EtxFYAPPCjzBIbIht1YZ7NAZfSCkHVLDGBOE_VvHt7jpKkxt3za4UFPSPjntICuvoNYMUiEQnwqh9kankU7r8s3K0qNBT534i15_5j-oc_3Z97LT1oRINqL59zY-r3Fex2bqgYsZNQZGjsRLAN58rDYH790kG6oaF8ZpICkcXQHp-r7nkkHy1dMl9CJnUVPpRwjtaHIvN-NZzcri5RCldEZrTmUSB-9P8r0rZ3X-8"/>
+                    </div>
+                    <div class="flex flex-col justify-between flex-grow">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h2 class="font-headline-md text-headline-md text-primary">삼겹살 (Samgyeopsal)</h2>
+                                <span class="bg-[#E8E2D9] text-[#1A1C1E] font-label-sm text-label-sm px-2 py-1 rounded-full flex items-center">
+                                    <span class="material-symbols-outlined text-[14px] mr-1">verified</span>
+                                    High Confidence
+                                </span>
+                            </div>
+                            <p class="font-body-md text-body-md text-on-surface-variant mb-4">구운 삼겹살은 한국인의 대표 식사 경험입니다. 상추에 쌈장과 함께 싸 먹으면 가장 맛있습니다.</p>
+                        </div>
+                        <div class="font-headline-md text-headline-md text-primary">
+                            ₩18,000 <span class="font-body-sm text-body-sm text-on-surface-variant">/ 1인분</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignment Panel -->
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
+                    <h3 class="font-headline-md text-headline-md text-primary mb-6 border-b border-outline-variant pb-4">Plan Details</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">도시 (City)</label>
+                            <div class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 font-body-md text-body-md text-primary">서울 (Seoul)</div>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">식사 시간 (Meal Time)</label>
+                            <select id="select-meal-time" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 font-body-md text-body-md text-primary appearance-none">
+                                <option>아침 (Breakfast)</option>
+                                <option>점심 (Lunch)</option>
+                                <option selected>저녁 (Dinner)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">날짜 (Date)</label>
+                            <select class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 font-body-md text-body-md text-primary appearance-none">
+                                <option selected>날짜 자동 배정 (Auto Assign)</option>
+                                <option>Day 1</option>
+                                <option>Day 2</option>
+                                <option>Day 3</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">인원 (People)</label>
+                                <div id="txt-state-people" class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 font-body-md text-body-md text-primary">2명</div>
+                            </div>
+                            <div class="flex-1">
+                                <label class="block font-label-sm text-label-sm text-on-surface-variant mb-2">수량 (Portions)</label>
+                                <select id="select-portions" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 font-body-md text-body-md text-primary appearance-none">
+                                    <option value="1">1인분</option>
+                                    <option value="2" selected>2인분</option>
+                                    <option value="3">3인분</option>
+                                    <option value="4">4인분</option>
+                                    <option value="5">5인분</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-lg flex items-start gap-4">
+                        <span class="material-symbols-outlined text-secondary mt-1">info</span>
+                        <div>
+                            <div id="txt-replacement-notice" class="font-label-md text-label-md text-primary mb-1">기본 식사 플랜의 저녁 1회를 삼겹살로 교체합니다.</div>
+                            <div id="txt-calc-desc" class="font-body-sm text-body-sm text-on-surface-variant">Estimated Calculation: ₩18,000 × 2 portions = ₩36,000</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add-ons Preview -->
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
+                    <h3 class="font-headline-md text-headline-md text-primary mb-6">한국에서는 이렇게 함께 주문하기도 해요</h3>
+                    <div class="flex gap-4 mb-6">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input checked class="text-secondary focus:ring-secondary border-outline-variant" name="addon_mode" type="radio"/>
+                            <span class="font-label-md text-label-md text-primary">메인 메뉴만 반영</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input class="text-secondary focus:ring-secondary border-outline-variant" name="addon_mode" type="radio"/>
+                            <span class="font-label-md text-label-md text-on-surface-variant">추가 메뉴 선택</span>
+                        </label>
+                    </div>
+                    <div class="space-y-4 opacity-60 pointer-events-none">
+                        <div class="flex justify-between items-center py-3 border-b border-outline-variant last:border-0">
+                            <div>
+                                <div class="font-label-md text-label-md text-primary">공기밥 (Bowl of Rice)</div>
+                                <div class="font-body-sm text-body-sm text-on-surface-variant">보통 별도 주문 (Usually ordered separately)</div>
+                            </div>
+                            <div class="font-body-md text-body-md text-primary">+ ₩1,000</div>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-outline-variant last:border-0">
+                            <div>
+                                <div class="font-label-md text-label-md text-primary">된장찌개 (Doenjang Stew)</div>
+                                <div class="font-body-sm text-body-sm text-on-surface-variant">일부 식당 기본 제공, 또는 별도 주문</div>
+                            </div>
+                            <div class="font-body-md text-body-md text-primary">+ ₩3,000 - ₩5,000</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Interactive Receipt Sidebar -->
+            <div class="lg:col-span-4 relative">
+                <div class="sticky top-[104px] bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-[0px_8px_32px_rgba(26,28,30,0.08)] flex flex-col h-[calc(100vh-140px)]">
+                    <h2 class="font-headline-md text-headline-md text-primary mb-6">Estimated Budget</h2>
+                    
+                    <div class="flex-grow overflow-y-auto pr-2">
+                        <!-- Seoul Section -->
+                        <div class="mb-6 border-b border-outline-variant pb-6">
+                            <h3 class="font-label-md text-label-md text-primary mb-4 flex items-center">
+                                <span class="material-symbols-outlined mr-2">location_on</span>
+                                <span id="txt-sidebar-city-nights">Seoul (3 Days)</span>
+                            </h3>
+                            <div class="space-y-4">
+                                <!-- Standard Plan -->
+                                <div>
+                                    <div class="flex justify-between items-end mb-1">
+                                        <div class="font-label-md text-label-md text-on-surface-variant">기본 식사 플랜 (Standard)</div>
+                                        <div id="txt-sidebar-base-cost" class="font-body-sm text-body-sm text-on-surface-variant">₩259,334</div>
+                                    </div>
+                                    <div class="pl-4 border-l-2 border-outline-variant space-y-1 font-body-sm text-body-sm text-on-surface-variant">
+                                        <div class="flex justify-between">
+                                            <span id="txt-detail-breakfast">아침 (Breakfast) x 3</span>
+                                            <span id="txt-detail-breakfast-price">₩60,000</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span id="txt-detail-lunch">점심 (Lunch) x 3</span>
+                                            <span id="txt-detail-lunch-price">₩90,000</span>
+                                        </div>
+                                        <div class="flex justify-between text-[#E55B4D] line-through decoration-1">
+                                            <span id="txt-detail-dinner-old">저녁 (Dinner) x 3</span>
+                                            <span id="txt-detail-dinner-old-price">₩160,000</span>
+                                        </div>
+                                        <div class="flex justify-between font-label-md text-primary">
+                                            <span id="txt-detail-dinner-new">저녁 (Dinner) x 2 <span class="text-xs font-normal text-[#8DA399] ml-1">Updated</span></span>
+                                            <span id="txt-detail-dinner-new-price">₩106,667</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Custom Choices -->
+                                <div>
+                                    <div class="flex justify-between items-end mb-1">
+                                        <div class="font-label-md text-label-md text-primary">먹고 싶은 음식 (Custom)</div>
+                                        <div id="txt-sidebar-custom-cost" class="font-body-md text-body-md text-primary">₩36,000</div>
+                                    </div>
+                                    <div class="pl-4 border-l-2 border-secondary space-y-1 font-body-sm text-body-sm text-on-surface-variant">
+                                        <div class="flex justify-between text-secondary font-medium bg-secondary-container/10 px-2 py-1 -ml-2 rounded">
+                                            <span>삼겹살 (저녁 1회 대체)</span>
+                                            <span id="txt-sidebar-custom-cost2">₩36,000</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accommodation placeholder -->
+                        <div class="mb-6 border-b border-outline-variant pb-6 opacity-50">
+                            <h3 class="font-label-md text-label-md text-primary mb-2">Accommodation (Est.)</h3>
+                            <div class="flex justify-between font-body-sm text-body-sm text-on-surface-variant">
+                                <span id="txt-sidebar-acc-desc">3 Nights x ₩100k</span>
+                                <span id="txt-sidebar-acc-cost">₩300,000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="mt-4 pt-4 border-t border-outline-variant">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="font-headline-md text-headline-md text-primary">Total</span>
+                            <span id="txt-sidebar-total" class="font-headline-md text-headline-md text-primary font-bold">₩1,795,334</span>
+                        </div>
+                        <button id="btn-add-to-plan" class="w-full bg-[#E55B4D] text-white font-label-md text-label-md py-4 rounded-lg hover:bg-opacity-90 transition-opacity">
+                            플랜에 추가하기 (Add to Plan)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-surface-container-low border-t border-outline-variant w-full py-8 px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4 mt-auto">
+        <div class="font-headline-md text-headline-md font-bold text-primary">HypeHeritage</div>
+        <div class="flex gap-6 font-body-sm text-body-sm text-on-surface-variant">
+            <a class="hover:text-secondary underline" href="#">Intro</a>
+            <a class="hover:text-secondary underline" href="#">Terms</a>
+            <a class="hover:text-secondary underline" href="#">Privacy</a>
+            <span>Region: 대한민국</span>
+        </div>
+        <div class="font-body-sm text-body-sm text-on-surface-variant">© 2024 HypeHeritage. All rights reserved.</div>
+    </footer>
+
+    <script>
+        // Load state
+        let state = JSON.parse(localStorage.getItem('k_travel_state'));
+        if (!state) {
+            state = {
+                cities: ["Seoul", "Busan"],
+                nights: 5,
+                seoulNights: 3,
+                busanNights: 2,
+                people: 2,
+                budgetType: "standard",
+                budgetGoal: 1500000,
+                accommodationType: 'standard',
+                hasCustomMeal: false,
+                customMeal: '',
+                customMealPortions: 0,
+                customMealPrice: 0
+            };
+        }
+
+        // Setup DOM state values
+        document.getElementById('txt-state-people').textContent = `${state.people}명`;
+        
+        // Auto-match portions to guest count
+        const selectPortions = document.getElementById('select-portions');
+        selectPortions.value = state.people.toString();
+
+        const txtCalcDesc = document.getElementById('txt-calc-desc');
+        const txtSidebarCityNights = document.getElementById('txt-sidebar-city-nights');
+        const txtSidebarBaseCost = document.getElementById('txt-sidebar-base-cost');
+        const txtSidebarCustomCost = document.getElementById('txt-sidebar-custom-cost');
+        const txtSidebarCustomCost2 = document.getElementById('txt-sidebar-custom-cost2');
+        const txtSidebarTotal = document.getElementById('txt-sidebar-total');
+        
+        const txtDetailBreakfast = document.getElementById('txt-detail-breakfast');
+        const txtDetailBreakfastPrice = document.getElementById('txt-detail-breakfast-price');
+        const txtDetailLunch = document.getElementById('txt-detail-lunch');
+        const txtDetailLunchPrice = document.getElementById('txt-detail-lunch-price');
+        const txtDetailDinnerOld = document.getElementById('txt-detail-dinner-old');
+        const txtDetailDinnerOldPrice = document.getElementById('txt-detail-dinner-old-price');
+        const txtDetailDinnerNew = document.getElementById('txt-detail-dinner-new');
+        const txtDetailDinnerNewPrice = document.getElementById('txt-detail-dinner-new-price');
+        
+        const txtSidebarAccDesc = document.getElementById('txt-sidebar-acc-desc');
+        const txtSidebarAccCost = document.getElementById('txt-sidebar-acc-cost');
+
+        const btnAddToPlan = document.getElementById('btn-add-to-plan');
+
+        function formatKRW(val) {
+            return '₩' + Math.round(val).toLocaleString('ko-KR');
+        }
+
+        function recalculate() {
+            const portions = parseInt(selectPortions.value, 10);
+            const customPrice = 18000 * portions;
+            
+            txtCalcDesc.textContent = `Estimated Calculation: ₩18,000 × ${portions} portions = ${formatKRW(customPrice)}`;
+            txtSidebarCustomCost.textContent = formatKRW(customPrice);
+            txtSidebarCustomCost2.textContent = formatKRW(customPrice);
+
+            // Nights variables
+            const nights = state.seoulNights;
+            txtSidebarCityNights.textContent = `Seoul (${nights} Days)`;
+
+            // Base meal calculations (1 day per 2 people budget: ₩286,000 / 3)
+            // Break down:
+            // Breakfast: ₩10,000 per person
+            // Lunch: ₩15,000 per person
+            // Dinner: ₩80,000 / 3 per person = ~₩26,666 per person
+            const breakfastRate = 10000 * state.people;
+            const lunchRate = 15000 * state.people;
+            const dinnerRate = (286000 / 3) * (state.people / 2) - (breakfastRate + lunchRate); // ~₩26,666 for 2 people
+
+            const totalBreakfast = breakfastRate * nights;
+            const totalLunch = lunchRate * nights;
+            const totalDinnerOld = dinnerRate * nights;
+            const totalDinnerNew = dinnerRate * (nights - 1);
+
+            txtDetailBreakfast.textContent = `아침 (Breakfast) x ${nights}`;
+            txtDetailBreakfastPrice.textContent = formatKRW(totalBreakfast);
+
+            txtDetailLunch.textContent = `점심 (Lunch) x ${nights}`;
+            txtDetailLunchPrice.textContent = formatKRW(totalLunch);
+
+            txtDetailDinnerOld.textContent = `저녁 (Dinner) x ${nights}`;
+            txtDetailDinnerOldPrice.textContent = formatKRW(totalDinnerOld);
+
+            txtDetailDinnerNew.textContent = `저녁 (Dinner) x ${nights - 1}`;
+            txtDetailDinnerNewPrice.textContent = formatKRW(totalDinnerNew);
+
+            const baseMealTotal = totalBreakfast + totalLunch + totalDinnerNew;
+            txtSidebarBaseCost.textContent = formatKRW(baseMealTotal);
+
+            // Acc cost (Est)
+            const accRate = 100000 * (state.people / 2); // 100k per room
+            const accTotal = accRate * nights;
+            txtSidebarAccDesc.textContent = `${nights} Nights x ₩${(accRate/1000).toFixed(0)}k`;
+            txtSidebarAccCost.textContent = formatKRW(accTotal);
+
+            // Flights (Fixed 1.2M)
+            const flightsCost = 1200000;
+            const totalEst = flightsCost + baseMealTotal + customPrice + accTotal;
+            txtSidebarTotal.textContent = formatKRW(totalEst);
+        }
+
+        selectPortions.addEventListener('change', recalculate);
+        recalculate();
+
+        btnAddToPlan.addEventListener('click', () => {
+            const portions = parseInt(selectPortions.value, 10);
+            const customPrice = 18000 * portions;
+
+            state.hasCustomMeal = true;
+            state.customMeal = "삼겹살";
+            state.customMealPortions = portions;
+            state.customMealPrice = customPrice;
+
+            localStorage.setItem('k_travel_state', JSON.stringify(state));
+            window.location.href = 'accommodation_select.html';
+        });
+    </script>
+</body>
+</html>

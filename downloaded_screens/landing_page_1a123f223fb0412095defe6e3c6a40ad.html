@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HypeHeritage - Minimal Landing Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#000101",
+                        "on-surface-variant": "#44474a",
+                        "on-primary-container": "#838486",
+                        "primary-fixed-dim": "#c6c6c9",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#dadad8",
+                        "primary-fixed": "#e2e2e5",
+                        "on-surface": "#1a1c1b",
+                        "tertiary-container": "#0b1f18",
+                        "secondary-fixed-dim": "#ffb4aa",
+                        "on-secondary-fixed": "#410001",
+                        "surface-container": "#efeeec",
+                        "surface-variant": "#e3e2e0",
+                        "on-secondary-fixed-variant": "#8b1914",
+                        "tertiary": "#000000",
+                        "outline-variant": "#c5c6ca",
+                        "error-container": "#ffdad6",
+                        "surface": "#faf9f7",
+                        "surface-container-highest": "#e3e2e0",
+                        "outline": "#75777a",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#d1e8dd",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2f3130",
+                        "on-tertiary-container": "#73897f",
+                        "primary-container": "#1a1c1e",
+                        "on-tertiary-fixed": "#0b1f18",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#c6c6c9",
+                        "background": "#faf9f7",
+                        "secondary-container": "#fe6d5e",
+                        "on-secondary-container": "#6e0003",
+                        "surface-bright": "#faf9f7",
+                        "surface-tint": "#5d5e61",
+                        "surface-container-high": "#e9e8e6",
+                        "secondary": "#ac3228",
+                        "tertiary-fixed-dim": "#b5ccc1",
+                        "on-error": "#ffffff",
+                        "on-tertiary-fixed-variant": "#374b43",
+                        "inverse-on-surface": "#f1f1ef",
+                        "secondary-fixed": "#ffdad5",
+                        "on-primary-fixed": "#1a1c1e",
+                        "on-background": "#1a1c1b",
+                        "surface-container-low": "#f4f3f1",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#454749",
+                        "brand-coral": "#E55B4D",
+                        "brand-navy": "#1A1C1E",
+                        "brand-sage": "#8DA399",
+                        "brand-beige": "#E8E2D9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "card": "16px"
+                    },
+                    "spacing": {
+                        "header-height": "72px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "container-max": "1280px",
+                        "margin-mobile": "16px",
+                        "card-padding": "24px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Hanken Grotesk"],
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"],
+                        "label-md": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }]
+                    },
+                    "boxShadow": {
+                        "soft": "0px 4px 20px rgba(26, 28, 30, 0.04)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .madlib-input {
+            transition: all 0.2s ease;
+        }
+        .madlib-input:hover {
+            background-color: theme('colors.surface-container');
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col pt-header-height">
+<!-- TopNavBar Shared Component -->
+<header class="bg-surface dark:bg-surface-container-lowest fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-mobile md:px-margin-desktop h-header-height max-w-container-max mx-auto border-b border-outline-variant dark:border-outline flat no shadows">
+<!-- Logo -->
+<div class="font-headline-lg text-headline-lg font-bold text-primary dark:text-primary-fixed">
+            HypeHeritage
+        </div>
+<!-- Desktop Navigation -->
+<nav class="hidden md:flex items-center space-x-8">
+<a class="text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-secondary dark:hover:text-secondary-container transition-colors font-label-md text-label-md" href="#">K-트렌드</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-secondary dark:hover:text-secondary-container transition-colors font-label-md text-label-md" href="#">K-가이드</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant font-medium hover:text-secondary dark:hover:text-secondary-container transition-colors font-label-md text-label-md" href="#">저장한 여행</a>
+</nav>
+<!-- Trailing Actions -->
+<div class="flex items-center space-x-4">
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">KO / EN</button>
+<button class="text-primary dark:text-on-surface hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col items-center justify-center px-margin-mobile md:px-margin-desktop py-12 md:py-24 max-w-container-max mx-auto w-full">
+<!-- Hero Section -->
+<div class="text-center mb-16 space-y-4 max-w-3xl">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary tracking-tight">HypeHeritage</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">현지인처럼 선택하고, 믿을 수 있게 예산을 세워보세요.</p>
+</div>
+<!-- Interactive Mad-libs Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-card p-6 md:p-12 w-full max-w-4xl shadow-soft hover:shadow-md transition-shadow duration-300">
+<div class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary leading-relaxed text-center mb-8 flex flex-wrap justify-center items-baseline gap-y-4 gap-x-2">
+<button class="madlib-input border-b-2 border-outline-variant text-brand-navy pb-1 px-2 hover:border-brand-navy focus:outline-none focus:border-brand-navy bg-surface-container-lowest hover:bg-surface-container rounded-t-sm">서울과 부산</button>
+<span>으로</span>
+<button class="madlib-input border-b-2 border-outline-variant text-brand-navy pb-1 px-2 hover:border-brand-navy focus:outline-none focus:border-brand-navy bg-surface-container-lowest hover:bg-surface-container rounded-t-sm">5박</button>
+<span>동안</span>
+<button class="madlib-input border-b-2 border-outline-variant text-brand-navy pb-1 px-2 hover:border-brand-navy focus:outline-none focus:border-brand-navy bg-surface-container-lowest hover:bg-surface-container rounded-t-sm">성인 2명</button>
+<span>이</span>
+<button class="madlib-input border-b-2 border-outline-variant text-brand-navy pb-1 px-2 hover:border-brand-navy focus:outline-none focus:border-brand-navy bg-surface-container-lowest hover:bg-surface-container rounded-t-sm">스탠다드 예산</button>
+<span>으로 여행할 예정이에요.</span>
+</div>
+<div class="text-center font-body-md text-body-md text-on-surface-variant mb-12">
+                서울 3박 · 부산 2박
+            </div>
+<div class="flex flex-col items-center gap-4">
+<button class="bg-brand-coral hover:bg-secondary-container text-on-primary font-label-md text-label-md font-bold py-4 px-8 rounded-lg shadow-sm hover:shadow-soft transition-all duration-200">
+                    내 한국 여행 예산 만들기
+                </button>
+<p class="font-body-sm text-body-sm text-outline">결제 없이 첫 번째 여행 예산을 만들어볼 수 있어요.</p>
+</div>
+</div>
+</main>
+<!-- Footer Shared Component -->
+<footer class="bg-surface-container-low dark:bg-surface-container-highest w-full py-8 px-margin-mobile md:px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4 border-t border-outline-variant dark:border-outline mt-auto">
+<div class="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">HypeHeritage</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant dark:text-on-surface-variant">© 2026 HypeHeritage. All rights reserved.</span>
+<div class="flex gap-4">
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-container underline transition-opacity duration-150" href="#">Intro</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-container underline transition-opacity duration-150" href="#">Terms</a>
+<a class="font-label-sm text-label-sm text-on-surface-variant dark:text-on-surface-variant hover:text-secondary dark:hover:text-secondary-container underline transition-opacity duration-150" href="#">Privacy</a>
+</div>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant dark:text-on-surface-variant">
+            Region: 대한민국
+        </div>
+</footer>
+</body></html>

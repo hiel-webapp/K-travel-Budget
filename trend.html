@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html class="light" lang="ko">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>K-트렌드 | HypeHeritage</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#000101",
+                      "on-surface-variant": "#44474a",
+                      "on-primary-container": "#838486",
+                      "primary-fixed-dim": "#c6c6c9",
+                      "on-error-container": "#93000a",
+                      "error": "#ba1a1a",
+                      "surface-dim": "#dadad8",
+                      "primary-fixed": "#e2e2e5",
+                      "on-surface": "#1a1c1b",
+                      "tertiary-container": "#0b1f18",
+                      "secondary-fixed-dim": "#ffb4aa",
+                      "on-secondary-fixed": "#410001",
+                      "surface-container": "#efeeec",
+                      "surface-variant": "#e3e2e0",
+                      "on-secondary-fixed-variant": "#8b1914",
+                      "tertiary": "#000000",
+                      "outline-variant": "#c5c6ca",
+                      "error-container": "#ffdad6",
+                      "surface": "#faf9f7",
+                      "surface-container-highest": "#e3e2e0",
+                      "outline": "#75777a",
+                      "on-secondary": "#ffffff",
+                      "tertiary-fixed": "#d1e8dd",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#2f3130",
+                      "on-tertiary-container": "#73897f",
+                      "primary-container": "#1a1c1e",
+                      "on-tertiary-fixed": "#0b1f18",
+                      "on-primary": "#ffffff",
+                      "inverse-primary": "#c6c6c9",
+                      "background": "#faf9f7",
+                      "secondary-container": "#fe6d5e",
+                      "on-secondary-container": "#6e0003",
+                      "surface-bright": "#faf9f7",
+                      "surface-tint": "#5d5e61",
+                      "surface-container-high": "#e9e8e6",
+                      "secondary": "#ac3228",
+                      "tertiary-fixed-dim": "#b5ccc1",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed-variant": "#374b43",
+                      "inverse-on-surface": "#f1f1ef",
+                      "secondary-fixed": "#ffdad5",
+                      "on-primary-fixed": "#1a1c1e",
+                      "on-background": "#1a1c1b",
+                      "surface-container-low": "#f4f3f1",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#454749"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "header-height": "72px",
+                      "unit": "8px",
+                      "gutter": "24px",
+                      "margin-desktop": "40px",
+                      "container-max": "1280px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "body-md": ["Hanken Grotesk"],
+                      "display-lg-mobile": ["Hanken Grotesk"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "body-sm": ["Hanken Grotesk"],
+                      "label-md": ["Hanken Grotesk"],
+                      "body-lg": ["Hanken Grotesk"],
+                      "headline-lg": ["Hanken Grotesk"],
+                      "label-sm": ["Hanken Grotesk"]
+              },
+              "fontSize": {
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "label-sm": ["12px", {"lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500"}]
+              }
+            },
+          }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F9F8F6;
+            color: #1a1c1b;
+            -webkit-font-smoothing: antialiased;
+        }
+        .surface-card {
+            background-color: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            border-radius: 16px;
+        }
+        .hover-elevate:hover {
+            box-shadow: 0px 4px 20px rgba(26, 28, 30, 0.04);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background-color: #E55B4D;
+            color: #FFFFFF;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .btn-secondary {
+            border: 1px solid #1A1C1E;
+            color: #1A1C1E;
+            border-radius: 8px;
+            background-color: transparent;
+        }
+        .chip-sage {
+            background-color: #8DA399;
+            color: #1A1C1E;
+            border-radius: 9999px;
+            padding: 4px 12px;
+            font-weight: 600;
+        }
+        .chip-beige {
+            background-color: #E8E2D9;
+            color: #1A1C1E;
+            border-radius: 9999px;
+            padding: 4px 12px;
+            font-weight: 600;
+        }
+        .input-minimal {
+            background-color: #FFFFFF;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+        }
+        .input-minimal:focus {
+            border-color: #1A1C1E;
+            box-shadow: inset 0 0 0 2px rgba(26, 28, 30, 0.1);
+            outline: none;
+        }
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        @media (max-width: 767px) {
+            .editorial-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 16px;
+            }
+        }
+        .col-span-full { grid-column: 1 / -1; }
+        .col-span-half { grid-column: span 6; }
+        .col-span-third { grid-column: span 4; }
+    </style>
+</head>
+<body class="font-body-md text-body-md text-on-background min-h-screen flex flex-col pt-[72px]">
+    <!-- TopNavBar -->
+    <header class="bg-surface dark:bg-surface-container-lowest border-b border-outline-variant fixed top-0 left-0 w-full z-50 flex justify-between items-center px-margin-desktop h-header-height max-w-container-max mx-auto md:px-margin-desktop px-margin-mobile">
+        <div class="flex items-center gap-8">
+            <a class="font-headline-lg text-headline-lg font-bold text-primary tracking-tight" href="index.html">HypeHeritage</a>
+            <nav class="hidden md:flex gap-6 items-center">
+                <a class="text-primary font-bold border-b-2 border-secondary font-label-md text-label-md py-1 opacity-80 transition-all duration-200" href="trend.html">K-트렌드</a>
+                <a class="text-on-surface-variant font-medium font-label-md text-label-md hover:text-secondary transition-colors py-1" href="meal_plan.html">K-가이드</a>
+                <a class="text-on-surface-variant font-medium font-label-md text-label-md hover:text-secondary transition-colors py-1" href="#">저장한 여행</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="font-label-md text-label-md text-on-surface hover:text-secondary transition-colors">KO / EN</button>
+            <button class="text-on-surface hover:text-secondary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container-low">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-grow w-full max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-12 flex flex-col gap-12">
+        <!-- Page Header Section -->
+        <section class="flex flex-col gap-4">
+            <p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">지금 한국이 주목하는 것</p>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary">K-트렌드</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">update</span> 매주 업데이트
+                </p>
+            </div>
+            <hr class="border-t border-outline-variant/30 mt-4"/>
+        </section>
+
+        <!-- Filter Bar -->
+        <section class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 surface-card p-4">
+            <div class="flex flex-wrap gap-2 w-full lg:w-auto">
+                <!-- Location Select -->
+                <div class="relative">
+                    <select class="appearance-none input-minimal font-label-sm text-label-sm py-2 pl-3 pr-8 w-full min-w-[120px] cursor-pointer">
+                        <option>전국 (All)</option>
+                        <option>서울 (Seoul)</option>
+                        <option>부산 (Busan)</option>
+                        <option>제주 (Jeju)</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[18px] text-on-surface-variant">expand_more</span>
+                </div>
+                <!-- Topic Select -->
+                <div class="relative">
+                    <select class="appearance-none input-minimal font-label-sm text-label-sm py-2 pl-3 pr-8 w-full min-w-[140px] cursor-pointer">
+                        <option>모든 주제 (All Topics)</option>
+                        <option>음식 (Food)</option>
+                        <option>카페 (Cafe)</option>
+                        <option>장소 (Places)</option>
+                        <option>문화 (Culture)</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[18px] text-on-surface-variant">expand_more</span>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+                <div class="relative w-full sm:w-64">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+                    <input class="input-minimal font-body-sm text-body-sm py-2 pl-9 pr-3 w-full" placeholder="트렌드 검색..." type="text"/>
+                </div>
+                <div class="relative">
+                    <select class="appearance-none input-minimal font-label-sm text-label-sm py-2 pl-3 pr-8 w-full sm:w-auto min-w-[120px] cursor-pointer bg-surface-container-low">
+                        <option>인기순</option>
+                        <option>최신순</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[18px] text-on-surface-variant">sort</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Trend -->
+        <section class="editorial-grid">
+            <article class="col-span-full surface-card hover-elevate overflow-hidden flex flex-col lg:flex-row group cursor-pointer">
+                <div class="lg:w-7/12 relative aspect-[16/9] lg:aspect-auto h-64 lg:h-[400px] overflow-hidden">
+                    <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Bagel Cafe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCM4Z6UwnfVAeQghwMVTbdWYCLv8kjBYyQ9Fc4xyXpanfPyg4g6QqBUM4iCwhk7BcZzH2W5eedqiaY042mtb7GCWwgxz6q1DIGHtII0I2Mv-Crec3GTKZRkp_cxwISbKhK8H7oDOUjNcZrNsrjv1rzzF3sa5Fb3To0TAGyASkHDg9nuOtuRdp2DD96re2HHpwsPQyW9MY8bdvD97jTErf9sTXUuXgzJ7awcMvDrMICUDJDs6uwiTJ0"/>
+                    <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-full border border-outline-variant flex items-center gap-1.5 shadow-sm">
+                        <span class="material-symbols-outlined text-[16px] text-secondary">trending_up</span>
+                        <span class="font-label-sm text-label-sm text-primary">인기 상승 중</span>
+                    </div>
+                </div>
+                <div class="lg:w-5/12 p-6 lg:p-8 flex flex-col justify-between">
+                    <div>
+                        <div class="flex gap-2 mb-4">
+                            <span class="chip-sage font-label-sm text-label-sm">카페</span>
+                            <span class="chip-beige font-label-sm text-label-sm flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">location_on</span>서울, 안국</span>
+                        </div>
+                        <h2 class="font-headline-lg text-headline-lg text-primary mb-3 leading-tight group-hover:text-secondary transition-colors">줄 서서 먹는 한옥 베이글 카페</h2>
+                        <p class="font-body-md text-body-md text-on-surface-variant mb-6 line-clamp-3">
+                            전통 한옥의 고즈넉함과 뉴욕 스타일 베이글의 이색적인 만남. 안국동 뒷골목에 자리 잡은 이 카페는 오픈런 필수 코스로 떠올랐습니다. 대파 크림치즈와 쪽파 베이글이 시그니처 메뉴입니다.
+                        </p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 mt-4">
+                        <button class="btn-primary font-label-md text-label-md py-3 px-6 flex-1 flex justify-center items-center gap-2 hover:opacity-90 transition-opacity" onclick="location.href='meal_plan.html'">
+                            트렌드 자세히 보기
+                        </button>
+                        <button class="btn-secondary font-label-md text-label-md py-3 px-6 flex-1 flex justify-center items-center gap-2 hover:bg-surface-container-low transition-colors" onclick="location.href='meal_plan.html'">
+                            <span class="material-symbols-outlined text-[20px]">add_circle</span> 예상 비용 추가
+                        </button>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- Trend Grid -->
+        <section>
+            <div class="flex justify-between items-end mb-6">
+                <h3 class="font-headline-md text-headline-md text-primary">더 많은 트렌드 탐색</h3>
+            </div>
+            <div class="editorial-grid">
+                <!-- Card 1 -->
+                <article class="col-span-third surface-card hover-elevate flex flex-col overflow-hidden group cursor-pointer" onclick="location.href='meal_plan.html'">
+                    <div class="relative h-48 overflow-hidden border-b border-outline-variant/30">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Seongsu pop-up" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChg6IKlOujTCZApTZ7-A_YC8zx8ULbOsxeU5n2EH9blXzQuiZfgziiBV3Vy05VUV9dwrTjga7bU2SETuq1vS9pMzCe6xehXWn_16lQAQJ_Y-Zve2EDPBlGER8cWbJNHTL34NnH0iv_ZtqtB2fEz0wVhPda7Zw6H9G76dolFtP17lErNSW9l6I-6USwYXBq5RqDgQesqij4oDtfDqJdtsfED9NsEaGt-Y-MiUKmaRDnMTR8ofehZVQ"/>
+                        <button class="absolute top-3 right-3 bg-white/80 backdrop-blur p-1.5 rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bookmark</span>
+                        </button>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <div class="flex gap-2 mb-3 flex-wrap">
+                            <span class="chip-beige font-label-sm text-[10px] uppercase">문화</span>
+                            <span class="font-label-sm text-[11px] text-on-surface-variant flex items-center gap-1 border border-outline-variant rounded-full px-2 py-0.5"><span class="material-symbols-outlined text-[12px]">location_on</span>성수동</span>
+                        </div>
+                        <h4 class="font-headline-md text-[20px] leading-tight text-primary mb-2 group-hover:text-secondary transition-colors">성수동 브랜드 팝업 투어</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant mb-4 line-clamp-2">주말마다 새로운 브랜드 경험이 열리는 성수동. 이번 주 꼭 가봐야 할 팝업스토어 3곳.</p>
+                        <div class="mt-auto pt-4 border-t border-outline-variant/30 flex justify-between items-center">
+                            <span class="font-label-sm text-label-sm text-on-surface-variant">예상: ₩0 ~ ₩30,000</span>
+                            <button class="text-secondary font-label-sm text-label-sm flex items-center hover:underline">자세히 <span class="material-symbols-outlined text-[16px]">arrow_forward</span></button>
+                        </div>
+                    </div>
+                </article>
+                <!-- Card 2 -->
+                <article class="col-span-third surface-card hover-elevate flex flex-col overflow-hidden group cursor-pointer" onclick="location.href='meal_plan.html'">
+                    <div class="relative h-48 overflow-hidden border-b border-outline-variant/30">
+                        <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="Convenience store combinations" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArqikvKFi4_hl_3hVwu86kBdYqzE1rJkKoFuy4ClQGwyxNJFwBh3zbpakuPqKSKzWMsegZuTRuomQDDWPFD64UWaX3j6laA6aPn3mZpXePM7vudkZYWFDkUW1m-ICPqbMpa6o6ARB1SN8WTDhVMNqIrQ6q5PbYEU5UuLRz4uo1Ys3mkSgAh-fVXFMmcJOrKlTcRAU8EriaQ_7gImovlGiLZMCOEtKX2KAcTnPghvFmlburTQ9vze8"/>
+                        <button class="absolute top-3 right-3 bg-white/80 backdrop-blur p-1.5 rounded-full text-on-surface-variant hover:text-secondary transition-colors">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bookmark</span>
+                        </button>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <div class="flex gap-2 mb-3 flex-wrap">
+                            <span class="chip-sage font-label-sm text-[10px] uppercase">음식</span>
+                            <span class="font-label-sm text-[11px] text-on-surface-variant flex items-center gap-1 border border-outline-variant rounded-full px-2 py-0.5"><span class="material-symbols-outlined text-[12px]">location_on</span>전국</span>
+                        </div>
+                        <h4 class="font-headline-md text-[20px] leading-tight text-primary mb-2 group-hover:text-secondary transition-colors">MZ세대 편의점 꿀조합</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant mb-4 line-clamp-2">SNS를 강타한 아이스크림과 과자의 기발한 조합. 저렴하고 맛있게 즐기는 K-디저트.</p>
+                        <div class="mt-auto pt-4 border-t border-outline-variant/30 flex justify-between items-center">
+                            <span class="font-label-sm text-label-sm text-on-surface-variant">예상: ₩5,000 미만</span>
+                            <button class="text-secondary font-label-sm text-label-sm flex items-center hover:underline">자세히 <span class="material-symbols-outlined text-[16px]">arrow_forward</span></button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-low border-t border-outline-variant mt-12 w-full py-8 px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+            <span class="font-headline-md text-headline-md font-bold text-primary">HypeHeritage</span>
+            <span class="font-body-sm text-body-sm text-on-surface-variant">© 2024 HypeHeritage. All rights reserved.</span>
+        </div>
+        <nav class="flex gap-4">
+            <a class="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary underline" href="#">Intro</a>
+            <a class="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary underline" href="#">Terms</a>
+            <a class="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary underline" href="#">Privacy</a>
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Region: 대한민국</span>
+        </nav>
+    </footer>
+</body>
+</html>

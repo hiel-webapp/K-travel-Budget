@@ -39,9 +39,10 @@ HypeHeritage는 글로벌 사용자를 대상으로 다국어 환경을 제공�
 
 HypeHeritage 랜딩 페이지의 핵심 UI인 Mad-libs 입력 필드에는 글로벌 UX 브랜딩 및 자연스러운 조건 구성을 위해 특별한 번역 예외 규칙을 부여합니다.
 
-1.  **영어 문장 구조 고정**:
+1.  **영어 문장 구조 고정 및 딕셔너리 분리**:
     *   랜딩 페이지의 Mad-libs 문장의 영문법 구조는 **어떤 로케일(한국어 설정 포함)에서도 영어로 고정**합니다.
-    *   이 문장의 문법적 뼈대(Sentence Shell)는 다국어 번역 딕셔너리의 대상에서 명시적으로 제외됩니다.
+    *   이 문장의 문법적 뼈대(Sentence Shell) 및 옵션들의 영문 노출 레이블은 일반 다국어 번역 딕셔너리(`ko.ts`, `en.ts`)에서 명시적으로 제외되며, 하드코딩되지 않는 도메인 모델 상수 매핑 구조(`src/lib/trip-domain.ts` 등)를 통해 런타임에 직접 조합됩니다.
+    *   선택된 도시, 숙박일, 인원, 예산 등급 등의 내부 상태(Enum 값)와 영문 표시 레이블(display label)을 확실히 분리하여 영문법 상의 단수/복수 규칙(`1 adult` / `2 adults`), 형용사화(`5-night`) 등을 정확히 준수합니다.
 2.  **고정 영문 뼈대**:
     > `I'm planning a [nights]-night trip for [people] adults to [cities] with a [budgetType] budget.`
 3.  **UI 레이블과 데이터 값의 분리**:

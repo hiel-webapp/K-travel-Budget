@@ -19,17 +19,18 @@ HypeHeritage는 장기적으로 다음 요구사항들을 충족해야 합니다
 
 ## 2. Cloudflare 공식 배포 방식 조사 결과 (2026년 기준)
 
-*   **공식 출처**: [Cloudflare Next.js Framework Guide](https://developers.cloudflare.com/workers/framework-guides/web-applications/nextjs/)
-*   **확인일**: 2026-07-15
-*   **최종 권장 배포 아키텍처**: **`@opennextjs/cloudflare` 어댑터 + Cloudflare Workers 타겟 배포**
+*   **공식 출처**: [Cloudflare Next.js Framework Guide](https://developers.cloudflare.com/workers/framework-guides/web-applications/nextjs/) (※ 현재 이 링크는 404 에러를 반환하여 유효하지 않음을 공식 확인했습니다.)
+*   **확인일**: 2026-07-16
+*   **최종 유력 배포 아키텍처 후보**: **`@opennextjs/cloudflare` 어댑터 + Cloudflare Workers 타겟 배포**
 
 ### 이전 권장안 (@cloudflare/next-on-pages)의 정정
 *   과거에 사용되던 `@cloudflare/next-on-pages`는 Vercel Build Output API 규격을 파싱하여 Pages로 매핑하는 구조였으나 Edge 환경에서의 Node.js API 제약이 컸습니다.
 *   2026년 현재 Cloudflare의 공식 표준 가이드는 오픈소스 프로젝트인 **OpenNext의 Cloudflare 어댑터 (`@opennextjs/cloudflare`)**를 활용하여 **Cloudflare Workers**로 올리는 구조를 단독 표준으로 제시하고 있습니다. 이에 따라 이전 보고서의 `@cloudflare/next-on-pages` 권장을 공식적으로 **정정**합니다.
 
-### Next.js 16.2.10 호환성 수준
-*   `@opennextjs/cloudflare`는 App Router, Server Actions, Partial Prerendering(PPR) 등 최신 Next.js 15, 16 명세를 전방위적으로 지원하기 위해 Cloudflare 공식 인프라 팀과 커뮤니티가 긴밀히 협력해 고도화하고 있습니다.
-*   Node.js 호환성 요구사항 해결을 위해 `wrangler.toml` (또는 `wrangler.json`) 내에 `compatibility_flags = [ "nodejs_compat" ]` 플래그 설정이 필수적입니다.
+### Next.js 16.2.10 호환성 수준 (현재 단계 미확정)
+*   공식 Next.js 배포 가이드 문서의 404 반환에 따라 Next.js 16 지원 여부는 아직 100% 보장되지 않으며, **현재 마이그레이션 단계에서는 미확정 상태**로 취급합니다.
+*   `@opennextjs/cloudflare`와 Workers는 여전히 가장 유력한 타겟 후보군이나, 실제 Next.js 16.2.10 호환성은 실제 배포 단계에서 유효한 공식 문서, package compatibility 및 local preview build를 통해 추가 검증을 수행해야 합니다.
+*   Node.js 호환성 요구사항 해결을 위해 `wrangler.toml` (또는 `wrangler.json`) 내에 `compatibility_flags = [ "nodejs_compat" ]` 플래그 설정이 요구될 수 있습니다.
 
 ---
 

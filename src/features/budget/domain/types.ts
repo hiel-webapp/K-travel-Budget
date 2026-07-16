@@ -93,6 +93,7 @@ export interface BudgetLineItem {
   confidence: PriceConfidence;
   updatedAt: string;
   sourceLabel: string;
+  mealPlan?: BaseMealPlan;
 }
 
 export interface CityBudgetSection {
@@ -145,4 +146,20 @@ export interface PlannerPreferencesEnvelope {
   schemaVersion: number;
   savedAt: string;
   preferences: PlannerPreferences;
+}
+
+export type MealSlot = "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK_CAFE";
+
+export interface BaseMealSlot {
+  id: string;
+  city: SupportedCity;
+  dayIndex: number;
+  slot: MealSlot;
+  unitPriceKrw: number;
+  includedInBaseBudget: boolean;
+}
+
+export interface BaseMealPlan {
+  slots: BaseMealSlot[];
+  perPersonBaseTotalKrw: number;
 }

@@ -1,5 +1,5 @@
-import { BudgetTier } from "../../../lib/trip-domain";
-import { BudgetBasketDefinition, BudgetBasketId, BudgetCategory } from "../domain/types";
+import { BudgetTier, SupportedCity } from "../../../lib/trip-domain";
+import { BudgetBasketDefinition, BudgetBasketId, BudgetCategory, MealSlot } from "../domain/types";
 
 export const MOCK_CATALOG_VERSION = "mock-v1";
 export const MOCK_CATALOG_UPDATE_DATE = "2026-07-01";
@@ -466,5 +466,21 @@ export const BUDGET_TIER_DEFAULT_BASKETS: Record<BudgetTier, Record<BudgetCatego
     ATTRACTION: "EXPERIENCE_RICH",
     INTERCITY_TRANSPORT: "KTX_STANDARD",
     EMERGENCY_FUND: "EMERGENCY_FIXED",
+  },
+};
+
+export const MOCK_MEAL_SLOT_PRICES: Record<
+  SupportedCity,
+  Record<BudgetTier, Record<MealSlot, number>>
+> = {
+  SEOUL: {
+    BUDGET: { BREAKFAST: 5000, LUNCH: 7000, DINNER: 8000, SNACK_CAFE: 4000 },
+    STANDARD: { BREAKFAST: 7000, LUNCH: 9000, DINNER: 12000, SNACK_CAFE: 6000 },
+    PREMIUM: { BREAKFAST: 10000, LUNCH: 15000, DINNER: 25000, SNACK_CAFE: 10000 },
+  },
+  BUSAN: {
+    BUDGET: { BREAKFAST: 4500, LUNCH: 6000, DINNER: 7500, SNACK_CAFE: 3500 },
+    STANDARD: { BREAKFAST: 6500, LUNCH: 8500, DINNER: 11000, SNACK_CAFE: 5000 },
+    PREMIUM: { BREAKFAST: 9000, LUNCH: 14000, DINNER: 23000, SNACK_CAFE: 9000 },
   },
 };

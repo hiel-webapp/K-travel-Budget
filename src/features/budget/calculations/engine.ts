@@ -1,4 +1,4 @@
-import { SupportedCity, TripDraft, validateTripDraft } from "../../../lib/trip-domain";
+import { SupportedCity, TripDraft, validateTripDraft, BudgetTier } from "../../../lib/trip-domain";
 import {
   BudgetCategory,
   BudgetBasketDefinition,
@@ -9,11 +9,15 @@ import {
   TripWideBudgetSection,
   BudgetPlan,
   BudgetPlanOverrides,
+  MealSlot,
+  BaseMealSlot,
+  BaseMealPlan,
 } from "../domain/types";
 import {
   MOCK_PRICE_CATALOG,
   BUDGET_TIER_DEFAULT_BASKETS,
   MOCK_CATALOG_VERSION,
+  MOCK_MEAL_SLOT_PRICES,
 } from "../catalog/mock-catalog";
 
 /**
@@ -55,27 +59,63 @@ export function generateInitialBudgetPlan(
     const categories: BudgetCategory[] = ["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION"];
 
     for (const category of categories) {
-      let basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+      let item: BudgetLineItem;
 
-      // 숙박 카테고리에 오버라이드가 있으면 적용
-      if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
-        basketId = overrides.accommodation[city]!;
+      if (category === "FOOD") {
+        const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+        const basket = findBasket(catalog, basketId, category, city);
+
+        if (!basket) {
+          throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
+        }
+
+        const mealPlan = generateBaseMealPlan(city, nights, budgetTier, MOCK_MEAL_SLOT_PRICES);
+
+        const lineTotalKrw = mealPlan.perPersonBaseTotalKrw * adultCount;
+        const id = `${city}_${basket.id}`.toUpperCase();
+
+        item = {
+          id,
+          basketId: basket.id,
+          category: "FOOD",
+          scope: "CITY",
+          cityCode: city,
+          route: null,
+          unitPriceKrw: basket.representativePriceKrw,
+          pricingUnit: "PERSON_DAY",
+          quantity: adultCount,
+          participantCount: adultCount,
+          durationCount: nights,
+          lineTotalKrw,
+          priceMinKrw: basket.priceMinKrw * adultCount * nights,
+          priceMaxKrw: basket.priceMaxKrw * adultCount * nights,
+          confidence: basket.confidence,
+          updatedAt: basket.updatedAt,
+          sourceLabel: basket.sourceLabel,
+          mealPlan,
+        };
+      } else {
+        let basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+
+        if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
+          basketId = overrides.accommodation[city]!;
+        }
+
+        const basket = findBasket(catalog, basketId, category, city);
+
+        if (!basket) {
+          throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
+        }
+
+        item = calculateLineItem({
+          basket,
+          cityCode: city,
+          route: null,
+          adultCount,
+          duration: nights,
+          cityCount: selectedCities.length,
+        });
       }
-
-      const basket = findBasket(catalog, basketId, category, city);
-
-      if (!basket) {
-        throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
-      }
-
-      const item = calculateLineItem({
-        basket,
-        cityCode: city,
-        route: null,
-        adultCount,
-        duration: nights,
-        cityCount: selectedCities.length,
-      });
 
       cityLineItems.push(item);
       lineItems.push(item);
@@ -351,5 +391,48 @@ export function calculateLineItem({
     confidence: basket.confidence,
     updatedAt: basket.updatedAt,
     sourceLabel: basket.sourceLabel,
+  };
+}
+
+/**
+ * 특정 도시와 nights 기간에 대해 기본 식사 계획(Base Meal Plan)을 생성합니다.
+ * 각 도시의 nights 횟수만큼 매일 BREAKFAST, LUNCH, DINNER, SNACK_CAFE 슬롯을 생성하되,
+ * SNACK_CAFE는 includedInBaseBudget = false 로직을 통해 perPersonBaseTotalKrw 합산에서 제외합니다.
+ */
+export function generateBaseMealPlan(
+  city: SupportedCity,
+  nights: number,
+  budgetTier: BudgetTier,
+  prices: Record<SupportedCity, Record<BudgetTier, Record<MealSlot, number>>> = MOCK_MEAL_SLOT_PRICES
+): BaseMealPlan {
+  const slots: BaseMealSlot[] = [];
+  let perPersonBaseTotalKrw = 0;
+
+  const mealSlots: MealSlot[] = ["BREAKFAST", "LUNCH", "DINNER", "SNACK_CAFE"];
+
+  for (let day = 0; day < nights; day++) {
+    mealSlots.forEach((slot) => {
+      const unitPrice = prices[city]?.[budgetTier]?.[slot] ?? 0;
+      const id = `${city}_${day}_${slot}`.toUpperCase();
+      const includedInBaseBudget = slot !== "SNACK_CAFE";
+
+      slots.push({
+        id,
+        city,
+        dayIndex: day,
+        slot,
+        unitPriceKrw: unitPrice,
+        includedInBaseBudget,
+      });
+
+      if (includedInBaseBudget) {
+        perPersonBaseTotalKrw += unitPrice;
+      }
+    });
+  }
+
+  return {
+    slots,
+    perPersonBaseTotalKrw,
   };
 }

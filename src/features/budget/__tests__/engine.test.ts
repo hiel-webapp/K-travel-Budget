@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateInitialBudgetPlan } from "../calculations/engine";
+import { generateInitialBudgetPlan, generateBaseMealPlan } from "../calculations/engine";
 import { TripDraft } from "../../../lib/trip-domain";
 import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
 import { BudgetBasketDefinition, BudgetBasketId } from "../domain/types";
@@ -551,6 +551,153 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
         expect(keys.has(uniqueKey)).toBe(false);
         keys.add(uniqueKey);
       }
+    });
+  });
+
+  describe("9. Food Base Meal Plan Engine", () => {
+    it("should generate correct symmetric slots based on city nights allocation", () => {
+      const seoulPlan = generateBaseMealPlan("SEOUL", 3, "STANDARD");
+      const busanPlan = generateBaseMealPlan("BUSAN", 2, "STANDARD");
+
+      // 1. MealSlot 네 종류가 생성되는지 검증
+      const expectedSlots = ["BREAKFAST", "LUNCH", "DINNER", "SNACK_CAFE"];
+      expectedSlots.forEach((slot) => {
+        expect(seoulPlan.slots.some((s) => s.slot === slot)).toBe(true);
+        expect(busanPlan.slots.some((s) => s.slot === slot)).toBe(true);
+      });
+
+      // 2. 서울 3박은 12개, 부산 2박은 8개 슬롯인지 검증
+      expect(seoulPlan.slots.length).toBe(12);
+      expect(busanPlan.slots.length).toBe(8);
+
+      // 3. 서울 Meal Plan에 부산 슬롯이 없고 부산 Meal Plan에 서울 슬롯이 없는지 (도시 격리) 검증
+      expect(seoulPlan.slots.every((s) => s.city === "SEOUL")).toBe(true);
+      expect(busanPlan.slots.every((s) => s.city === "BUSAN")).toBe(true);
+
+      // 4. 도시별 슬롯에 해당 도시 가격표가 적용되는지 검증
+      // Standard 등급 기준 서울: Breakfast ₩7k, Lunch ₩9k, Dinner ₩12k, Snack ₩6k
+      const firstSeoulBreakfast = seoulPlan.slots.find((s) => s.slot === "BREAKFAST");
+      expect(firstSeoulBreakfast?.unitPriceKrw).toBe(7000);
+      const firstSeoulSnack = seoulPlan.slots.find((s) => s.slot === "SNACK_CAFE");
+      expect(firstSeoulSnack?.unitPriceKrw).toBe(6000);
+
+      // Standard 등급 기준 부산: Breakfast ₩6.5k, Lunch ₩8.5k, Dinner ₩11k, Snack ₩5k
+      const firstBusanBreakfast = busanPlan.slots.find((s) => s.slot === "BREAKFAST");
+      expect(firstBusanBreakfast?.unitPriceKrw).toBe(6500);
+      const firstBusanSnack = busanPlan.slots.find((s) => s.slot === "SNACK_CAFE");
+      expect(firstBusanSnack?.unitPriceKrw).toBe(5000);
+
+      // 5. BREAKFAST, LUNCH, DINNER는 includedInBaseBudget=true인지 검증
+      seoulPlan.slots.forEach((s) => {
+        if (s.slot !== "SNACK_CAFE") {
+          expect(s.includedInBaseBudget).toBe(true);
+        }
+      });
+
+      // 6. SNACK_CAFE는 양수 단가를 가지지만 includedInBaseBudget=false인지 검증
+      const snackSlots = seoulPlan.slots.filter((s) => s.slot === "SNACK_CAFE");
+      snackSlots.forEach((s) => {
+        expect(s.unitPriceKrw).toBeGreaterThan(0);
+        expect(s.includedInBaseBudget).toBe(false);
+      });
+
+      // 7. 합계가 includedInBaseBudget=true 슬롯만 합산하는지 검증
+      // 서울 3박: (7k + 9k + 12k) * 3 = 84,000
+      expect(seoulPlan.perPersonBaseTotalKrw).toBe(84000);
+      // 부산 2박: (6.5k + 8.5k + 11k) * 2 = 52,000
+      expect(busanPlan.perPersonBaseTotalKrw).toBe(52000);
+    });
+
+    it("should generate stable, uppercase identifier format for slots", () => {
+      const seoulPlan = generateBaseMealPlan("SEOUL", 3, "STANDARD");
+      const firstSlot = seoulPlan.slots[0];
+      expect(firstSlot.id).toBe("SEOUL_0_BREAKFAST");
+    });
+
+    it("should verify food line totals, categories, and grand total invariants", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip);
+
+      // 8. 서울 1인 합계 ₩84,000, 2인 lineTotal ₩168,000인지 검증
+      const seoulFoodItem = plan.citySections.SEOUL?.lineItems.find((item) => item.category === "FOOD");
+      expect(seoulFoodItem?.mealPlan?.perPersonBaseTotalKrw).toBe(84000);
+      expect(seoulFoodItem?.lineTotalKrw).toBe(168000); // 84,000 * 2명
+
+      // 9. 부산 1인 합계 ₩52,000, 2인 lineTotal ₩104,000인지 검증
+      const busanFoodItem = plan.citySections.BUSAN?.lineItems.find((item) => item.category === "FOOD");
+      expect(busanFoodItem?.mealPlan?.perPersonBaseTotalKrw).toBe(52000);
+      expect(busanFoodItem?.lineTotalKrw).toBe(104000); // 52,000 * 2명
+
+      // 10. 전체 FOOD category total이 ₩272,000인지 검증
+      expect(plan.categoryTotals.FOOD).toBe(272000); // 168k + 104k
+
+      // 11. 기본 grand total이 ₩1,392,600인지 검증
+      expect(plan.grandTotalKrw).toBe(1392600);
+
+      // 17. 모든 category total 합계가 grand total과 같은지 검증
+      const categorySum = Object.values(plan.categoryTotals).reduce((sum, val) => sum + val, 0);
+      expect(categorySum).toBe(plan.grandTotalKrw);
+
+      // 18. 모든 도시 소계와 공통 비용 합계가 grand total과 같은지 검증
+      const seoulSubtotal = plan.citySections.SEOUL?.subtotalKrw || 0;
+      const busanSubtotal = plan.citySections.BUSAN?.subtotalKrw || 0;
+      const intercitySubtotal = plan.intercitySection.subtotalKrw;
+      const tripWideSubtotal = plan.tripWideSection.subtotalKrw;
+      expect(seoulSubtotal + busanSubtotal + intercitySubtotal + tripWideSubtotal).toBe(plan.grandTotalKrw);
+    });
+
+    it("should preserve accommodation override scenarios and their grand totals", () => {
+      // 12. 숙박 override 네 가지 승인 총액이 유지되는지 검증
+      // Scenario A: Default standard
+      const planA = generateInitialBudgetPlan(defaultTrip);
+      expect(planA.grandTotalKrw).toBe(1392600);
+
+      // Scenario B: Seoul stay override (BUDGET_STAY)
+      const planB = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: { SEOUL: "BUDGET_STAY" },
+      });
+      expect(planB.grandTotalKrw).toBe(1212600);
+
+      // Scenario C: Busan stay override (PREMIUM_HERITAGE)
+      const planC = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: { BUSAN: "PREMIUM_HERITAGE" },
+      });
+      expect(planC.grandTotalKrw).toBe(1652600);
+
+      // Scenario D: Combined stay overrides
+      const planD = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: { SEOUL: "BUDGET_STAY", BUSAN: "PREMIUM_HERITAGE" },
+      });
+      expect(planD.grandTotalKrw).toBe(1472600);
+    });
+
+    it("should handle 0-night edge case input safely", () => {
+      // 13. 0박 도시는 Meal Plan 슬롯과 FOOD 금액이 생성되지 않는지 검증
+      const zeroNightDraft: TripDraft = {
+        ...defaultTrip,
+        totalNights: 3,
+        cityNightAllocations: { SEOUL: 0, BUSAN: 3 },
+      };
+      const plan = generateInitialBudgetPlan(zeroNightDraft);
+      const seoulFoodItem = plan.citySections.SEOUL?.lineItems.find((item) => item.category === "FOOD");
+      expect(seoulFoodItem?.mealPlan?.slots.length).toBe(0);
+      expect(seoulFoodItem?.lineTotalKrw).toBe(0);
+    });
+
+    it("should verify deterministic pure outputs and immutability of parameters", () => {
+      // 14. 입력 TripDraft를 변경하지 않는지 검증
+      const draftClone = JSON.parse(JSON.stringify(defaultTrip));
+      generateBaseMealPlan("SEOUL", 3, "STANDARD");
+      expect(draftClone).toEqual(defaultTrip);
+
+      // 15. 가격 카탈로그를 변경하지 않는지 검증
+      const catalogClone = JSON.parse(JSON.stringify(MOCK_PRICE_CATALOG));
+      generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG);
+      expect(MOCK_PRICE_CATALOG).toEqual(catalogClone);
+
+      // 16. 반복 호출 결과가 동일한지 검증
+      const res1 = generateBaseMealPlan("SEOUL", 3, "STANDARD");
+      const res2 = generateBaseMealPlan("SEOUL", 3, "STANDARD");
+      expect(res1).toEqual(res2);
     });
   });
 });

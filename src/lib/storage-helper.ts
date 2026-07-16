@@ -4,13 +4,33 @@ import {
   DEFAULT_TRIP_DRAFT,
   validateTripDraft,
   migrateLegacyState,
+  SupportedCity,
 } from "./trip-domain";
+import {
+  PlannerPreferences,
+  PlannerPreferencesEnvelope,
+  AccommodationOverridesByCity,
+} from "../features/budget/domain/types";
+import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 
 const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
+const PREFS_STORAGE_KEY = "hypeheritage_planner_preferences";
 
 export function isClient(): boolean {
   return typeof window !== "undefined";
+}
+
+/**
+ * TripDraft를 기준으로 고유한 fingerprint 해시 문자열을 생성합니다.
+ */
+export function generateTripFingerprint(draft: TripDraft): string {
+  const cities = [...draft.selectedCities].join(",");
+  const allocations = Object.entries(draft.cityNightAllocations)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([city, nights]) => `${city}:${nights}`)
+    .join(";");
+  return `${draft.totalNights}|${draft.adultCount}|${cities}|${allocations}|${draft.budgetTier}|${draft.targetBudgetKrw}`;
 }
 
 /**
@@ -40,14 +60,12 @@ export function saveTripDraft(draft: TripDraft): boolean {
 
 /**
  * 로컬스토리지로부터 TripDraft를 우선 로드하며, 필요 시 기존 레거시 상태를 마이그레이션합니다.
- * 모두 실패할 경우 DEFAULT_TRIP_DRAFT를 반환합니다.
  */
 export function loadTripDraft(): TripDraft {
   if (!isClient()) {
     return DEFAULT_TRIP_DRAFT;
   }
 
-  // 1. 신규 스키마 로드 시도
   try {
     const rawNew = localStorage.getItem(NEW_STORAGE_KEY);
     if (rawNew) {
@@ -64,24 +82,153 @@ export function loadTripDraft(): TripDraft {
       }
     }
   } catch {
-    // 디코딩 실패 등 오류 무시 후 다음 단계 진행
   }
 
-  // 2. 레거시 스키마 마이그레이션 시도
   try {
     const rawLegacy = localStorage.getItem(LEGACY_STORAGE_KEY);
     if (rawLegacy) {
       const legacyObj = JSON.parse(rawLegacy);
       const migrated = migrateLegacyState(legacyObj);
       if (migrated) {
-        // 이관 성공 시 새 저장소에 envelope 형태로 기록하되, 기존 k_travel_state는 삭제하지 않고 유지합니다.
         saveTripDraft(migrated);
         return migrated;
       }
     }
   } catch {
-    // 무시하고 기본값 fallback
   }
 
   return DEFAULT_TRIP_DRAFT;
+}
+
+/**
+ * 주어진 raw JSON 스트링을 파싱하고, TripDraft 지표를 기준으로
+ * schemaVersion, tripFingerprint, basket 유효성을 철저히 순수 함수로 검증합니다.
+ */
+export function parsePlannerPreferences(
+  rawJson: string | null,
+  draft: TripDraft
+): {
+  status: "valid" | "missing" | "invalid" | "fingerprint-mismatch" | "unavailable";
+  preferences: PlannerPreferences;
+} {
+  const defaultPrefs: PlannerPreferences = {
+    schemaVersion: 1,
+    tripFingerprint: generateTripFingerprint(draft),
+    accommodationByCity: {},
+  };
+
+  if (rawJson === null) {
+    return { status: "missing", preferences: defaultPrefs };
+  }
+
+  try {
+    const envelope = JSON.parse(rawJson) as PlannerPreferencesEnvelope;
+    if (!envelope || envelope.schemaVersion !== 1 || !envelope.preferences) {
+      return { status: "invalid", preferences: defaultPrefs };
+    }
+
+    const prefs = envelope.preferences;
+    if (prefs.schemaVersion !== 1 || !prefs.accommodationByCity) {
+      return { status: "invalid", preferences: defaultPrefs };
+    }
+
+    const currentFingerprint = generateTripFingerprint(draft);
+    if (prefs.tripFingerprint !== currentFingerprint) {
+      return { status: "fingerprint-mismatch", preferences: defaultPrefs };
+    }
+
+    const acc = prefs.accommodationByCity;
+    for (const [cityKey, basketId] of Object.entries(acc)) {
+      const city = cityKey as SupportedCity;
+
+      if (!draft.selectedCities.includes(city)) {
+        continue;
+      }
+
+      const basket = MOCK_PRICE_CATALOG.find(
+        (b) =>
+          b.category === "ACCOMMODATION" &&
+          b.id === basketId &&
+          b.applicableCity === city &&
+          b.isActive
+      );
+
+      if (!basket) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+    }
+
+    return { status: "valid", preferences: prefs };
+  } catch {
+    return { status: "invalid", preferences: defaultPrefs };
+  }
+}
+
+/**
+ * PlannerPreferences를 로컬스토리지에 envelope 형식으로 안전하게 저장합니다.
+ */
+export function savePlannerPreferences(
+  accommodationByCity: AccommodationOverridesByCity,
+  draft: TripDraft
+): boolean {
+  if (!isClient()) return false;
+
+  try {
+    const prefs: PlannerPreferences = {
+      schemaVersion: 1,
+      tripFingerprint: generateTripFingerprint(draft),
+      accommodationByCity,
+    };
+
+    const envelope: PlannerPreferencesEnvelope = {
+      schemaVersion: 1,
+      savedAt: new Date().toISOString(),
+      preferences: prefs,
+    };
+
+    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(envelope));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 로컬스토리지로부터 PlannerPreferences의 검증 상태와 Preferences 데이터를 반환합니다.
+ */
+export function loadPlannerPreferencesEx(
+  draft: TripDraft
+): {
+  status: "valid" | "missing" | "invalid" | "fingerprint-mismatch" | "unavailable";
+  preferences: PlannerPreferences;
+} {
+  if (!isClient()) {
+    const defaultPrefs: PlannerPreferences = {
+      schemaVersion: 1,
+      tripFingerprint: generateTripFingerprint(draft),
+      accommodationByCity: {},
+    };
+    return { status: "unavailable", preferences: defaultPrefs };
+  }
+
+  try {
+    const raw = localStorage.getItem(PREFS_STORAGE_KEY);
+    return parsePlannerPreferences(raw, draft);
+  } catch {
+    const defaultPrefs: PlannerPreferences = {
+      schemaVersion: 1,
+      tripFingerprint: generateTripFingerprint(draft),
+      accommodationByCity: {},
+    };
+    return { status: "unavailable", preferences: defaultPrefs };
+  }
+}
+
+/**
+ * 하위 호환성 및 기존 UI 바인딩용 래퍼 함수
+ */
+export function loadPlannerPreferences(): PlannerPreferences {
+  const draft = loadTripDraft();
+  const res = loadPlannerPreferencesEx(draft);
+  return res.preferences;
 }

@@ -83,7 +83,17 @@ export const en: Dictionary = {
     // Active Category Content
     accommodationTitle: "Stay Budget",
     accommodationDescription: "The accommodation budget automatically selected based on your trip details and budget tier.",
-    accommodationNotice: "You will be able to customize accommodation options in the next phase.",
+    accommodationNotice: "You can customize accommodation options here to balance your total budget.",
+
+    // Stay override cards UI
+    selectStayTitle: "Select Accommodation Type by City",
+    selectStayDescription: "Select the accommodation tier for each city. Your budget will update instantly.",
+    resetToRecommended: "Reset to Recommended Stay",
+
+    // Accommodation Basket card descriptions
+    budgetStayDesc: "Affordable and convenient guesthouses or budget hostels",
+    standardHotelDesc: "Reliable 3-star business hotels with reasonable pricing",
+    premiumHeritageDesc: "Traditional Hanok stay or high-end 5-star luxury hotels",
 
     foodTitle: "Food Budget",
     foodDescription: "The food budget plan configured for your trip parameters and budget tier.",

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { generateInitialBudgetPlan } from "../calculations/engine";
 import { TripDraft } from "../../../lib/trip-domain";
 import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
-import { BudgetBasketDefinition } from "../domain/types";
+import { BudgetBasketDefinition, BudgetBasketId } from "../domain/types";
 
 describe("Budget Calculation Engine - MVP Alignment", () => {
   const defaultTrip: TripDraft = {
@@ -291,7 +291,225 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
     });
   });
 
-  describe("8. Mock Price Catalog Quality Validation", () => {
+  describe("8. Accommodation Overrides System - Scenarios & Invariants", () => {
+    it("should match approved Default scenario when no overrides are applied", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip);
+
+      const seoulAcc = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "ACCOMMODATION");
+      const busanAcc = plan.citySections.BUSAN?.lineItems.find((i) => i.category === "ACCOMMODATION");
+
+      expect(seoulAcc?.basketId).toBe("STANDARD_HOTEL");
+      expect(seoulAcc?.lineTotalKrw).toBe(405000); // ??35k * 3 nights
+      expect(busanAcc?.basketId).toBe("STANDARD_HOTEL");
+      expect(busanAcc?.lineTotalKrw).toBe(240000); // ??20k * 2 nights
+
+      expect(plan.categoryTotals.ACCOMMODATION).toBe(645000);
+      expect(plan.grandTotalKrw).toBe(1392600);
+    });
+
+    it("should match approved Scenario A: Seoul Budget stay only", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {
+          SEOUL: "BUDGET_STAY",
+        },
+      });
+
+      const seoulAcc = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "ACCOMMODATION");
+      const busanAcc = plan.citySections.BUSAN?.lineItems.find((i) => i.category === "ACCOMMODATION");
+
+      expect(seoulAcc?.basketId).toBe("BUDGET_STAY");
+      expect(seoulAcc?.lineTotalKrw).toBe(225000); // ??5k * 3 nights
+      expect(busanAcc?.basketId).toBe("STANDARD_HOTEL");
+      expect(busanAcc?.lineTotalKrw).toBe(240000); // ??20k * 2 nights
+
+      expect(plan.categoryTotals.ACCOMMODATION).toBe(465000);
+      expect(plan.citySections.SEOUL?.subtotalKrw).toBe(541000);
+      expect(plan.citySections.BUSAN?.subtotalKrw).toBe(452000);
+      expect(plan.intercitySection.subtotalKrw).toBe(119600);
+      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+
+      expect(plan.grandTotalKrw).toBe(1212600);
+      expect(plan.perTravelerTotalKrw).toBe(606300);
+      expect(plan.dailyAverageKrw).toBe(202100);
+      expect(plan.remainingBudgetKrw).toBe(1787400);
+      expect(plan.targetBudgetUsagePercent).toBe(40.4);
+    });
+
+    it("should match approved Scenario B: Busan Premium stay only", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {
+          BUSAN: "PREMIUM_HERITAGE",
+        },
+      });
+
+      const seoulAcc = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "ACCOMMODATION");
+      const busanAcc = plan.citySections.BUSAN?.lineItems.find((i) => i.category === "ACCOMMODATION");
+
+      expect(seoulAcc?.basketId).toBe("STANDARD_HOTEL");
+      expect(seoulAcc?.lineTotalKrw).toBe(405000);
+      expect(busanAcc?.basketId).toBe("PREMIUM_HERITAGE");
+      expect(busanAcc?.lineTotalKrw).toBe(500000); // ??50k * 2 nights
+
+      expect(plan.categoryTotals.ACCOMMODATION).toBe(905000);
+      expect(plan.citySections.SEOUL?.subtotalKrw).toBe(721000);
+      expect(plan.citySections.BUSAN?.subtotalKrw).toBe(712000);
+      expect(plan.intercitySection.subtotalKrw).toBe(119600);
+      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+
+      expect(plan.grandTotalKrw).toBe(1652600);
+      expect(plan.perTravelerTotalKrw).toBe(826300);
+      expect(plan.dailyAverageKrw).toBe(275433);
+      expect(plan.remainingBudgetKrw).toBe(1347400);
+      expect(plan.targetBudgetUsagePercent).toBe(55.1);
+    });
+
+    it("should match approved Scenario C: Seoul Budget and Busan Premium stay combined", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {
+          SEOUL: "BUDGET_STAY",
+          BUSAN: "PREMIUM_HERITAGE",
+        },
+      });
+
+      expect(plan.categoryTotals.ACCOMMODATION).toBe(725000);
+      expect(plan.citySections.SEOUL?.subtotalKrw).toBe(541000);
+      expect(plan.citySections.BUSAN?.subtotalKrw).toBe(712000);
+      expect(plan.intercitySection.subtotalKrw).toBe(119600);
+      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+
+      expect(plan.grandTotalKrw).toBe(1472600);
+      expect(plan.perTravelerTotalKrw).toBe(736300);
+      expect(plan.dailyAverageKrw).toBe(245433);
+      expect(plan.remainingBudgetKrw).toBe(1527400);
+      expect(plan.targetBudgetUsagePercent).toBe(49.1);
+    });
+
+    it("should apply accommodation overrides correctly for Seoul Premium and Busan Budget", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {
+          SEOUL: "PREMIUM_HERITAGE",
+          BUSAN: "BUDGET_STAY",
+        },
+      });
+
+      const seoulStay = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "ACCOMMODATION");
+      const busanStay = plan.citySections.BUSAN?.lineItems.find((i) => i.category === "ACCOMMODATION");
+
+      expect(seoulStay?.basketId).toBe("PREMIUM_HERITAGE");
+      expect(seoulStay?.lineTotalKrw).toBe(870000); // ??90,000 * 3
+      expect(busanStay?.basketId).toBe("BUDGET_STAY");
+      expect(busanStay?.lineTotalKrw).toBe(130000); // ??5,000 * 2
+
+      expect(plan.categoryTotals.ACCOMMODATION).toBe(1000000);
+    });
+
+    it("should preserve all other category totals when accommodation is overridden", () => {
+      const defaultPlan = generateInitialBudgetPlan(defaultTrip);
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {
+          SEOUL: "BUDGET_STAY",
+        },
+      });
+
+      expect(plan.categoryTotals.FOOD).toBe(defaultPlan.categoryTotals.FOOD);
+      expect(plan.categoryTotals.CITY_TRANSPORT).toBe(defaultPlan.categoryTotals.CITY_TRANSPORT);
+      expect(plan.categoryTotals.INTERCITY_TRANSPORT).toBe(defaultPlan.categoryTotals.INTERCITY_TRANSPORT);
+      expect(plan.categoryTotals.ATTRACTION).toBe(defaultPlan.categoryTotals.ATTRACTION);
+      expect(plan.categoryTotals.EMERGENCY_FUND).toBe(defaultPlan.categoryTotals.EMERGENCY_FUND);
+    });
+
+    it("should verify that exactly one accommodation item exists per city", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {
+          SEOUL: "PREMIUM_HERITAGE",
+        },
+      });
+
+      const seoulStayItems = plan.citySections.SEOUL?.lineItems.filter((i) => i.category === "ACCOMMODATION") || [];
+      const busanStayItems = plan.citySections.BUSAN?.lineItems.filter((i) => i.category === "ACCOMMODATION") || [];
+
+      expect(seoulStayItems.length).toBe(1);
+      expect(busanStayItems.length).toBe(1);
+    });
+
+    it("should throw error for unknown basket id override", () => {
+      expect(() =>
+        generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+          accommodation: {
+            SEOUL: "UNKNOWN_BASKET_ID" as BudgetBasketId,
+          },
+        })
+      ).toThrow();
+    });
+
+    it("should throw error for non-accommodation basket id override", () => {
+      expect(() =>
+        generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+          accommodation: {
+            SEOUL: "KTX_STANDARD",
+          },
+        })
+      ).toThrow();
+    });
+
+    it("should safely ignore overrides for cities absent from the trip", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {
+          // @ts-expect-error DAEJEON is unsupported city key
+          DAEJEON: "STANDARD_HOTEL",
+        },
+      });
+
+      expect(plan.grandTotalKrw).toBe(1392600);
+    });
+
+    it("should throw error for inactive basket id override", () => {
+      const badCatalog: BudgetBasketDefinition[] = MOCK_PRICE_CATALOG.map((item) => {
+        if (item.id === "PREMIUM_HERITAGE" && item.applicableCity === "SEOUL") {
+          return { ...item, isActive: false };
+        }
+        return item;
+      });
+
+      expect(() =>
+        generateInitialBudgetPlan(defaultTrip, badCatalog, {
+          accommodation: {
+            SEOUL: "PREMIUM_HERITAGE",
+          },
+        })
+      ).toThrow();
+    });
+
+    it("should ensure input TripDraft and catalog and override objects are not mutated", () => {
+      const tripClone = JSON.parse(JSON.stringify(defaultTrip));
+      const catalogClone = JSON.parse(JSON.stringify(MOCK_PRICE_CATALOG));
+      const overrideObj = {
+        accommodation: {
+          SEOUL: "BUDGET_STAY" as BudgetBasketId,
+        },
+      };
+
+      generateInitialBudgetPlan(tripClone, catalogClone, overrideObj);
+
+      expect(tripClone).toEqual(defaultTrip);
+      expect(catalogClone).toEqual(MOCK_PRICE_CATALOG);
+      expect(overrideObj.accommodation.SEOUL).toBe("BUDGET_STAY");
+    });
+
+    it("should return deeply equivalent results for repeated calls with same overrides", () => {
+      const overrides = {
+        accommodation: {
+          SEOUL: "BUDGET_STAY" as BudgetBasketId,
+        },
+      };
+      const res1 = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, overrides);
+      const res2 = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, overrides);
+
+      expect(res1).toEqual(res2);
+    });
+  });
+
+  describe("9. Mock Price Catalog Quality Validation", () => {
     it("should satisfy catalog metadata requirements", () => {
       for (const entry of MOCK_PRICE_CATALOG) {
         expect(entry.confidence).toBe("MOCK");

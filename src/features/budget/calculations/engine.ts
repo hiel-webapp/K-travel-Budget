@@ -8,6 +8,7 @@ import {
   IntercityBudgetSection,
   TripWideBudgetSection,
   BudgetPlan,
+  BudgetPlanOverrides,
 } from "../domain/types";
 import {
   MOCK_PRICE_CATALOG,
@@ -20,7 +21,8 @@ import {
  */
 export function generateInitialBudgetPlan(
   tripDraft: TripDraft,
-  catalog: BudgetBasketDefinition[] = MOCK_PRICE_CATALOG
+  catalog: BudgetBasketDefinition[] = MOCK_PRICE_CATALOG,
+  overrides?: BudgetPlanOverrides
 ): BudgetPlan {
   // 1. 입력 검증 수행
   const validation = validateTripDraft(tripDraft);
@@ -53,7 +55,13 @@ export function generateInitialBudgetPlan(
     const categories: BudgetCategory[] = ["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION"];
 
     for (const category of categories) {
-      const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+      let basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+
+      // 숙박 카테고리에 오버라이드가 있으면 적용
+      if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
+        basketId = overrides.accommodation[city]!;
+      }
+
       const basket = findBasket(catalog, basketId, category, city);
 
       if (!basket) {

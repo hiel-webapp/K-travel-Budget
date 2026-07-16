@@ -2,9 +2,9 @@
 
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { TripDraft, validateTripDraft } from "../lib/trip-domain";
-import { loadTripDraft } from "../lib/storage-helper";
-import { BudgetPlan, BudgetLineItem, BudgetCategory } from "../features/budget/domain/types";
+import { TripDraft, validateTripDraft, SupportedCity } from "../lib/trip-domain";
+import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences } from "../lib/storage-helper";
+import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -26,20 +26,17 @@ interface PlannerContentProps {
   dict: Dictionary;
 }
 
-// 5?®Í≥Ñ Ï¥àÍ∏∞???ÅÌÉú Î™®Îç∏
 type PlannerState =
   | { status: "missing" }
   | { status: "invalid" }
   | { status: "calculation-error" }
-  | { status: "ready"; draft: TripDraft; plan: BudgetPlan };
+  | { status: "ready"; draft: TripDraft; preferences: PlannerPreferences };
 
-// useSyncExternalStore??stable no-op subscribe Î∞??§ÎÉÖ???®Ïàò
 const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
 export default function PlannerContent({ locale, dict }: PlannerContentProps) {
-  // React ?úÏ? useSyncExternalStoreÎ°?Hydration ?ÑÎ£å ?¨Î?Î•??àÏ†Ñ?òÍ≤å Í∞êÏ?
   const isHydrated = useSyncExternalStore(
     emptySubscribe,
     getClientSnapshot,
@@ -47,7 +44,7 @@ export default function PlannerContent({ locale, dict }: PlannerContentProps) {
   );
 
   if (!isHydrated) {
-    // 1. ?úÎ≤Ñ ?åÎçîÎß?Î∞?ÏµúÏ¥à Hydration ?ÅÌÉú: Î°úÎî© ?îÎ©¥ ?åÎçîÎß?    return (
+    return (
       <div className="flex h-64 w-full items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#e25c5c]"></div>
@@ -57,15 +54,11 @@ export default function PlannerContent({ locale, dict }: PlannerContentProps) {
     );
   }
 
-  // 2. Hydration ?ÑÎ£å ?? ?ôÏ†Å Î°úÏª¨?§ÌÜ†Î¶¨Ï?Î•?lazy loading?òÏó¨ Î∞îÏù∏??  return <HydratedPlannerContent locale={locale} dict={dict} />;
+  return <HydratedPlannerContent locale={locale} dict={dict} />;
 }
 
-/**
- * Hydration ?ÑÎ£å ??Î°úÏª¨?§ÌÜ†Î¶¨Ï?Î•?Lazy Loading ?òÏó¨ Íµ¨Îèô?òÎäî Planner Íµ¨ÏÑ± Ïª¥Ìè¨?åÌä∏
- */
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
-  // Lazy Initial StateÎ•??µÌï¥ ?Ä?¥Î®∏/Effect ?ÜÏù¥ ?ôÍ∏∞?ÅÏúºÎ°?Î°úÏª¨?§ÌÜ†Î¶¨Ï?Î•???1???àÏ†Ñ?òÍ≤å Î°úÎî© Î∞?Ï£ºÏûÖ
-  const [state] = useState<PlannerState>(() => {
+  const [state, setState] = useState<PlannerState>(() => {
     const hasDraftKey =
       localStorage.getItem("hypeheritage_trip_draft") !== null ||
       localStorage.getItem("k_travel_state") !== null;
@@ -82,19 +75,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         return { status: "invalid" };
       }
 
-      const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG);
-      return { status: "ready", draft, plan };
+      const res = loadPlannerPreferencesEx(draft);
+      if (res.status === "invalid" || res.status === "fingerprint-mismatch") {
+        return { status: "invalid" };
+      }
+
+      return { status: "ready", draft, preferences: res.preferences };
     } catch (error) {
-      console.error("Budget calculations failed:", error);
+      console.error("Failed to load planner:", error);
       return { status: "calculation-error" };
     }
   });
 
-  // Left Workspace Tab States
-  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "SEOUL" | "BUSAN" >("ALL");
+  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "SEOUL" | "BUSAN">("ALL");
   const [activeCategory, setActiveCategory] = useState<BudgetCategory>("ACCOMMODATION");
 
-  // --- 1. Missing State ---
   if (state.status === "missing") {
     return (
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -115,7 +110,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     );
   }
 
-  // --- 2. Invalid State ---
   if (state.status === "invalid") {
     return (
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -136,7 +130,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     );
   }
 
-  // --- 3. Calculation Error State ---
   if (state.status === "calculation-error") {
     return (
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
@@ -157,31 +150,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     );
   }
 
-  // --- 4. Ready State ---
-  const { draft, plan } = state;
+  const { draft, preferences } = state;
+  const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
+    accommodation: preferences.accommodationByCity,
+  });
 
-  // City list filter tabs
   const availableTabs: ("ALL" | "SEOUL" | "BUSAN")[] = ["ALL"];
   if (draft.selectedCities.includes("SEOUL")) availableTabs.push("SEOUL");
   if (draft.selectedCities.includes("BUSAN")) availableTabs.push("BUSAN");
 
-  // Filtering category items by active city tab
   const getFilteredItems = (category: BudgetCategory): BudgetLineItem[] => {
     const items: BudgetLineItem[] = [];
-
-    // 1. Trip Wide Section
     if (category === "EMERGENCY_FUND") {
       items.push(...plan.tripWideSection.lineItems);
     }
-
-    // 2. Intercity Section
     if (category === "CITY_TRANSPORT") {
       if (selectedCityTab === "ALL") {
         items.push(...plan.intercitySection.lineItems);
       }
     }
-
-    // 3. City Sections
     draft.selectedCities.forEach((city) => {
       if (selectedCityTab !== "ALL" && selectedCityTab !== city) {
         return;
@@ -199,13 +186,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         }
       }
     });
-
     return items;
   };
 
   const activeItems = getFilteredItems(activeCategory);
 
-  // Budget style localized label
   const budgetStyleLabel =
     draft.budgetTier === "BUDGET"
       ? "Budget"
@@ -216,9 +201,51 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const isOverBudget = plan.grandTotalKrw > plan.targetBudgetKrw;
   const clampedUsage = Math.min(100, (plan.grandTotalKrw / plan.targetBudgetKrw) * 100);
 
+  const handleStayOverride = (city: SupportedCity, basketId: BudgetBasketId) => {
+    const nextAcc = {
+      ...preferences.accommodationByCity,
+      [city]: basketId,
+    };
+
+    savePlannerPreferences(nextAcc, draft);
+    setState((prev) => {
+      if (prev.status !== "ready") return prev;
+      return {
+        ...prev,
+        preferences: {
+          ...prev.preferences,
+          accommodationByCity: nextAcc,
+        },
+      };
+    });
+  };
+
+  const handleResetStay = (cityTarget: SupportedCity) => {
+    const nextAcc = { ...preferences.accommodationByCity };
+    delete nextAcc[cityTarget];
+
+    savePlannerPreferences(nextAcc, draft);
+    setState((prev) => {
+      if (prev.status !== "ready") return prev;
+      return {
+        ...prev,
+        preferences: {
+          ...prev.preferences,
+          accommodationByCity: nextAcc,
+        },
+      };
+    });
+  };
+
+  const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
+    const found = MOCK_PRICE_CATALOG.find(
+      (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
+    );
+    return found ? found.representativePriceKrw : 0;
+  };
+
   return (
     <div className="w-full max-w-7xl px-4 py-8 md:px-8">
-      {/* H1 header (Hidden but accessible for Screen Readers) */}
       <h1 className="sr-only">{dict.common.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-start">
@@ -238,7 +265,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </p>
             </div>
 
-            {/* Trip Parameters Summary Bar */}
             <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 items-center justify-between">
               <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium">
                 <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
@@ -259,7 +285,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 href={`/${locale}`}
                 className="text-xs font-bold text-[#e25c5c] hover:underline focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1"
               >
-                {dict.planner.editTripDetails} &rarr;
+                {dict.planner.editTripDetails} {" \u2192"}
               </Link>
             </div>
           </div>
@@ -301,7 +327,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const isActive = activeCategory === cat;
               const label = getCategoryLabel(cat, dict);
 
-              // Sum calculation for Transport
               const amount =
                 cat === "CITY_TRANSPORT"
                   ? getCombinedTransportSubtotal(plan)
@@ -332,7 +357,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             })}
           </div>
 
-          {/* Active Category Read-Only Content Panel */}
+          {/* Active Category Panel */}
           <div
             className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6"
             role="tabpanel"
@@ -348,7 +373,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {activeCategory === "ATTRACTION" && dict.planner.attractionsTitle}
                 {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyTitle}
               </h3>
-              <p className="mt-1 text-xs sm:text-sm text-slate-450">
+              <p className="mt-1 text-xs sm:text-sm text-slate-400">
                 {activeCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
                 {activeCategory === "FOOD" && dict.planner.foodDescription}
                 {activeCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
@@ -357,7 +382,127 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </p>
             </div>
 
-            <div className="space-y-3.5">
+            {activeCategory === "ACCOMMODATION" && (
+              <div className="space-y-6 pt-2 border-t border-slate-100">
+
+                {/* 1. ALL Tab: Read-Only Summaries by City */}
+                {selectedCityTab === "ALL" && (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-extrabold text-[#0f172a]">
+                      {dict.planner.selectStayTitle}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {draft.selectedCities.map((city) => {
+                        const activeBasketId =
+                          preferences.accommodationByCity[city] ||
+                          plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId;
+
+                        const name = getBasketLabel(activeBasketId as BudgetBasketId, dict, locale);
+                        const price = getCatalogStayPrice(city, activeBasketId as BudgetBasketId);
+
+                        return (
+                          <div key={city} className="p-4 rounded-xl border border-slate-200 bg-slate-50/30 flex flex-col justify-between h-28">
+                            <div>
+                              <strong className="text-xs uppercase tracking-wider text-slate-500 font-bold block">
+                                {city === "SEOUL" ? "Seoul Stay" : "Busan Stay"}
+                              </strong>
+                              <span className="mt-1.5 text-sm font-extrabold text-[#0f172a] block">
+                                {name}
+                              </span>
+                            </div>
+                            <div className="flex items-baseline justify-between border-t border-slate-100 pt-2 text-xs">
+                              <span className="text-slate-400">Per Room/Night</span>
+                              <strong className="text-[#e25c5c] font-extrabold">{formatKrw(price)}</strong>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. City-Specific Tabs: Editable Card Sets with Reset */}
+                {selectedCityTab !== "ALL" && (() => {
+                  const city = selectedCityTab;
+                  const hasOverride = !!preferences.accommodationByCity[city];
+
+                  const activeBasketId =
+                    preferences.accommodationByCity[city] ||
+                    plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId;
+
+                  const basketOptions: BudgetBasketId[] = ["BUDGET_STAY", "STANDARD_HOTEL", "PREMIUM_HERITAGE"];
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">
+                            {city === "SEOUL" ? "Seoul" : "Busan"} {dict.planner.selectStayTitle}
+                          </h4>
+                          <p className="text-xs text-slate-400">
+                            {dict.planner.selectStayDescription}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleResetStay(city)}
+                          disabled={!hasOverride}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
+                            hasOverride
+                              ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
+                              : "text-slate-355 border-slate-100 bg-slate-50 cursor-not-allowed"
+                          }`}
+                        >
+                          {dict.planner.resetToRecommended}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {basketOptions.map((opt) => {
+                          const isSelected = activeBasketId === opt;
+                          const name = getBasketLabel(opt, dict, locale);
+                          const price = getCatalogStayPrice(city, opt);
+
+                          let desc = dict.planner.standardHotelDesc;
+                          if (opt === "BUDGET_STAY") desc = dict.planner.budgetStayDesc;
+                          if (opt === "PREMIUM_HERITAGE") desc = dict.planner.premiumHeritageDesc;
+
+                          return (
+                            <button
+                              key={opt}
+                              onClick={() => handleStayOverride(city, opt)}
+                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
+                                isSelected
+                                  ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
+                                  : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
+                              }`}
+                            >
+                              <div>
+                                <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
+                                  {name}
+                                </span>
+                                <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
+                                  {desc}
+                                </p>
+                              </div>
+                              <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-50 pt-2">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase">Per Room/Night</span>
+                                <span className="text-xs font-extrabold text-slate-800">{formatKrw(price)}</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+              </div>
+            )}
+
+            <div className="space-y-3.5 pt-4 border-t border-slate-100">
+              <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
+                {locale === "ko" ? "ÏÑ†ÌÉùÎêú ÏòàÏÇ∞ ÏÉÅÏÑ∏ Ï†ïÎ≥¥" : "Selected Budget Details"}
+              </h4>
               {activeItems.map((item) => {
                 const displayName = getBasketLabel(item.basketId, dict, locale);
                 const cityLabel = item.cityCode ? (item.cityCode === "SEOUL" ? "Seoul" : "Busan") : "";
@@ -381,7 +526,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
                       <div className="text-xs text-slate-400 space-x-2">
                         <span>{dict.planner.pricingUnit}: {item.pricingUnit}</span>
-                        <span>??/span>
+                        <span>‚Ä¢</span>
                         <span>{dict.planner.updatedAtLabel}: {item.updatedAt}</span>
                       </div>
                     </div>
@@ -516,7 +661,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <div key={city} className="space-y-2 pt-2 border-t border-slate-100">
                     <div className="flex justify-between items-baseline">
                       <h4 className="text-sm font-extrabold text-[#0f172a]">
-                        {label} <span className="text-[11px] font-bold text-slate-400">({cityNights}Î∞?</span>
+                        {label} <span className="text-[11px] font-bold text-slate-400">({cityNights}Î∞ï)</span>
                       </h4>
                       <span className="text-xs font-extrabold text-slate-800">{formatKrw(section.subtotalKrw)}</span>
                     </div>

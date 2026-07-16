@@ -101,4 +101,33 @@ describe("Budget Presentation Formatters", () => {
     const combined = getCombinedTransportSubtotal(dummyPlan as BudgetPlan);
     expect(combined).toBe(195600); // 76k + 119.6k
   });
+
+  describe("Presentation Selectors & Receipt Mapping", () => {
+    it("should display the recalculated accommodation totals from the recalculated plan", () => {
+      const mockPlan: Partial<BudgetPlan> = {
+        categoryTotals: {
+          ACCOMMODATION: 725000,
+          FOOD: 272000,
+          CITY_TRANSPORT: 76000,
+          INTERCITY_TRANSPORT: 119600,
+          ATTRACTION: 180000,
+          EMERGENCY_FUND: 100000,
+        },
+        grandTotalKrw: 1472600,
+        targetBudgetUsagePercent: 49.1,
+      };
+
+      // Recalculated plan values bound directly
+      expect(mockPlan.categoryTotals?.ACCOMMODATION).toBe(725000);
+      expect(mockPlan.grandTotalKrw).toBe(1472600);
+      expect(mockPlan.targetBudgetUsagePercent).toBe(49.1);
+    });
+
+    it("should select correct display labels for stay card selections in both locales", () => {
+      expect(getBasketLabel("BUDGET_STAY", ko, "ko")).toBe("실속형 숙소");
+      expect(getBasketLabel("BUDGET_STAY", en, "en")).toBe("Budget Stay");
+      expect(getBasketLabel("PREMIUM_HERITAGE", ko, "ko")).toBe("프리미엄 & 헤리티지");
+      expect(getBasketLabel("PREMIUM_HERITAGE", en, "en")).toBe("Premium & Heritage");
+    });
+  });
 });

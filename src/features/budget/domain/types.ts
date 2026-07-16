@@ -128,3 +128,21 @@ export interface BudgetPlan {
   overBudgetAmountKrw: number;
   generatedFromCatalogVersion: string;
 }
+
+export type AccommodationOverridesByCity = Partial<Record<SupportedCity, BudgetBasketId>>;
+
+export interface BudgetPlanOverrides {
+  accommodation?: AccommodationOverridesByCity;
+}
+
+export interface PlannerPreferences {
+  schemaVersion: number;
+  tripFingerprint: string;
+  accommodationByCity: AccommodationOverridesByCity;
+}
+
+export interface PlannerPreferencesEnvelope {
+  schemaVersion: number;
+  savedAt: string;
+  preferences: PlannerPreferences;
+}

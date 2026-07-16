@@ -4,9 +4,10 @@ import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity } from "../lib/trip-domain";
 import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences } from "../lib/storage-helper";
-import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences } from "../features/budget/domain/types";
+import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
+import FoodPlannerPanel from "./FoodPlannerPanel";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 import {
@@ -508,6 +509,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               </div>
             )}
+
+            {activeCategory === "FOOD" && selectedCityTab !== "ALL" && (() => {
+              const city = selectedCityTab;
+              const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
+              return (
+                <div className="space-y-6 pt-2 border-t border-slate-100">
+                  <FoodPlannerPanel
+                    locale={locale}
+                    dict={dict}
+                    mealPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan : undefined}
+                  />
+                </div>
+              );
+            })()}
 
             <div className="space-y-3.5 pt-4 border-t border-slate-100">
               <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">

@@ -99,7 +99,14 @@ export interface BudgetLineItem {
   confidence: PriceConfidence;
   updatedAt: string;
   sourceLabel: string;
-  mealPlan?: BaseMealPlan;
+  mealPlan?: BaseMealPlan | CalculatedMealPlan;
+}
+
+export function isCalculatedMealPlan(
+  mealPlan?: BaseMealPlan | CalculatedMealPlan
+): mealPlan is CalculatedMealPlan {
+  if (!mealPlan) return false;
+  return "lineTotalKrw" in mealPlan && Array.isArray(mealPlan.issues);
 }
 
 export interface CityBudgetSection {

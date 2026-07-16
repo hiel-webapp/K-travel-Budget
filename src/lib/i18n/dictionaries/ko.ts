@@ -96,6 +96,22 @@ export const ko = {
     foodTitle: "식비 예산",
     foodDescription: "현재 여행 조건과 예산 유형에 따라 제공되는 식비 예산입니다.",
     foodNotice: "현재 식비는 임시 일별 추정치이며, 이후 식사 플랜으로 세분화됩니다.",
+    foodMealPlan: "음식 식사 계획",
+    readOnlyNotice: "읽기 전용",
+    dayLabel: "일차",
+    mealSlotBreakfast: "아침 식사",
+    mealSlotLunch: "점심 식사",
+    mealSlotDinner: "저녁 식사",
+    mealSlotSnack: "스낵 및 카페",
+    baseMealLabel: "기본 식사",
+    selectedReplacement: "선택된 대체 음식",
+    addOnsLabel: "추가 메뉴 (Add-ons)",
+    includedInBase: "기본 예산 포함",
+    notIncludedInBase: "기본 예산 미포함",
+    wishlistCollectionsTitle: "음식 위시리스트 컬렉션",
+    emptyMealPlanNotice: "이 도시의 식사 계획 정보가 없습니다.",
+    excludedSelectionNotice: "예산에서 제외된 선택이 있음",
+    noWishlistCandidates: "추천 메뉴가 없습니다.",
 
     transportTitle: "교통 예산",
     transportDescription: "체류 도시 내 이동을 위한 예산과 도시 간 이동을 위한 장거리 교통비가 포함되어 있습니다.",
@@ -226,6 +242,22 @@ export interface Dictionary {
     foodTitle: string;
     foodDescription: string;
     foodNotice: string;
+    foodMealPlan: string;
+    readOnlyNotice: string;
+    dayLabel: string;
+    mealSlotBreakfast: string;
+    mealSlotLunch: string;
+    mealSlotDinner: string;
+    mealSlotSnack: string;
+    baseMealLabel: string;
+    selectedReplacement: string;
+    addOnsLabel: string;
+    includedInBase: string;
+    notIncludedInBase: string;
+    wishlistCollectionsTitle: string;
+    emptyMealPlanNotice: string;
+    excludedSelectionNotice: string;
+    noWishlistCandidates: string;
     transportTitle: string;
     transportDescription: string;
     transportNotice: string;

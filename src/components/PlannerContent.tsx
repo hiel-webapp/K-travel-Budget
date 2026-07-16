@@ -207,7 +207,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       [city]: basketId,
     };
 
-    savePlannerPreferences(nextAcc, draft);
+    savePlannerPreferences({
+      accommodationByCity: nextAcc,
+      foodOverrides: preferences.foodOverrides,
+      draft,
+    });
     setState((prev) => {
       if (prev.status !== "ready") return prev;
       return {
@@ -224,7 +228,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const nextAcc = { ...preferences.accommodationByCity };
     delete nextAcc[cityTarget];
 
-    savePlannerPreferences(nextAcc, draft);
+    savePlannerPreferences({
+      accommodationByCity: nextAcc,
+      foodOverrides: preferences.foodOverrides,
+      draft,
+    });
     setState((prev) => {
       if (prev.status !== "ready") return prev;
       return {

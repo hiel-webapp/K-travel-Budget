@@ -10,6 +10,8 @@ import {
   PlannerPreferences,
   PlannerPreferencesEnvelope,
   AccommodationOverridesByCity,
+  PlannerPreferencesV1,
+  FoodOverrides,
 } from "../features/budget/domain/types";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 
@@ -112,9 +114,10 @@ export function parsePlannerPreferences(
   preferences: PlannerPreferences;
 } {
   const defaultPrefs: PlannerPreferences = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     tripFingerprint: generateTripFingerprint(draft),
     accommodationByCity: {},
+    foodOverrides: {},
   };
 
   if (rawJson === null) {
@@ -122,66 +125,130 @@ export function parsePlannerPreferences(
   }
 
   try {
-    const envelope = JSON.parse(rawJson) as PlannerPreferencesEnvelope;
-    if (!envelope || envelope.schemaVersion !== 1 || !envelope.preferences) {
+    const rawObj = JSON.parse(rawJson);
+    if (!rawObj || typeof rawObj !== "object" || !("schemaVersion" in rawObj)) {
       return { status: "invalid", preferences: defaultPrefs };
     }
 
-    const prefs = envelope.preferences;
-    if (prefs.schemaVersion !== 1 || !prefs.accommodationByCity) {
-      return { status: "invalid", preferences: defaultPrefs };
-    }
+    const rawVersion = rawObj.schemaVersion;
 
-    const currentFingerprint = generateTripFingerprint(draft);
-    if (prefs.tripFingerprint !== currentFingerprint) {
-      return { status: "fingerprint-mismatch", preferences: defaultPrefs };
-    }
-
-    const acc = prefs.accommodationByCity;
-    for (const [cityKey, basketId] of Object.entries(acc)) {
-      const city = cityKey as SupportedCity;
-
-      if (!draft.selectedCities.includes(city)) {
-        continue;
-      }
-
-      const basket = MOCK_PRICE_CATALOG.find(
-        (b) =>
-          b.category === "ACCOMMODATION" &&
-          b.id === basketId &&
-          b.applicableCity === city &&
-          b.isActive
-      );
-
-      if (!basket) {
+    // V1 마이그레이션 경로
+    if (rawVersion === 1) {
+      const prefsV1 = rawObj.preferences as PlannerPreferencesV1;
+      if (!prefsV1 || prefsV1.schemaVersion !== 1 || !prefsV1.accommodationByCity) {
         return { status: "invalid", preferences: defaultPrefs };
       }
+
+      const currentFingerprint = generateTripFingerprint(draft);
+      if (prefsV1.tripFingerprint !== currentFingerprint) {
+        return { status: "fingerprint-mismatch", preferences: defaultPrefs };
+      }
+
+      const migratedPrefs: PlannerPreferences = {
+        schemaVersion: 2,
+        tripFingerprint: prefsV1.tripFingerprint,
+        accommodationByCity: prefsV1.accommodationByCity,
+        foodOverrides: {},
+      };
+
+      if (!validateAccommodation(migratedPrefs.accommodationByCity, draft)) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      return { status: "valid", preferences: migratedPrefs };
     }
 
-    return { status: "valid", preferences: prefs };
+    // V2 정상 경로
+    if (rawVersion === 2) {
+      const envelope = rawObj as PlannerPreferencesEnvelope;
+      if (!envelope.preferences) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      const prefs = envelope.preferences;
+      if (
+        prefs.schemaVersion !== 2 ||
+        !prefs.accommodationByCity ||
+        !prefs.foodOverrides ||
+        typeof prefs.foodOverrides !== "object"
+      ) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      const currentFingerprint = generateTripFingerprint(draft);
+      if (prefs.tripFingerprint !== currentFingerprint) {
+        return { status: "fingerprint-mismatch", preferences: defaultPrefs };
+      }
+
+      if (!validateAccommodation(prefs.accommodationByCity, draft)) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      for (const [key, value] of Object.entries(prefs.foodOverrides)) {
+        if (typeof key !== "string" || typeof value !== "string") {
+          return { status: "invalid", preferences: defaultPrefs };
+        }
+      }
+
+      return { status: "valid", preferences: prefs };
+    }
+
+    return { status: "invalid", preferences: defaultPrefs };
   } catch {
     return { status: "invalid", preferences: defaultPrefs };
   }
 }
 
+function validateAccommodation(
+  acc: AccommodationOverridesByCity,
+  draft: TripDraft
+): boolean {
+  for (const [cityKey, basketId] of Object.entries(acc)) {
+    const city = cityKey as SupportedCity;
+
+    if (!draft.selectedCities.includes(city)) {
+      continue;
+    }
+
+    const basket = MOCK_PRICE_CATALOG.find(
+      (b) =>
+        b.category === "ACCOMMODATION" &&
+        b.id === basketId &&
+        b.applicableCity === city &&
+        b.isActive
+    );
+
+    if (!basket) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export interface SavePlannerPreferencesInput {
+  accommodationByCity: AccommodationOverridesByCity;
+  foodOverrides?: FoodOverrides;
+  draft: TripDraft;
+}
+
 /**
  * PlannerPreferences를 로컬스토리지에 envelope 형식으로 안전하게 저장합니다.
  */
-export function savePlannerPreferences(
-  accommodationByCity: AccommodationOverridesByCity,
-  draft: TripDraft
-): boolean {
+export function savePlannerPreferences(input: SavePlannerPreferencesInput): boolean {
   if (!isClient()) return false;
+
+  const { accommodationByCity, foodOverrides = {}, draft } = input;
 
   try {
     const prefs: PlannerPreferences = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       tripFingerprint: generateTripFingerprint(draft),
       accommodationByCity,
+      foodOverrides,
     };
 
     const envelope: PlannerPreferencesEnvelope = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       savedAt: new Date().toISOString(),
       preferences: prefs,
     };
@@ -202,12 +269,14 @@ export function loadPlannerPreferencesEx(
   status: "valid" | "missing" | "invalid" | "fingerprint-mismatch" | "unavailable";
   preferences: PlannerPreferences;
 } {
+  const defaultPrefs: PlannerPreferences = {
+    schemaVersion: 2,
+    tripFingerprint: generateTripFingerprint(draft),
+    accommodationByCity: {},
+    foodOverrides: {},
+  };
+
   if (!isClient()) {
-    const defaultPrefs: PlannerPreferences = {
-      schemaVersion: 1,
-      tripFingerprint: generateTripFingerprint(draft),
-      accommodationByCity: {},
-    };
     return { status: "unavailable", preferences: defaultPrefs };
   }
 
@@ -215,11 +284,6 @@ export function loadPlannerPreferencesEx(
     const raw = localStorage.getItem(PREFS_STORAGE_KEY);
     return parsePlannerPreferences(raw, draft);
   } catch {
-    const defaultPrefs: PlannerPreferences = {
-      schemaVersion: 1,
-      tripFingerprint: generateTripFingerprint(draft),
-      accommodationByCity: {},
-    };
     return { status: "unavailable", preferences: defaultPrefs };
   }
 }

@@ -175,7 +175,7 @@ describe("Planner Preferences & Storage Domain", () => {
       };
       const raw = JSON.stringify(goodEnvelope);
 
-      // ?�토리�? 구조???�생 �?grandTotal, subtotal ?????�어가?�는 ????      expect(raw).not.toContain("grandTotal");
+      // ?ろ啝毽�? 甑�“???岇儩 臧?grandTotal, subtotal ?????れ柎臧€?滊姅 ????      expect(raw).not.toContain("grandTotal");
       expect(raw).not.toContain("subtotal");
       expect(raw).not.toContain("categoryTotals");
       expect(raw).not.toContain("BudgetPlan");
@@ -206,11 +206,12 @@ describe("Planner Preferences & Storage Domain", () => {
 
     it("should restore successfully using loadPlannerPreferencesEx", () => {
       const acc = { SEOUL: "BUDGET_STAY" as BudgetBasketId };
-      savePlannerPreferences(acc, defaultTrip);
+      savePlannerPreferences({ accommodationByCity: acc, draft: defaultTrip });
 
       const res = loadPlannerPreferencesEx(defaultTrip);
       expect(res.status).toBe("valid");
       expect(res.preferences.accommodationByCity.SEOUL).toBe("BUDGET_STAY");
+      expect(res.preferences.foodOverrides).toEqual({});
     });
 
     it("should return unavailable status when localStorage throws storage error", () => {
@@ -232,6 +233,83 @@ describe("Planner Preferences & Storage Domain", () => {
 
       expect(localStorage.getItem("hypeheritage_trip_draft")).toBe("some-trip");
       expect(localStorage.getItem("k_travel_state")).toBe("legacy-trip");
+    });
+
+    it("should migrate V1 envelope to V2 envelope successfully", () => {
+      const v1Envelope = {
+        schemaVersion: 1,
+        savedAt: new Date().toISOString(),
+        preferences: {
+          schemaVersion: 1,
+          tripFingerprint: generateTripFingerprint(defaultTrip),
+          accommodationByCity: { SEOUL: "BUDGET_STAY" },
+        },
+      };
+
+      const setItemSpy = vi.spyOn(localStorage, "setItem");
+
+      const res = parsePlannerPreferences(JSON.stringify(v1Envelope), defaultTrip);
+
+      // 마이그레이션 확인
+      expect(res.status).toBe("valid");
+      expect(res.preferences.schemaVersion).toBe(2);
+      expect(res.preferences.accommodationByCity.SEOUL).toBe("BUDGET_STAY");
+      expect(res.preferences.foodOverrides).toEqual({});
+
+      // 자동 저장이 발생하지 않았음을 확인
+      expect(setItemSpy).not.toHaveBeenCalled();
+    });
+
+    it("should return invalid on malformed V2 preferences", () => {
+      const badV2Envelope = {
+        schemaVersion: 2,
+        savedAt: new Date().toISOString(),
+        preferences: {
+          schemaVersion: 2,
+          tripFingerprint: generateTripFingerprint(defaultTrip),
+          accommodationByCity: { SEOUL: "BUDGET_STAY" },
+        },
+      };
+
+      const res = parsePlannerPreferences(JSON.stringify(badV2Envelope), defaultTrip);
+      expect(res.status).toBe("invalid");
+    });
+
+    it("should return fingerprint-mismatch on fingerprint mismatch in V2", () => {
+      const badV2Envelope = {
+        schemaVersion: 2,
+        savedAt: new Date().toISOString(),
+        preferences: {
+          schemaVersion: 2,
+          tripFingerprint: "mismatched-fingerprint",
+          accommodationByCity: { SEOUL: "BUDGET_STAY" },
+          foodOverrides: {},
+        },
+      };
+
+      const res = parsePlannerPreferences(JSON.stringify(badV2Envelope), defaultTrip);
+      expect(res.status).toBe("fingerprint-mismatch");
+    });
+
+    it("should save envelope as V2 formatting", () => {
+      const acc = { SEOUL: "BUDGET_STAY" as BudgetBasketId };
+      const food = { SEOUL_0_DINNER: "K_BBQ" };
+
+      savePlannerPreferences({
+        accommodationByCity: acc,
+        foodOverrides: food,
+        draft: defaultTrip,
+      });
+
+      const raw = localStorage.getItem("hypeheritage_planner_preferences");
+      expect(raw).not.toBeNull();
+
+      const envelope = JSON.parse(raw!);
+      expect(envelope.schemaVersion).toBe(2);
+      expect(envelope.preferences.schemaVersion).toBe(2);
+      expect(envelope.preferences.foodOverrides).toEqual(food);
+      expect(envelope.preferences.accommodationByCity).toEqual(acc);
+      expect(envelope.preferences.tripFingerprint).toBe(generateTripFingerprint(defaultTrip));
     });
   });
 });

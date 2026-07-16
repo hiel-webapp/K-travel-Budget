@@ -22,7 +22,13 @@ export type PricingUnit =
   | "PERSON_ONE_WAY"
   | "PER_PERSON"
   | "FIXED_AMOUNT"
-  | "PERCENTAGE";
+  | "PERCENTAGE"
+  | "PER_SERVING"
+  | "SHARED_DISH"
+  | "SET_MENU"
+  | "PER_ITEM"
+  | "PER_CUP"
+  | "PER_TABLE";
 
 export type CalculationStrategy =
   | "ROOM_NIGHT"
@@ -134,12 +140,78 @@ export type AccommodationOverridesByCity = Partial<Record<SupportedCity, BudgetB
 
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
+  food?: FoodOverrides;
+}
+
+export type FoodCollectionId = "ESSENTIALS" | "INTERNATIONAL" | "TRENDING" | "SPECIALTIES";
+
+export interface FoodWishlistCollection {
+  id: FoodCollectionId;
+  nameKo: string;
+  nameEn: string;
+  descriptionKo: string;
+  descriptionEn: string;
+}
+
+export interface FoodItem {
+  id: string;
+  nameKo: string;
+  nameEn: string;
+  collectionIds: FoodCollectionId[];
+  applicableCities: SupportedCity[];
+  applicableSlots: MealSlot[];
+  representativePriceKrw: number;
+  pricingUnit: PricingUnit;
+  confidence: PriceConfidence;
+  updatedAt: string;
+  sourceLabel: string;
+}
+
+export type FoodOverrides = Record<string, string>;
+
+export interface EffectiveMealSlot {
+  id: string;
+  city: SupportedCity;
+  dayIndex: number;
+  slot: MealSlot;
+  unitPriceKrw: number;
+  includedInBaseBudget: boolean;
+  replacedByFoodItemId?: string;
+  originalUnitPriceKrw: number;
+}
+
+export type FoodReplacementIssueReason =
+  | "SLOT_NOT_FOUND"
+  | "FOOD_NOT_FOUND"
+  | "CITY_NOT_ALLOWED"
+  | "SLOT_NOT_ALLOWED"
+  | "UNSUPPORTED_PRICING_UNIT"
+  | "MALFORMED_SELECTION";
+
+export interface FoodReplacementIssue {
+  slotId: string;
+  foodItemId: string;
+  reason: FoodReplacementIssueReason;
+}
+
+export interface CalculatedMealPlan {
+  slots: EffectiveMealSlot[];
+  perPersonBaseTotalKrw: number;
+  lineTotalKrw: number;
+  issues: FoodReplacementIssue[];
+}
+
+export interface PlannerPreferencesV1 {
+  schemaVersion: 1;
+  tripFingerprint: string;
+  accommodationByCity: AccommodationOverridesByCity;
 }
 
 export interface PlannerPreferences {
   schemaVersion: number;
   tripFingerprint: string;
   accommodationByCity: AccommodationOverridesByCity;
+  foodOverrides: FoodOverrides;
 }
 
 export interface PlannerPreferencesEnvelope {

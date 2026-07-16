@@ -19,6 +19,7 @@ import {
   MOCK_CATALOG_VERSION,
   MOCK_MEAL_SLOT_PRICES,
 } from "../catalog/mock-catalog";
+import { applyFoodReplacements } from "./food-engine";
 
 /**
  * TripDraft 입력을 기준으로 초기 BudgetPlan을 생성하는 순수 계산 엔진
@@ -69,9 +70,11 @@ export function generateInitialBudgetPlan(
           throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
         }
 
-        const mealPlan = generateBaseMealPlan(city, nights, budgetTier, MOCK_MEAL_SLOT_PRICES);
+        const baseMealPlan = generateBaseMealPlan(city, nights, budgetTier, MOCK_MEAL_SLOT_PRICES);
+        const foodOverrides = overrides?.food || {};
+        const mealPlan = applyFoodReplacements(baseMealPlan, foodOverrides, undefined, adultCount);
 
-        const lineTotalKrw = mealPlan.perPersonBaseTotalKrw * adultCount;
+        const lineTotalKrw = mealPlan.lineTotalKrw;
         const id = `${city}_${basket.id}`.toUpperCase();
 
         item = {

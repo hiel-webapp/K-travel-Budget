@@ -114,6 +114,12 @@ export const en: Dictionary = {
     emptyMealPlanNotice: "No meal plan data available for this city.",
     excludedSelectionNotice: "Budget has excluded selections",
     noWishlistCandidates: "No recommendations available.",
+    selectReplacementButton: "Select",
+    changeReplacementButton: "Change to this",
+    restoreBaseMealButton: "Restore to Base",
+    unsupportedPriceUnitLabel: "Pricing unit not supported",
+    saveFailedNotice: "Failed to save preferences.",
+    orphanAddOnWarning: "Please reselect the parent food item for your previously chosen options or clear them.",
 
     transportTitle: "Transportation Budget",
     transportDescription: "Includes local transit allowances within cities and intercity transit between cities.",

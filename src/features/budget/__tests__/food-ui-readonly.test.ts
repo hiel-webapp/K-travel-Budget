@@ -178,4 +178,77 @@ describe("HypeHeritage 12.1단계: Food UI Read-only 렌더링 및 타입 안전
 
     expect(html).toContain("MOCK");
   });
+
+  describe("12.2.2단계: Food UI Replacement 선택/변경/복원 버튼 및 예외 처리 검증", () => {
+    const dummyCallbacks = {
+      onSelectReplacement: () => {},
+      onClearReplacement: () => {},
+    };
+
+    it("should render Select/Change/Restore buttons based on food override state", () => {
+      const planWithReplacement: CalculatedMealPlan = {
+        ...mockMealPlan,
+        slots: mockMealPlan.slots.map((s) =>
+          s.id === "SEOUL_0_DINNER"
+            ? { ...s, replacedByFoodItemId: "K_BBQ" } // 삼겹살 선택 상태
+            : s
+        ),
+      };
+
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodPlannerPanel, {
+          locale: "ko",
+          dict: dummyDict,
+          mealPlan: planWithReplacement,
+          ...dummyCallbacks,
+        })
+      );
+
+      // K_BBQ (삼겹살) 카드 근처에는 "기본 식사로 복원" 버튼이 노출되어야 함
+      expect(html).toContain("기본 식사로 복원");
+
+      // 동일 DINNER 슬롯의 다른 음식(김치찌개 등)에는 "이 음식으로 변경" 또는 "선택" 버튼이 노출되어야 함
+      expect(html).toContain("이 음식으로 변경");
+    });
+
+    it("should disable buttons for unsupported pricing units and show warning text", () => {
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodPlannerPanel, {
+          locale: "ko",
+          dict: dummyDict,
+          mealPlan: mockMealPlan,
+          ...dummyCallbacks,
+        })
+      );
+
+      // TABLE_CHARGOL(테이블 세팅 비) 은 pricingUnit 이 "PER_TABLE" 이므로 비활성화(disabled) 상태여야 함
+      expect(html).toContain("disabled");
+      expect(html).toContain("기본 예산 미지원 요금제");
+    });
+
+    it("should display parent replacement orphan warning when addOnIssues has parent issue", () => {
+      const planWithOrphan: CalculatedMealPlan = {
+        ...mockMealPlan,
+        addOnIssues: [
+          {
+            slotId: "SEOUL_0_DINNER",
+            addOnItemId: "RICE",
+            reason: "PARENT_REPLACEMENT_NOT_APPLIED",
+          },
+        ],
+      };
+
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodPlannerPanel, {
+          locale: "ko",
+          dict: dummyDict,
+          mealPlan: planWithOrphan,
+          ...dummyCallbacks,
+        })
+      );
+
+      // orphan 에러 경고 배너 렌더 확인
+      expect(html).toContain("상위 음식을 다시 선택하거나 옵션을 정리하세요");
+    });
+  });
 });

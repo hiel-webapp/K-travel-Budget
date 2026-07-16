@@ -10,9 +10,17 @@ interface FoodPlannerPanelProps {
   locale: Locale;
   dict: Dictionary;
   mealPlan?: CalculatedMealPlan;
+  onSelectReplacement?: (slotId: string, foodItemId: string) => void;
+  onClearReplacement?: (slotId: string) => void;
 }
 
-export default function FoodPlannerPanel({ locale, dict, mealPlan }: FoodPlannerPanelProps) {
+export default function FoodPlannerPanel({
+  locale,
+  dict,
+  mealPlan,
+  onSelectReplacement,
+  onClearReplacement,
+}: FoodPlannerPanelProps) {
   if (!mealPlan || !mealPlan.slots || mealPlan.slots.length === 0) {
     return (
       <div className="p-8 text-center bg-slate-50/50 rounded-2xl border border-slate-200">
@@ -56,10 +64,9 @@ export default function FoodPlannerPanel({ locale, dict, mealPlan }: FoodPlanner
 
   return (
     <div className="space-y-6">
-      {/* Read-Only Banner */}
-      <div className="bg-[#faf5f5] text-[#e25c5c] p-4 rounded-xl border border-[#fce8e8] flex items-center justify-between text-xs font-bold">
-        <span>{dict.planner.foodMealPlan} ({currentCityLabel}) - {dict.planner.readOnlyNotice}</span>
-        <span className="bg-white/80 px-2 py-0.5 rounded text-[10px] uppercase shadow-sm">Preview</span>
+      {/* Title Header */}
+      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
+        <span>{dict.planner.foodMealPlan} ({currentCityLabel})</span>
       </div>
 
       {/* Day-by-Day Meal Slots */}
@@ -87,6 +94,8 @@ export default function FoodPlannerPanel({ locale, dict, mealPlan }: FoodPlanner
                   const hasIssues =
                     mealPlan.issues?.some((i) => i.slotId === slot.id) ||
                     mealPlan.addOnIssues?.some((i) => i.slotId === slot.id);
+
+                  const slotAddOnIssues = mealPlan.addOnIssues?.filter((i) => i.slotId === slot.id) || [];
 
                   return (
                     <div
@@ -161,19 +170,24 @@ export default function FoodPlannerPanel({ locale, dict, mealPlan }: FoodPlanner
                         </div>
                       )}
 
+                      {/* Orphan Add-on warning banner */}
+                      {slotAddOnIssues.length > 0 && (
+                        <div className="mt-2.5 p-2.5 bg-rose-50 border border-rose-100 rounded-lg text-[11px] text-rose-600 font-semibold leading-relaxed">
+                          ⚠️ {dict.planner.orphanAddOnWarning}
+                        </div>
+                      )}
+
                       {/* Collapsible Food Wishlist Collections for THIS Slot */}
                       <div className="pt-2 border-t border-slate-100">
                         <details className="group space-y-3">
                           <summary className="flex items-center justify-between font-bold text-[11px] text-slate-500 cursor-pointer p-1 rounded hover:bg-slate-50/50 transition-colors focus-visible:outline-2 focus-visible:outline-[#e25c5c]">
-                            <span>{dict.planner.wishlistCollectionsTitle} (Preview)</span>
+                            <span>{dict.planner.wishlistCollectionsTitle}</span>
                             <svg className="h-3 w-3 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                           </summary>
 
                           <div className="pt-1.5 text-[10px] text-slate-400 leading-relaxed bg-[#faf9f6]/80 p-2.5 rounded-lg border border-slate-100 space-y-3">
-                            <p className="font-medium text-[9px] text-slate-500">※ 이 슬롯에 적합한 후보 목록입니다. (선택 기능은 12.2단계에서 결합됩니다.)</p>
-
                             {(["ESSENTIALS", "INTERNATIONAL", "TRENDING", "SPECIALTIES"] as const).map((colId) => {
                               // 현재 도시, 현재 슬롯, 컬렉션 세 가지를 모두 충족하는 음식 필터링
                               const items = MOCK_FOOD_ITEMS.filter(
@@ -205,13 +219,83 @@ export default function FoodPlannerPanel({ locale, dict, mealPlan }: FoodPlanner
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                                       {uniqueItems.map((food) => {
                                         const name = locale === "ko" ? food.nameKo : food.nameEn;
+                                        const isSupported = food.pricingUnit === "PER_PERSON";
+                                        const isCurrentlySelected = slot.replacedByFoodItemId === food.id;
+                                        const isAnyReplacementActive = !!slot.replacedByFoodItemId;
+
+                                        let buttonText = dict.planner.selectReplacementButton;
+                                        let buttonAction = () => onSelectReplacement?.(slot.id, food.id);
+                                        let ariaLabel = locale === "ko"
+                                          ? `${name}을 ${getSlotLabel(slot.slot)}으로 선택`
+                                          : `Select ${name} for ${getSlotLabel(slot.slot)}`;
+
+                                        if (isCurrentlySelected) {
+                                          buttonText = dict.planner.restoreBaseMealButton;
+                                          buttonAction = () => onClearReplacement?.(slot.id);
+                                          ariaLabel = locale === "ko"
+                                            ? `${name} 선택 해제하고 기본식으로 복원`
+                                            : `Deselect ${name} and restore to base meal`;
+                                        } else if (isAnyReplacementActive) {
+                                          buttonText = dict.planner.changeReplacementButton;
+                                          buttonAction = () => onSelectReplacement?.(slot.id, food.id);
+                                          ariaLabel = locale === "ko"
+                                            ? `${name}으로 대체 식사 변경`
+                                            : `Change replacement meal to ${name}`;
+                                        }
+
+                                        if (!isSupported) {
+                                          buttonText = dict.planner.unsupportedPriceUnitLabel;
+                                          ariaLabel = locale === "ko"
+                                            ? `${name} (기본 예산 미지원 요금제)`
+                                            : `${name} (Pricing unit not supported)`;
+                                        }
+
                                         return (
                                           <div
                                             key={food.id}
-                                            className="p-2 rounded border border-slate-100 bg-white/60 flex items-center justify-between text-[10px]"
+                                            className={`p-2.5 rounded border flex flex-col justify-between gap-2 transition-all ${
+                                              isCurrentlySelected
+                                                ? "border-emerald-500 bg-emerald-50/20"
+                                                : "border-slate-100 bg-white"
+                                            }`}
                                           >
-                                            <span className="font-medium text-slate-700 truncate mr-2">{name}</span>
-                                            <strong className="text-slate-800 shrink-0">{formatKrw(food.representativePriceKrw)}</strong>
+                                            <div className="flex items-start justify-between gap-1">
+                                              <span className="font-semibold text-slate-800 text-[10px]">
+                                                {name}
+                                                {isCurrentlySelected && (
+                                                  <span className="ml-1 text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-bold">
+                                                    {dict.planner.selectedReplacement}
+                                                  </span>
+                                                )}
+                                              </span>
+                                              <strong className="text-slate-900 shrink-0 text-[10px]">
+                                                {formatKrw(food.representativePriceKrw)}
+                                              </strong>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1">
+                                              <button
+                                                type="button"
+                                                disabled={!isSupported}
+                                                onClick={buttonAction}
+                                                aria-pressed={isCurrentlySelected}
+                                                aria-label={ariaLabel}
+                                                className={`w-full py-1 px-2 rounded text-[9px] font-bold transition-all ${
+                                                  !isSupported
+                                                    ? "bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed"
+                                                    : isCurrentlySelected
+                                                    ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                                    : "bg-[#e25c5c] text-white hover:bg-[#d14b4b]"
+                                                }`}
+                                              >
+                                                {buttonText}
+                                              </button>
+                                              {!isSupported && (
+                                                <span className="text-[8px] text-red-500 font-semibold text-center leading-none">
+                                                  *{dict.planner.unsupportedPriceUnitLabel}
+                                                </span>
+                                              )}
+                                            </div>
                                           </div>
                                         );
                                       })}

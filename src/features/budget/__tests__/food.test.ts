@@ -518,4 +518,96 @@ describe("HypeHeritage 10단계: Food Wishlist 및 Replacement 도메인 연산 
       expect(seoulFood?.lineTotalKrw).toBe(184000);
     });
   });
+
+  describe("6. 12.2.2단계: 상태 갱신 함수 및 영속화 예외 시나리오 검증", () => {
+    // 가상의 스토리지 및 Ref 구조를 사용해 PlannerContent 내의 비즈니스 로직을 순수 함수 방식으로 모의 검증
+    it("should handle consecutive updates atomically using a shared reference object", () => {
+      // 렌더링 틱과 무관하게 동기적으로 상태를 추적하는 mock ref
+      const latestPrefsRef = {
+        current: {
+          schemaVersion: 3,
+          accommodationByCity: {},
+          foodOverrides: {} as Record<string, string>,
+          addOnSelections: {},
+        },
+      };
+
+      const saveHistory: { foodOverrides: Record<string, string> }[] = [];
+      const mockSavePreferences = (input: {
+        accommodationByCity: Record<string, string>;
+        foodOverrides: Record<string, string>;
+        addOnSelections: Record<string, unknown[]>;
+      }) => {
+        saveHistory.push(input);
+        return true; // 성공 모의
+      };
+
+      const handleSelectFoodReplacementMock = (slotId: string, foodItemId: string) => {
+        const currentFood = latestPrefsRef.current.foodOverrides;
+        const nextFood = { ...currentFood, [slotId]: foodItemId };
+
+        const saved = mockSavePreferences({
+          accommodationByCity: latestPrefsRef.current.accommodationByCity,
+          foodOverrides: nextFood,
+          addOnSelections: latestPrefsRef.current.addOnSelections,
+        });
+
+        if (saved) {
+          latestPrefsRef.current = {
+            ...latestPrefsRef.current,
+            foodOverrides: nextFood,
+          };
+        }
+      };
+
+      // 첫 번째 클릭 (Day 0 Dinner 삼겹살)
+      handleSelectFoodReplacementMock("SEOUL_0_DINNER", "K_BBQ");
+      // 리렌더가 일어나기 직전에 즉각 두 번째 클릭 (Day 0 Lunch 김치찌개)
+      handleSelectFoodReplacementMock("SEOUL_0_LUNCH", "KIMCHI_STEW");
+
+      // 검증: 최종 ref 가 두 선택 모두를 가지고 있어야 함
+      expect(latestPrefsRef.current.foodOverrides.SEOUL_0_DINNER).toBe("K_BBQ");
+      expect(latestPrefsRef.current.foodOverrides.SEOUL_0_LUNCH).toBe("KIMCHI_STEW");
+
+      // 영속화 이력도 두 번째 저장 시에 두 데이터가 온전히 병합되어 저장되었어야 함
+      expect(saveHistory[1].foodOverrides).toEqual({
+        SEOUL_0_DINNER: "K_BBQ",
+        SEOUL_0_LUNCH: "KIMCHI_STEW",
+      });
+    });
+
+    it("should rollback or block state sync when savePlannerPreferences returns false", () => {
+      const latestPrefsRef = {
+        current: {
+          schemaVersion: 3,
+          accommodationByCity: {},
+          foodOverrides: { SEOUL_0_DINNER: "K_BBQ" } as Record<string, string>,
+          addOnSelections: {},
+        },
+      };
+
+      const mockSavePreferencesFail = () => false; // 실패 모의
+
+      const handleSelectFoodReplacementMock = (slotId: string, foodItemId: string) => {
+        const currentFood = latestPrefsRef.current.foodOverrides;
+        const nextFood = { ...currentFood, [slotId]: foodItemId };
+
+        const saved = mockSavePreferencesFail();
+
+        if (saved) {
+          latestPrefsRef.current = {
+            ...latestPrefsRef.current,
+            foodOverrides: nextFood,
+          };
+        }
+      };
+
+      // 실패가 나는 액션 실행
+      handleSelectFoodReplacementMock("SEOUL_0_LUNCH", "KIMCHI_STEW");
+
+      // 검증: ref가 변경되지 않고 이전 상태 (K_BBQ만 존재)를 유지하고 있어야 함
+      expect(latestPrefsRef.current.foodOverrides.SEOUL_0_LUNCH).toBeUndefined();
+      expect(latestPrefsRef.current.foodOverrides.SEOUL_0_DINNER).toBe("K_BBQ");
+    });
+  });
 });

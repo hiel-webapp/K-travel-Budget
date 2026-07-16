@@ -112,6 +112,12 @@ export const ko = {
     emptyMealPlanNotice: "이 도시의 식사 계획 정보가 없습니다.",
     excludedSelectionNotice: "예산에서 제외된 선택이 있음",
     noWishlistCandidates: "추천 메뉴가 없습니다.",
+    selectReplacementButton: "선택",
+    changeReplacementButton: "이 음식으로 변경",
+    restoreBaseMealButton: "기본 식사로 복원",
+    unsupportedPriceUnitLabel: "기본 예산 미지원 요금제",
+    saveFailedNotice: "설정 저장에 실패했습니다.",
+    orphanAddOnWarning: "이전에 선택한 옵션(Add-on)의 상위 음식을 다시 선택하거나 옵션을 정리하세요.",
 
     transportTitle: "교통 예산",
     transportDescription: "체류 도시 내 이동을 위한 예산과 도시 간 이동을 위한 장거리 교통비가 포함되어 있습니다.",
@@ -258,6 +264,12 @@ export interface Dictionary {
     emptyMealPlanNotice: string;
     excludedSelectionNotice: string;
     noWishlistCandidates: string;
+    selectReplacementButton: string;
+    changeReplacementButton: string;
+    restoreBaseMealButton: string;
+    unsupportedPriceUnitLabel: string;
+    saveFailedNotice: string;
+    orphanAddOnWarning: string;
     transportTitle: string;
     transportDescription: string;
     transportNotice: string;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity } from "../lib/trip-domain";
 import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences } from "../lib/storage-helper";
@@ -90,6 +90,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "SEOUL" | "BUSAN">("ALL");
   const [activeCategory, setActiveCategory] = useState<BudgetCategory>("ACCOMMODATION");
+  const [saveError, setSaveError] = useState<boolean>(false);
+
+  const latestPrefsRef = useRef<PlannerPreferences | null>(null);
+
+  useEffect(() => {
+    if (state.status === "ready") {
+      latestPrefsRef.current = state.preferences;
+    }
+  }, [state]);
 
   if (state.status === "missing") {
     return (
@@ -250,7 +259,71 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   };
 
+  const handleSelectFoodReplacement = (slotId: string, foodItemId: string) => {
+    if (!latestPrefsRef.current) return;
 
+    const currentFood = latestPrefsRef.current.foodOverrides;
+    const nextFood = {
+      ...currentFood,
+      [slotId]: foodItemId,
+    };
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: nextFood,
+      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        foodOverrides: nextFood,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleClearFoodReplacement = (slotId: string) => {
+    if (!latestPrefsRef.current) return;
+
+    const currentFood = latestPrefsRef.current.foodOverrides;
+    const nextFood = { ...currentFood };
+    delete nextFood[slotId];
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: nextFood,
+      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        foodOverrides: nextFood,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
 
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const found = MOCK_PRICE_CATALOG.find(
@@ -519,10 +592,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
               return (
                 <div className="space-y-6 pt-2 border-t border-slate-100">
+                  {saveError && (
+                    <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-100">
+                      ⚠️ {dict.planner.saveFailedNotice}
+                    </div>
+                  )}
                   <FoodPlannerPanel
                     locale={locale}
                     dict={dict}
                     mealPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan : undefined}
+                    onSelectReplacement={handleSelectFoodReplacement}
+                    onClearReplacement={handleClearFoodReplacement}
                   />
                 </div>
               );

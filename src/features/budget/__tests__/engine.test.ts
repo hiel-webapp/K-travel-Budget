@@ -1,0 +1,338 @@
+import { describe, it, expect } from "vitest";
+import { generateInitialBudgetPlan } from "../calculations/engine";
+import { TripDraft } from "../../../lib/trip-domain";
+import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
+import { BudgetBasketDefinition } from "../domain/types";
+
+describe("Budget Calculation Engine - MVP Alignment", () => {
+  const defaultTrip: TripDraft = {
+    totalNights: 5,
+    adultCount: 2,
+    selectedCities: ["SEOUL", "BUSAN"],
+    cityNightAllocations: {
+      SEOUL: 3,
+      BUSAN: 2,
+    },
+    budgetTier: "STANDARD",
+    targetBudgetKrw: 3000000,
+    schemaVersion: 1,
+  };
+
+  describe("1. Default Approved Calculation (Standard 5-Nights, 2 Adults, 1 Room)", () => {
+    const plan = generateInitialBudgetPlan(defaultTrip);
+
+    it("should calculate correct line items for Seoul section", () => {
+      const seoulSection = plan.citySections.SEOUL;
+      expect(seoulSection).not.toBeNull();
+
+      // Accommodation: 135k * 1 room * 3 nights = 405,000
+      const acc = seoulSection!.lineItems.find((item) => item.category === "ACCOMMODATION");
+      expect(acc?.lineTotalKrw).toBe(405000);
+      expect(acc?.quantity).toBe(1); // Exactly 1 room MVP rule
+
+      // Food: 28k * 2 adults * 3 nights = 168,000
+      const food = seoulSection!.lineItems.find((item) => item.category === "FOOD");
+      expect(food?.lineTotalKrw).toBe(168000);
+
+      // City Transport: 8k * 2 adults * 3 nights = 48,000
+      const trans = seoulSection!.lineItems.find((item) => item.category === "CITY_TRANSPORT");
+      expect(trans?.lineTotalKrw).toBe(48000);
+
+      // Attractions: 50k * 2 adults = 100,000
+      const attr = seoulSection!.lineItems.find((item) => item.category === "ATTRACTION");
+      expect(attr?.lineTotalKrw).toBe(100000);
+
+      // Seoul Subtotal: 405k + 168k + 48k + 100k = 721,000
+      expect(seoulSection!.subtotalKrw).toBe(721000);
+    });
+
+    it("should calculate correct line items for Busan section", () => {
+      const busanSection = plan.citySections.BUSAN;
+      expect(busanSection).not.toBeNull();
+
+      // Accommodation: 120k * 1 room * 2 nights = 240,000
+      const acc = busanSection!.lineItems.find((item) => item.category === "ACCOMMODATION");
+      expect(acc?.lineTotalKrw).toBe(240000);
+      expect(acc?.quantity).toBe(1); // Exactly 1 room MVP rule
+
+      // Food: 26k * 2 adults * 2 nights = 104,000
+      const food = busanSection!.lineItems.find((item) => item.category === "FOOD");
+      expect(food?.lineTotalKrw).toBe(104000);
+
+      // City Transport: 7k * 2 adults * 2 nights = 28,000
+      const trans = busanSection!.lineItems.find((item) => item.category === "CITY_TRANSPORT");
+      expect(trans?.lineTotalKrw).toBe(28000);
+
+      // Attractions: 40k * 2 adults = 80,000
+      const attr = busanSection!.lineItems.find((item) => item.category === "ATTRACTION");
+      expect(attr?.lineTotalKrw).toBe(80000);
+
+      // Busan Subtotal: 240k + 104k + 28k + 80k = 452,000
+      expect(busanSection!.subtotalKrw).toBe(452000);
+    });
+
+    it("should calculate correct intercity transportation", () => {
+      // KTX: 59,800 * 2 adults * 1 trip = 119,600
+      expect(plan.categoryTotals.INTERCITY_TRANSPORT).toBe(119600);
+      expect(plan.intercitySection.subtotalKrw).toBe(119600);
+      expect(plan.intercitySection.lineItems.length).toBe(1);
+    });
+
+    it("should calculate correct emergency fund", () => {
+      // Emergency Fund: Fixed 100,000
+      expect(plan.categoryTotals.EMERGENCY_FUND).toBe(100000);
+      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+    });
+
+    it("should aggregate correct grand total and traveler average indicators", () => {
+      // Seoul (721k) + Busan (452k) + KTX (119.6k) + Emergency (100k) = 1,392,600
+      expect(plan.grandTotalKrw).toBe(1392600);
+
+      // Per traveler: 1,392,600 / 2 = 696,300
+      expect(plan.perTravelerTotalKrw).toBe(696300);
+
+      // Daily average: 1,392,600 / 6 days (5 nights + 1) = 232,100
+      expect(plan.dailyAverageKrw).toBe(232100);
+
+      // Remaining budget: 3,000,000 - 1,392,600 = 1,607,400
+      expect(plan.remainingBudgetKrw).toBe(1607400);
+      expect(plan.overBudgetAmountKrw).toBe(0);
+
+      // Target-budget usage: (1,392,600 / 3,000,000) * 100 = 46.4%
+      expect(plan.targetBudgetUsagePercent).toBe(46.4);
+    });
+  });
+
+  describe("2. Financial Invariants", () => {
+    it("should satisfy the Receipt Invariant: City + Intercity + TripWide = Grand Total", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip);
+      const seoulSub = plan.citySections.SEOUL?.subtotalKrw || 0;
+      const busanSub = plan.citySections.BUSAN?.subtotalKrw || 0;
+      const intercitySub = plan.intercitySection.subtotalKrw;
+      const tripWideSub = plan.tripWideSection.subtotalKrw;
+
+      expect(plan.grandTotalKrw).toBe(seoulSub + busanSub + intercitySub + tripWideSub);
+    });
+
+    it("should satisfy the Category Sum Invariant: sum of categoryTotals = Grand Total", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip);
+      const categorySum = Object.values(plan.categoryTotals).reduce((sum, val) => sum + val, 0);
+      expect(plan.grandTotalKrw).toBe(categorySum);
+    });
+
+    it("should not mutate the input TripDraft", () => {
+      const originalCopy = JSON.parse(JSON.stringify(defaultTrip));
+      generateInitialBudgetPlan(defaultTrip);
+      expect(defaultTrip).toEqual(originalCopy);
+    });
+
+    it("should not mutate the price catalog", () => {
+      const originalCatalog = JSON.parse(JSON.stringify(MOCK_PRICE_CATALOG));
+      generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG);
+      expect(MOCK_PRICE_CATALOG).toEqual(originalCatalog);
+    });
+
+    it("should return deeply equivalent results for repeated calls", () => {
+      const plan1 = generateInitialBudgetPlan(defaultTrip);
+      const plan2 = generateInitialBudgetPlan(defaultTrip);
+      expect(plan1).toEqual(plan2);
+    });
+  });
+
+  describe("3. Single-City Trips", () => {
+    it("should omit intercity transportation when only Seoul is selected", () => {
+      const trip: TripDraft = {
+        ...defaultTrip,
+        selectedCities: ["SEOUL"],
+        cityNightAllocations: { SEOUL: 5 },
+      };
+      const plan = generateInitialBudgetPlan(trip);
+
+      expect(plan.citySections.SEOUL).not.toBeNull();
+      expect(plan.citySections.BUSAN).toBeNull();
+      expect(plan.categoryTotals.INTERCITY_TRANSPORT).toBe(0);
+      expect(plan.intercitySection.lineItems.length).toBe(0);
+      expect(plan.tripWideSection.lineItems.length).toBe(1); // Emergency fund must appear exactly once
+    });
+
+    it("should omit intercity transportation when only Busan is selected", () => {
+      const trip: TripDraft = {
+        ...defaultTrip,
+        selectedCities: ["BUSAN"],
+        cityNightAllocations: { BUSAN: 5 },
+      };
+      const plan = generateInitialBudgetPlan(trip);
+
+      expect(plan.citySections.SEOUL).toBeNull();
+      expect(plan.citySections.BUSAN).not.toBeNull();
+      expect(plan.categoryTotals.INTERCITY_TRANSPORT).toBe(0);
+      expect(plan.intercitySection.lineItems.length).toBe(0);
+    });
+  });
+
+  describe("4. Budget Tiers", () => {
+    it("should select BUDGET baskets for BUDGET tier", () => {
+      const trip: TripDraft = { ...defaultTrip, budgetTier: "BUDGET" };
+      const plan = generateInitialBudgetPlan(trip);
+
+      const seoulAcc = plan.citySections.SEOUL?.lineItems.find((item) => item.category === "ACCOMMODATION");
+      expect(seoulAcc?.basketId).toBe("BUDGET_STAY");
+      expect(seoulAcc?.unitPriceKrw).toBe(75000); // Seoul Budget Stay
+      expect(seoulAcc?.confidence).toBe("MOCK");
+    });
+
+    it("should select STANDARD baskets for STANDARD tier", () => {
+      const trip: TripDraft = { ...defaultTrip, budgetTier: "STANDARD" };
+      const plan = generateInitialBudgetPlan(trip);
+
+      const seoulAcc = plan.citySections.SEOUL?.lineItems.find((item) => item.category === "ACCOMMODATION");
+      expect(seoulAcc?.basketId).toBe("STANDARD_HOTEL");
+      expect(seoulAcc?.unitPriceKrw).toBe(135000);
+    });
+
+    it("should select PREMIUM baskets for PREMIUM tier", () => {
+      const trip: TripDraft = { ...defaultTrip, budgetTier: "PREMIUM" };
+      const plan = generateInitialBudgetPlan(trip);
+
+      const seoulAcc = plan.citySections.SEOUL?.lineItems.find((item) => item.category === "ACCOMMODATION");
+      expect(seoulAcc?.basketId).toBe("PREMIUM_HERITAGE");
+      expect(seoulAcc?.unitPriceKrw).toBe(290000);
+    });
+  });
+
+  describe("5. Over-Budget Computations", () => {
+    it("should return remainingBudgetKrw = 0 and calculate correct overBudgetAmount when target is low", () => {
+      const trip: TripDraft = { ...defaultTrip, targetBudgetKrw: 1000000 }; // Grand total is 1,392,600
+      const plan = generateInitialBudgetPlan(trip);
+
+      expect(plan.remainingBudgetKrw).toBe(0);
+      expect(plan.overBudgetAmountKrw).toBe(392600);
+      expect(plan.targetBudgetUsagePercent).toBe(139.3); // 139.26% rounded
+    });
+  });
+
+  describe("6. Intercity Transportation Routing", () => {
+    it("should compute SEOUL to BUSAN routing correctly", () => {
+      const trip: TripDraft = { ...defaultTrip, selectedCities: ["SEOUL", "BUSAN"] };
+      const plan = generateInitialBudgetPlan(trip);
+      const intercity = plan.intercitySection.lineItems[0];
+
+      expect(intercity.route).toBe("SEOUL-BUSAN");
+      expect(plan.citySections.SEOUL?.lineItems.some((item) => item.category === "INTERCITY_TRANSPORT")).toBe(false);
+      expect(plan.citySections.BUSAN?.lineItems.some((item) => item.category === "INTERCITY_TRANSPORT")).toBe(false);
+    });
+
+    it("should compute BUSAN to SEOUL routing correctly", () => {
+      const trip: TripDraft = {
+        ...defaultTrip,
+        selectedCities: ["BUSAN", "SEOUL"],
+        cityNightAllocations: { BUSAN: 3, SEOUL: 2 },
+      };
+      const plan = generateInitialBudgetPlan(trip);
+      const intercity = plan.intercitySection.lineItems[0];
+
+      expect(intercity.route).toBe("BUSAN-SEOUL");
+      expect(intercity.lineTotalKrw).toBe(119600); // Route reverse lookup fallback
+    });
+  });
+
+  describe("7. Invalid Inputs Validation", () => {
+    it("should throw error for zero or negative adult counts", () => {
+      expect(() => generateInitialBudgetPlan({ ...defaultTrip, adultCount: 0 })).toThrow();
+      expect(() => generateInitialBudgetPlan({ ...defaultTrip, adultCount: -1 })).toThrow();
+    });
+
+    it("should throw error for zero nights", () => {
+      expect(() => generateInitialBudgetPlan({ ...defaultTrip, totalNights: 0 })).toThrow();
+    });
+
+    it("should throw error for empty city lists", () => {
+      expect(() => generateInitialBudgetPlan({ ...defaultTrip, selectedCities: [] })).toThrow();
+    });
+
+    it("should throw error for duplicate cities in path", () => {
+      expect(() =>
+        generateInitialBudgetPlan({ ...defaultTrip, selectedCities: ["SEOUL", "SEOUL"] })
+      ).toThrow();
+    });
+
+    it("should throw error when city allocations do not sum up to total nights", () => {
+      expect(() =>
+        generateInitialBudgetPlan({
+          ...defaultTrip,
+          cityNightAllocations: { SEOUL: 1, BUSAN: 2 }, // Total nights is 5
+        })
+      ).toThrow();
+    });
+
+    it("should throw error for negative night allocation", () => {
+      expect(() =>
+        generateInitialBudgetPlan({
+          ...defaultTrip,
+          cityNightAllocations: { SEOUL: 6, BUSAN: -1 },
+        })
+      ).toThrow();
+    });
+
+    it("should throw error for zero target budget", () => {
+      expect(() => generateInitialBudgetPlan({ ...defaultTrip, targetBudgetKrw: 0 })).toThrow();
+    });
+
+    it("should throw error if unknown or inactive catalog item is requested", () => {
+      // Inactive catalog test
+      const badCatalog: BudgetBasketDefinition[] = MOCK_PRICE_CATALOG.map((item) => {
+        if (item.id === "STANDARD_HOTEL" && item.applicableCity === "SEOUL") {
+          return { ...item, isActive: false };
+        }
+        return item;
+      });
+
+      expect(() => generateInitialBudgetPlan(defaultTrip, badCatalog)).toThrow();
+    });
+  });
+
+  describe("8. Mock Price Catalog Quality Validation", () => {
+    it("should satisfy catalog metadata requirements", () => {
+      for (const entry of MOCK_PRICE_CATALOG) {
+        expect(entry.confidence).toBe("MOCK");
+        expect(entry.sourceLabel).toBe("MVP Mock Price Catalog");
+        expect(entry.priceMinKrw).toBeLessThanOrEqual(entry.representativePriceKrw);
+        expect(entry.representativePriceKrw).toBeLessThanOrEqual(entry.priceMaxKrw);
+
+        // Scope validation
+        if (["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION"].includes(entry.category)) {
+          expect(entry.scope).toBe("CITY");
+        } else if (entry.category === "INTERCITY_TRANSPORT") {
+          expect(entry.scope).toBe("INTERCITY");
+        } else if (entry.category === "EMERGENCY_FUND") {
+          expect(entry.scope).toBe("TRIP_WIDE");
+        }
+
+        // Pricing unit and strategy combination mapping checks
+        if (entry.pricingUnit === "ROOM_NIGHT") {
+          expect(entry.calculationStrategy).toBe("ROOM_NIGHT");
+        } else if (entry.pricingUnit === "PERSON_DAY") {
+          expect(entry.calculationStrategy).toBe("PERSON_DAY");
+        } else if (entry.pricingUnit === "PERSON_ONE_WAY") {
+          expect(entry.calculationStrategy).toBe("PERSON_ONE_WAY");
+        } else if (entry.pricingUnit === "PER_PERSON") {
+          expect(entry.calculationStrategy).toBe("PER_PERSON_FIXED");
+        } else if (entry.pricingUnit === "FIXED_AMOUNT") {
+          expect(entry.calculationStrategy).toBe("FIXED_AMOUNT");
+        }
+
+        // Date format check (YYYY-MM-DD)
+        expect(entry.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      }
+    });
+
+    it("should ensure no duplicate basket ids exist for the same city/route and category", () => {
+      const keys = new Set<string>();
+      for (const entry of MOCK_PRICE_CATALOG) {
+        const uniqueKey = `${entry.category}_${entry.applicableCity || entry.applicableRoute || "TRIP"}_${entry.id}`;
+        expect(keys.has(uniqueKey)).toBe(false);
+        keys.add(uniqueKey);
+      }
+    });
+  });
+});

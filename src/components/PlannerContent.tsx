@@ -210,6 +210,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     savePlannerPreferences({
       accommodationByCity: nextAcc,
       foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
       draft,
     });
     setState((prev) => {
@@ -231,6 +232,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     savePlannerPreferences({
       accommodationByCity: nextAcc,
       foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
       draft,
     });
     setState((prev) => {

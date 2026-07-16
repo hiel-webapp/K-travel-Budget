@@ -19,7 +19,7 @@ import {
   MOCK_CATALOG_VERSION,
   MOCK_MEAL_SLOT_PRICES,
 } from "../catalog/mock-catalog";
-import { applyFoodReplacements } from "./food-engine";
+import { applyFoodReplacements, applyFoodAddOns } from "./food-engine";
 
 /**
  * TripDraft 입력을 기준으로 초기 BudgetPlan을 생성하는 순수 계산 엔진
@@ -72,7 +72,9 @@ export function generateInitialBudgetPlan(
 
         const baseMealPlan = generateBaseMealPlan(city, nights, budgetTier, MOCK_MEAL_SLOT_PRICES);
         const foodOverrides = overrides?.food || {};
-        const mealPlan = applyFoodReplacements(baseMealPlan, foodOverrides, undefined, adultCount);
+        const foodAddOnOverrides = overrides?.foodAddOns || {};
+        const replacedMealPlan = applyFoodReplacements(baseMealPlan, foodOverrides, undefined, adultCount);
+        const mealPlan = applyFoodAddOns(replacedMealPlan, foodAddOnOverrides, adultCount);
 
         const lineTotalKrw = mealPlan.lineTotalKrw;
         const id = `${city}_${basket.id}`.toUpperCase();
@@ -141,7 +143,7 @@ export function generateInitialBudgetPlan(
     const route = selectedCities.join("-"); // e.g. "SEOUL-BUSAN"
     const category: BudgetCategory = "INTERCITY_TRANSPORT";
     const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
-    
+
     // catalog에서 route에 맞는 바스켓 검색 (순서 무관하게 매칭 가능하도록 정렬 비교 등 수행)
     const basket = catalog.find(
       (b) =>

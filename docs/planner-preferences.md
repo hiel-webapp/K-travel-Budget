@@ -9,14 +9,14 @@
 ## 2. 저장소 및 스키마 명세
 - **로컬스토리지 Key**: `hypeheritage_planner_preferences`
 
-### 3. Envelope Schema (V2)
-스토리지에는 마이그레이션과 하위 호환성을 위해 versioned Envelope 형태로 저장되며, 음식 오버라이드 기능 도입에 따라 스키마 버전이 **2**로 상향되었습니다.
+### 3. Envelope Schema (V3)
+스토리지에는 마이그레이션과 하위 호환성을 위해 versioned Envelope 형태로 저장되며, 음식 Add-on 기능 도입에 따라 스키마 버전이 **3**으로 상향되었습니다.
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "savedAt": "2026-07-16T04:22:00.000Z",
   "preferences": {
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "tripFingerprint": "5|2|SEOUL,BUSAN|BUSAN:2;SEOUL:3|STANDARD|3000000",
     "accommodationByCity": {
       "SEOUL": "BUDGET_STAY",
@@ -24,6 +24,11 @@
     },
     "foodOverrides": {
       "SEOUL_0_DINNER": "K_BBQ"
+    },
+    "addOnSelections": {
+      "SEOUL_0_DINNER": [
+        { "addOnItemId": "RICE", "quantity": 2 }
+      ]
     }
   }
 }
@@ -31,19 +36,20 @@
 
 ### 4. Preferences Schema & 5. Trip Fingerprint Fields
 `PlannerPreferences`는 다음 필드들을 가집니다:
-- `schemaVersion`: 2 (정수형 스키마 버전)
+- `schemaVersion`: 3 (정수형 스키마 버전)
 - `tripFingerprint`: 핵심 여행 조건이 변경되었는지 감지하기 위한 해시 세그먼트입니다.
   - **포함 필드**: `totalNights | adultCount | selectedCities(순서 보존) | cityNightAllocations(정렬된 맵) | budgetTier | targetBudgetKrw`
   - 여행 일수, 인원수, 도시 방문 순서, 도시별 숙박 분배, 예산 등급, 목표 예산이 변경되면 fingerprint가 달라집니다. 단, 다국어 locale 전환은 fingerprint에 영향을 주지 않습니다.
 - `accommodationByCity`: 각 도시(`SEOUL`, `BUSAN`)의 오버라이드된 숙박 Basket ID 매핑 딕셔너리.
 - `foodOverrides`: 각 식사 슬롯 ID를 키로, 선택된 음식 Item ID를 값으로 하는 맵 객체 (`Record<string, string>`).
-  - Key: `CITY_DAYINDEX_SLOT` (e.g. `SEOUL_0_BREAKFAST`)
-  - Value: `FoodItem.id` (e.g. `SEOUL_SULLEONGTANG`)
+- `addOnSelections`: 각 식사 슬롯 ID를 키로, 선택된 Add-on 리스트를 값으로 하는 맵 객체 (`Record<string, FoodAddOnSelection[]>`).
 
-## 5-1. V1 to V2 마이그레이션 정책
-- 로컬스토리지를 로드할 때 이전 V1 포맷(`schemaVersion: 1`)이 발견되면, 기존의 `accommodationByCity` 데이터는 고스란히 보존한 채, `foodOverrides: {}` 빈 객체를 자동 병합하여 메모리 상에서 V2 포맷으로 자동 변환(마이그레이션)합니다.
-- 이 마이그레이션 과정에서 스토리지 자동 쓰기(Write side-effect)는 방지하며, 유저가 저장을 명시적으로 실행하는 시점에만 V2 Envelope 형태로 스토리지에 영구 저장됩니다.
-- Preferences 로딩 시 V2 envelope 구조가 손상된 경우(`malformed V2`)에는 default V2 포맷으로 안전하게 폴백(status: "invalid")하며, fingerprint가 다른 경우(`fingerprint-mismatch`)에는 mismatch 지표(status: "fingerprint-mismatch")를 리턴하여 여행 조건 변경을 별도 감지하도록 설계합니다.
+## 5-1. V1 / V2 to V3 마이그레이션 정책
+- 로컬스토리지 로드 시 구버전 스키마가 발견될 경우 메모리 상에서 최신 V3 형태로 무손실 변환을 거칩니다:
+  - **V1 ➔ V3**: `accommodationByCity` 보존, `foodOverrides: {}` 및 `addOnSelections: {}` 정규화 병합.
+  - **V2 ➔ V3**: `accommodationByCity`, `foodOverrides` 보존, `addOnSelections: {}` 정규화 병합.
+- 이 마이그레이션 과정에서 스토리지 자동 쓰기(Write side-effect)는 방지하며, 유저가 플래너를 직접 편집 및 저장(save)하는 시점에 비로소 V3 Envelope 형태로 스토리지에 영구 영속화됩니다.
+- Preferences 로딩 시 V3 envelope 구조가 손상된 경우(`malformed V3`)에는 default V3 포맷으로 안전하게 폴백(status: "invalid")하며, fingerprint가 다른 경우(`fingerprint-mismatch`)에는 mismatch 지표(status: "fingerprint-mismatch")를 리턴하여 여행 조건 변경을 별도 감지하도록 설계합니다.
 
 ## 6. 숙박 오버라이드 검증 및 7. 엔진 흐름
 1. 플래너 로드 시, 로컬스토리지를 조회하여 `parsePlannerPreferences`를 구동합니다.

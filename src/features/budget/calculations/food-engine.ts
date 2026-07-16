@@ -9,8 +9,13 @@ import {
   FoodReplacementIssueReason,
   CalculatedMealPlan,
   FoodCollectionId,
+  FoodAddOnItem,
+  FoodAddOnSelection,
+  FoodAddOnOverrides,
+  EffectiveFoodAddOn,
+  FoodAddOnIssue,
 } from "../domain/types";
-import { MOCK_FOOD_ITEMS } from "../catalog/mock-catalog";
+import { MOCK_FOOD_ITEMS, MOCK_FOOD_ADD_ONS } from "../catalog/mock-catalog";
 
 /**
  * 테마 컬렉션별로 음식을 조회합니다.
@@ -170,5 +175,275 @@ export function applyFoodReplacements(
     perPersonBaseTotalKrw,
     lineTotalKrw: perPersonBaseTotalKrw * adultCount,
     issues,
+  };
+}
+
+/**
+ * 특정 parent 음식에 대한 Add-on 후보군을 조회합니다.
+ */
+export function findAddOnCandidatesForParent(
+  addOnCatalog: FoodAddOnItem[] = MOCK_FOOD_ADD_ONS,
+  parentFoodItemId: string
+): FoodAddOnItem[] {
+  return addOnCatalog.filter((item) => item.parentFoodItemIds.includes(parentFoodItemId));
+}
+
+/**
+ * 7개 가격 단위 공식을 기반으로 단일 Add-on 가격을 계산합니다.
+ */
+export function calculateAddOnPrice(
+  addOnItem: FoodAddOnItem,
+  quantity: number,
+  adultCount: number
+): { adultCountApplied: boolean; multiplier: number; lineTotalKrw: number } {
+  if (addOnItem.pricingUnit === "PER_PERSON") {
+    const multiplier = adultCount * quantity;
+    return {
+      adultCountApplied: true,
+      multiplier,
+      lineTotalKrw: addOnItem.representativePriceKrw * multiplier,
+    };
+  } else {
+    return {
+      adultCountApplied: false,
+      multiplier: quantity,
+      lineTotalKrw: addOnItem.representativePriceKrw * quantity,
+    };
+  }
+}
+
+/**
+ * 사용자 Add-on 선택값(selections)들의 런타임 구조와 유효성을 검사합니다.
+ */
+export function validateAddOnSelections(
+  selections: FoodAddOnSelection[],
+  addOnCatalog: FoodAddOnItem[] = MOCK_FOOD_ADD_ONS,
+  parentFoodItemId: string | undefined,
+  city: SupportedCity
+): { valid: FoodAddOnSelection[]; rejected: FoodAddOnIssue[]; malformedCount: number } {
+  const valid: FoodAddOnSelection[] = [];
+  const rejected: FoodAddOnIssue[] = [];
+  let malformedCount = 0;
+
+  if (!Array.isArray(selections)) {
+    return { valid: [], rejected: [], malformedCount: 1 };
+  }
+
+  const seenAddOnIds = new Set<string>();
+
+  for (const selection of selections) {
+    if (
+      !selection ||
+      typeof selection !== "object" ||
+      typeof selection.addOnItemId !== "string" ||
+      typeof selection.quantity !== "number"
+    ) {
+      malformedCount++;
+      continue;
+    }
+
+    const { addOnItemId, quantity } = selection;
+
+    if (
+      isNaN(quantity) ||
+      quantity <= 0 ||
+      !Number.isInteger(quantity)
+    ) {
+      rejected.push({
+        slotId: "",
+        addOnItemId,
+        parentFoodItemId,
+        reason: "INVALID_QUANTITY",
+      });
+      continue;
+    }
+
+    const addOnItem = addOnCatalog.find((item) => item.id === addOnItemId);
+    if (!addOnItem) {
+      rejected.push({
+        slotId: "",
+        addOnItemId,
+        parentFoodItemId,
+        reason: "ADD_ON_NOT_FOUND",
+      });
+      continue;
+    }
+
+    if (
+      typeof addOnItem.representativePriceKrw !== "number" ||
+      isNaN(addOnItem.representativePriceKrw) ||
+      addOnItem.representativePriceKrw <= 0 ||
+      !Number.isInteger(addOnItem.representativePriceKrw)
+    ) {
+      rejected.push({
+        slotId: "",
+        addOnItemId,
+        parentFoodItemId,
+        reason: "INVALID_PRICE",
+      });
+      continue;
+    }
+
+    if (!parentFoodItemId || !addOnItem.parentFoodItemIds.includes(parentFoodItemId)) {
+      rejected.push({
+        slotId: "",
+        addOnItemId,
+        parentFoodItemId,
+        reason: "ADD_ON_NOT_ALLOWED_FOR_PARENT",
+      });
+      continue;
+    }
+
+    if (!addOnItem.applicableCities.includes(city)) {
+      rejected.push({
+        slotId: "",
+        addOnItemId,
+        parentFoodItemId,
+        reason: "CITY_NOT_ALLOWED",
+      });
+      continue;
+    }
+
+    if (quantity > addOnItem.maxQuantity) {
+      rejected.push({
+        slotId: "",
+        addOnItemId,
+        parentFoodItemId,
+        reason: "QUANTITY_EXCEEDS_LIMIT",
+      });
+      continue;
+    }
+
+    if (seenAddOnIds.has(addOnItemId)) {
+      rejected.push({
+        slotId: "",
+        addOnItemId,
+        parentFoodItemId,
+        reason: "MALFORMED_SELECTION",
+      });
+      continue;
+    }
+
+    seenAddOnIds.add(addOnItemId);
+    valid.push(selection);
+  }
+
+  return { valid, rejected, malformedCount };
+}
+
+/**
+ * CalculatedMealPlan에 음식 Add-on 계산 결과를 안전하게 누적 병합합니다.
+ * 입력 객체들은 절대 mutation하지 않습니다 (Pure Function).
+ */
+export function applyFoodAddOns(
+  calculatedMealPlan: CalculatedMealPlan,
+  addOnOverrides: FoodAddOnOverrides = {},
+  adultCount: number,
+  addOnCatalog: FoodAddOnItem[] = MOCK_FOOD_ADD_ONS
+): CalculatedMealPlan {
+  const slots: EffectiveMealSlot[] = [];
+  const addOnIssues: FoodAddOnIssue[] = [];
+  let addOnsTotalKrw = 0;
+
+  if (!addOnOverrides || typeof addOnOverrides !== "object" || Array.isArray(addOnOverrides)) {
+    return {
+      ...calculatedMealPlan,
+      addOnIssues: [
+        {
+          slotId: "",
+          addOnItemId: "",
+          reason: "MALFORMED_SELECTION",
+        },
+      ],
+      addOnsTotalKrw: 0,
+    };
+  }
+
+  calculatedMealPlan.slots.forEach((baseSlot) => {
+    const parentFoodItemId = baseSlot.replacedByFoodItemId;
+    const selections = addOnOverrides[baseSlot.id] || [];
+
+    if (!parentFoodItemId) {
+      if (selections.length > 0) {
+        selections.forEach((sel) => {
+          if (sel && typeof sel === "object" && typeof sel.addOnItemId === "string") {
+            addOnIssues.push({
+              slotId: baseSlot.id,
+              addOnItemId: sel.addOnItemId,
+              reason: "PARENT_REPLACEMENT_NOT_APPLIED",
+            });
+          } else {
+            addOnIssues.push({
+              slotId: baseSlot.id,
+              addOnItemId: "",
+              reason: "MALFORMED_SELECTION",
+            });
+          }
+        });
+      }
+      slots.push({ ...baseSlot, addOns: [], addOnsTotalKrw: 0 });
+      return;
+    }
+
+    const { valid, rejected, malformedCount } = validateAddOnSelections(
+      selections,
+      addOnCatalog,
+      parentFoodItemId,
+      baseSlot.city
+    );
+
+    rejected.forEach((issue) => {
+      addOnIssues.push({
+        ...issue,
+        slotId: baseSlot.id,
+      });
+    });
+
+    for (let i = 0; i < malformedCount; i++) {
+      addOnIssues.push({
+        slotId: baseSlot.id,
+        addOnItemId: "",
+        parentFoodItemId,
+        reason: "MALFORMED_SELECTION",
+      });
+    }
+
+    const effectiveAddOns: EffectiveFoodAddOn[] = [];
+    let slotAddOnsTotalKrw = 0;
+
+    valid.forEach((sel) => {
+      const addOnItem = addOnCatalog.find((item) => item.id === sel.addOnItemId)!;
+      const calcResult = calculateAddOnPrice(addOnItem, sel.quantity, adultCount);
+
+      effectiveAddOns.push({
+        addOnItemId: addOnItem.id,
+        nameKo: addOnItem.nameKo,
+        nameEn: addOnItem.nameEn,
+        unitPriceKrw: addOnItem.representativePriceKrw,
+        quantity: sel.quantity,
+        pricingUnit: addOnItem.pricingUnit,
+        adultCountApplied: calcResult.adultCountApplied,
+        multiplier: calcResult.multiplier,
+        lineTotalKrw: calcResult.lineTotalKrw,
+      });
+
+      slotAddOnsTotalKrw += calcResult.lineTotalKrw;
+    });
+
+    addOnsTotalKrw += slotAddOnsTotalKrw;
+
+    slots.push({
+      ...baseSlot,
+      addOns: effectiveAddOns,
+      addOnsTotalKrw: slotAddOnsTotalKrw,
+    });
+  });
+
+  return {
+    ...calculatedMealPlan,
+    slots,
+    addOnIssues,
+    addOnsTotalKrw,
+    lineTotalKrw: calculatedMealPlan.lineTotalKrw + addOnsTotalKrw,
   };
 }

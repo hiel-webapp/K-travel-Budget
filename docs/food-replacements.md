@@ -16,9 +16,8 @@
 
 ## 2. 가격 단위별 계산 및 범위 정책
 - **정적 가격 단위 종류**: `PER_PERSON`, `PER_SERVING`, `SHARED_DISH`, `SET_MENU`, `PER_ITEM`, `PER_CUP`, `PER_TABLE`
-- **10단계 공식 Replacement 계산 범위**:
-  - 오직 `PER_PERSON` (인당 계산) 단가만을 계산식에 반영합니다.
-  - 나머지 단가(예: `SHARED_DISH`, `PER_TABLE` 등)는 10단계에서 임의로 환산하지 않고 공식 예산 연산에서 배제한 뒤 진단 이슈(`UNSUPPORTED_PRICING_UNIT`)에 등록하여 다음 11단계 Add-on/공유음식 연산 파트로 연산 역할을 명확히 격리 위임합니다.
+- **음식 대체(Replacement) 및 Add-on 계산 범위**:
+  - Replacement 대체 계산은 `PER_PERSON` 단가만을 공식 계산에 수용하고, 나머지 다인용/공유 음식 및 기타 가격 단위는 Add-on 시스템(11단계)의 명시적 수량 기반 계산식에 위임하여 처리합니다. Replacement 상에서 지원되지 않는 가격 단위를 배정할 경우 진단 이슈(`UNSUPPORTED_PRICING_UNIT`)에 등록됩니다.
 
 ## 3. Replacement 가격 합산 및 중복 방지 규칙
 - **Pure Function 원칙**: 입력인 `BaseMealPlan`, `FoodOverrides`, `FoodItem[]` 등은 계산 도중 절대 변경(Mutation)하지 않고, 매번 완전히 동일한 결과(결정론적 구조)를 반환하는 순수 함수 `applyFoodReplacements`를 활용합니다.

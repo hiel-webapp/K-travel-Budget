@@ -141,6 +141,7 @@ export type AccommodationOverridesByCity = Partial<Record<SupportedCity, BudgetB
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
   food?: FoodOverrides;
+  foodAddOns?: FoodAddOnOverrides;
 }
 
 export type FoodCollectionId = "ESSENTIALS" | "INTERNATIONAL" | "TRENDING" | "SPECIALTIES";
@@ -169,6 +170,44 @@ export interface FoodItem {
 
 export type FoodOverrides = Record<string, string>;
 
+export interface FoodAddOnItem {
+  id: string;
+  nameKo: string;
+  nameEn: string;
+  parentFoodItemIds: string[];
+  applicableCities: SupportedCity[];
+  representativePriceKrw: number;
+  pricingUnit: PricingUnit;
+  maxQuantity: number;
+  servingCapacity?: number;
+  peoplePerSet?: number;
+  tableCapacity?: number;
+  isAlcohol: boolean;
+  isBeverage: boolean;
+  confidence: PriceConfidence;
+  updatedAt: string;
+  sourceLabel: string;
+}
+
+export interface FoodAddOnSelection {
+  addOnItemId: string;
+  quantity: number;
+}
+
+export type FoodAddOnOverrides = Record<string, FoodAddOnSelection[]>;
+
+export interface EffectiveFoodAddOn {
+  addOnItemId: string;
+  nameKo: string;
+  nameEn: string;
+  unitPriceKrw: number;
+  quantity: number;
+  pricingUnit: PricingUnit;
+  adultCountApplied: boolean;
+  multiplier: number;
+  lineTotalKrw: number;
+}
+
 export interface EffectiveMealSlot {
   id: string;
   city: SupportedCity;
@@ -178,6 +217,8 @@ export interface EffectiveMealSlot {
   includedInBaseBudget: boolean;
   replacedByFoodItemId?: string;
   originalUnitPriceKrw: number;
+  addOns?: EffectiveFoodAddOn[];
+  addOnsTotalKrw?: number;
 }
 
 export type FoodReplacementIssueReason =
@@ -194,11 +235,33 @@ export interface FoodReplacementIssue {
   reason: FoodReplacementIssueReason;
 }
 
+export type FoodAddOnIssueReason =
+  | "SLOT_NOT_FOUND"
+  | "PARENT_FOOD_NOT_FOUND"
+  | "PARENT_REPLACEMENT_NOT_APPLIED"
+  | "ADD_ON_NOT_FOUND"
+  | "ADD_ON_NOT_ALLOWED_FOR_PARENT"
+  | "CITY_NOT_ALLOWED"
+  | "INVALID_QUANTITY"
+  | "QUANTITY_EXCEEDS_LIMIT"
+  | "INVALID_PRICE"
+  | "UNSUPPORTED_PRICING_UNIT"
+  | "MALFORMED_SELECTION";
+
+export interface FoodAddOnIssue {
+  slotId: string;
+  addOnItemId: string;
+  parentFoodItemId?: string;
+  reason: FoodAddOnIssueReason;
+}
+
 export interface CalculatedMealPlan {
   slots: EffectiveMealSlot[];
   perPersonBaseTotalKrw: number;
   lineTotalKrw: number;
   issues: FoodReplacementIssue[];
+  addOnIssues?: FoodAddOnIssue[];
+  addOnsTotalKrw?: number;
 }
 
 export interface PlannerPreferencesV1 {
@@ -207,11 +270,19 @@ export interface PlannerPreferencesV1 {
   accommodationByCity: AccommodationOverridesByCity;
 }
 
+export interface PlannerPreferencesV2 {
+  schemaVersion: 2;
+  tripFingerprint: string;
+  accommodationByCity: AccommodationOverridesByCity;
+  foodOverrides: FoodOverrides;
+}
+
 export interface PlannerPreferences {
   schemaVersion: number;
   tripFingerprint: string;
   accommodationByCity: AccommodationOverridesByCity;
   foodOverrides: FoodOverrides;
+  addOnSelections: FoodAddOnOverrides;
 }
 
 export interface PlannerPreferencesEnvelope {

@@ -42,6 +42,92 @@ export const en: Dictionary = {
     goBack: "Go to Landing",
     title: "Travel Budget Planner",
     status: "Successfully loaded trip parameters:",
+    // Missing state UI
+    missingTitle: "No trip information found",
+    missingDescription: "Enter your trip details before starting the budget planner.",
+    missingButton: "Enter Trip Details",
+    // Invalid state UI
+    invalidTitle: "Unable to load trip information",
+    invalidDescription: "The saved trip information is invalid. Please enter your trip details again.",
+    invalidButton: "Re-enter Trip Details",
+    // Calculation Error UI
+    calculationErrorTitle: "Unable to calculate budget",
+    calculationErrorDescription: "Please verify your trip parameters and try again.",
+    calculationErrorButton: "Verify Trip Details",
+
+    // Left workspace
+    workspaceTitle: "Build Your Korea Travel Budget",
+    workspaceDescription: "Review each travel category and adjust your budget plan step by step.",
+    editTripDetails: "Edit Trip Details",
+
+    // Receipt
+    receiptTitle: "My Korea Trip Receipt",
+    statusDraft: "Draft",
+    budgetStyle: "Budget Style",
+    targetBudget: "Target Budget",
+    currentEstimate: "Current Estimate",
+    budgetUsage: "Budget Usage",
+    remainingBudget: "Remaining Budget",
+    overBudget: "Over Budget",
+    tripWideExpenses: "Trip-wide Expenses",
+    intercityTransportation: "Intercity Transportation",
+    estimatedTotal: "Estimated Total",
+    perTraveler: "Per Traveler",
+    dailyAverage: "Daily Average",
+    mockDisclaimer: "These estimates use the MVP Mock Price Catalog and are not actual prices.",
+    saveTrip: "Save Trip",
+    shareReceipt: "Share Receipt",
+    generateReport: "Generate Budget Report",
+    notYetAvailable: "This feature is not yet available.",
+
+    // Active Category Content
+    accommodationTitle: "Stay Budget",
+    accommodationDescription: "The accommodation budget automatically selected based on your trip details and budget tier.",
+    accommodationNotice: "You will be able to customize accommodation options in the next phase.",
+
+    foodTitle: "Food Budget",
+    foodDescription: "The food budget plan configured for your trip parameters and budget tier.",
+    foodNotice: "This food budget is a temporary estimate and will be replaced by detailed meal plans later.",
+
+    transportTitle: "Transportation Budget",
+    transportDescription: "Includes local transit allowances within cities and intercity transit between cities.",
+    transportNotice: "Intercity KTX transit is automatically included for multi-city trip options.",
+
+    attractionsTitle: "Attractions Budget",
+    attractionsDescription: "The sightseeing and experiences budget based on your trip parameters and budget tier.",
+    attractionsNotice: "Attractions budget is calculated per traveler rather than per night.",
+
+    emergencyTitle: "Emergency Fund",
+    emergencyDescription: "A fallback fund designed to handle unexpected occurrences during your stay.",
+    emergencyNotice: "Applied as a one-time fixed amount for the entire duration of the trip.",
+
+    // Category labels
+    categoryStay: "Stay",
+    categoryFood: "Food",
+    categoryTransport: "Transport",
+    categoryAttraction: "Attractions",
+    categoryEmergency: "Emergency Fund",
+
+    // Pricing units
+    unitRoomNight: "Room/Night",
+    unitPersonDay: "Per Person/Day",
+    unitPersonMeal: "Per Person/Meal",
+    unitPersonOneWay: "Per Person/One-Way",
+    unitPerPerson: "Per Person",
+    unitFixedAmount: "Fixed Amount",
+    unitPercentage: "Percentage",
+
+    // General labels
+    representativePrice: "Representative Price",
+    priceRange: "Price Range",
+    pricingUnit: "Unit",
+    nightsLabel: "Nights",
+    roomCountLabel: "Rooms",
+    totalLabel: "Total",
+    badgeMock: "MOCK",
+    updatedAtLabel: "Updated Date",
+    sourceLabelText: "Source",
+    allTabs: "All",
   },
   placeholder: {
     notImplemented: "This page will be implemented in the next development phase.",

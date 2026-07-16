@@ -1,50 +1,136 @@
 export const ko = {
   common: {
-    title: "HypeHeritage - 한국 여행 예산 플래너",
+    title: "HypeHeritage - ?�국 ?�행 ?�산 ?�래??,
     logoAlt: "HypeHeritage 로고",
-    userAccount: "사용자 계정",
+    userAccount: "?�용??계정",
   },
   navigation: {
-    planner: "여행 예산 플래너",
-    trend: "K-트렌드",
-    guide: "K-가이드",
-    savedTrips: "저장한 여행",
+    planner: "?�행 ?�산 ?�래??,
+    trend: "K-?�렌??,
+    guide: "K-가?�드",
+    savedTrips: "?�?�한 ?�행",
   },
   footer: {
     copyright: "© 2026 HypeHeritage",
-    about: "소개",
-    terms: "이용약관",
-    privacy: "개인정보처리방침",
-    country: "대한민국",
+    about: "?�개",
+    terms: "?�용?��?",
+    privacy: "개인?�보처리방침",
+    country: "?�?��?�?,
   },
   landing: {
     heading: "HypeHeritage",
-    tagline: "현지인처럼 선택하고, 믿을 수 있게 예산을 세워보세요.",
-    cta: "내 한국 여행 예산 만들기",
-    helper: "결제 없이 첫 번째 여행 예산을 만들어볼 수 있어요.",
-    status: "한국 여행 예산 플래너를 준비하고 있습니다.",
-    nextPhase: "다음 단계에서 랜딩 페이지를 구현합니다.",
-    allocationSeoulBusan: "서울 {seoul}박 · 부산 {busan}박",
-    allocationSeoulOnly: "서울 {seoul}박",
-    allocationBusanOnly: "부산 {busan}박",
+    tagline: "?��??�처???�택?�고, 믿을 ???�게 ?�산???�워보세??",
+    cta: "???�국 ?�행 ?�산 만들�?,
+    helper: "결제 ?�이 �?번째 ?�행 ?�산??만들?�볼 ???�어??",
+    status: "?�국 ?�행 ?�산 ?�래?��? 준비하�??�습?�다.",
+    nextPhase: "?�음 ?�계?�서 ?�딩 ?�이지�?구현?�니??",
+    allocationSeoulBusan: "?�울 {seoul}�?· 부??{busan}�?,
+    allocationSeoulOnly: "?�울 {seoul}�?,
+    allocationBusanOnly: "부??{busan}�?,
     validation: {
-      invalidNights: "숙박 기간은 3박, 5박, 7박 중 하나여야 합니다.",
-      invalidAdults: "여행 인원은 1명에서 4명 사이여야 합니다.",
-      noCities: "최소 한 개의 도시를 선택해야 합니다.",
-      invalidTargetBudget: "목표 예산은 양의 정수여야 합니다.",
-      saveFailed: "일시적인 저장소 오류로 예산안을 저장하지 못했습니다.",
+      invalidNights: "?�박 기간?� 3�? 5�? 7�?�??�나?�야 ?�니??",
+      invalidAdults: "?�행 ?�원?� 1명에??4�??�이?�야 ?�니??",
+      noCities: "최소 ??개의 ?�시�??�택?�야 ?�니??",
+      invalidTargetBudget: "목표 ?�산?� ?�의 ?�수?�야 ?�니??",
+      saveFailed: "?�시?�인 ?�?�소 ?�류�??�산?�을 ?�?�하지 못했?�니??",
     },
   },
   planner: {
-    missingState: "생성된 예산 조건이 없습니다. 랜딩 페이지에서 먼저 예산을 만들어보세요.",
-    goBack: "랜딩 페이지로 가기",
-    title: "여행 예산 플래너",
-    status: "성공적으로 여행 정보를 로드했습니다:",
+    missingState: "?�성???�산 조건???�습?�다. ?�딩 ?�이지?�서 먼�? ?�산??만들?�보?�요.",
+    goBack: "?�딩 ?�이지�?가�?,
+    title: "?�행 ?�산 ?�래??,
+    status: "?�공?�으�??�행 ?�보�?로드?�습?�다:",
+    // Missing state UI
+    missingTitle: "?�행 ?�보가 ?�습?�다",
+    missingDescription: "먼�? ?�행 조건???�력?????�산 ?�래?��? ?�작?�주?�요.",
+    missingButton: "?�행 조건 ?�력?�기",
+    // Invalid state UI
+    invalidTitle: "?�행 ?�보�?불러?????�습?�다",
+    invalidDescription: "?�?�된 ?�행 ?�보가 ?�바르�? ?�습?�다. ?�행 조건???�시 ?�인?�주?�요.",
+    invalidButton: "?�행 조건 ?�시 ?�력?�기",
+    // Calculation Error UI
+    calculationErrorTitle: "?�산??계산?????�습?�다",
+    calculationErrorDescription: "?�행 조건�??�산 ?�이?��? ?�인?????�시 ?�도?�주?�요.",
+    calculationErrorButton: "?�행 조건 ?�인?�기",
+
+    // Left workspace
+    workspaceTitle: "?�국 ?�행 ?�산 만들�?,
+    workspaceDescription: "?�행 ??��???�인?�고 ?�하???�산 구성???�계별로 조정?�보?�요.",
+    editTripDetails: "?�행 조건 ?�정",
+
+    // Receipt
+    receiptTitle: "???�국 ?�행 ?�수�?,
+    statusDraft: "초안",
+    budgetStyle: "?�산 ?�형",
+    targetBudget: "목표 ?�산",
+    currentEstimate: "?�재 ?�상",
+    budgetUsage: "목표 ?�산 ?�용�?,
+    remainingBudget: "?��? ?�산",
+    overBudget: "초과 ?�산",
+    tripWideExpenses: "?�체 ?�행 공통 비용",
+    intercityTransportation: "?�시 �?교통",
+    estimatedTotal: "?�상 총액",
+    perTraveler: "1?�당",
+    dailyAverage: "?�루 ?�균",
+    mockDisclaimer: "?�재 금액?� MVP Mock Price Catalog�??�용???�상값이�??�제 가격이 ?�닙?�다.",
+    saveTrip: "?�행 ?�??,
+    shareReceipt: "?�수�?공유",
+    generateReport: "?�산 리포??만들�?,
+    notYetAvailable: "?�직 ?�공?��? ?�는 기능?�니??",
+
+    // Active Category Content
+    accommodationTitle: "?�박 ?�산",
+    accommodationDescription: "?�재 ?�행 조건�??�산 ?�형???�라 ?�동?�로 ?�택???�박 ?�산?�니??",
+    accommodationNotice: "?�음 ?�계?�서 ?�박 ?�형??직접 변경할 ???�습?�다.",
+
+    foodTitle: "?�비 ?�산",
+    foodDescription: "?�재 ?�행 조건�??�산 ?�형???�라 ?�공?�는 ?�비 ?�산?�니??",
+    foodNotice: "?�재 ?�비???�시 ?�별 추정치이�? ?�후 ?�사 ?�랜?�로 ?�분?�됩?�다.",
+
+    transportTitle: "교통 ?�산",
+    transportDescription: "체류 ?�시 ???�동???�한 ?�산�??�시 �??�동???�한 ?�거�?교통비�? ?�함?�어 ?�습?�다.",
+    transportNotice: "?�시 �?교통비는 ?�울�?부?�을 모두 방문?�는 멀???�티 ?�행?????�동?�로 추�??�니??",
+
+    attractionsTitle: "관�??�산",
+    attractionsDescription: "?�재 ?�행 조건�??�산 ?�형???�라 ?�공?�는 관�??�산?�니??",
+    attractionsNotice: "명소 �?체험 ?�동 ?�산?� 체류 ?�수가 ?�닌 ?�원??기�??�로 ?�정?�니??",
+
+    emergencyTitle: "비상�??�산",
+    emergencyDescription: "?�전?�고 ?�활???�국 ?�행???�한 비상�??�산?�니??",
+    emergencyNotice: "?�체 ?�행???�??고정 금액?�로 1?�만 반영?�니??",
+
+    // Category labels
+    categoryStay: "?�박",
+    categoryFood: "?�식",
+    categoryTransport: "교통",
+    categoryAttraction: "관�?,
+    categoryEmergency: "비상�?,
+
+    // Pricing units
+    unitRoomNight: "객실/1�?,
+    unitPersonDay: "1??1??,
+    unitPersonMeal: "1??1??,
+    unitPersonOneWay: "1???�도",
+    unitPerPerson: "1?�당",
+    unitFixedAmount: "고정??,
+    unitPercentage: "비율",
+
+    // General labels
+    representativePrice: "?�??가�?,
+    priceRange: "가격�?",
+    pricingUnit: "?�위",
+    nightsLabel: "?�박??,
+    roomCountLabel: "객실 ??,
+    totalLabel: "총액",
+    badgeMock: "MOCK",
+    updatedAtLabel: "?�데?�트 ?�짜",
+    sourceLabelText: "출처",
+    allTabs: "?�체",
   },
   placeholder: {
-    notImplemented: "이 페이지는 다음 개발 단계에서 구현됩니다.",
+    notImplemented: "???�이지???�음 개발 ?�계?�서 구현?�니??",
   },
-} as const;
+};
 
 export interface Dictionary {
   common: {
@@ -88,6 +174,73 @@ export interface Dictionary {
     goBack: string;
     title: string;
     status: string;
+    missingTitle: string;
+    missingDescription: string;
+    missingButton: string;
+    invalidTitle: string;
+    invalidDescription: string;
+    invalidButton: string;
+    calculationErrorTitle: string;
+    calculationErrorDescription: string;
+    calculationErrorButton: string;
+    workspaceTitle: string;
+    workspaceDescription: string;
+    editTripDetails: string;
+    receiptTitle: string;
+    statusDraft: string;
+    budgetStyle: string;
+    targetBudget: string;
+    currentEstimate: string;
+    budgetUsage: string;
+    remainingBudget: string;
+    overBudget: string;
+    tripWideExpenses: string;
+    intercityTransportation: string;
+    estimatedTotal: string;
+    perTraveler: string;
+    dailyAverage: string;
+    mockDisclaimer: string;
+    saveTrip: string;
+    shareReceipt: string;
+    generateReport: string;
+    notYetAvailable: string;
+    accommodationTitle: string;
+    accommodationDescription: string;
+    accommodationNotice: string;
+    foodTitle: string;
+    foodDescription: string;
+    foodNotice: string;
+    transportTitle: string;
+    transportDescription: string;
+    transportNotice: string;
+    attractionsTitle: string;
+    attractionsDescription: string;
+    attractionsNotice: string;
+    emergencyTitle: string;
+    emergencyDescription: string;
+    emergencyNotice: string;
+    categoryStay: string;
+    categoryFood: string;
+    categoryTransport: string;
+    categoryAttraction: string;
+    categoryEmergency: string;
+    unitRoomNight: string;
+    unitPersonDay: string;
+    unitPersonMeal: string;
+    unitPersonOneWay: string;
+    unitPerPerson: string;
+    unitFixedAmount: string;
+    unitPercentage: string;
+    representativePrice: string;
+    priceRange: string;
+    pricingUnit: string;
+    nightsLabel: string;
+    roomCountLabel: string;
+    totalLabel: string;
+    badgeMock: string;
+    updatedAtLabel: string;
+    sourceLabelText: string;
+    allTabs: string;
   };
   placeholder: {
     notImplemented: string;

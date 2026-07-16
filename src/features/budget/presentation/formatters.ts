@@ -1,0 +1,208 @@
+import { Dictionary } from "../../../lib/i18n/dictionaries/ko";
+import {
+  BudgetCategory,
+  BudgetBasketId,
+  PricingUnit,
+  BudgetLineItem,
+  BudgetPlan,
+  PriceConfidence,
+} from "../domain/types";
+
+/**
+ * 금액을 KRW 통화 기호와 천 단위 쉼표가 붙은 형식으로 포맷팅 (소수점 없음)
+ */
+export function formatKrw(amount: number): string {
+  return new Intl.NumberFormat("ko-KR", {
+    style: "currency",
+    currency: "KRW",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+/**
+ * 예산 사용률을 소수점 첫째자리 백분율 스트링으로 반환
+ */
+export function formatPercentage(ratio: number): string {
+  return `${ratio}%`;
+}
+
+/**
+ * 여행 기간을 다국어(ko/en)에 알맞은 형식으로 포맷팅
+ */
+export function formatTripDuration(nights: number, dict: Dictionary, locale: "ko" | "en"): string {
+  const days = nights + 1;
+  if (locale === "ko") {
+    return `${nights}박 ${days}일`;
+  }
+  return `${nights} nights · ${days} days`;
+}
+
+/**
+ * 인원수를 다국어(ko/en)에 알맞은 형식으로 포맷팅
+ */
+export function formatTravelerCount(count: number, dict: Dictionary, locale: "ko" | "en"): string {
+  if (locale === "ko") {
+    return `성인 ${count}명`;
+  }
+  return `${count} ${count === 1 ? "adult" : "adults"}`;
+}
+
+/**
+ * 도시별 숙박 배분 요약을 다국어(ko/en)에 알맞은 형식으로 포맷팅
+ */
+export function formatCityAllocationSummary(
+  allocations: Record<string, number>,
+  dict: Dictionary,
+  locale: "ko" | "en"
+): string {
+  const seoulNights = allocations.SEOUL || 0;
+  const busanNights = allocations.BUSAN || 0;
+
+  if (seoulNights > 0 && busanNights > 0) {
+    if (locale === "ko") {
+      return `서울 ${seoulNights}박 · 부산 ${busanNights}박`;
+    }
+    return `Seoul ${seoulNights} nights · Busan ${busanNights} nights`;
+  } else if (seoulNights > 0) {
+    if (locale === "ko") {
+      return `서울 ${seoulNights}박`;
+    }
+    return `Seoul ${seoulNights} nights`;
+  } else if (busanNights > 0) {
+    if (locale === "ko") {
+      return `부산 ${busanNights}박`;
+    }
+    return `Busan ${busanNights} nights`;
+  }
+  return "";
+}
+
+/**
+ * PricingUnit의 다국어 레이블 반환
+ */
+export function getPricingUnitLabel(unit: PricingUnit, dict: Dictionary): string {
+  switch (unit) {
+    case "ROOM_NIGHT":
+      return dict.planner.unitRoomNight;
+    case "PERSON_DAY":
+      return dict.planner.unitPersonDay;
+    case "PERSON_MEAL":
+      return dict.planner.unitPersonMeal;
+    case "PERSON_ONE_WAY":
+      return dict.planner.unitPersonOneWay;
+    case "PER_PERSON":
+      return dict.planner.unitPerPerson;
+    case "FIXED_AMOUNT":
+      return dict.planner.unitFixedAmount;
+    case "PERCENTAGE":
+      return dict.planner.unitPercentage;
+    default:
+      return String(unit);
+  }
+}
+
+/**
+ * BudgetCategory의 다국어 레이블 반환
+ */
+export function getCategoryLabel(category: BudgetCategory, dict: Dictionary): string {
+  switch (category) {
+    case "ACCOMMODATION":
+      return dict.planner.categoryStay;
+    case "FOOD":
+      return dict.planner.categoryFood;
+    case "CITY_TRANSPORT":
+    case "INTERCITY_TRANSPORT":
+      return dict.planner.categoryTransport;
+    case "ATTRACTION":
+      return dict.planner.categoryAttraction;
+    case "EMERGENCY_FUND":
+      return dict.planner.categoryEmergency;
+    default:
+      return String(category);
+  }
+}
+
+/**
+ * BudgetBasketId의 다국어 레이블 반환
+ */
+export function getBasketLabel(basketId: BudgetBasketId, dict: Dictionary, locale: "ko" | "en"): string {
+  const mapping: Record<BudgetBasketId, { ko: string; en: string }> = {
+    BUDGET_STAY: { ko: "실속형 숙소", en: "Budget Stay" },
+    STANDARD_HOTEL: { ko: "스탠다드 호텔", en: "Standard Hotel" },
+    PREMIUM_HERITAGE: { ko: "프리미엄 & 헤리티지", en: "Premium & Heritage" },
+    BUDGET_MEAL_PLAN: { ko: "실속형 식비 플랜", en: "Budget Meal Plan" },
+    STANDARD_MEAL_PLAN: { ko: "스탠다드 식비 플랜", en: "Standard Meal Plan" },
+    PREMIUM_MEAL_PLAN: { ko: "프리미엄 식비 플랜", en: "Premium Meal Plan" },
+    BASIC_CITY_TRANSPORT: { ko: "알뜰형 도시 대중교통", en: "Basic City Transport" },
+    STANDARD_CITY_TRANSPORT: { ko: "일반형 도시 교통", en: "Standard City Transport" },
+    COMFORT_CITY_TRANSPORT: { ko: "편안한 도시 교통", en: "Comfort City Transport" },
+    MOSTLY_FREE: { ko: "실속형 체험 활동", en: "Mostly Free Attractions" },
+    BALANCED: { ko: "균형 잡힌 체험 활동", en: "Balanced Attractions" },
+    EXPERIENCE_RICH: { ko: "풍성한 체험 활동", en: "Experience-rich Attractions" },
+    KTX_STANDARD: { ko: "KTX 일반실", en: "KTX Standard Class" },
+    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+  };
+
+  const item = mapping[basketId];
+  if (!item) return String(basketId);
+  return locale === "ko" ? item.ko : item.en;
+}
+
+/**
+ * 영수증 라인 아이템의 상세 단가 계산 수식을 생성
+ */
+export function getCalculationExpression(
+  item: BudgetLineItem,
+  dict: Dictionary,
+  locale: "ko" | "en"
+): string {
+  const formattedPrice = formatKrw(item.unitPriceKrw);
+
+  switch (item.pricingUnit) {
+    case "ROOM_NIGHT": {
+      const roomLabel = locale === "ko" ? "객실" : item.quantity === 1 ? "room" : "rooms";
+      const nightLabel = locale === "ko" ? "박" : item.durationCount === 1 ? "night" : "nights";
+      return `${formattedPrice} × ${item.quantity}${roomLabel} × ${item.durationCount}${nightLabel}`;
+    }
+    case "PERSON_DAY": {
+      const personLabel = locale === "ko" ? "명" : item.quantity === 1 ? "person" : "people";
+      const dayLabel = locale === "ko" ? "일" : item.durationCount === 1 ? "day" : "days";
+      return `${formattedPrice} × ${item.quantity}${personLabel} × ${item.durationCount}${dayLabel}`;
+    }
+    case "PERSON_ONE_WAY": {
+      const personLabel = locale === "ko" ? "명" : item.participantCount === 1 ? "person" : "people";
+      const tripLabel = locale === "ko" ? "회 이동" : item.quantity === 1 ? "segment" : "segments";
+      return `${formattedPrice} × ${item.participantCount}${personLabel} × ${item.quantity}${tripLabel}`;
+    }
+    case "PER_PERSON": {
+      const personLabel = locale === "ko" ? "명" : item.participantCount === 1 ? "person" : "people";
+      return `${formattedPrice} × ${item.participantCount}${personLabel}`;
+    }
+    case "FIXED_AMOUNT": {
+      return formattedPrice;
+    }
+    default: {
+      return `${formattedPrice} × ${item.quantity}`;
+    }
+  }
+}
+
+/**
+ * 도시 교통비와 도시 간 교통비를 합산한 총 교통 소계(UI용)를 반환
+ */
+export function getCombinedTransportSubtotal(plan: BudgetPlan): number {
+  const cityTransport = plan.categoryTotals.CITY_TRANSPORT || 0;
+  const intercityTransport = plan.categoryTotals.INTERCITY_TRANSPORT || 0;
+  return cityTransport + intercityTransport;
+}
+
+/**
+ * PriceConfidence의 다국어 텍스트 매핑
+ */
+export function getConfidenceLabel(confidence: PriceConfidence, dict: Dictionary): string {
+  if (confidence === "MOCK") {
+    return dict.planner.badgeMock;
+  }
+  return String(confidence);
+}

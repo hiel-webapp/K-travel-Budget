@@ -154,6 +154,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const { draft, preferences } = state;
   const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,
+    food: preferences.foodOverrides,
+    foodAddOns: preferences.addOnSelections,
   });
 
   const availableTabs: ("ALL" | "SEOUL" | "BUSAN")[] = ["ALL"];
@@ -247,6 +249,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       };
     });
   };
+
+
 
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const found = MOCK_PRICE_CATALOG.find(

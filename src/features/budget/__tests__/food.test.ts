@@ -464,4 +464,58 @@ describe("HypeHeritage 10단계: Food Wishlist 및 Replacement 도메인 연산 
       expect(categorySum).toBe(plan.grandTotalKrw);
     });
   });
+
+  describe("5. 12.2.1단계: Budget Engine Overrides 결합 및 격리 검증", () => {
+    it("should preserve standard totals when food overrides are empty", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        food: {},
+        foodAddOns: {},
+      });
+      // 서울 FOOD line total: ₩28,000 * 2명 * 3박 = ₩168,000
+      const seoulFood = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "FOOD");
+      expect(seoulFood?.lineTotalKrw).toBe(168000);
+    });
+
+    it("should apply valid Dinner Replacement and correctly update city subtotal", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        food: { SEOUL_0_DINNER: "K_BBQ" }, // ₩18,000 (Base Dinner ₩12,000 대비 ₩6,000 증액)
+        foodAddOns: {},
+      });
+      // 서울 1인 FOOD: ₩84,000 - ₩12,000 + ₩18,000 = ₩90,000
+      // 2인 ➔ ₩180,000
+      const seoulFood = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "FOOD");
+      expect(seoulFood?.lineTotalKrw).toBe(180000);
+
+      // 부산 FOOD subtotal은 서울 오버라이드에 영향을 받지 않고 보존되어야 함 (부산 2박 ➔ ₩26,000 * 2명 * 2박 = ₩104,000)
+      const busanFood = plan.citySections.BUSAN?.lineItems.find((i) => i.category === "FOOD");
+      expect(busanFood?.lineTotalKrw).toBe(104000);
+    });
+
+    it("should apply valid SNACK_CAFE Replacement and reflect it in base budget total", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        food: { SEOUL_0_SNACK_CAFE: "CROOKIE" }, // ₩8,000 (Standard Snack base는 included=false 로 ₩0 취급)
+        foodAddOns: {},
+      });
+      // 서울 1인 FOOD: Base(₩84,000) + ₩8,000 = ₩92,000
+      // 2인 ➔ ₩184,000
+      const seoulFood = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "FOOD");
+      expect(seoulFood?.lineTotalKrw).toBe(184000);
+    });
+
+    it("should preserve both accommodation and food overrides simultaneously without loss", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: { SEOUL: "PREMIUM_HERITAGE" }, // 서울 숙박 프리미엄 변경 (₩290,000 * 1객실 * 3박 = ₩870,000)
+        food: { SEOUL_0_DINNER: "K_BBQ" }, // 서울 2인 FOOD ➔ ₩180,000
+        foodAddOns: {
+          SEOUL_0_DINNER: [{ addOnItemId: "RICE", quantity: 2 }], // ₩1,000 * 2명 * 2개 = ₩4,000
+        },
+      });
+
+      const seoulAcc = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "ACCOMMODATION");
+      expect(seoulAcc?.lineTotalKrw).toBe(870000);
+
+      const seoulFood = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "FOOD");
+      expect(seoulFood?.lineTotalKrw).toBe(184000);
+    });
+  });
 });

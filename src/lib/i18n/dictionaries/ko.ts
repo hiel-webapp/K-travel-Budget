@@ -109,6 +109,13 @@ export const ko = {
     saveTripModalSave: "저장",
     saveTripModalCancel: "취소",
     saveTripSuccess: "성공적으로 여행 계획을 저장했습니다.",
+    emergencyFundManualInput: "비상금 직접 입력",
+    emergencyFundCurrentAmount: "현재 비상금: {amount}",
+    emergencySaveError: "올바르지 않은 비상금 금액입니다. 0 이상의 정수만 입력할 수 있습니다.",
+    viewDetailedReceipt: "상세 영수증 보기",
+    copySummaryButton: "예산 요약 복사",
+    copySummarySuccess: "예산 요약을 복사했습니다.",
+    copySummaryError: "예산 요약 복사에 실패했습니다.",
 
     reportTitle: "여행 예산 레포트",
     reportSubtitle: "작성하신 계획을 바탕으로 생성된 기본 예산 레포트입니다.",
@@ -357,6 +364,13 @@ export interface Dictionary {
     saveTripModalSave: string;
     saveTripModalCancel: string;
     saveTripSuccess: string;
+    emergencyFundManualInput: string;
+    emergencyFundCurrentAmount: string;
+    emergencySaveError: string;
+    viewDetailedReceipt: string;
+    copySummaryButton: string;
+    copySummarySuccess: string;
+    copySummaryError: string;
 
     reportTitle: string;
     reportSubtitle: string;

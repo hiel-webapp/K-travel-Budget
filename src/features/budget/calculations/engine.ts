@@ -190,6 +190,11 @@ export function generateInitialBudgetPlan(
     throw new Error(`Price catalog missing emergency fund item`);
   }
 
+  const isValValid = (val: unknown): val is number => {
+    return typeof val === "number" && !isNaN(val) && isFinite(val) && val >= 0 && Number.isInteger(val);
+  };
+  const emergencyAmount = (overrides && isValValid(overrides.emergencyFundKrw)) ? overrides.emergencyFundKrw : 0;
+
   const emergencyItem = calculateLineItem({
     basket: emergencyBasket,
     cityCode: null,
@@ -198,6 +203,12 @@ export function generateInitialBudgetPlan(
     duration: tripDraft.totalNights,
     cityCount: selectedCities.length,
   });
+
+  // 비상금 직접 입력 금액 반영 (없거나 유효하지 않으면 0원)
+  emergencyItem.lineTotalKrw = emergencyAmount;
+  emergencyItem.unitPriceKrw = emergencyAmount;
+  emergencyItem.priceMinKrw = emergencyAmount;
+  emergencyItem.priceMaxKrw = emergencyAmount;
 
   tripWideLineItems.push(emergencyItem);
   lineItems.push(emergencyItem);

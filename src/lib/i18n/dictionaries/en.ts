@@ -111,6 +111,13 @@ export const en: Dictionary = {
     saveTripModalSave: "Save",
     saveTripModalCancel: "Cancel",
     saveTripSuccess: "Trip plan saved successfully.",
+    emergencyFundManualInput: "Emergency Fund",
+    emergencyFundCurrentAmount: "Current emergency fund: {amount}",
+    emergencySaveError: "Invalid emergency fund amount. Only integers of 0 or greater are allowed.",
+    viewDetailedReceipt: "View Detailed Receipt",
+    copySummaryButton: "Copy Budget Summary",
+    copySummarySuccess: "Budget summary copied to clipboard.",
+    copySummaryError: "Failed to copy budget summary.",
 
     reportTitle: "Trip Budget Report",
     reportSubtitle: "This is a basic budget report generated based on your trip plan.",

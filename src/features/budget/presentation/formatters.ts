@@ -206,3 +206,121 @@ export function getConfidenceLabel(confidence: PriceConfidence, dict: Dictionary
   }
   return String(confidence);
 }
+
+/**
+ * 예산 요약 텍스트 생성
+ */
+export function generateBudgetSummaryText(
+  plan: BudgetPlan,
+  title: string,
+  dict: Dictionary,
+  locale: "ko" | "en"
+): string {
+  const { trip, grandTotalKrw, perTravelerTotalKrw, dailyAverageKrw, targetBudgetKrw, targetBudgetUsagePercent } = plan;
+  const isOverBudget = grandTotalKrw > targetBudgetKrw;
+  const diffAmount = Math.abs(grandTotalKrw - targetBudgetKrw);
+
+  // 여행 제목 및 기본 요약
+  const tripTitle = title || (locale === "ko"
+    ? `서울 & 부산 여행 계획`
+    : `Trip to Seoul & Busan`);
+
+  const durationStr = locale === "ko"
+    ? `${trip.totalNights}박 ${trip.totalNights + 1}일`
+    : `${trip.totalNights} nights, ${trip.totalNights + 1} days`;
+
+  const travelerStr = locale === "ko"
+    ? `${trip.adultCount}명`
+    : `${trip.adultCount} ${trip.adultCount === 1 ? "traveler" : "travelers"}`;
+
+  const citiesStr = trip.selectedCities.map((c) => (c === "SEOUL" ? "Seoul" : "Busan")).join(", ");
+
+  // 예산 차액/상태 구문
+  let statusStr = "";
+  if (targetBudgetKrw > 0) {
+    const usageStr = `${formatPercentage(targetBudgetUsagePercent)}%`;
+    if (isOverBudget) {
+      statusStr = locale === "ko"
+        ? `목표 예산 대비 초과: +${formatKrw(diffAmount)} (사용률: ${usageStr})`
+        : `Over budget by: +${formatKrw(diffAmount)} (Usage: ${usageStr})`;
+    } else {
+      statusStr = locale === "ko"
+        ? `목표 예산 대비 남음: -${formatKrw(diffAmount)} (사용률: ${usageStr})`
+        : `Under budget by: -${formatKrw(diffAmount)} (Usage: ${usageStr})`;
+    }
+  } else {
+    statusStr = locale === "ko" ? "설정된 목표 예산 없음" : "No target budget set";
+  }
+
+  // 도시별 소계
+  const citySubtotals = trip.selectedCities
+    .map((city) => {
+      const section = plan.citySections[city];
+      if (!section) return null;
+      const name = city === "SEOUL" ? "Seoul" : "Busan";
+      return ` - ${name}: ${formatKrw(section.subtotalKrw)}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+
+  const intercitySubtotal = plan.intercitySection.subtotalKrw > 0
+    ? `\n - Intercity Transit (KTX): ${formatKrw(plan.intercitySection.subtotalKrw)}`
+    : "";
+
+  const citySectionText = locale === "ko"
+    ? `[도시별 소계]\n${citySubtotals}${intercitySubtotal}`
+    : `[Subtotal by City]\n${citySubtotals}${intercitySubtotal}`;
+
+  // 카테고리별 소계
+  const categories: BudgetCategory[] = [
+    "ACCOMMODATION",
+    "FOOD",
+    "CITY_TRANSPORT",
+    "ATTRACTION",
+    "EMERGENCY_FUND",
+  ];
+  const categorySubtotals = categories
+    .map((cat) => {
+      const name = getCategoryLabel(cat, dict);
+      const amount = plan.categoryTotals[cat] || 0;
+      return ` - ${name}: ${formatKrw(amount)}`;
+    })
+    .join("\n");
+
+  const categorySectionText = locale === "ko"
+    ? `[카테고리별 소계]\n${categorySubtotals}`
+    : `[Subtotal by Category]\n${categorySubtotals}`;
+
+  // 최종 텍스트 조립
+  if (locale === "ko") {
+    return `=== ${tripTitle} ===
+기간: ${durationStr}
+인원: ${travelerStr}
+방문 도시: ${citiesStr}
+
+총 예상 예산: ${formatKrw(grandTotalKrw)}
+1인당 비용: ${formatKrw(perTravelerTotalKrw)}
+하루 평균 비용: ${formatKrw(dailyAverageKrw)}
+예산 상태: ${statusStr}
+
+${citySectionText}
+
+${categorySectionText}
+====================`;
+  } else {
+    return `=== ${tripTitle} ===
+Duration: ${durationStr}
+Travelers: ${travelerStr}
+Cities: ${citiesStr}
+
+Estimated Total: ${formatKrw(grandTotalKrw)}
+Per Traveler: ${formatKrw(perTravelerTotalKrw)}
+Daily Average: ${formatKrw(dailyAverageKrw)}
+Budget Status: ${statusStr}
+
+${citySectionText}
+
+${categorySectionText}
+====================`;
+  }
+}

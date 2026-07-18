@@ -123,6 +123,11 @@ export function parsePlannerPreferences(
     foodOverrides: {},
     addOnSelections: {},
     attractionByCity: {},
+    emergencyFundKrw: 0,
+  };
+
+  const isEmergencyValValid = (val: unknown): val is number => {
+    return typeof val === "number" && !isNaN(val) && isFinite(val) && val >= 0 && Number.isInteger(val);
   };
 
   if (rawJson === null) {
@@ -156,6 +161,7 @@ export function parsePlannerPreferences(
         foodOverrides: {},
         addOnSelections: {},
         attractionByCity: {},
+        emergencyFundKrw: 0,
       };
 
       if (!validateAccommodation(migratedPrefs.accommodationByCity, draft)) {
@@ -184,6 +190,7 @@ export function parsePlannerPreferences(
         foodOverrides: prefsV2.foodOverrides,
         addOnSelections: {},
         attractionByCity: {},
+        emergencyFundKrw: 0,
       };
 
       if (!validateAccommodation(migratedPrefs.accommodationByCity, draft)) {
@@ -212,6 +219,7 @@ export function parsePlannerPreferences(
         foodOverrides: prefsV3.foodOverrides,
         addOnSelections: prefsV3.addOnSelections,
         attractionByCity: {},
+        emergencyFundKrw: 0,
       };
 
       if (!validateAccommodation(migratedPrefs.accommodationByCity, draft)) {
@@ -277,7 +285,12 @@ export function parsePlannerPreferences(
         }
       }
 
-      return { status: "valid", preferences: prefs };
+      const returnPrefs: PlannerPreferences = {
+        ...prefs,
+        emergencyFundKrw: isEmergencyValValid(prefs.emergencyFundKrw) ? prefs.emergencyFundKrw : 0,
+      };
+
+      return { status: "valid", preferences: returnPrefs };
     }
 
     return { status: "invalid", preferences: defaultPrefs };
@@ -343,6 +356,7 @@ export interface SavePlannerPreferencesInput {
   foodOverrides?: FoodOverrides;
   foodAddOnOverrides?: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;
+  emergencyFundKrw?: number;
   draft: TripDraft;
 }
 
@@ -361,6 +375,10 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
   } = input;
 
   try {
+    const isValValid = (val: unknown): val is number => {
+      return typeof val === "number" && !isNaN(val) && isFinite(val) && val >= 0 && Number.isInteger(val);
+    };
+
     const prefs: PlannerPreferences = {
       schemaVersion: 4,
       tripFingerprint: generateTripFingerprint(draft),
@@ -368,6 +386,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       foodOverrides,
       addOnSelections: foodAddOnOverrides,
       attractionByCity,
+      emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : undefined,
     };
 
     const envelope: PlannerPreferencesEnvelope = {

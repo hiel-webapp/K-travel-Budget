@@ -22,6 +22,7 @@ import {
   getBasketLabel,
   getCalculationExpression,
   getCombinedTransportSubtotal,
+  generateBudgetSummaryText,
 } from "../features/budget/presentation/formatters";
 
 interface PlannerContentProps {
@@ -35,7 +36,7 @@ type PlannerState =
   | { status: "calculation-error" }
   | { status: "ready"; draft: TripDraft; preferences: PlannerPreferences };
 
-const emptySubscribe = () => () => {};
+const emptySubscribe = () => () => { };
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
@@ -172,7 +173,31 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
     attraction: preferences.attractionByCity,
+    emergencyFundKrw: preferences.emergencyFundKrw,
   });
+
+  const handleCopySummary = () => {
+    try {
+      const summaryText = generateBudgetSummaryText(plan, "", dict, locale);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(summaryText)
+          .then(() => {
+            setToastMessage(dict.planner.copySummarySuccess);
+            setTimeout(() => setToastMessage(null), 3000);
+          })
+          .catch(() => {
+            setToastMessage(dict.planner.copySummaryError);
+            setTimeout(() => setToastMessage(null), 3000);
+          });
+      } else {
+        setToastMessage(dict.planner.copySummaryError);
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    } catch {
+      setToastMessage(dict.planner.copySummaryError);
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
 
   const availableTabs: ("ALL" | "SEOUL" | "BUSAN")[] = ["ALL"];
   if (draft.selectedCities.includes("SEOUL")) availableTabs.push("SEOUL");
@@ -214,8 +239,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     draft.budgetTier === "BUDGET"
       ? "Budget"
       : draft.budgetTier === "PREMIUM"
-      ? "Premium"
-      : "Standard";
+        ? "Premium"
+        : "Standard";
 
   const isOverBudget = plan.grandTotalKrw > plan.targetBudgetKrw;
   const clampedUsage = Math.min(100, (plan.grandTotalKrw / plan.targetBudgetKrw) * 100);
@@ -541,6 +566,48 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
+  const handleEmergencyFundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!latestPrefsRef.current) return;
+
+    const valStr = e.target.value;
+    const val = valStr === "" ? 0 : Number(valStr);
+
+    const isValValid = (v: unknown): v is number => {
+      return typeof v === "number" && !isNaN(v) && isFinite(v) && v >= 0 && Number.isInteger(v);
+    };
+
+    if (!isValValid(val)) {
+      setSaveError(true);
+      return;
+    }
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: latestPrefsRef.current.foodOverrides,
+      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
+      emergencyFundKrw: val,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        emergencyFundKrw: val,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const found = MOCK_PRICE_CATALOG.find(
       (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
@@ -609,8 +676,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 tab === "ALL"
                   ? dict.planner.allTabs
                   : tab === "SEOUL"
-                  ? "Seoul"
-                  : "Busan";
+                    ? "Seoul"
+                    : "Busan";
 
               return (
                 <button
@@ -620,11 +687,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   id={`city-tab-${tab}`}
                   aria-controls={`city-panel-${tab}`}
                   onClick={() => setSelectedCityTab(tab)}
-                  className={`h-9 px-4 rounded-t-xl text-sm font-bold border-t border-x transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] focus-visible:z-10 ${
-                    isActive
+                  className={`h-9 px-4 rounded-t-xl text-sm font-bold border-t border-x transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] focus-visible:z-10 ${isActive
                       ? "bg-white text-[#e25c5c] border-slate-200 border-b-white"
                       : "bg-[#faf9f6]/40 text-slate-500 border-transparent hover:text-slate-800"
-                  }`}
+                    }`}
                 >
                   {label}
                 </button>
@@ -650,11 +716,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   aria-selected={isActive}
                   id={`cat-tab-${cat}`}
                   onClick={() => setActiveCategory(cat)}
-                  className={`flex flex-col items-center justify-between p-3 rounded-xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
-                    isActive
+                  className={`flex flex-col items-center justify-between p-3 rounded-xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isActive
                       ? "bg-white border-[#e25c5c] shadow-sm text-[#0f172a]"
                       : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-300"
-                  }`}
+                    }`}
                 >
                   <div className={`h-1 w-6 rounded-full mb-1.5 ${isActive ? "bg-[#e25c5c]" : "bg-slate-200"}`}></div>
                   <span className="text-[11px] font-bold tracking-tight block sm:text-xs">
@@ -757,11 +822,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <button
                           onClick={() => handleResetStay(city)}
                           disabled={!hasOverride}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-                            hasOverride
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${hasOverride
                               ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
                               : "text-slate-355 border-slate-100 bg-slate-50 cursor-not-allowed"
-                          }`}
+                            }`}
                         >
                           {dict.planner.resetToRecommended}
                         </button>
@@ -781,11 +845,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <button
                               key={opt}
                               onClick={() => handleStayOverride(city, opt)}
-                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
-                                isSelected
+                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
                                   ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
                                   : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
-                              }`}
+                                }`}
                             >
                               <div>
                                 <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
@@ -873,11 +936,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <button
                           onClick={() => handleResetAttraction(city)}
                           disabled={!hasOverride}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-                            hasOverride
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${hasOverride
                               ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
                               : "text-slate-355 border-slate-100 bg-slate-50 cursor-not-allowed"
-                          }`}
+                            }`}
                         >
                           {dict.planner.resetToRecommendedAttraction}
                         </button>
@@ -897,11 +959,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <button
                               key={opt}
                               onClick={() => handleAttractionOverride(city, opt)}
-                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
-                                isSelected
+                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
                                   ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
                                   : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
-                              }`}
+                                }`}
                             >
                               <div>
                                 <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
@@ -970,6 +1031,32 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {activeCategory === "EMERGENCY_FUND" && (
+              <div className="space-y-4 pt-2 border-t border-slate-100">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="emergency-fund-input" className="text-sm font-bold text-slate-700">
+                    {dict.planner.emergencyFundManualInput}
+                  </label>
+                  <div className="relative rounded-xl shadow-sm max-w-xs">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <span className="text-slate-500 sm:text-sm">₩</span>
+                    </div>
+                    <input
+                      type="number"
+                      name="emergencyFund"
+                      id="emergency-fund-input"
+                      min="0"
+                      step="1"
+                      className="block w-full rounded-xl border-slate-300 pl-7 pr-3 py-2 text-sm focus:border-[#e25c5c] focus:ring-[#e25c5c] focus-visible:outline-none"
+                      placeholder="0"
+                      value={preferences.emergencyFundKrw === 0 ? "" : (preferences.emergencyFundKrw ?? "")}
+                      onChange={handleEmergencyFundChange}
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
@@ -1082,9 +1169,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={plan.targetBudgetUsagePercent} aria-valuemin={0} aria-valuemax={100}>
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      isOverBudget ? "bg-red-500" : "bg-[#4d7c67]"
-                    }`}
+                    className={`h-full rounded-full transition-all duration-300 ${isOverBudget ? "bg-red-500" : "bg-[#4d7c67]"
+                      }`}
                     style={{ width: `${clampedUsage}%` }}
                   ></div>
                 </div>
@@ -1212,6 +1298,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
 
               <div className="space-y-2 pt-1">
+                <button
+                  onClick={handleCopySummary}
+                  className="w-full h-10 px-4 rounded-xl bg-white border border-slate-350 text-[#0f172a] hover:bg-slate-50 font-bold text-sm text-center transition-colors cursor-pointer"
+                >
+                  <span>{dict.planner.copySummaryButton}</span>
+                </button>
                 <button
                   onClick={() => setIsSaveModalOpen(true)}
                   className="w-full h-10 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-bold text-sm text-center transition-colors cursor-pointer"

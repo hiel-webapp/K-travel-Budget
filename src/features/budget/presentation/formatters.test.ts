@@ -12,6 +12,7 @@ import {
   getBasketLabel,
   getCalculationExpression,
   getCombinedTransportSubtotal,
+  generateBudgetSummaryText,
 } from "./formatters";
 import { BudgetLineItem, BudgetPlan } from "../domain/types";
 
@@ -128,6 +129,94 @@ describe("Budget Presentation Formatters", () => {
       expect(getBasketLabel("BUDGET_STAY", en, "en")).toBe("Budget Stay");
       expect(getBasketLabel("PREMIUM_HERITAGE", ko, "ko")).toBe("프리미엄 & 헤리티지");
       expect(getBasketLabel("PREMIUM_HERITAGE", en, "en")).toBe("Premium & Heritage");
+    });
+  });
+
+  describe("generateBudgetSummaryText", () => {
+    const mockTripPlan: BudgetPlan = {
+      schemaVersion: 1,
+      trip: {
+        schemaVersion: 1,
+        totalNights: 5,
+        adultCount: 2,
+        selectedCities: ["SEOUL", "BUSAN"],
+        cityNightAllocations: { SEOUL: 3, BUSAN: 2 },
+        budgetTier: "STANDARD",
+        targetBudgetKrw: 3000000,
+      },
+      citySections: {
+        SEOUL: {
+          cityCode: "SEOUL",
+          nights: 3,
+          lineItems: [],
+          subtotalKrw: 721000,
+        },
+        BUSAN: {
+          cityCode: "BUSAN",
+          nights: 2,
+          lineItems: [],
+          subtotalKrw: 452000,
+        },
+      },
+      intercitySection: {
+        lineItems: [],
+        subtotalKrw: 119600,
+      },
+      tripWideSection: {
+        lineItems: [],
+        subtotalKrw: 0,
+      },
+      categoryTotals: {
+        ACCOMMODATION: 645000,
+        FOOD: 272000,
+        CITY_TRANSPORT: 76000,
+        INTERCITY_TRANSPORT: 119600,
+        ATTRACTION: 180000,
+        EMERGENCY_FUND: 0,
+      },
+      grandTotalKrw: 1292600,
+      perTravelerTotalKrw: 646300,
+      dailyAverageKrw: 215433,
+      targetBudgetKrw: 3000000,
+      targetBudgetUsagePercent: 43.1,
+      remainingBudgetKrw: 1707400,
+      overBudgetAmountKrw: 0,
+      generatedFromCatalogVersion: "v1.0",
+    };
+
+    it("should generate a proper text summary containing essential items in Korean", () => {
+      const summary = generateBudgetSummaryText(mockTripPlan, "여름 휴가 계획", ko, "ko");
+
+      // 필수 항목 포함 검사
+      expect(summary).toContain("여름 휴가 계획");
+      expect(summary).toContain("5박 6일");
+      expect(summary).toContain("2명");
+      expect(summary).toContain("Seoul, Busan");
+      expect(summary).toContain("₩1,292,600"); // 총 예상 예산
+      expect(summary).toContain("₩646,300"); // 1인당
+      expect(summary).toContain("₩215,433"); // 하루 평균
+      expect(summary).toContain("사용률");
+      expect(summary).toContain("도시별 소계");
+      expect(summary).toContain("Seoul: ₩721,000");
+      expect(summary).toContain("Busan: ₩452,000");
+      expect(summary).toContain("카테고리별 소계");
+      expect(summary).toContain("숙박");
+
+      // 민감한/기술 키 배제 검사
+      expect(summary).not.toContain("schemaVersion");
+      expect(summary).not.toContain("tripFingerprint");
+      expect(summary).not.toContain("slotId");
+    });
+
+    it("should generate summary in English when locale is en", () => {
+      const summary = generateBudgetSummaryText(mockTripPlan, "Summer Trip", en, "en");
+
+      expect(summary).toContain("Summer Trip");
+      expect(summary).toContain("5 nights, 6 days");
+      expect(summary).toContain("2 travelers");
+      expect(summary).toContain("Subtotal by City");
+      expect(summary).toContain("Subtotal by Category");
+      expect(summary).not.toContain("schemaVersion");
     });
   });
 });

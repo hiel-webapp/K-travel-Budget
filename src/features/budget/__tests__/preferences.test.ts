@@ -383,5 +383,43 @@ describe("Planner Preferences & Storage Domain", () => {
       expect(res.preferences.schemaVersion).toBe(4);
       expect(res.preferences.addOnSelections).toEqual(addons);
     });
+
+    it("should save and restore emergencyFundKrw successfully when valid", () => {
+      const acc = { SEOUL: "BUDGET_STAY" as BudgetBasketId };
+      savePlannerPreferences({
+        accommodationByCity: acc,
+        draft: defaultTrip,
+        emergencyFundKrw: 120000,
+      });
+
+      const raw = localStorage.getItem("hypeheritage_planner_preferences");
+      expect(raw).not.toBeNull();
+      const envelope = JSON.parse(raw!);
+      expect(envelope.preferences.emergencyFundKrw).toBe(120000);
+
+      const res = loadPlannerPreferencesEx(defaultTrip);
+      expect(res.status).toBe("valid");
+      expect(res.preferences.emergencyFundKrw).toBe(120000);
+    });
+
+    it("should fallback emergencyFundKrw to 0 when raw value is invalid, decimal, or negative", () => {
+      const acc = { SEOUL: "BUDGET_STAY" as BudgetBasketId };
+      savePlannerPreferences({
+        accommodationByCity: acc,
+        draft: defaultTrip,
+        emergencyFundKrw: -500,
+      });
+
+      const resNegative = loadPlannerPreferencesEx(defaultTrip);
+      expect(resNegative.preferences.emergencyFundKrw).toBe(0);
+
+      savePlannerPreferences({
+        accommodationByCity: acc,
+        draft: defaultTrip,
+        emergencyFundKrw: 100.5,
+      });
+      const resDecimal = loadPlannerPreferencesEx(defaultTrip);
+      expect(resDecimal.preferences.emergencyFundKrw).toBe(0);
+    });
   });
 });

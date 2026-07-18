@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { TripDraft } from "../../../lib/trip-domain";
+import { TripDraft, SupportedCity } from "../../../lib/trip-domain";
 import {
   savePlannerPreferences,
 } from "../../../lib/storage-helper";
 import { generateInitialBudgetPlan } from "../calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
 import { PlannerPreferences } from "../domain/types";
+import { ko } from "../../../lib/i18n/dictionaries/ko";
+import { getBasketLabel, getCalculationExpression } from "../presentation/formatters";
 
 class LocalStorageMock {
   private store: Record<string, string> = {};
@@ -82,7 +84,7 @@ describe("HypeHeritage 15단계: Report(예산 분석 리포트) 비즈니스 �
       expect(plan.perTravelerTotalKrw).toBe(plan.grandTotalKrw / 2);
 
       // 일별 평균 비용 검증: (총액 / 6일)
-      expect(plan.dailyAverageKrw).toBe(plan.grandTotalKrw / 6);
+      expect(plan.dailyAverageKrw).toBe(Math.round(plan.grandTotalKrw / 6));
 
       // 도시별 subtotal 및 nights 검증
       expect(plan.citySections.SEOUL?.nights).toBe(3);
@@ -159,6 +161,45 @@ describe("HypeHeritage 15단계: Report(예산 분석 리포트) 비즈니스 �
       const envelope = JSON.parse(rawPrefs!);
       expect(envelope.preferences.accommodationByCity).toEqual(mockPreferences.accommodationByCity);
       expect(envelope.preferences.attractionByCity).toEqual(mockPreferences.attractionByCity);
+    });
+  });
+
+  describe("3. 상세 영수증(Detailed Receipt) 데이터 및 표시 규칙 검증", () => {
+    it("상세 영수증에 표시될 각 섹션의 line items가 존재하며, getBasketLabel과 getCalculationExpression이 에러 없이 포맷팅을 수행해야 함", () => {
+      const plan = generateInitialBudgetPlan(mockDraft, MOCK_PRICE_CATALOG, {
+        accommodation: mockPreferences.accommodationByCity,
+        food: mockPreferences.foodOverrides,
+        foodAddOns: mockPreferences.addOnSelections,
+        attraction: mockPreferences.attractionByCity,
+      });
+
+      // 1. 각 섹션의 line items 배열 존재 여부 검증
+      expect(plan.tripWideSection.lineItems).toBeInstanceOf(Array);
+      expect(plan.intercitySection.lineItems).toBeInstanceOf(Array);
+      Object.keys(plan.citySections).forEach((city) => {
+        const section = plan.citySections[city as SupportedCity];
+        if (section) {
+          expect(section.lineItems).toBeInstanceOf(Array);
+        }
+      });
+
+      // 2. 개별 line item에 대해 getBasketLabel 및 getCalculationExpression 실행 및 포맷팅 검증
+      const allItems = [
+        ...plan.tripWideSection.lineItems,
+        ...plan.intercitySection.lineItems,
+        ...Object.values(plan.citySections).flatMap((s) => s?.lineItems || []),
+      ];
+
+      expect(allItems.length).toBeGreaterThan(0);
+
+      allItems.forEach((item) => {
+        const label = getBasketLabel(item.basketId, ko, "ko");
+        const expr = getCalculationExpression(item, ko, "ko");
+        expect(typeof label).toBe("string");
+        expect(typeof expr).toBe("string");
+        expect(label.length).toBeGreaterThan(0);
+        expect(expr.length).toBeGreaterThan(0);
+      });
     });
   });
 });

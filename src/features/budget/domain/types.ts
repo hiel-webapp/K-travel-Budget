@@ -151,6 +151,7 @@ export interface BudgetPlanOverrides {
   food?: FoodOverrides;
   foodAddOns?: FoodAddOnOverrides;
   attraction?: AttractionOverridesByCity;
+  emergencyFundKrw?: number;
 }
 
 export type FoodCollectionId = "ESSENTIALS" | "INTERNATIONAL" | "TRENDING" | "SPECIALTIES";
@@ -293,6 +294,7 @@ export interface PlannerPreferences {
   foodOverrides: FoodOverrides;
   addOnSelections: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;
+  emergencyFundKrw?: number;
 }
 
 export interface PlannerPreferencesEnvelope {

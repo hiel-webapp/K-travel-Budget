@@ -79,27 +79,52 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
     });
 
     it("should calculate correct emergency fund", () => {
-      // Emergency Fund: Fixed 100,000
-      expect(plan.categoryTotals.EMERGENCY_FUND).toBe(100000);
-      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+      // Emergency Fund: Default 0
+      expect(plan.categoryTotals.EMERGENCY_FUND).toBe(0);
+      expect(plan.tripWideSection.subtotalKrw).toBe(0);
     });
 
     it("should aggregate correct grand total and traveler average indicators", () => {
-      // Seoul (721k) + Busan (452k) + KTX (119.6k) + Emergency (100k) = 1,392,600
-      expect(plan.grandTotalKrw).toBe(1392600);
+      // Seoul (721k) + Busan (452k) + KTX (119.6k) + Emergency (0) = 1,292,600
+      expect(plan.grandTotalKrw).toBe(1292600);
 
-      // Per traveler: 1,392,600 / 2 = 696,300
-      expect(plan.perTravelerTotalKrw).toBe(696300);
+      // Per traveler: 1,292,600 / 2 = 646,300
+      expect(plan.perTravelerTotalKrw).toBe(646300);
 
-      // Daily average: 1,392,600 / 6 days (5 nights + 1) = 232,100
-      expect(plan.dailyAverageKrw).toBe(232100);
+      // Daily average: 1,292,600 / 6 days (5 nights + 1) = 215,433
+      expect(plan.dailyAverageKrw).toBe(215433);
 
-      // Remaining budget: 3,000,000 - 1,392,600 = 1,607,400
-      expect(plan.remainingBudgetKrw).toBe(1607400);
+      // Remaining budget: 3,000,000 - 1,292,600 = 1,707,400
+      expect(plan.remainingBudgetKrw).toBe(1707400);
       expect(plan.overBudgetAmountKrw).toBe(0);
 
-      // Target-budget usage: (1,392,600 / 3,000,000) * 100 = 46.4%
-      expect(plan.targetBudgetUsagePercent).toBe(46.4);
+      // Target-budget usage: (1,292,600 / 3,000,000) * 100 = 43.1%
+      expect(plan.targetBudgetUsagePercent).toBe(43.1);
+    });
+
+    it("should use emergencyFundKrw value when it is valid", () => {
+      const planWithEmergency = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        emergencyFundKrw: 150000,
+      });
+      expect(planWithEmergency.categoryTotals.EMERGENCY_FUND).toBe(150000);
+      expect(planWithEmergency.tripWideSection.subtotalKrw).toBe(150000);
+    });
+
+    it("should default to 0 when emergencyFundKrw is not present, negative, or decimal", () => {
+      const planNegative = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        emergencyFundKrw: -100,
+      });
+      expect(planNegative.categoryTotals.EMERGENCY_FUND).toBe(0);
+
+      const planDecimal = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        emergencyFundKrw: 123.45,
+      });
+      expect(planDecimal.categoryTotals.EMERGENCY_FUND).toBe(0);
+
+      const planNaN = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        emergencyFundKrw: NaN,
+      });
+      expect(planNaN.categoryTotals.EMERGENCY_FUND).toBe(0);
     });
   });
 
@@ -202,12 +227,12 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
 
   describe("5. Over-Budget Computations", () => {
     it("should return remainingBudgetKrw = 0 and calculate correct overBudgetAmount when target is low", () => {
-      const trip: TripDraft = { ...defaultTrip, targetBudgetKrw: 1000000 }; // Grand total is 1,392,600
+      const trip: TripDraft = { ...defaultTrip, targetBudgetKrw: 1000000 }; // Grand total is 1,292,600
       const plan = generateInitialBudgetPlan(trip);
 
       expect(plan.remainingBudgetKrw).toBe(0);
-      expect(plan.overBudgetAmountKrw).toBe(392600);
-      expect(plan.targetBudgetUsagePercent).toBe(139.3); // 139.26% rounded
+      expect(plan.overBudgetAmountKrw).toBe(292600);
+      expect(plan.targetBudgetUsagePercent).toBe(129.3); // 129.26% rounded
     });
   });
 
@@ -299,12 +324,12 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       const busanAcc = plan.citySections.BUSAN?.lineItems.find((i) => i.category === "ACCOMMODATION");
 
       expect(seoulAcc?.basketId).toBe("STANDARD_HOTEL");
-      expect(seoulAcc?.lineTotalKrw).toBe(405000); // ??35k * 3 nights
+      expect(seoulAcc?.lineTotalKrw).toBe(405000); // 135k * 3 nights
       expect(busanAcc?.basketId).toBe("STANDARD_HOTEL");
-      expect(busanAcc?.lineTotalKrw).toBe(240000); // ??20k * 2 nights
+      expect(busanAcc?.lineTotalKrw).toBe(240000); // 120k * 2 nights
 
       expect(plan.categoryTotals.ACCOMMODATION).toBe(645000);
-      expect(plan.grandTotalKrw).toBe(1392600);
+      expect(plan.grandTotalKrw).toBe(1292600);
     });
 
     it("should match approved Scenario A: Seoul Budget stay only", () => {
@@ -318,21 +343,21 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       const busanAcc = plan.citySections.BUSAN?.lineItems.find((i) => i.category === "ACCOMMODATION");
 
       expect(seoulAcc?.basketId).toBe("BUDGET_STAY");
-      expect(seoulAcc?.lineTotalKrw).toBe(225000); // ??5k * 3 nights
+      expect(seoulAcc?.lineTotalKrw).toBe(225000); // 75k * 3 nights
       expect(busanAcc?.basketId).toBe("STANDARD_HOTEL");
-      expect(busanAcc?.lineTotalKrw).toBe(240000); // ??20k * 2 nights
+      expect(busanAcc?.lineTotalKrw).toBe(240000); // 120k * 2 nights
 
       expect(plan.categoryTotals.ACCOMMODATION).toBe(465000);
       expect(plan.citySections.SEOUL?.subtotalKrw).toBe(541000);
       expect(plan.citySections.BUSAN?.subtotalKrw).toBe(452000);
       expect(plan.intercitySection.subtotalKrw).toBe(119600);
-      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+      expect(plan.tripWideSection.subtotalKrw).toBe(0);
 
-      expect(plan.grandTotalKrw).toBe(1212600);
-      expect(plan.perTravelerTotalKrw).toBe(606300);
-      expect(plan.dailyAverageKrw).toBe(202100);
-      expect(plan.remainingBudgetKrw).toBe(1787400);
-      expect(plan.targetBudgetUsagePercent).toBe(40.4);
+      expect(plan.grandTotalKrw).toBe(1112600);
+      expect(plan.perTravelerTotalKrw).toBe(556300);
+      expect(plan.dailyAverageKrw).toBe(185433);
+      expect(plan.remainingBudgetKrw).toBe(1887400);
+      expect(plan.targetBudgetUsagePercent).toBe(37.1);
     });
 
     it("should match approved Scenario B: Busan Premium stay only", () => {
@@ -348,19 +373,19 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       expect(seoulAcc?.basketId).toBe("STANDARD_HOTEL");
       expect(seoulAcc?.lineTotalKrw).toBe(405000);
       expect(busanAcc?.basketId).toBe("PREMIUM_HERITAGE");
-      expect(busanAcc?.lineTotalKrw).toBe(500000); // ??50k * 2 nights
+      expect(busanAcc?.lineTotalKrw).toBe(500000); // 250k * 2 nights
 
       expect(plan.categoryTotals.ACCOMMODATION).toBe(905000);
       expect(plan.citySections.SEOUL?.subtotalKrw).toBe(721000);
       expect(plan.citySections.BUSAN?.subtotalKrw).toBe(712000);
       expect(plan.intercitySection.subtotalKrw).toBe(119600);
-      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+      expect(plan.tripWideSection.subtotalKrw).toBe(0);
 
-      expect(plan.grandTotalKrw).toBe(1652600);
-      expect(plan.perTravelerTotalKrw).toBe(826300);
-      expect(plan.dailyAverageKrw).toBe(275433);
-      expect(plan.remainingBudgetKrw).toBe(1347400);
-      expect(plan.targetBudgetUsagePercent).toBe(55.1);
+      expect(plan.grandTotalKrw).toBe(1552600);
+      expect(plan.perTravelerTotalKrw).toBe(776300);
+      expect(plan.dailyAverageKrw).toBe(258767);
+      expect(plan.remainingBudgetKrw).toBe(1447400);
+      expect(plan.targetBudgetUsagePercent).toBe(51.8);
     });
 
     it("should match approved Scenario C: Seoul Budget and Busan Premium stay combined", () => {
@@ -375,13 +400,13 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       expect(plan.citySections.SEOUL?.subtotalKrw).toBe(541000);
       expect(plan.citySections.BUSAN?.subtotalKrw).toBe(712000);
       expect(plan.intercitySection.subtotalKrw).toBe(119600);
-      expect(plan.tripWideSection.subtotalKrw).toBe(100000);
+      expect(plan.tripWideSection.subtotalKrw).toBe(0);
 
-      expect(plan.grandTotalKrw).toBe(1472600);
-      expect(plan.perTravelerTotalKrw).toBe(736300);
-      expect(plan.dailyAverageKrw).toBe(245433);
-      expect(plan.remainingBudgetKrw).toBe(1527400);
-      expect(plan.targetBudgetUsagePercent).toBe(49.1);
+      expect(plan.grandTotalKrw).toBe(1372600);
+      expect(plan.perTravelerTotalKrw).toBe(686300);
+      expect(plan.dailyAverageKrw).toBe(228767);
+      expect(plan.remainingBudgetKrw).toBe(1627400);
+      expect(plan.targetBudgetUsagePercent).toBe(45.8);
     });
 
     it("should apply accommodation overrides correctly for Seoul Premium and Busan Budget", () => {
@@ -460,7 +485,7 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
         },
       });
 
-      expect(plan.grandTotalKrw).toBe(1392600);
+      expect(plan.grandTotalKrw).toBe(1292600);
     });
 
     it("should throw error for inactive basket id override", () => {
@@ -630,8 +655,8 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       // 10. 전체 FOOD category total이 ₩272,000인지 검증
       expect(plan.categoryTotals.FOOD).toBe(272000); // 168k + 104k
 
-      // 11. 기본 grand total이 ₩1,392,600인지 검증
-      expect(plan.grandTotalKrw).toBe(1392600);
+      // 11. 기본 grand total이 ₩1,292,600인지 검증
+      expect(plan.grandTotalKrw).toBe(1292600);
 
       // 17. 모든 category total 합계가 grand total과 같은지 검증
       const categorySum = Object.values(plan.categoryTotals).reduce((sum, val) => sum + val, 0);
@@ -649,25 +674,25 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       // 12. 숙박 override 네 가지 승인 총액이 유지되는지 검증
       // Scenario A: Default standard
       const planA = generateInitialBudgetPlan(defaultTrip);
-      expect(planA.grandTotalKrw).toBe(1392600);
+      expect(planA.grandTotalKrw).toBe(1292600);
 
       // Scenario B: Seoul stay override (BUDGET_STAY)
       const planB = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
         accommodation: { SEOUL: "BUDGET_STAY" },
       });
-      expect(planB.grandTotalKrw).toBe(1212600);
+      expect(planB.grandTotalKrw).toBe(1112600);
 
       // Scenario C: Busan stay override (PREMIUM_HERITAGE)
       const planC = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
         accommodation: { BUSAN: "PREMIUM_HERITAGE" },
       });
-      expect(planC.grandTotalKrw).toBe(1652600);
+      expect(planC.grandTotalKrw).toBe(1552600);
 
       // Scenario D: Combined stay overrides
       const planD = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
         accommodation: { SEOUL: "BUDGET_STAY", BUSAN: "PREMIUM_HERITAGE" },
       });
-      expect(planD.grandTotalKrw).toBe(1472600);
+      expect(planD.grandTotalKrw).toBe(1372600);
     });
 
     it("should handle 0-night edge case input safely", () => {

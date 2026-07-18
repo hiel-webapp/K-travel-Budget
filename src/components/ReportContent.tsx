@@ -9,11 +9,15 @@ import {
   formatKrw,
   formatPercentage,
   getCategoryLabel,
+  getBasketLabel,
+  getCalculationExpression,
 } from "../features/budget/presentation/formatters";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 import type { TripDraft } from "../lib/trip-domain";
+import { isCalculatedMealPlan } from "../features/budget/domain/types";
 import type { PlannerPreferences, BudgetCategory } from "../features/budget/domain/types";
+import FoodReceiptDetails from "./FoodReceiptDetails";
 
 interface ReportContentProps {
   locale: Locale;
@@ -320,6 +324,110 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           </div>
         </div>
       </div>
+
+      {/* 4.5. Detailed Receipt (details/summary) */}
+      <details className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4 transition-all">
+        <summary className="flex items-center justify-between font-extrabold text-[#0f172a] hover:text-[#e25c5c] cursor-pointer select-none focus-visible:outline-none">
+          <span className="text-base">{dict.planner.viewDetailedReceipt ?? (locale === "ko" ? "상세 영수증 보기" : "View Detailed Receipt")}</span>
+          <svg
+            className="h-5 w-5 text-slate-400 transition-transform duration-150 rotate-0 group-open:rotate-180"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+
+        <div className="mt-4 pt-4 border-t border-slate-100 space-y-5">
+          {/* 전체 여행 공통 비용 (tripWideSection) */}
+          {plan.tripWideSection.lineItems.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                {dict.planner.tripWideExpenses}
+              </h4>
+              <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
+                {plan.tripWideSection.lineItems.map((item) => (
+                  <div key={item.id} className="flex justify-between items-start text-xs gap-4">
+                    <div>
+                      <span className="text-slate-800 font-bold block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                      <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
+                    </div>
+                    <span className="font-mono font-bold text-[#0f172a] whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 도시별 비용 (citySections) */}
+          {draft.selectedCities.map((city) => {
+            const section = plan.citySections[city];
+            if (!section || section.lineItems.length === 0) return null;
+
+            const label = city === "SEOUL" ? "Seoul" : "Busan";
+            const cityNights = section.nights;
+
+            return (
+              <div key={city} className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="flex justify-between items-baseline">
+                  <h4 className="text-sm font-extrabold text-[#0f172a]">
+                    {label} <span className="text-[11px] font-bold text-slate-400">({cityNights}박)</span>
+                  </h4>
+                  <span className="text-xs font-extrabold text-slate-800 whitespace-nowrap">{formatKrw(section.subtotalKrw)}</span>
+                </div>
+
+                <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
+                  {section.lineItems.map((item) => (
+                    <div key={item.id} className="space-y-1">
+                      <div className="flex justify-between items-start text-xs gap-4">
+                        <div>
+                          <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                          <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
+                        </div>
+                        <span className="font-mono font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
+                      </div>
+                      {item.category === "FOOD" && isCalculatedMealPlan(item.mealPlan) && (
+                        <div className="w-full overflow-x-auto">
+                          <FoodReceiptDetails
+                            mealPlan={item.mealPlan}
+                            locale={locale}
+                            dict={dict}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* 도시 간 교통 (intercitySection) */}
+          {plan.intercitySection.lineItems.length > 0 && (
+            <div className="space-y-2 pt-2 border-t border-slate-100">
+              <div className="flex justify-between items-baseline">
+                <h4 className="text-sm font-extrabold text-[#0f172a]">
+                  {dict.planner.intercityTransportation}
+                </h4>
+                <span className="text-xs font-extrabold text-slate-800 whitespace-nowrap">{formatKrw(plan.intercitySection.subtotalKrw)}</span>
+              </div>
+
+              <div className="space-y-2 pl-1.5 border-l border-slate-100">
+                {plan.intercitySection.lineItems.map((item) => (
+                  <div key={item.id} className="flex justify-between items-start text-xs gap-4">
+                    <div>
+                      <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                      <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
+                    </div>
+                    <span className="font-mono font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </details>
 
       {/* 5. Paid One-Stop Report Lock UI section */}
       <div className="space-y-4 pt-4 border-t border-slate-200">

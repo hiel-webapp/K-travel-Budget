@@ -252,10 +252,11 @@ describe("Planner Preferences & Storage Domain", () => {
 
       // 마이그레이션 확인
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(3);
+      expect(res.preferences.schemaVersion).toBe(4);
       expect(res.preferences.accommodationByCity.SEOUL).toBe("BUDGET_STAY");
       expect(res.preferences.foodOverrides).toEqual({});
       expect(res.preferences.addOnSelections).toEqual({});
+      expect(res.preferences.attractionByCity).toEqual({});
 
       // 자동 저장이 발생하지 않았음을 확인
       expect(setItemSpy).not.toHaveBeenCalled();
@@ -306,8 +307,8 @@ describe("Planner Preferences & Storage Domain", () => {
       expect(raw).not.toBeNull();
 
       const envelope = JSON.parse(raw!);
-      expect(envelope.schemaVersion).toBe(3);
-      expect(envelope.preferences.schemaVersion).toBe(3);
+      expect(envelope.schemaVersion).toBe(4);
+      expect(envelope.preferences.schemaVersion).toBe(4);
       expect(envelope.preferences.foodOverrides).toEqual(food);
       expect(envelope.preferences.accommodationByCity).toEqual(acc);
       expect(envelope.preferences.tripFingerprint).toBe(generateTripFingerprint(defaultTrip));
@@ -330,10 +331,11 @@ describe("Planner Preferences & Storage Domain", () => {
       const res = parsePlannerPreferences(JSON.stringify(v2Envelope), defaultTrip);
 
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(3);
+      expect(res.preferences.schemaVersion).toBe(4);
       expect(res.preferences.accommodationByCity.SEOUL).toBe("BUDGET_STAY");
       expect(res.preferences.foodOverrides.SEOUL_0_DINNER).toBe("K_BBQ");
       expect(res.preferences.addOnSelections).toEqual({});
+      expect(res.preferences.attractionByCity).toEqual({});
 
       expect(setItemSpy).not.toHaveBeenCalled();
     });
@@ -370,15 +372,15 @@ describe("Planner Preferences & Storage Domain", () => {
       expect(raw).not.toBeNull();
 
       const envelope = JSON.parse(raw!);
-      expect(envelope.schemaVersion).toBe(3);
-      expect(envelope.preferences.schemaVersion).toBe(3);
+      expect(envelope.schemaVersion).toBe(4);
+      expect(envelope.preferences.schemaVersion).toBe(4);
       expect(envelope.preferences.foodOverrides).toEqual(food);
       expect(envelope.preferences.accommodationByCity).toEqual(acc);
       expect(envelope.preferences.addOnSelections).toEqual(addons);
 
       const res = loadPlannerPreferencesEx(defaultTrip);
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(3);
+      expect(res.preferences.schemaVersion).toBe(4);
       expect(res.preferences.addOnSelections).toEqual(addons);
     });
   });

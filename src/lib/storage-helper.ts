@@ -10,6 +10,7 @@ import {
   PlannerPreferences,
   PlannerPreferencesEnvelope,
   AccommodationOverridesByCity,
+  AttractionOverridesByCity,
   PlannerPreferencesV1,
   PlannerPreferencesV2,
   FoodOverrides,
@@ -116,11 +117,12 @@ export function parsePlannerPreferences(
   preferences: PlannerPreferences;
 } {
   const defaultPrefs: PlannerPreferences = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     tripFingerprint: generateTripFingerprint(draft),
     accommodationByCity: {},
     foodOverrides: {},
     addOnSelections: {},
+    attractionByCity: {},
   };
 
   if (rawJson === null) {
@@ -135,7 +137,7 @@ export function parsePlannerPreferences(
 
     const rawVersion = rawObj.schemaVersion;
 
-    // V1 마이그레이션 경로 (V1 ➔ V3)
+    // V1 마이그레이션 경로 (V1 ➔ V4)
     if (rawVersion === 1) {
       const prefsV1 = rawObj.preferences as PlannerPreferencesV1;
       if (!prefsV1 || prefsV1.schemaVersion !== 1 || !prefsV1.accommodationByCity) {
@@ -148,11 +150,12 @@ export function parsePlannerPreferences(
       }
 
       const migratedPrefs: PlannerPreferences = {
-        schemaVersion: 3,
+        schemaVersion: 4,
         tripFingerprint: prefsV1.tripFingerprint,
         accommodationByCity: prefsV1.accommodationByCity,
         foodOverrides: {},
         addOnSelections: {},
+        attractionByCity: {},
       };
 
       if (!validateAccommodation(migratedPrefs.accommodationByCity, draft)) {
@@ -162,7 +165,7 @@ export function parsePlannerPreferences(
       return { status: "valid", preferences: migratedPrefs };
     }
 
-    // V2 마이그레이션 경로 (V2 ➔ V3)
+    // V2 마이그레이션 경로 (V2 ➔ V4)
     if (rawVersion === 2) {
       const prefsV2 = rawObj.preferences as PlannerPreferencesV2;
       if (!prefsV2 || prefsV2.schemaVersion !== 2 || !prefsV2.accommodationByCity || !prefsV2.foodOverrides) {
@@ -175,11 +178,12 @@ export function parsePlannerPreferences(
       }
 
       const migratedPrefs: PlannerPreferences = {
-        schemaVersion: 3,
+        schemaVersion: 4,
         tripFingerprint: prefsV2.tripFingerprint,
         accommodationByCity: prefsV2.accommodationByCity,
         foodOverrides: prefsV2.foodOverrides,
         addOnSelections: {},
+        attractionByCity: {},
       };
 
       if (!validateAccommodation(migratedPrefs.accommodationByCity, draft)) {
@@ -189,8 +193,36 @@ export function parsePlannerPreferences(
       return { status: "valid", preferences: migratedPrefs };
     }
 
-    // V3 정상 경로
+    // V3 마이그레이션 경로 (V3 ➔ V4)
     if (rawVersion === 3) {
+      const prefsV3 = rawObj.preferences;
+      if (!prefsV3 || prefsV3.schemaVersion !== 3 || !prefsV3.accommodationByCity || !prefsV3.foodOverrides || !prefsV3.addOnSelections) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      const currentFingerprint = generateTripFingerprint(draft);
+      if (prefsV3.tripFingerprint !== currentFingerprint) {
+        return { status: "fingerprint-mismatch", preferences: defaultPrefs };
+      }
+
+      const migratedPrefs: PlannerPreferences = {
+        schemaVersion: 4,
+        tripFingerprint: prefsV3.tripFingerprint,
+        accommodationByCity: prefsV3.accommodationByCity,
+        foodOverrides: prefsV3.foodOverrides,
+        addOnSelections: prefsV3.addOnSelections,
+        attractionByCity: {},
+      };
+
+      if (!validateAccommodation(migratedPrefs.accommodationByCity, draft)) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      return { status: "valid", preferences: migratedPrefs };
+    }
+
+    // V4 정상 경로
+    if (rawVersion === 4) {
       const envelope = rawObj as PlannerPreferencesEnvelope;
       if (!envelope.preferences) {
         return { status: "invalid", preferences: defaultPrefs };
@@ -198,12 +230,14 @@ export function parsePlannerPreferences(
 
       const prefs = envelope.preferences;
       if (
-        prefs.schemaVersion !== 3 ||
+        prefs.schemaVersion !== 4 ||
         !prefs.accommodationByCity ||
         !prefs.foodOverrides ||
         !prefs.addOnSelections ||
+        !prefs.attractionByCity ||
         typeof prefs.foodOverrides !== "object" ||
-        typeof prefs.addOnSelections !== "object"
+        typeof prefs.addOnSelections !== "object" ||
+        typeof prefs.attractionByCity !== "object"
       ) {
         return { status: "invalid", preferences: defaultPrefs };
       }
@@ -214,6 +248,10 @@ export function parsePlannerPreferences(
       }
 
       if (!validateAccommodation(prefs.accommodationByCity, draft)) {
+        return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      if (!validateAttraction(prefs.attractionByCity, draft)) {
         return { status: "invalid", preferences: defaultPrefs };
       }
 
@@ -274,10 +312,37 @@ function validateAccommodation(
   return true;
 }
 
+function validateAttraction(
+  attr: AttractionOverridesByCity,
+  draft: TripDraft
+): boolean {
+  for (const [cityKey, basketId] of Object.entries(attr)) {
+    const city = cityKey as SupportedCity;
+
+    if (!draft.selectedCities.includes(city)) {
+      continue;
+    }
+
+    const basket = MOCK_PRICE_CATALOG.find(
+      (b) =>
+        b.category === "ATTRACTION" &&
+        b.id === basketId &&
+        b.applicableCity === city &&
+        b.isActive
+    );
+
+    if (!basket) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export interface SavePlannerPreferencesInput {
   accommodationByCity: AccommodationOverridesByCity;
   foodOverrides?: FoodOverrides;
   foodAddOnOverrides?: FoodAddOnOverrides;
+  attractionByCity?: AttractionOverridesByCity;
   draft: TripDraft;
 }
 
@@ -287,19 +352,26 @@ export interface SavePlannerPreferencesInput {
 export function savePlannerPreferences(input: SavePlannerPreferencesInput): boolean {
   if (!isClient()) return false;
 
-  const { accommodationByCity, foodOverrides = {}, foodAddOnOverrides = {}, draft } = input;
+  const {
+    accommodationByCity,
+    foodOverrides = {},
+    foodAddOnOverrides = {},
+    attractionByCity = {},
+    draft,
+  } = input;
 
   try {
     const prefs: PlannerPreferences = {
-      schemaVersion: 3,
+      schemaVersion: 4,
       tripFingerprint: generateTripFingerprint(draft),
       accommodationByCity,
       foodOverrides,
       addOnSelections: foodAddOnOverrides,
+      attractionByCity,
     };
 
     const envelope: PlannerPreferencesEnvelope = {
-      schemaVersion: 3,
+      schemaVersion: 4,
       savedAt: new Date().toISOString(),
       preferences: prefs,
     };
@@ -321,11 +393,12 @@ export function loadPlannerPreferencesEx(
   preferences: PlannerPreferences;
 } {
   const defaultPrefs: PlannerPreferences = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     tripFingerprint: generateTripFingerprint(draft),
     accommodationByCity: {},
     foodOverrides: {},
     addOnSelections: {},
+    attractionByCity: {},
   };
 
   if (!isClient()) {
@@ -347,4 +420,120 @@ export function loadPlannerPreferences(): PlannerPreferences {
   const draft = loadTripDraft();
   const res = loadPlannerPreferencesEx(draft);
   return res.preferences;
+}
+
+export interface SavedTripItem {
+  id: string;
+  title: string;
+  savedAt: string;
+  draft: TripDraft;
+  preferences: PlannerPreferences;
+}
+
+export interface SavedTripsEnvelope {
+  schemaVersion: 1;
+  savedAt: string;
+  trips: SavedTripItem[];
+}
+
+export function loadSavedTrips(): SavedTripItem[] {
+  if (!isClient()) return [];
+  try {
+    const raw = localStorage.getItem("hypeheritage_saved_trips");
+    if (!raw) return [];
+    const envelope = JSON.parse(raw) as SavedTripsEnvelope;
+    if (!envelope || envelope.schemaVersion !== 1 || !Array.isArray(envelope.trips)) {
+      return [];
+    }
+    return envelope.trips.filter((trip) => {
+      return (
+        trip &&
+        typeof trip === "object" &&
+        typeof trip.id === "string" &&
+        typeof trip.title === "string" &&
+        typeof trip.savedAt === "string" &&
+        trip.draft &&
+        trip.preferences
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
+export function saveSavedTrip(
+  title: string,
+  draft: TripDraft,
+  preferences: PlannerPreferences
+): boolean {
+  if (!isClient()) return false;
+  try {
+    const trips = loadSavedTrips();
+    const id = generateTripFingerprint(draft);
+    const nowStr = new Date().toISOString();
+
+    const nextTrips = trips.filter((t) => t.id !== id);
+    nextTrips.unshift({
+      id,
+      title: title || `Trip to ${draft.selectedCities.join(" & ")}`,
+      savedAt: nowStr,
+      draft,
+      preferences,
+    });
+
+    const envelope: SavedTripsEnvelope = {
+      schemaVersion: 1,
+      savedAt: nowStr,
+      trips: nextTrips,
+    };
+
+    localStorage.setItem("hypeheritage_saved_trips", JSON.stringify(envelope));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function deleteSavedTrip(id: string): boolean {
+  if (!isClient()) return false;
+  try {
+    const trips = loadSavedTrips();
+    const nextTrips = trips.filter((t) => t.id !== id);
+    const envelope: SavedTripsEnvelope = {
+      schemaVersion: 1,
+      savedAt: new Date().toISOString(),
+      trips: nextTrips,
+    };
+    localStorage.setItem("hypeheritage_saved_trips", JSON.stringify(envelope));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function restoreSavedTrip(id: string): boolean {
+  if (!isClient()) return false;
+  try {
+    const trips = loadSavedTrips();
+    const found = trips.find((t) => t.id === id);
+    if (!found) return false;
+
+    const draftEnvelope = {
+      schemaVersion: 1,
+      savedAt: new Date().toISOString(),
+      tripDraft: found.draft,
+    };
+    localStorage.setItem(NEW_STORAGE_KEY, JSON.stringify(draftEnvelope));
+
+    const prefsEnvelope = {
+      schemaVersion: 4,
+      savedAt: new Date().toISOString(),
+      preferences: found.preferences,
+    };
+    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefsEnvelope));
+
+    return true;
+  } catch {
+    return false;
+  }
 }

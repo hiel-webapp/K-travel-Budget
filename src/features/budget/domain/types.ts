@@ -144,11 +144,13 @@ export interface BudgetPlan {
 }
 
 export type AccommodationOverridesByCity = Partial<Record<SupportedCity, BudgetBasketId>>;
+export type AttractionOverridesByCity = Partial<Record<SupportedCity, BudgetBasketId>>;
 
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
   food?: FoodOverrides;
   foodAddOns?: FoodAddOnOverrides;
+  attraction?: AttractionOverridesByCity;
 }
 
 export type FoodCollectionId = "ESSENTIALS" | "INTERNATIONAL" | "TRENDING" | "SPECIALTIES";
@@ -290,6 +292,7 @@ export interface PlannerPreferences {
   accommodationByCity: AccommodationOverridesByCity;
   foodOverrides: FoodOverrides;
   addOnSelections: FoodAddOnOverrides;
+  attractionByCity?: AttractionOverridesByCity;
 }
 
 export interface PlannerPreferencesEnvelope {

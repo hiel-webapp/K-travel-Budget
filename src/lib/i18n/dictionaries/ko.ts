@@ -83,6 +83,68 @@ export const ko = {
     accommodationDescription: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 숙박 예산입니다.",
     accommodationNotice: "이곳에서 도시별 숙박 옵션을 커스텀 변경하여 총액 예산을 조정해보세요.",
 
+    attractionOverrideTitle: "관광 및 액티비티 예산",
+    attractionOverrideDesc: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 관광/액티비티 예산입니다.",
+    attractionOverrideNotice: "이곳에서 도시별 관광 옵션을 커스텀 변경하여 총액 예산을 조정해보세요.",
+
+    selectAttractionTitle: "도시별 관광 유형 선택",
+    selectAttractionDescription: "원하는 도시의 관광/액티비티 단계를 선택하시면 예산에 즉시 반영됩니다.",
+    resetToRecommendedAttraction: "추천 관광으로 초기화",
+
+    mostlyFreeDesc: "주로 무료 명소나 공원, 도보 투어 위주의 알뜰 관광",
+    balancedDesc: "주요 랜드마크, 적절한 입장료 및 체험 활동을 조합한 균형 잡힌 관광",
+    experienceRichDesc: "전통 문화 체험, 테마파크 및 고급 가이드 투어 중심의 풍부한 관광",
+
+    savedTripsTitle: "저장된 여행 계획",
+    savedTripsEmpty: "아직 저장된 여행 계획이 없습니다. 플래너에서 예산을 맞추고 여행을 저장해 보세요!",
+    savedTripsDateLabel: "저장 일시",
+    savedTripsLoadButton: "불러오기",
+    savedTripsDeleteButton: "삭제",
+    savedTripsSuccessLoad: "성공적으로 여행을 불러왔습니다. 플래너 화면으로 이동합니다.",
+    savedTripsConfirmDelete: "이 여행 계획을 삭제하시겠습니까?",
+    savedTripsDeleteSuccess: "삭제가 완료되었습니다.",
+    saveTripModalTitle: "여행 계획 저장",
+    saveTripModalLabel: "여행 계획 제목",
+    saveTripModalPlaceholder: "예: 나의 여름 한국 여행",
+    saveTripModalSave: "저장",
+    saveTripModalCancel: "취소",
+    saveTripSuccess: "성공적으로 여행 계획을 저장했습니다.",
+
+    reportTitle: "여행 예산 레포트",
+    reportSubtitle: "작성하신 계획을 바탕으로 생성된 기본 예산 레포트입니다.",
+    reportBackToPlanner: "플래너로 돌아가기",
+    reportTotalBudget: "목표 예산",
+    reportDiffUnder: "예산 남음",
+    reportDiffOver: "예산 초과",
+    reportNoTargetBudget: "설정된 목표 예산이 없습니다.",
+    reportCategorySummary: "카테고리별 예산 분포",
+    reportCitySummary: "도시별 예산 요약",
+    paidLockTitle: "Paid One-Stop Premium Report",
+    paidLockNotice: "이 기능은 프리미엄 구독 전용입니다. 향후 제공 예정입니다.",
+    paidFeatureHealth: "예산 건강도 분석",
+    paidFeatureHealthDesc: "전체 경비가 적절히 배분되었는지 건강도를 점검해 드립니다.",
+    paidFeatureMiss: "누락 비용 점검",
+    paidFeatureMissDesc: "통신 요금, 비상 물품 등 깜빡하기 쉬운 숨은 경비를 분석합니다.",
+    paidFeatureSave: "예산 절감 대안",
+    paidFeatureSaveDesc: "동일한 만족도를 내면서 경비를 아낄 수 있는 실용적 팁을 제안합니다.",
+    paidFeaturePrice: "실시간 가격 변동 예측",
+    paidFeaturePriceDesc: "계절성 수요 및 프로모션 주기에 맞춘 실시간 요금 추이를 예측합니다.",
+    paidFeatureHotel: "숙소 매칭 가이드",
+    paidFeatureHotelDesc: "설정된 숙박 등급에 알맞은 실제 호텔 후보군과 가격 정보를 매치합니다.",
+    paidFeatureOrder: "식당 탐색 및 로컬 오더 가이드",
+    paidFeatureOrderDesc: "로컬 인기 맛집 리스트와 다국어 오더 주문 방법을 맞춤 제공합니다.",
+    paidFeatureTrend: "도시 맞춤 K-Trend & K-Guide",
+    paidFeatureTrendDesc: "한국에서 현재 유행하는 맛집, 핫플레이스 정보와 지역 가이드를 연결합니다.",
+    paidFeatureExport: "PDF · 이메일 · 공유 확장",
+    paidFeatureExportDesc: "가족이나 일행에게 예산 분석표를 PDF나 이메일로 손쉽게 내보냅니다.",
+
+    trendHeroTitle: "K-트렌드 허브",
+    trendHeroSubtitle: "현재 한국 현지인들의 일상과 여행 준비 시 눈여겨볼 핵심 문화 트렌드를 소개합니다.",
+    guideHeroTitle: "K-가이드 실무 사전",
+    guideHeroSubtitle: "한국 입국 시점부터 숙소 체크아웃까지 외국인 여행자에게 실질적으로 유용한 행동 수칙을 담았습니다.",
+    reportShortcutLink: "나의 예산 리포트 보기 ➔",
+    plannerShortcutLink: "예산 계산기 플래너로 이동 ➔",
+
     // Stay override cards UI
     selectStayTitle: "도시별 숙소 유형 선택",
     selectStayDescription: "원하는 도시의 숙소 등급을 선택하시면 예산에 즉시 반영됩니다.",
@@ -270,6 +332,67 @@ export interface Dictionary {
     accommodationTitle: string;
     accommodationDescription: string;
     accommodationNotice: string;
+
+    attractionOverrideTitle: string;
+    attractionOverrideDesc: string;
+    attractionOverrideNotice: string;
+    selectAttractionTitle: string;
+    selectAttractionDescription: string;
+    resetToRecommendedAttraction: string;
+    mostlyFreeDesc: string;
+    balancedDesc: string;
+    experienceRichDesc: string;
+
+    savedTripsTitle: string;
+    savedTripsEmpty: string;
+    savedTripsDateLabel: string;
+    savedTripsLoadButton: string;
+    savedTripsDeleteButton: string;
+    savedTripsSuccessLoad: string;
+    savedTripsConfirmDelete: string;
+    savedTripsDeleteSuccess: string;
+    saveTripModalTitle: string;
+    saveTripModalLabel: string;
+    saveTripModalPlaceholder: string;
+    saveTripModalSave: string;
+    saveTripModalCancel: string;
+    saveTripSuccess: string;
+
+    reportTitle: string;
+    reportSubtitle: string;
+    reportBackToPlanner: string;
+    reportTotalBudget: string;
+    reportDiffUnder: string;
+    reportDiffOver: string;
+    reportNoTargetBudget: string;
+    reportCategorySummary: string;
+    reportCitySummary: string;
+    paidLockTitle: string;
+    paidLockNotice: string;
+    paidFeatureHealth: string;
+    paidFeatureHealthDesc: string;
+    paidFeatureMiss: string;
+    paidFeatureMissDesc: string;
+    paidFeatureSave: string;
+    paidFeatureSaveDesc: string;
+    paidFeaturePrice: string;
+    paidFeaturePriceDesc: string;
+    paidFeatureHotel: string;
+    paidFeatureHotelDesc: string;
+    paidFeatureOrder: string;
+    paidFeatureOrderDesc: string;
+    paidFeatureTrend: string;
+    paidFeatureTrendDesc: string;
+    paidFeatureExport: string;
+    paidFeatureExportDesc: string;
+
+    trendHeroTitle: string;
+    trendHeroSubtitle: string;
+    guideHeroTitle: string;
+    guideHeroSubtitle: string;
+    reportShortcutLink: string;
+    plannerShortcutLink: string;
+
     selectStayTitle: string;
     selectStayDescription: string;
     resetToRecommended: string;

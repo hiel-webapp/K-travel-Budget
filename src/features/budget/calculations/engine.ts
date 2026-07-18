@@ -104,6 +104,8 @@ export function generateInitialBudgetPlan(
 
         if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
           basketId = overrides.accommodation[city]!;
+        } else if (category === "ATTRACTION" && overrides?.attraction?.[city]) {
+          basketId = overrides.attraction[city]!;
         }
 
         const basket = findBasket(catalog, basketId, category, city);

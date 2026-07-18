@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity } from "../lib/trip-domain";
-import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences } from "../lib/storage-helper";
+import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip } from "../lib/storage-helper";
 import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
@@ -60,6 +61,7 @@ export default function PlannerContent({ locale, dict }: PlannerContentProps) {
 }
 
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
+  const router = useRouter();
   const [state, setState] = useState<PlannerState>(() => {
     const hasDraftKey =
       localStorage.getItem("hypeheritage_trip_draft") !== null ||
@@ -94,6 +96,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [saveError, setSaveError] = useState<boolean>(false);
 
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [saveTitle, setSaveTitle] = useState("");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (state.status === "ready") {
@@ -166,6 +171,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     accommodation: preferences.accommodationByCity,
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
+    attraction: preferences.attractionByCity,
   });
 
   const availableTabs: ("ALL" | "SEOUL" | "BUSAN")[] = ["ALL"];
@@ -220,44 +226,132 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       [city]: basketId,
     };
 
-    savePlannerPreferences({
+    const saved = savePlannerPreferences({
       accommodationByCity: nextAcc,
       foodOverrides: preferences.foodOverrides,
       foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
       draft,
     });
-    setState((prev) => {
-      if (prev.status !== "ready") return prev;
-      return {
-        ...prev,
-        preferences: {
-          ...prev.preferences,
-          accommodationByCity: nextAcc,
-        },
-      };
-    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            accommodationByCity: nextAcc,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
   };
 
   const handleResetStay = (cityTarget: SupportedCity) => {
     const nextAcc = { ...preferences.accommodationByCity };
     delete nextAcc[cityTarget];
 
-    savePlannerPreferences({
+    const saved = savePlannerPreferences({
       accommodationByCity: nextAcc,
       foodOverrides: preferences.foodOverrides,
       foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
       draft,
     });
-    setState((prev) => {
-      if (prev.status !== "ready") return prev;
-      return {
-        ...prev,
-        preferences: {
-          ...prev.preferences,
-          accommodationByCity: nextAcc,
-        },
-      };
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            accommodationByCity: nextAcc,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleAttractionOverride = (city: SupportedCity, basketId: BudgetBasketId) => {
+    const nextAttr = {
+      ...preferences.attractionByCity,
+      [city]: basketId,
+    };
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: nextAttr,
+      draft,
     });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            attractionByCity: nextAttr,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleResetAttraction = (cityTarget: SupportedCity) => {
+    const nextAttr = { ...preferences.attractionByCity };
+    delete nextAttr[cityTarget];
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: nextAttr,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            attractionByCity: nextAttr,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+
+
+  const handleSaveTripPlan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!latestPrefsRef.current) return;
+    const success = saveSavedTrip(saveTitle, draft, latestPrefsRef.current);
+    if (success) {
+      setToastMessage(dict.planner.saveTripSuccess);
+      setIsSaveModalOpen(false);
+      setSaveTitle("");
+      setTimeout(() => setToastMessage(null), 3000);
+    }
   };
 
   const handleSelectFoodReplacement = (slotId: string, foodItemId: string) => {
@@ -273,6 +367,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       accommodationByCity: latestPrefsRef.current.accommodationByCity,
       foodOverrides: nextFood,
       foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
       draft,
     });
 
@@ -305,6 +400,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       accommodationByCity: latestPrefsRef.current.accommodationByCity,
       foodOverrides: nextFood,
       foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
       draft,
     });
 
@@ -343,6 +439,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       accommodationByCity: latestPrefsRef.current.accommodationByCity,
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: nextAddOns,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
       draft,
     });
 
@@ -383,6 +480,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       accommodationByCity: latestPrefsRef.current.accommodationByCity,
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: nextAddOns,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
       draft,
     });
 
@@ -421,6 +519,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       accommodationByCity: latestPrefsRef.current.accommodationByCity,
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: nextAddOns,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
       draft,
     });
 
@@ -445,6 +544,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const found = MOCK_PRICE_CATALOG.find(
       (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
+    );
+    return found ? found.representativePriceKrw : 0;
+  };
+
+  const getCatalogAttractionPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
+    const found = MOCK_PRICE_CATALOG.find(
+      (b) => b.category === "ATTRACTION" && b.id === basketId && b.applicableCity === city
     );
     return found ? found.representativePriceKrw : 0;
   };
@@ -575,14 +681,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {activeCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
                 {activeCategory === "FOOD" && dict.planner.foodTitle}
                 {activeCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
-                {activeCategory === "ATTRACTION" && dict.planner.attractionsTitle}
+                {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
                 {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyTitle}
               </h3>
               <p className="mt-1 text-xs sm:text-sm text-slate-400">
                 {activeCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
                 {activeCategory === "FOOD" && dict.planner.foodDescription}
                 {activeCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
-                {activeCategory === "ATTRACTION" && dict.planner.attractionsDescription}
+                {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
                 {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyDescription}
               </p>
             </div>
@@ -704,6 +810,121 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
             )}
 
+            {activeCategory === "ATTRACTION" && (
+              <div className="space-y-6 pt-2 border-t border-slate-100">
+                {/* 1. ALL Tab: Read-Only Summaries by City */}
+                {selectedCityTab === "ALL" && (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-extrabold text-[#0f172a]">
+                      {dict.planner.selectAttractionTitle}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {draft.selectedCities.map((city) => {
+                        const activeBasketId =
+                          preferences.attractionByCity?.[city] ||
+                          plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId;
+
+                        const name = getBasketLabel(activeBasketId as BudgetBasketId, dict, locale);
+                        const price = getCatalogAttractionPrice(city, activeBasketId as BudgetBasketId);
+
+                        return (
+                          <div key={city} className="p-4 rounded-xl border border-slate-200 bg-slate-50/30 flex flex-col justify-between h-28">
+                            <div>
+                              <strong className="text-xs uppercase tracking-wider text-slate-500 font-bold block">
+                                {city === "SEOUL" ? "Seoul Attractions" : "Busan Attractions"}
+                              </strong>
+                              <span className="mt-1.5 text-sm font-extrabold text-[#0f172a] block">
+                                {name}
+                              </span>
+                            </div>
+                            <div className="flex items-baseline justify-between border-t border-slate-100 pt-2 text-xs">
+                              <span className="text-slate-400">Per Person</span>
+                              <strong className="text-[#e25c5c] font-extrabold">{formatKrw(price)}</strong>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. City-Specific Tabs: Editable Card Sets with Reset */}
+                {selectedCityTab !== "ALL" && (() => {
+                  const city = selectedCityTab;
+                  const hasOverride = !!preferences.attractionByCity?.[city];
+
+                  const activeBasketId =
+                    preferences.attractionByCity?.[city] ||
+                    plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId;
+
+                  const basketOptions: BudgetBasketId[] = ["MOSTLY_FREE", "BALANCED", "EXPERIENCE_RICH"];
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">
+                            {city === "SEOUL" ? "Seoul" : "Busan"} {dict.planner.selectAttractionTitle}
+                          </h4>
+                          <p className="text-xs text-slate-400">
+                            {dict.planner.selectAttractionDescription}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleResetAttraction(city)}
+                          disabled={!hasOverride}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
+                            hasOverride
+                              ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
+                              : "text-slate-355 border-slate-100 bg-slate-50 cursor-not-allowed"
+                          }`}
+                        >
+                          {dict.planner.resetToRecommendedAttraction}
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {basketOptions.map((opt) => {
+                          const isSelected = activeBasketId === opt;
+                          const name = getBasketLabel(opt, dict, locale);
+                          const price = getCatalogAttractionPrice(city, opt);
+
+                          let desc = dict.planner.balancedDesc;
+                          if (opt === "MOSTLY_FREE") desc = dict.planner.mostlyFreeDesc;
+                          if (opt === "EXPERIENCE_RICH") desc = dict.planner.experienceRichDesc;
+
+                          return (
+                            <button
+                              key={opt}
+                              onClick={() => handleAttractionOverride(city, opt)}
+                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
+                                isSelected
+                                  ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
+                                  : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
+                              }`}
+                            >
+                              <div>
+                                <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
+                                  {name}
+                                </span>
+                                <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
+                                  {desc}
+                                </p>
+                              </div>
+                              <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-50 pt-2">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase">Per Person</span>
+                                <span className="text-xs font-extrabold text-slate-800">{formatKrw(price)}</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
             {activeCategory === "FOOD" && selectedCityTab !== "ALL" && (() => {
               const city = selectedCityTab;
               const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
@@ -727,6 +948,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
               );
             })()}
+
+            {activeCategory === "FOOD" && selectedCityTab === "ALL" && (
+              <div className="space-y-6 pt-2 border-t border-slate-100">
+                <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500 font-semibold leading-relaxed flex items-start gap-2">
+                  <svg className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>{dict.planner.readOnlyNotice}</span>
+                </div>
+                {draft.selectedCities.map((city) => {
+                  const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
+                  if (!foodLine || !isCalculatedMealPlan(foodLine.mealPlan)) return null;
+                  return (
+                    <div key={city} className="border-b border-slate-100 pb-6 last:border-b-0">
+                      <FoodPlannerPanel
+                        locale={locale}
+                        dict={dict}
+                        mealPlan={foodLine.mealPlan}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="space-y-3.5 pt-4 border-t border-slate-100">
               <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
@@ -781,7 +1026,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {activeCategory === "ACCOMMODATION" && dict.planner.accommodationNotice}
                 {activeCategory === "FOOD" && dict.planner.foodNotice}
                 {activeCategory === "CITY_TRANSPORT" && dict.planner.transportNotice}
-                {activeCategory === "ATTRACTION" && dict.planner.attractionsNotice}
+                {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideNotice}
                 {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyNotice}
               </p>
             </div>
@@ -967,10 +1212,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
 
               <div className="space-y-2 pt-1">
+                <button
+                  onClick={() => setIsSaveModalOpen(true)}
+                  className="w-full h-10 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-bold text-sm text-center transition-colors cursor-pointer"
+                >
+                  <span>{dict.planner.saveTrip}</span>
+                </button>
+                <button
+                  onClick={() => router.push(`/${locale}/report`)}
+                  className="w-full h-10 px-4 rounded-xl bg-white border border-slate-350 text-[#0f172a] hover:bg-slate-50 font-bold text-sm text-center transition-colors cursor-pointer"
+                >
+                  <span>{dict.planner.generateReport}</span>
+                </button>
                 {[
-                  { label: dict.planner.saveTrip, key: "save" },
-                  { label: dict.planner.shareReceipt, key: "share" },
-                  { label: dict.planner.generateReport, key: "report" }
+                  { label: dict.planner.shareReceipt, key: "share" }
                 ].map((btn) => (
                   <button
                     key={btn.key}
@@ -993,6 +1248,70 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           </div>
         </div>
       </div>
+
+      {/* Toast Alert Feedback */}
+      {toastMessage && (
+        <div
+          role="alert"
+          className="fixed bottom-6 right-6 z-50 bg-[#0f172a] text-white px-5 py-3 rounded-xl shadow-lg border border-slate-700/60 font-semibold text-xs flex items-center gap-2"
+        >
+          <svg className="h-4 w-4 text-[#e25c5c] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {toastMessage}
+        </div>
+      )}
+
+      {/* Save Trip Modal */}
+      {isSaveModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="save-trip-modal-title"
+        >
+          <div className="bg-white max-w-md w-full rounded-2xl border border-slate-200/80 shadow-2xl p-6 space-y-4">
+            <h3 id="save-trip-modal-title" className="text-base font-extrabold text-[#0f172a]">
+              {dict.planner.saveTripModalTitle}
+            </h3>
+            <form onSubmit={handleSaveTripPlan} className="space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="trip-title-input" className="text-xs font-bold text-slate-500 block">
+                  {dict.planner.saveTripModalLabel}
+                </label>
+                <input
+                  id="trip-title-input"
+                  type="text"
+                  required
+                  value={saveTitle}
+                  onChange={(e) => setSaveTitle(e.target.value)}
+                  placeholder={dict.planner.saveTripModalPlaceholder}
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#e25c5c] text-sm text-[#0f172a] bg-slate-50/50"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSaveModalOpen(false);
+                    setSaveTitle("");
+                  }}
+                  className="h-9 px-4 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold text-xs cursor-pointer"
+                >
+                  {dict.planner.saveTripModalCancel}
+                </button>
+                <button
+                  type="submit"
+                  className="h-9 px-4 rounded-lg bg-[#e25c5c] text-white hover:bg-[#d14b4b] font-bold text-xs cursor-pointer"
+                >
+                  {dict.planner.saveTripModalSave}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

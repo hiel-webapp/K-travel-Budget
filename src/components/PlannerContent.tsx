@@ -8,6 +8,7 @@ import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isC
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import FoodPlannerPanel from "./FoodPlannerPanel";
+import FoodReceiptDetails from "./FoodReceiptDetails";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 import {
@@ -325,6 +326,122 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
+  const handleSelectAddOn = (slotId: string, addOnItemId: string, quantity: number) => {
+    if (!latestPrefsRef.current) return;
+
+    const currentAddOns = latestPrefsRef.current.addOnSelections || {};
+    const slotAddOns = currentAddOns[slotId] ? [...currentAddOns[slotId]] : [];
+
+    if (slotAddOns.some((item) => item.addOnItemId === addOnItemId)) return;
+
+    const nextAddOns = {
+      ...currentAddOns,
+      [slotId]: [...slotAddOns, { addOnItemId, quantity }],
+    };
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: latestPrefsRef.current.foodOverrides,
+      foodAddOnOverrides: nextAddOns,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        addOnSelections: nextAddOns,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleRemoveAddOn = (slotId: string, addOnItemId: string) => {
+    if (!latestPrefsRef.current) return;
+
+    const currentAddOns = latestPrefsRef.current.addOnSelections || {};
+    if (!currentAddOns[slotId]) return;
+
+    const slotAddOns = currentAddOns[slotId].filter((item) => item.addOnItemId !== addOnItemId);
+    const nextAddOns = { ...currentAddOns };
+
+    if (slotAddOns.length > 0) {
+      nextAddOns[slotId] = slotAddOns;
+    } else {
+      delete nextAddOns[slotId];
+    }
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: latestPrefsRef.current.foodOverrides,
+      foodAddOnOverrides: nextAddOns,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        addOnSelections: nextAddOns,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleChangeAddOnQuantity = (slotId: string, addOnItemId: string, quantity: number) => {
+    if (!latestPrefsRef.current) return;
+
+    const currentAddOns = latestPrefsRef.current.addOnSelections || {};
+    if (!currentAddOns[slotId]) return;
+
+    const nextAddOns = {
+      ...currentAddOns,
+      [slotId]: currentAddOns[slotId].map((item) =>
+        item.addOnItemId === addOnItemId ? { ...item, quantity } : item
+      ),
+    };
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: latestPrefsRef.current.foodOverrides,
+      foodAddOnOverrides: nextAddOns,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        addOnSelections: nextAddOns,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const found = MOCK_PRICE_CATALOG.find(
       (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
@@ -593,8 +710,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               return (
                 <div className="space-y-6 pt-2 border-t border-slate-100">
                   {saveError && (
-                    <div className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-100">
-                      ⚠️ {dict.planner.saveFailedNotice}
+                    <div role="alert" className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-100">
+                      {dict.planner.saveFailedNotice}
                     </div>
                   )}
                   <FoodPlannerPanel
@@ -603,6 +720,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     mealPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan : undefined}
                     onSelectReplacement={handleSelectFoodReplacement}
                     onClearReplacement={handleClearFoodReplacement}
+                    onSelectAddOn={handleSelectAddOn}
+                    onRemoveAddOn={handleRemoveAddOn}
+                    onChangeAddOnQuantity={handleChangeAddOnQuantity}
                   />
                 </div>
               );
@@ -777,12 +897,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                     <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
                       {section.lineItems.map((item) => (
-                        <div key={item.id} className="flex justify-between items-start text-xs">
-                          <div>
-                            <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
-                            <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
+                        <div key={item.id} className="space-y-1">
+                          <div className="flex justify-between items-start text-xs">
+                            <div>
+                              <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                              <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
+                            </div>
+                            <span className="font-mono font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
                           </div>
-                          <span className="font-mono font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
+                          {item.category === "FOOD" && isCalculatedMealPlan(item.mealPlan) && (
+                            <FoodReceiptDetails
+                              mealPlan={item.mealPlan}
+                              locale={locale}
+                              dict={dict}
+                            />
+                          )}
                         </div>
                       ))}
                     </div>

@@ -118,6 +118,37 @@ export const ko = {
     unsupportedPriceUnitLabel: "기본 예산 미지원 요금제",
     saveFailedNotice: "설정 저장에 실패했습니다.",
     orphanAddOnWarning: "이전에 선택한 옵션(Add-on)의 상위 음식을 다시 선택하거나 옵션을 정리하세요.",
+    addOnsTitle: "옵션 선택 (Add-ons)",
+    selectAddOnButton: "옵션 추가",
+    removeAddOnButton: "옵션 해제",
+    selectedLabel: "선택됨",
+    quantityLabel: "수량",
+    applyQuantityButton: "적용",
+    invalidQuantityNotice: "유효하지 않은 수량입니다",
+    maxQuantityLabel: "최대 수량",
+    perPersonNotice: "인원수 적용 단가",
+    itemQuantityNotice: "수량 적용 단가",
+    noAddOnsAvailable: "선택 가능한 옵션이 없습니다.",
+    alcoholBadge: "주류",
+    beverageBadge: "음료",
+    explicitSelectionNotice: "*사용자가 명시적으로 선택해야 추가됩니다.",
+    foodDetails: "식사 상세 내역",
+    mealBreakdown: "식사별 구성",
+    baseMeal: "기본 식사",
+    replacement: "대체 음식",
+    addOn: "추가 메뉴",
+    quantity: "수량",
+    perPerson: "1인당",
+    multiplier: "배수",
+    included: "예산 포함",
+    excludedFromBudget: "예산 미포함",
+    slotSubtotal: "식사 합계",
+    cityFoodSubtotal: "음식 소계",
+    calculationDetails: "계산 상세",
+    noFoodDetails: "식사 상세 정보가 없습니다.",
+    mockLabel: "MOCK",
+    issueNotice: "제외 항목 안내",
+    adultCountApplied: "인원수 적용됨",
 
     transportTitle: "교통 예산",
     transportDescription: "체류 도시 내 이동을 위한 예산과 도시 간 이동을 위한 장거리 교통비가 포함되어 있습니다.",
@@ -270,6 +301,37 @@ export interface Dictionary {
     unsupportedPriceUnitLabel: string;
     saveFailedNotice: string;
     orphanAddOnWarning: string;
+    addOnsTitle: string;
+    selectAddOnButton: string;
+    removeAddOnButton: string;
+    selectedLabel: string;
+    quantityLabel: string;
+    applyQuantityButton: string;
+    invalidQuantityNotice: string;
+    maxQuantityLabel: string;
+    perPersonNotice: string;
+    itemQuantityNotice: string;
+    noAddOnsAvailable: string;
+    alcoholBadge: string;
+    beverageBadge: string;
+    explicitSelectionNotice: string;
+    foodDetails: string;
+    mealBreakdown: string;
+    baseMeal: string;
+    replacement: string;
+    addOn: string;
+    quantity: string;
+    perPerson: string;
+    multiplier: string;
+    included: string;
+    excludedFromBudget: string;
+    slotSubtotal: string;
+    cityFoodSubtotal: string;
+    calculationDetails: string;
+    noFoodDetails: string;
+    mockLabel: string;
+    issueNotice: string;
+    adultCountApplied: string;
     transportTitle: string;
     transportDescription: string;
     transportNotice: string;

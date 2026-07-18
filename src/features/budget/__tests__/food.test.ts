@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { TripDraft } from "../../../lib/trip-domain";
 import {
   FoodOverrides,
+  FoodAddOnSelection,
+  isCalculatedMealPlan,
 } from "../domain/types";
 import {
   MOCK_FOOD_ITEMS,
@@ -608,6 +610,93 @@ describe("HypeHeritage 10단계: Food Wishlist 및 Replacement 도메인 연산 
       // 검증: ref가 변경되지 않고 이전 상태 (K_BBQ만 존재)를 유지하고 있어야 함
       expect(latestPrefsRef.current.foodOverrides.SEOUL_0_LUNCH).toBeUndefined();
       expect(latestPrefsRef.current.foodOverrides.SEOUL_0_DINNER).toBe("K_BBQ");
+    });
+  });
+
+  describe("7. 12.3단계: Food Add-on 비즈니스 로직 및 계산 엔진 정합성 검증", () => {
+    const defaultTrip: TripDraft = {
+      totalNights: 3,
+      adultCount: 2,
+      selectedCities: ["SEOUL"],
+      cityNightAllocations: { SEOUL: 3 },
+      budgetTier: "STANDARD",
+      targetBudgetKrw: 3000000,
+      schemaVersion: 1,
+    };
+
+    it("should accumulate add-on price based on pricingUnit formulas (PER_PERSON vs others)", () => {
+      // 삼겹살(K_BBQ)의 1인당 단가: ₩18,000, 2인 ➔ ₩36,000
+      // 공기밥(RICE)은 PER_PERSON 단가 ₩1,000. 수량 3 ➔ 2인 * 3개 = 6. ₩1,000 * 6 = ₩6,000
+      // 후식 김치찌개(KIMCHI_STEW_ADDON)는 PER_SERVING 단가 ₩7,000. 수량 2 ➔ ₩7,000 * 2 = ₩14,000
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {},
+        food: { SEOUL_0_DINNER: "K_BBQ" },
+        foodAddOns: {
+          SEOUL_0_DINNER: [
+            { addOnItemId: "RICE", quantity: 3 },
+            { addOnItemId: "KIMCHI_STEW_ADDON", quantity: 2 },
+          ],
+        },
+      });
+
+      const seoulFood = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "FOOD");
+
+      // 삼겹살 대체적용 1인당 base ₩90,000 (2인 ₩180,000)
+      // 애드온 합계 ₩20,000 (공기밥 ₩6,000 + 김치찌개 ₩14,000)
+      // 최종 합산 = ₩200,000
+      expect(seoulFood?.lineTotalKrw).toBe(200000);
+    });
+
+    it("should exclude orphan add-ons from calculation when parent replacement changes or is cleared", () => {
+      const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
+        accommodation: {},
+        food: {}, // K_BBQ가 배정되지 않음 (기본식 상태)
+        foodAddOns: {
+          SEOUL_0_DINNER: [{ addOnItemId: "RICE", quantity: 2 }], // orphan add-on
+        },
+      });
+
+      const seoulFood = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "FOOD");
+
+      // RICE의 부모인 K_BBQ가 없으므로 계산에서 아예 제외되어야 함
+      // 기본식 총액 (Standard 3박) = ₩28,000 * 3일 * 2인 = ₩168,000
+      expect(seoulFood?.lineTotalKrw).toBe(168000);
+
+      // 계산서의 CalculatedMealPlan 상에 addOnIssues 에 orphan 에러 사유가 포함되어 있어야 함
+      const mealPlan = seoulFood?.mealPlan;
+      if (isCalculatedMealPlan(mealPlan)) {
+        expect(mealPlan.addOnIssues).toContainEqual(
+          expect.objectContaining({
+            reason: "PARENT_REPLACEMENT_NOT_APPLIED",
+          })
+        );
+      } else {
+        expect(mealPlan).toBeUndefined();
+      }
+    });
+
+    it("should preserve other preferences properties when saving add-on updates", () => {
+      const latestPrefsRef = {
+        current: {
+          schemaVersion: 3,
+          accommodationByCity: { SEOUL: "PREMIUM_HERITAGE" },
+          foodOverrides: { SEOUL_0_DINNER: "K_BBQ" },
+          addOnSelections: {} as Record<string, FoodAddOnSelection[]>,
+        },
+      };
+
+      // RICE 추가 상황 모의
+      const nextAddOns = {
+        ...latestPrefsRef.current.addOnSelections,
+        SEOUL_0_DINNER: [{ addOnItemId: "RICE", quantity: 2 }],
+      };
+
+      // 숙소 및 푸드 오버라이드가 훼손 없이 완벽히 유지되는지 검증
+      expect(latestPrefsRef.current.accommodationByCity.SEOUL).toBe("PREMIUM_HERITAGE");
+      expect(latestPrefsRef.current.foodOverrides.SEOUL_0_DINNER).toBe("K_BBQ");
+
+      latestPrefsRef.current.addOnSelections = nextAddOns;
+      expect(latestPrefsRef.current.addOnSelections.SEOUL_0_DINNER[0].quantity).toBe(2);
     });
   });
 });

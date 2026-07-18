@@ -4,6 +4,7 @@ import ReactDOMServer from "react-dom/server";
 import fs from "fs";
 import path from "path";
 import FoodPlannerPanel from "../../../components/FoodPlannerPanel";
+import FoodReceiptDetails from "../../../components/FoodReceiptDetails";
 import { ko } from "../../../lib/i18n/dictionaries/ko";
 import { CalculatedMealPlan } from "../domain/types";
 import { MOCK_FOOD_ITEMS } from "../catalog/mock-catalog";
@@ -249,6 +250,170 @@ describe("HypeHeritage 12.1단계: Food UI Read-only 렌더링 및 타입 안전
 
       // orphan 에러 경고 배너 렌더 확인
       expect(html).toContain("상위 음식을 다시 선택하거나 옵션을 정리하세요");
+    });
+  });
+
+  describe("12.3단계: Food UI Add-on 선택/해제/수량 입력 에디터 검증", () => {
+    const dummyCallbacks = {
+      onSelectReplacement: () => {},
+      onClearReplacement: () => {},
+      onSelectAddOn: () => {},
+      onRemoveAddOn: () => {},
+      onChangeAddOnQuantity: () => {},
+    };
+
+    it("should hide Add-on editor when there is no active replacement", () => {
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodPlannerPanel, {
+          locale: "ko",
+          dict: dummyDict,
+          mealPlan: mockMealPlan, // replacement가 하나도 없는 기본식 플랜
+          ...dummyCallbacks,
+        })
+      );
+
+      // 옵션 선택(Add-ons) 타이틀이 렌더링되지 않아야 함
+      expect(html).not.toContain("옵션 선택 (Add-ons)");
+    });
+
+    it("should show Add-on editor only for valid active replacements (e.g. K_BBQ at DINNER)", () => {
+      const planWithBBQ: CalculatedMealPlan = {
+        ...mockMealPlan,
+        slots: mockMealPlan.slots.map((s) =>
+          s.id === "SEOUL_0_DINNER"
+            ? { ...s, replacedByFoodItemId: "K_BBQ" }
+            : s
+        ),
+      };
+
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodPlannerPanel, {
+          locale: "ko",
+          dict: dummyDict,
+          mealPlan: planWithBBQ,
+          ...dummyCallbacks,
+        })
+      );
+
+      // 삼겹살이 선택되었으므로 삼겹살의 종속 Add-on인 '공기밥'과 '옵션 선택 (Add-ons)' 헤더가 표시되어야 함
+      expect(html).toContain("옵션 선택 (Add-ons)");
+      expect(html).toContain("공기밥");
+      expect(html).toContain("참이슬 소주");
+    });
+
+    it("should display selected addon and its quantity input and removal button", () => {
+      const planWithSelectedAddon: CalculatedMealPlan = {
+        ...mockMealPlan,
+        slots: mockMealPlan.slots.map((s) =>
+          s.id === "SEOUL_0_DINNER"
+            ? {
+                ...s,
+                replacedByFoodItemId: "K_BBQ",
+                addOns: [
+                  {
+                    addOnItemId: "RICE",
+                    nameKo: "공기밥",
+                    nameEn: "Steamed Rice",
+                    unitPriceKrw: 1000,
+                    quantity: 3,
+                    pricingUnit: "PER_PERSON",
+                    adultCountApplied: true,
+                    multiplier: 6,
+                    lineTotalKrw: 6000,
+                  },
+                ],
+                addOnsTotalKrw: 6000,
+              }
+            : s
+        ),
+      };
+
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodPlannerPanel, {
+          locale: "ko",
+          dict: dummyDict,
+          mealPlan: planWithSelectedAddon,
+          ...dummyCallbacks,
+        })
+      );
+
+      // 선택된 상태 확인
+      expect(html).toContain("옵션 해제");
+      expect(html).toContain("value=\"3\"");
+      expect(html).toContain("₩6,000");
+    });
+
+    it("should display Alcohol and Beverage badges appropriately", () => {
+      const planWithBBQ: CalculatedMealPlan = {
+        ...mockMealPlan,
+        slots: mockMealPlan.slots.map((s) =>
+          s.id === "SEOUL_0_DINNER"
+            ? { ...s, replacedByFoodItemId: "K_BBQ" }
+            : s
+        ),
+      };
+
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodPlannerPanel, {
+          locale: "ko",
+          dict: dummyDict,
+          mealPlan: planWithBBQ,
+          ...dummyCallbacks,
+        })
+      );
+
+      // SOJU_ADDON 은 주류이므로 '주류' 배지가 렌더되어야 함
+      expect(html).toContain("주류");
+    });
+  });
+
+  describe("12.4단계: Food Smart Receipt 상세 검증", () => {
+    it("should render collapsible food receipt details with native markup", () => {
+      const planWithSelectedAddon: CalculatedMealPlan = {
+        ...mockMealPlan,
+        slots: mockMealPlan.slots.map((s) =>
+          s.id === "SEOUL_0_DINNER"
+            ? {
+                ...s,
+                replacedByFoodItemId: "K_BBQ",
+                addOns: [
+                  {
+                    addOnItemId: "RICE",
+                    nameKo: "공기밥",
+                    nameEn: "Steamed Rice",
+                    unitPriceKrw: 1000,
+                    quantity: 3,
+                    pricingUnit: "PER_PERSON",
+                    adultCountApplied: true,
+                    multiplier: 6,
+                    lineTotalKrw: 6000,
+                  },
+                ],
+                addOnsTotalKrw: 6000,
+              }
+            : s
+        ),
+        lineTotalKrw: 200000,
+      };
+
+      const html = ReactDOMServer.renderToString(
+        React.createElement(FoodReceiptDetails, {
+          mealPlan: planWithSelectedAddon,
+          locale: "ko",
+          dict: dummyDict,
+        })
+      );
+
+      // details/summary 태그와 상세 항목 렌더링 검사
+      expect(html).toContain("<details");
+      expect(html).toContain("<summary");
+      expect(html).toContain("식사별 구성");
+      expect(html).toContain("1일차 저녁 식사");
+      expect(html).toContain("대체 음식");
+      expect(html).toContain("공기밥");
+      expect(html).toContain("₩6,000"); // Engine이 산출한 최종 lineTotalKrw
+      expect(html).toContain("음식 소계");
+      expect(html).toContain("₩200,000");
     });
   });
 });

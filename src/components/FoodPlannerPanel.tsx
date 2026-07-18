@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { Locale } from "../lib/i18n/locales";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { CalculatedMealPlan, EffectiveMealSlot } from "../features/budget/domain/types";
 import { formatKrw } from "../features/budget/presentation/formatters";
-import { MOCK_FOOD_ITEMS } from "../features/budget/catalog/mock-catalog";
+import { MOCK_FOOD_ITEMS, MOCK_FOOD_ADD_ONS } from "../features/budget/catalog/mock-catalog";
 
 interface FoodPlannerPanelProps {
   locale: Locale;
@@ -12,6 +13,9 @@ interface FoodPlannerPanelProps {
   mealPlan?: CalculatedMealPlan;
   onSelectReplacement?: (slotId: string, foodItemId: string) => void;
   onClearReplacement?: (slotId: string) => void;
+  onSelectAddOn?: (slotId: string, addOnItemId: string, quantity: number) => void;
+  onRemoveAddOn?: (slotId: string, addOnItemId: string) => void;
+  onChangeAddOnQuantity?: (slotId: string, addOnItemId: string, quantity: number) => void;
 }
 
 export default function FoodPlannerPanel({
@@ -20,7 +24,13 @@ export default function FoodPlannerPanel({
   mealPlan,
   onSelectReplacement,
   onClearReplacement,
+  onSelectAddOn,
+  onRemoveAddOn,
+  onChangeAddOnQuantity,
 }: FoodPlannerPanelProps) {
+  const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
+  const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
+
   if (!mealPlan || !mealPlan.slots || mealPlan.slots.length === 0) {
     return (
       <div className="p-8 text-center bg-slate-50/50 rounded-2xl border border-slate-200">
@@ -170,10 +180,221 @@ export default function FoodPlannerPanel({
                         </div>
                       )}
 
-                      {/* Orphan Add-on warning banner */}
+                      {/* Add-on Options Editor UI */}
+                      {(() => {
+                        const showAddOnEditor = isReplaced && !hasIssues;
+                        const addonCandidates = showAddOnEditor
+                          ? MOCK_FOOD_ADD_ONS.filter(
+                              (addon) =>
+                                addon.parentFoodItemIds.includes(slot.replacedByFoodItemId!) &&
+                                addon.applicableCities.includes(slot.city)
+                            )
+                          : [];
+
+                        if (!showAddOnEditor || addonCandidates.length === 0) return null;
+
+                        return (
+                          <div className="mt-3.5 pt-3.5 border-t border-slate-100 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                {dict.planner.addOnsTitle}
+                              </span>
+                              <span className="text-[9px] text-slate-400 font-semibold italic">
+                                {dict.planner.explicitSelectionNotice}
+                              </span>
+                            </div>
+
+                            <div className="space-y-2">
+                              {addonCandidates.map((addon) => {
+                                const addonName = locale === "ko" ? addon.nameKo : addon.nameEn;
+                                const currentAddOn = slot.addOns?.find((a) => a.addOnItemId === addon.id);
+                                const isSelected = !!currentAddOn;
+
+                                const draftKey = `${slot.id}_${addon.id}`;
+                                const rawDraftVal = quantityDrafts[draftKey];
+                                const displayQtyStr = rawDraftVal !== undefined ? rawDraftVal : (currentAddOn?.quantity ?? 1).toString();
+                                const hasInputError = !!quantityErrors[draftKey];
+                                const errorMsg = quantityErrors[draftKey];
+
+                                const handleSelectClick = () => {
+                                  onSelectAddOn?.(slot.id, addon.id, 1);
+                                };
+
+                                const handleRemoveClick = () => {
+                                  onRemoveAddOn?.(slot.id, addon.id);
+                                  setQuantityDrafts((prev) => {
+                                    const next = { ...prev };
+                                    delete next[draftKey];
+                                    return next;
+                                  });
+                                  setQuantityErrors((prev) => {
+                                    const next = { ...prev };
+                                    delete next[draftKey];
+                                    return next;
+                                  });
+                                };
+
+                                const handleQtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                                  const val = e.target.value;
+                                  setQuantityDrafts((prev) => ({ ...prev, [draftKey]: val }));
+
+                                  const num = Number(val);
+                                  if (val.trim() === "") {
+                                    setQuantityErrors((prev) => ({ ...prev, [draftKey]: dict.planner.invalidQuantityNotice }));
+                                    return;
+                                  }
+                                  if (isNaN(num) || num <= 0 || !Number.isInteger(num) || num > addon.maxQuantity) {
+                                    setQuantityErrors((prev) => ({
+                                      ...prev,
+                                      [draftKey]: `${dict.planner.invalidQuantityNotice} (Max: ${addon.maxQuantity})`,
+                                    }));
+                                    return;
+                                  }
+
+                                  setQuantityErrors((prev) => {
+                                    const next = { ...prev };
+                                    delete next[draftKey];
+                                    return next;
+                                  });
+                                  onChangeAddOnQuantity?.(slot.id, addon.id, num);
+                                };
+
+                                const handleStep = (step: number) => {
+                                  const currentQty = currentAddOn?.quantity ?? 1;
+                                  const nextQty = currentQty + step;
+                                  if (nextQty >= 1 && nextQty <= addon.maxQuantity) {
+                                    setQuantityDrafts((prev) => ({ ...prev, [draftKey]: nextQty.toString() }));
+                                    setQuantityErrors((prev) => {
+                                      const next = { ...prev };
+                                      delete next[draftKey];
+                                      return next;
+                                    });
+                                    onChangeAddOnQuantity?.(slot.id, addon.id, nextQty);
+                                  }
+                                };
+
+                                const isPersonPrice = addon.pricingUnit === "PER_PERSON";
+
+                                return (
+                                  <div
+                                    key={addon.id}
+                                    className={`p-3 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
+                                      isSelected
+                                        ? "border-emerald-500 bg-emerald-50/10"
+                                        : "border-slate-100 bg-slate-50/40"
+                                    }`}
+                                  >
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-[11px] font-bold text-slate-800">
+                                          {addonName}
+                                        </span>
+                                        {addon.isAlcohol && (
+                                          <span className="text-[8px] bg-red-50 text-red-600 px-1 py-0.2 rounded font-bold border border-red-100">
+                                            {dict.planner.alcoholBadge}
+                                          </span>
+                                        )}
+                                        {addon.isBeverage && (
+                                          <span className="text-[8px] bg-blue-50 text-blue-600 px-1 py-0.2 rounded font-bold border border-blue-100">
+                                            {dict.planner.beverageBadge}
+                                          </span>
+                                        )}
+                                        <span className="text-[8px] text-slate-400 font-mono scale-90">
+                                          MOCK
+                                        </span>
+                                      </div>
+                                      <p className="text-[10px] text-slate-400 font-medium">
+                                        {isPersonPrice ? dict.planner.perPersonNotice : dict.planner.itemQuantityNotice}:{" "}
+                                        <strong className="text-slate-600 font-semibold">{formatKrw(addon.representativePriceKrw)}</strong>
+                                      </p>
+                                      {isSelected && currentAddOn && (
+                                        <p className="text-[10px] text-emerald-700 font-extrabold">
+                                          + {formatKrw(currentAddOn.lineTotalKrw)}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                                      {isSelected && currentAddOn ? (
+                                        <div className="flex flex-col items-end gap-1.5">
+                                          <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center border border-slate-200 rounded overflow-hidden bg-white">
+                                              <button
+                                                type="button"
+                                                onClick={() => handleStep(-1)}
+                                                disabled={currentAddOn.quantity <= 1}
+                                                aria-label={`Decrease ${addonName} quantity`}
+                                                className="px-2 py-0.5 text-xs font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 disabled:opacity-50"
+                                              >
+                                                -
+                                              </button>
+                                              <input
+                                                type="number"
+                                                min={1}
+                                                max={addon.maxQuantity}
+                                                step={1}
+                                                value={displayQtyStr}
+                                                onChange={handleQtyChange}
+                                                aria-invalid={hasInputError}
+                                                aria-describedby={hasInputError ? `err_${draftKey}` : undefined}
+                                                aria-label={`${addonName} quantity`}
+                                                className="w-10 text-center text-xs font-bold border-none outline-none focus:ring-0 p-0"
+                                              />
+                                              <button
+                                                type="button"
+                                                onClick={() => handleStep(1)}
+                                                disabled={currentAddOn.quantity >= addon.maxQuantity}
+                                                aria-label={`Increase ${addonName} quantity`}
+                                                className="px-2 py-0.5 text-xs font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 disabled:opacity-50"
+                                              >
+                                                +
+                                              </button>
+                                            </div>
+
+                                            <button
+                                              type="button"
+                                              onClick={handleRemoveClick}
+                                              aria-pressed={true}
+                                              aria-label={`${addonName} selection`}
+                                              className="py-1 px-2.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-bold transition-all"
+                                            >
+                                              {dict.planner.removeAddOnButton}
+                                            </button>
+                                          </div>
+                                          {hasInputError && (
+                                            <span
+                                              id={`err_${draftKey}`}
+                                              role="alert"
+                                              className="text-[8px] text-red-500 font-semibold block text-right max-w-[150px] leading-tight"
+                                            >
+                                              {errorMsg}
+                                            </span>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={handleSelectClick}
+                                          aria-pressed={false}
+                                          aria-label={`${addonName} selection`}
+                                          className="py-1.5 px-3.5 rounded bg-[#e25c5c] text-white hover:bg-[#d14b4b] text-[10px] font-bold transition-all shadow-sm"
+                                        >
+                                          {dict.planner.selectAddOnButton}
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                       {/* Orphan Add-on warning banner */}
                       {slotAddOnIssues.length > 0 && (
                         <div className="mt-2.5 p-2.5 bg-rose-50 border border-rose-100 rounded-lg text-[11px] text-rose-600 font-semibold leading-relaxed">
-                          ⚠️ {dict.planner.orphanAddOnWarning}
+                          {dict.planner.orphanAddOnWarning}
                         </div>
                       )}
 

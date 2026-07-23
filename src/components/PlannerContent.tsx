@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity } from "../lib/trip-domain";
-import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip } from "../lib/storage-helper";
+import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
+
 import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
@@ -36,16 +37,15 @@ type PlannerState =
   | { status: "calculation-error" }
   | { status: "ready"; draft: TripDraft; preferences: PlannerPreferences };
 
-const emptySubscribe = () => () => { };
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export default function PlannerContent({ locale, dict }: PlannerContentProps) {
-  const isHydrated = useSyncExternalStore(
-    emptySubscribe,
-    getClientSnapshot,
-    getServerSnapshot
-  );
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setIsHydrated(true);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   if (!isHydrated) {
     return (
@@ -81,11 +81,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
 
       const res = loadPlannerPreferencesEx(draft);
-      if (res.status === "invalid" || res.status === "fingerprint-mismatch") {
+      if (res.status === "invalid") {
         return { status: "invalid" };
       }
 
-      return { status: "ready", draft, preferences: res.preferences };
+      const preferences = res.preferences;
+      if (res.status === "fingerprint-mismatch" || res.status === "missing") {
+        savePlannerPreferences({
+          draft,
+          accommodationByCity: {},
+          foodOverrides: {},
+          foodAddOnOverrides: {},
+          attractionByCity: {},
+        });
+      }
+
+      return { status: "ready", draft, preferences };
     } catch (error) {
       console.error("Failed to load planner:", error);
       return { status: "calculation-error" };
@@ -100,6 +111,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setSavedPlaceCount(loadSavedPlaceIds().length);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   useEffect(() => {
     if (state.status === "ready") {
@@ -741,21 +760,56 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             aria-labelledby={`cat-tab-${activeCategory}`}
             aria-live="polite"
           >
-            <div>
-              <h3 className="text-lg font-bold text-[#0f172a]">
-                {activeCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
-                {activeCategory === "FOOD" && dict.planner.foodTitle}
-                {activeCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
-                {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
-                {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyTitle}
-              </h3>
-              <p className="mt-1 text-xs sm:text-sm text-slate-400">
-                {activeCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
-                {activeCategory === "FOOD" && dict.planner.foodDescription}
-                {activeCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
-                {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
-                {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyDescription}
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-lg font-bold text-[#0f172a]">
+                  {activeCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
+                  {activeCategory === "FOOD" && dict.planner.foodTitle}
+                  {activeCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
+                  {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
+                  {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyTitle}
+                </h3>
+                <p className="mt-1 text-xs sm:text-sm text-slate-400">
+                  {activeCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
+                  {activeCategory === "FOOD" && dict.planner.foodDescription}
+                  {activeCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
+                  {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
+                  {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyDescription}
+                </p>
+              </div>
+
+              {(activeCategory === "ACCOMMODATION" || activeCategory === "FOOD" || activeCategory === "ATTRACTION") && (
+                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
+                  {savedPlaceCount > 0 && (
+                    <Link
+                      href={`/${locale}/places?savedOnly=true`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[#0f172a] bg-amber-100/70 hover:bg-amber-200/70 px-3 py-2 rounded-xl border border-amber-300/60 transition-colors"
+                    >
+                      <span>★</span>
+                      <span>
+                        {(dict.places?.savedCountBadge || "저장한 후보 {count}개").replace(
+                          "{count}",
+                          String(savedPlaceCount)
+                        )}
+                      </span>
+                    </Link>
+                  )}
+                  <Link
+                    href={`/${locale}/places?${
+                      selectedCityTab !== "ALL" ? `city=${selectedCityTab}&` : ""
+                    }category=${
+                      activeCategory === "ACCOMMODATION"
+                        ? "ACCOMMODATION"
+                        : activeCategory === "FOOD"
+                        ? "RESTAURANT"
+                        : "ATTRACTION"
+                    }`}
+                    className="inline-flex items-center justify-center text-xs font-bold text-[#e25c5c] bg-[#faf5f5] hover:bg-[#fdeeed] px-3 py-2 rounded-xl border border-[#fce8e8] transition-colors"
+                  >
+                    {dict.places?.exploreCandidatePlaces || "실제 후보 장소 탐색 →"}
+                  </Link>
+                </div>
+              )}
             </div>
 
             {activeCategory === "ACCOMMODATION" && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   loadSavedTrips,
@@ -19,27 +19,24 @@ interface SavedTripsContentProps {
   dict: Dictionary;
 }
 
-const emptySubscribe = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export default function SavedTripsContent({ locale, dict }: SavedTripsContentProps) {
   const router = useRouter();
-  const isHydrated = useSyncExternalStore(
-    emptySubscribe,
-    getClientSnapshot,
-    getServerSnapshot
-  );
-
-  const [trips, setTrips] = useState<SavedTripItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      return loadSavedTrips();
-    } catch {
-      return [];
-    }
-  });
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [trips, setTrips] = useState<SavedTripItem[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      try {
+        setTrips(loadSavedTrips());
+      } catch (error) {
+        console.error("Failed to load saved trips:", error);
+      } finally {
+        setIsHydrated(true);
+      }
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   const handleLoadTrip = (id: string) => {
     const success = restoreSavedTrip(id);

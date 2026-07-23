@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { loadTripDraft, loadPlannerPreferencesEx, loadSavedPlaceIds } from "../lib/storage-helper";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
@@ -25,45 +25,33 @@ interface ReportContentProps {
   dict: Dictionary;
 }
 
-const emptySubscribe = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export default function ReportContent({ locale, dict }: ReportContentProps) {
   const router = useRouter();
-  const isHydrated = useSyncExternalStore(
-    emptySubscribe,
-    getClientSnapshot,
-    getServerSnapshot
-  );
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [draft, setDraft] = useState<TripDraft | null>(null);
+  const [preferences, setPreferences] = useState<PlannerPreferences | null>(null);
+  const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
 
-  const [draft] = useState<TripDraft | null>(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      return loadTripDraft();
-    } catch {
-      return null;
-    }
-  });
-
-  const [preferences] = useState<PlannerPreferences | null>(() => {
-    if (typeof window === "undefined" || !draft) return null;
-    try {
-      const res = loadPlannerPreferencesEx(draft);
-      return res.status === "valid" ? res.preferences : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [savedPlaceIds] = useState<string[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      return loadSavedPlaceIds();
-    } catch {
-      return [];
-    }
-  });
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      try {
+        const loadedDraft = loadTripDraft();
+        setDraft(loadedDraft);
+        if (loadedDraft) {
+          const res = loadPlannerPreferencesEx(loadedDraft);
+          if (res.status === "valid") {
+            setPreferences(res.preferences);
+          }
+        }
+        setSavedPlaceIds(loadSavedPlaceIds());
+      } catch (error) {
+        console.error("Failed to load report data:", error);
+      } finally {
+        setIsHydrated(true);
+      }
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   if (!isHydrated) {
     return (

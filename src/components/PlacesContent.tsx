@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -60,9 +60,16 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   const [showSavedOnly, setShowSavedOnly] = useState<boolean>(paramSavedOnly);
   const [expandedPlaceId, setExpandedPlaceId] = useState<string | null>(null);
 
-  // Saved place candidate IDs state
-  const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>(() => loadSavedPlaceIds());
+  // Saved place candidate IDs state (Initial state [] matches SSR, hydrated in useEffect)
+  const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setSavedPlaceIds(loadSavedPlaceIds());
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   // Update URL Query Parameters
   const updateQueryParams = (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity } from "../lib/trip-domain";
@@ -37,16 +37,15 @@ type PlannerState =
   | { status: "calculation-error" }
   | { status: "ready"; draft: TripDraft; preferences: PlannerPreferences };
 
-const emptySubscribe = () => () => { };
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export default function PlannerContent({ locale, dict }: PlannerContentProps) {
-  const isHydrated = useSyncExternalStore(
-    emptySubscribe,
-    getClientSnapshot,
-    getServerSnapshot
-  );
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setIsHydrated(true);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   if (!isHydrated) {
     return (
@@ -82,11 +81,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
 
       const res = loadPlannerPreferencesEx(draft);
-      if (res.status === "invalid" || res.status === "fingerprint-mismatch") {
+      if (res.status === "invalid") {
         return { status: "invalid" };
       }
 
-      return { status: "ready", draft, preferences: res.preferences };
+      const preferences = res.preferences;
+      if (res.status === "fingerprint-mismatch" || res.status === "missing") {
+        savePlannerPreferences({
+          draft,
+          accommodationByCity: {},
+          foodOverrides: {},
+          foodAddOnOverrides: {},
+          attractionByCity: {},
+        });
+      }
+
+      return { status: "ready", draft, preferences };
     } catch (error) {
       console.error("Failed to load planner:", error);
       return { status: "calculation-error" };
@@ -101,6 +111,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setSavedPlaceCount(loadSavedPlaceIds().length);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   useEffect(() => {
     if (state.status === "ready") {
@@ -762,7 +780,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               {(activeCategory === "ACCOMMODATION" || activeCategory === "FOOD" || activeCategory === "ATTRACTION") && (
                 <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
-                  {loadSavedPlaceIds().length > 0 && (
+                  {savedPlaceCount > 0 && (
                     <Link
                       href={`/${locale}/places?savedOnly=true`}
                       className="inline-flex items-center gap-1 text-xs font-bold text-[#0f172a] bg-amber-100/70 hover:bg-amber-200/70 px-3 py-2 rounded-xl border border-amber-300/60 transition-colors"
@@ -771,7 +789,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <span>
                         {(dict.places?.savedCountBadge || "저장한 후보 {count}개").replace(
                           "{count}",
-                          String(loadSavedPlaceIds().length)
+                          String(savedPlaceCount)
                         )}
                       </span>
                     </Link>

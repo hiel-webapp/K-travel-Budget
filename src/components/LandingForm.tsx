@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   TripDraft,
@@ -10,7 +10,7 @@ import {
   calculateDefaultNightAllocation,
   validateTripDraft,
 } from "src/lib/trip-domain";
-import { saveTripDraft, loadTripDraft } from "src/lib/storage-helper";
+import { saveTripDraft, loadTripDraft, savePlannerPreferences } from "src/lib/storage-helper";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { Locale } from "src/lib/i18n/locales";
 
@@ -26,18 +26,15 @@ const BUDGET_TENSE_MAP = {
   PREMIUM: { pre: "with a", post: "budget." },
 };
 
-// useSyncExternalStore용 stable no-op subscribe 및 스냅샷 함수
-const emptySubscribe = () => () => {};
-const getClientSnapshot = () => true;
-const getServerSnapshot = () => false;
-
 export default function LandingForm({ locale, dict }: LandingFormProps) {
-  // React 표준 useSyncExternalStore를 활용해 Hydration 완료 여부를 감지합니다.
-  const isHydrated = useSyncExternalStore(
-    emptySubscribe,
-    getClientSnapshot,
-    getServerSnapshot
-  );
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      setIsHydrated(true);
+    });
+    return () => cancelAnimationFrame(handle);
+  }, []);
 
   if (!isHydrated) {
     // 1. 서버 렌더링 및 최초 Hydration 상태: 기본값(DEFAULT_TRIP_DRAFT)을 적용한 정적 비활성 폼 제공
@@ -137,40 +134,34 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     citiesKey = "BUSAN";
   }
 
-  const getSelectedCitiesArray = (key: string): SupportedCity[] => {
-    if (key === "SEOUL") return ["SEOUL"];
-    if (key === "BUSAN") return ["BUSAN"];
-    return ["SEOUL", "BUSAN"];
-  };
-
-  // select 변경 핸들러 모음
-  const handleNightsChange = (nights: number) => {
-    setDraft((prev) => {
-      const nextCities = prev.selectedCities;
-      return {
-        ...prev,
-        totalNights: nights,
-        cityNightAllocations: calculateDefaultNightAllocation(nextCities, nights),
-      };
-    });
-  };
-
-  const handleAdultsChange = (adults: number) => {
+  // --- 이벤트 핸들러 ---
+  const handleNightsChange = (newNights: number) => {
+    const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
     setDraft((prev) => ({
       ...prev,
-      adultCount: adults,
+      totalNights: newNights,
+      cityNightAllocations: newAllocations,
+    }));
+  };
+
+  const handleAdultsChange = (newAdults: number) => {
+    setDraft((prev) => ({
+      ...prev,
+      adultCount: newAdults,
     }));
   };
 
   const handleCitiesChange = (key: string) => {
-    setDraft((prev) => {
-      const nextCities = getSelectedCitiesArray(key);
-      return {
-        ...prev,
-        selectedCities: nextCities,
-        cityNightAllocations: calculateDefaultNightAllocation(nextCities, prev.totalNights),
-      };
-    });
+    let cities: SupportedCity[] = ["SEOUL", "BUSAN"];
+    if (key === "SEOUL") cities = ["SEOUL"];
+    if (key === "BUSAN") cities = ["BUSAN"];
+
+    const newAllocations = calculateDefaultNightAllocation(cities, draft.totalNights);
+    setDraft((prev) => ({
+      ...prev,
+      selectedCities: cities,
+      cityNightAllocations: newAllocations,
+    }));
   };
 
   const handleBudgetChange = (tier: BudgetTier) => {
@@ -218,6 +209,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       setValidationError(dict.landing.validation.saveFailed);
       return;
     }
+
+    // 새로운 draft 선택 조건에 대한 preferences 초기화 저장
+    savePlannerPreferences({
+      draft,
+      accommodationByCity: {},
+      foodOverrides: {},
+      foodAddOnOverrides: {},
+      attractionByCity: {},
+    });
 
     router.push(`/${locale}/planner`);
   };

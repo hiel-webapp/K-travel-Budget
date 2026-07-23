@@ -21,6 +21,7 @@ import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
 const PREFS_STORAGE_KEY = "hypeheritage_planner_preferences";
+const SAVED_PLACE_IDS_STORAGE_KEY = "hypeheritage_saved_place_ids";
 
 export function isClient(): boolean {
   return typeof window !== "undefined";
@@ -447,12 +448,81 @@ export interface SavedTripItem {
   savedAt: string;
   draft: TripDraft;
   preferences: PlannerPreferences;
+  savedPlaceIds?: string[];
 }
 
 export interface SavedTripsEnvelope {
   schemaVersion: 1;
   savedAt: string;
   trips: SavedTripItem[];
+}
+
+/**
+ * 현재 여행에 대한 저장된 장소 ID 목록을 로드합니다.
+ * 비정상적인 값/중복은 안전하게 필터링합니다.
+ */
+export function loadSavedPlaceIds(): string[] {
+  if (!isClient()) return [];
+  try {
+    const raw = localStorage.getItem(SAVED_PLACE_IDS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const validIds = parsed.filter((id): id is string => typeof id === "string" && id.trim().length > 0);
+    return Array.from(new Set(validIds));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 저장 장소 ID 목록을 로컬스토리지에 유효성 및 중복을 방지하여 저장합니다.
+ */
+export function saveSavedPlaceIds(ids: string[]): boolean {
+  if (!isClient()) return false;
+  try {
+    const validIds = ids.filter((id): id is string => typeof id === "string" && id.trim().length > 0);
+    const uniqueIds = Array.from(new Set(validIds));
+    localStorage.setItem(SAVED_PLACE_IDS_STORAGE_KEY, JSON.stringify(uniqueIds));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 특정 장소 ID의 저장 상태를 토글(저장/해제)합니다.
+ */
+export function toggleSavedPlaceId(id: string): { isSaved: boolean; currentIds: string[] } {
+  if (!id || typeof id !== "string" || !id.trim()) {
+    const current = loadSavedPlaceIds();
+    return { isSaved: false, currentIds: current };
+  }
+
+  const currentIds = loadSavedPlaceIds();
+  const index = currentIds.indexOf(id);
+  let nextIds: string[];
+  let isSaved: boolean;
+
+  if (index >= 0) {
+    nextIds = currentIds.filter((item) => item !== id);
+    isSaved = false;
+  } else {
+    nextIds = [...currentIds, id];
+    isSaved = true;
+  }
+
+  saveSavedPlaceIds(nextIds);
+  return { isSaved, currentIds: nextIds };
+}
+
+/**
+ * 특정 장소 ID가 저장되어 있는지 검사합니다.
+ */
+export function isPlaceSaved(id: string): boolean {
+  if (!id) return false;
+  const currentIds = loadSavedPlaceIds();
+  return currentIds.includes(id);
 }
 
 export function loadSavedTrips(): SavedTripItem[] {
@@ -474,6 +544,14 @@ export function loadSavedTrips(): SavedTripItem[] {
         trip.draft &&
         trip.preferences
       );
+    }).map((trip) => {
+      const placeIds = Array.isArray(trip.savedPlaceIds)
+        ? trip.savedPlaceIds.filter((pid): pid is string => typeof pid === "string" && pid.trim().length > 0)
+        : [];
+      return {
+        ...trip,
+        savedPlaceIds: Array.from(new Set(placeIds)),
+      };
     });
   } catch {
     return [];
@@ -483,13 +561,19 @@ export function loadSavedTrips(): SavedTripItem[] {
 export function saveSavedTrip(
   title: string,
   draft: TripDraft,
-  preferences: PlannerPreferences
+  preferences: PlannerPreferences,
+  savedPlaceIds?: string[]
 ): boolean {
   if (!isClient()) return false;
   try {
     const trips = loadSavedTrips();
     const id = generateTripFingerprint(draft);
     const nowStr = new Date().toISOString();
+
+    const currentPlaceIds = savedPlaceIds !== undefined ? savedPlaceIds : loadSavedPlaceIds();
+    const cleanPlaceIds = Array.from(
+      new Set(currentPlaceIds.filter((pid): pid is string => typeof pid === "string" && pid.trim().length > 0))
+    );
 
     const nextTrips = trips.filter((t) => t.id !== id);
     nextTrips.unshift({
@@ -498,6 +582,7 @@ export function saveSavedTrip(
       savedAt: nowStr,
       draft,
       preferences,
+      savedPlaceIds: cleanPlaceIds,
     });
 
     const envelope: SavedTripsEnvelope = {
@@ -550,6 +635,9 @@ export function restoreSavedTrip(id: string): boolean {
       preferences: found.preferences,
     };
     localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefsEnvelope));
+
+    // Restore saved place candidate IDs for this snapshot
+    saveSavedPlaceIds(found.savedPlaceIds || []);
 
     return true;
   } catch {

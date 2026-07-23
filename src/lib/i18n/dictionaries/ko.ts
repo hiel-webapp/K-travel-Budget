@@ -9,6 +9,7 @@ export const ko = {
     trend: "K-트렌드",
     guide: "K-가이드",
     savedTrips: "저장한 여행",
+    places: "장소 탐색",
   },
   footer: {
     copyright: "© 2026 HypeHeritage",
@@ -162,6 +163,7 @@ export const ko = {
     standardHotelDesc: "합리적인 가격의 편안한 3성급 비즈니스 호텔",
     premiumHeritageDesc: "고급 한옥 스테이 또는 5성급 럭셔리 호텔",
 
+
     foodTitle: "식비 예산",
     foodDescription: "현재 여행 조건과 예산 유형에 따라 제공되는 식비 예산입니다.",
     foodNotice: "현재 식비는 임시 일별 추정치이며, 이후 식사 플랜으로 세분화됩니다.",
@@ -255,253 +257,66 @@ export const ko = {
     roomCountLabel: "객실 수",
     totalLabel: "총액",
     badgeMock: "MOCK",
-    updatedAtLabel: "업데이트 날짜",
     sourceLabelText: "출처",
     allTabs: "전체",
+    updatedAtLabel: "갱신일",
+  },
+  places: {
+    pageTitle: "장소 후보 탐색",
+    pageSubtitle: "예산 플랜에 맞춰 참고할 수 있는 서울과 부산의 인기 후보 장소 목록입니다.",
+    disclaimerTitle: "장소 후보 데이터 관련 안내",
+    disclaimerBudget: "장소 후보 탐색은 여행 예산 산출(Budget Engine)과 별개이며, 장소를 선택하거나 보더라도 예산 총액이 변경되지 않습니다.",
+    disclaimerOfficial: "본 정보는 서비스 출시 전 예시 장소 데이터이며, 실제 영업 시간 및 이용 정보는 각 공식 채널에서 직접 확인해야 합니다.",
+    filterCity: "도시 선택",
+    filterCategory: "유형 선택",
+    searchPlaceholder: "장소명, 주소, 태그 검색...",
+    allCities: "전체 도시",
+    allCategories: "전체 카테고리",
+    countResult: "총 {count}개의 장소 후보",
+    noResultsTitle: "검색 결과가 없습니다",
+    noResultsDesc: "다른 도시나 카테고리를 선택하거나 검색어를 변경해보세요.",
+    viewDetail: "상세보기",
+    hideDetail: "접기",
+    address: "주소",
+    updatedAt: "갱신일",
+    noImage: "이미지 준비 중",
+    backToPlanner: "플래너로 돌아가기",
+    exploreCandidatePlaces: "실제 후보 장소 탐색 →",
+    categoryAccommodation: "숙소",
+    categoryRestaurant: "음식점",
+    categoryCafe: "카페",
+    categoryAttraction: "관광지",
+    categoryCulture: "문화시설",
+    searchLabel: "검색어",
+    dataSourceNotice: "데이터 공급원: MVP Mock Catalog (KTO 스키마 호환)",
+    noDescription: "상세 설명 정보가 준비 중입니다.",
+    noAddress: "주소 정보 미입력",
+    officialNotice: "※ 실제 영업시간 및 이용 요금은 공식 채널에서 확인하세요.",
+    savePlace: "후보 장소 저장",
+    unsavePlace: "저장 해제",
+    savedBadge: "저장됨",
+    savedCountBadge: "저장한 후보 {count}개",
+    filterSavedOnly: "저장한 후보만 보기",
+    placeSavedSuccess: "장소 후보가 내 여행에 저장되었습니다.",
+    placeUnsavedSuccess: "장소 후보 저장이 해제되었습니다.",
+    unavailablePlaceNotice: "현재 이용할 수 없는 후보 장소입니다.",
+    savedPlacesCount: "저장된 후보 장소 {count}개",
+    savedTripsPlacesLabel: "저장 장소: {count}개",
+  },
+  trendSection: {
+    publicTrendNotice: "공개 K-Trend는 현지 대표 여행 트렌드 정보입니다. 나만의 여행 일정 및 저장 장소 후보에 맞춘 개인화 트렌드 제안은 One-Stop Report에서 제공됩니다.",
+    cityFilterLabel: "도시별 필터",
+    allCitiesOption: "전체 도시 트렌드",
+    officialChannelNotice: "※ 팝업 스토어 및 브랜드 행사 상세 정보는 각 브랜드 공식 채널에서 직접 확인하세요.",
+    personalizedTitle: "Paid One-Stop Report: 내 여행 맞춤 K-Trend 제안",
+    personalizedSubtitle: "방문 도시, 일정, 저장한 장소 후보 카테고리를 조합하여 제안하는 맞춤형 트렌드 브리핑입니다.",
+    personalizedLockedNotice: "여행 조건 및 저장 후보 기반의 개인화 상세 추천 가이드는 One-Stop Report 전용 기능입니다.",
+    reasonLabel: "추천 연관 이유:",
+    emptyPersonalizedNotice: "현재 여행 조건과 연관된 추천 트렌드가 준비 중입니다.",
   },
   placeholder: {
     notImplemented: "이 페이지는 다음 개발 단계에서 구현됩니다.",
   },
 };
 
-export interface Dictionary {
-  common: {
-    title: string;
-    logoAlt: string;
-    userAccount: string;
-  };
-  navigation: {
-    planner: string;
-    trend: string;
-    guide: string;
-    savedTrips: string;
-  };
-  footer: {
-    copyright: string;
-    about: string;
-    terms: string;
-    privacy: string;
-    country: string;
-  };
-  landing: {
-    heading: string;
-    tagline: string;
-    cta: string;
-    helper: string;
-    status: string;
-    nextPhase: string;
-    allocationSeoulBusan: string;
-    allocationSeoulOnly: string;
-    allocationBusanOnly: string;
-    validation: {
-      invalidNights: string;
-      invalidAdults: string;
-      noCities: string;
-      invalidTargetBudget: string;
-      saveFailed: string;
-    };
-  };
-  planner: {
-    missingState: string;
-    goBack: string;
-    title: string;
-    status: string;
-    missingTitle: string;
-    missingDescription: string;
-    missingButton: string;
-    invalidTitle: string;
-    invalidDescription: string;
-    invalidButton: string;
-    calculationErrorTitle: string;
-    calculationErrorDescription: string;
-    calculationErrorButton: string;
-    workspaceTitle: string;
-    workspaceDescription: string;
-    editTripDetails: string;
-    receiptTitle: string;
-    statusDraft: string;
-    budgetStyle: string;
-    targetBudget: string;
-    currentEstimate: string;
-    budgetUsage: string;
-    remainingBudget: string;
-    overBudget: string;
-    tripWideExpenses: string;
-    intercityTransportation: string;
-    estimatedTotal: string;
-    perTraveler: string;
-    dailyAverage: string;
-    mockDisclaimer: string;
-    saveTrip: string;
-    shareReceipt: string;
-    generateReport: string;
-    notYetAvailable: string;
-    accommodationTitle: string;
-    accommodationDescription: string;
-    accommodationNotice: string;
-
-    attractionOverrideTitle: string;
-    attractionOverrideDesc: string;
-    attractionOverrideNotice: string;
-    selectAttractionTitle: string;
-    selectAttractionDescription: string;
-    resetToRecommendedAttraction: string;
-    mostlyFreeDesc: string;
-    balancedDesc: string;
-    experienceRichDesc: string;
-
-    savedTripsTitle: string;
-    savedTripsEmpty: string;
-    savedTripsDateLabel: string;
-    savedTripsLoadButton: string;
-    savedTripsDeleteButton: string;
-    savedTripsSuccessLoad: string;
-    savedTripsConfirmDelete: string;
-    savedTripsDeleteSuccess: string;
-    saveTripModalTitle: string;
-    saveTripModalLabel: string;
-    saveTripModalPlaceholder: string;
-    saveTripModalSave: string;
-    saveTripModalCancel: string;
-    saveTripSuccess: string;
-    emergencyFundManualInput: string;
-    emergencyFundCurrentAmount: string;
-    emergencySaveError: string;
-    viewDetailedReceipt: string;
-    copySummaryButton: string;
-    copySummarySuccess: string;
-    copySummaryError: string;
-
-    reportTitle: string;
-    reportSubtitle: string;
-    reportBackToPlanner: string;
-    reportTotalBudget: string;
-    reportDiffUnder: string;
-    reportDiffOver: string;
-    reportNoTargetBudget: string;
-    reportCategorySummary: string;
-    reportCitySummary: string;
-    paidLockTitle: string;
-    paidLockNotice: string;
-    paidFeatureHealth: string;
-    paidFeatureHealthDesc: string;
-    paidFeatureMiss: string;
-    paidFeatureMissDesc: string;
-    paidFeatureSave: string;
-    paidFeatureSaveDesc: string;
-    paidFeaturePrice: string;
-    paidFeaturePriceDesc: string;
-    paidFeatureHotel: string;
-    paidFeatureHotelDesc: string;
-    paidFeatureOrder: string;
-    paidFeatureOrderDesc: string;
-    paidFeatureTrend: string;
-    paidFeatureTrendDesc: string;
-    paidFeatureExport: string;
-    paidFeatureExportDesc: string;
-
-    trendHeroTitle: string;
-    trendHeroSubtitle: string;
-    guideHeroTitle: string;
-    guideHeroSubtitle: string;
-    reportShortcutLink: string;
-    plannerShortcutLink: string;
-
-    selectStayTitle: string;
-    selectStayDescription: string;
-    resetToRecommended: string;
-    budgetStayDesc: string;
-    standardHotelDesc: string;
-    premiumHeritageDesc: string;
-    foodTitle: string;
-    foodDescription: string;
-    foodNotice: string;
-    foodMealPlan: string;
-    readOnlyNotice: string;
-    dayLabel: string;
-    mealSlotBreakfast: string;
-    mealSlotLunch: string;
-    mealSlotDinner: string;
-    mealSlotSnack: string;
-    baseMealLabel: string;
-    selectedReplacement: string;
-    addOnsLabel: string;
-    includedInBase: string;
-    notIncludedInBase: string;
-    wishlistCollectionsTitle: string;
-    emptyMealPlanNotice: string;
-    excludedSelectionNotice: string;
-    noWishlistCandidates: string;
-    selectReplacementButton: string;
-    changeReplacementButton: string;
-    restoreBaseMealButton: string;
-    unsupportedPriceUnitLabel: string;
-    saveFailedNotice: string;
-    orphanAddOnWarning: string;
-    addOnsTitle: string;
-    selectAddOnButton: string;
-    removeAddOnButton: string;
-    selectedLabel: string;
-    quantityLabel: string;
-    applyQuantityButton: string;
-    invalidQuantityNotice: string;
-    maxQuantityLabel: string;
-    perPersonNotice: string;
-    itemQuantityNotice: string;
-    noAddOnsAvailable: string;
-    alcoholBadge: string;
-    beverageBadge: string;
-    explicitSelectionNotice: string;
-    foodDetails: string;
-    mealBreakdown: string;
-    baseMeal: string;
-    replacement: string;
-    addOn: string;
-    quantity: string;
-    perPerson: string;
-    multiplier: string;
-    included: string;
-    excludedFromBudget: string;
-    slotSubtotal: string;
-    cityFoodSubtotal: string;
-    calculationDetails: string;
-    noFoodDetails: string;
-    mockLabel: string;
-    issueNotice: string;
-    adultCountApplied: string;
-    transportTitle: string;
-    transportDescription: string;
-    transportNotice: string;
-    attractionsTitle: string;
-    attractionsDescription: string;
-    attractionsNotice: string;
-    emergencyTitle: string;
-    emergencyDescription: string;
-    emergencyNotice: string;
-    categoryStay: string;
-    categoryFood: string;
-    categoryTransport: string;
-    categoryAttraction: string;
-    categoryEmergency: string;
-    unitRoomNight: string;
-    unitPersonDay: string;
-    unitPersonMeal: string;
-    unitPersonOneWay: string;
-    unitPerPerson: string;
-    unitFixedAmount: string;
-    unitPercentage: string;
-    representativePrice: string;
-    priceRange: string;
-    pricingUnit: string;
-    nightsLabel: string;
-    roomCountLabel: string;
-    totalLabel: string;
-    badgeMock: string;
-    updatedAtLabel: string;
-    sourceLabelText: string;
-    allTabs: string;
-  };
-  placeholder: {
-    notImplemented: string;
-  };
-}
+export type Dictionary = typeof ko;

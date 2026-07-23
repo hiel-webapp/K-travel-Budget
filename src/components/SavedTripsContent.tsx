@@ -101,12 +101,20 @@ export default function SavedTripsContent({ locale, dict }: SavedTripsContentPro
           <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
             {dict.planner.savedTripsEmpty}
           </p>
-          <button
-            onClick={() => router.push(`/${locale}/planner`)}
-            className="inline-flex h-9 px-5 items-center justify-center rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] font-bold text-xs transition-colors cursor-pointer"
-          >
-            {dict.navigation.planner || "Planner"}
-          </button>
+          <div className="flex items-center justify-center space-x-2">
+            <button
+              onClick={() => router.push(`/${locale}/planner`)}
+              className="inline-flex h-9 px-5 items-center justify-center rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] font-bold text-xs transition-colors cursor-pointer"
+            >
+              {dict.navigation.planner || "Planner"}
+            </button>
+            <button
+              onClick={() => router.push(`/${locale}/places`)}
+              className="inline-flex h-9 px-5 items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+            >
+              {dict.navigation.places || "장소 탐색"}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -174,9 +182,16 @@ export default function SavedTripsContent({ locale, dict }: SavedTripsContentPro
                     <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Total Budget
                     </span>
-                    <strong className="text-base font-extrabold text-[#e25c5c]">
-                      {formatKrw(plan.grandTotalKrw)}
-                    </strong>
+                    <div className="flex items-center gap-2">
+                      <strong className="text-base font-extrabold text-[#e25c5c]">
+                        {formatKrw(plan.grandTotalKrw)}
+                      </strong>
+                      {trip.savedPlaceIds && trip.savedPlaceIds.length > 0 && (
+                        <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full">
+                          ★ {trip.savedPlaceIds.length}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex gap-2">

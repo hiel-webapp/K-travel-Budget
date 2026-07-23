@@ -2,8 +2,9 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { loadTripDraft, loadPlannerPreferencesEx } from "../lib/storage-helper";
+import { loadTripDraft, loadPlannerPreferencesEx, loadSavedPlaceIds } from "../lib/storage-helper";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
+import { getPersonalizedTrendRecommendations } from "../lib/trend";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import {
   formatKrw,
@@ -55,6 +56,15 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     }
   });
 
+  const [savedPlaceIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return loadSavedPlaceIds();
+    } catch {
+      return [];
+    }
+  });
+
   if (!isHydrated) {
     return (
       <div className="flex h-64 w-full items-center justify-center">
@@ -92,6 +102,13 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
     attraction: preferences.attractionByCity,
+  });
+
+  const personalizedTrends = getPersonalizedTrendRecommendations({
+    draft,
+    preferences,
+    savedPlaceIds,
+    locale,
   });
 
   // 예산 건강성 계산 (차액 비교)
@@ -428,6 +445,75 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           )}
         </div>
       </details>
+
+      {/* 4.8. Paid One-Stop Report: Personalized K-Trend Preview Section */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-base font-extrabold text-[#0f172a]">
+              {dict.trendSection.personalizedTitle}
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {dict.trendSection.personalizedSubtitle}
+            </p>
+          </div>
+          <span className="text-[10px] font-extrabold text-[#e25c5c] bg-[#fdf2f2] px-2 py-0.5 rounded border border-[#fce8e8] uppercase tracking-wide shrink-0">
+            One-Stop Preview
+          </span>
+        </div>
+
+        {/* Lock Info Notice */}
+        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60 text-xs text-slate-600 flex items-start gap-2.5">
+          <svg className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span className="font-semibold">{dict.trendSection.personalizedLockedNotice}</span>
+        </div>
+
+        {/* Personalized Cards List */}
+        {personalizedTrends.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {personalizedTrends.map(({ trend, reason }, idx) => {
+              const trans = trend.translations[locale === "en" ? "en" : "ko"];
+              const cityName = trend.city === "ALL" ? (locale === "en" ? "All Cities" : "전체 도시") : trend.city === "SEOUL" ? (locale === "en" ? "Seoul" : "서울") : (locale === "en" ? "Busan" : "부산");
+
+              return (
+                <div
+                  key={trend.id || idx}
+                  className="bg-slate-50/60 p-4 rounded-xl border border-slate-200/70 flex flex-col justify-between space-y-3 opacity-85 select-none relative overflow-hidden"
+                  aria-disabled="true"
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-extrabold text-slate-600 bg-slate-200/80 px-2 py-0.5 rounded border border-slate-300/50 uppercase">
+                        {cityName}
+                      </span>
+                      <span className="text-[9px] font-extrabold text-[#e25c5c] bg-white px-2 py-0.5 rounded border border-slate-200">
+                        Locked Preview
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-extrabold text-slate-800">
+                      {trans.title}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                      {trans.overview}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 text-[10px] text-slate-600 font-bold space-y-1">
+                    <span className="text-slate-400 block font-semibold">{dict.trendSection.reasonLabel}</span>
+                    <span className="text-[#0f172a] block">{reason}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 font-medium py-2">
+            {dict.trendSection.emptyPersonalizedNotice}
+          </p>
+        )}
+      </div>
 
       {/* 5. Paid One-Stop Report Lock UI section */}
       <div className="space-y-4 pt-4 border-t border-slate-200">

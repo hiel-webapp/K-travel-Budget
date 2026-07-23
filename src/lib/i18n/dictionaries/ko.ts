@@ -29,7 +29,7 @@ export const ko = {
     allocationSeoulOnly: "서울 {seoul}박",
     allocationBusanOnly: "부산 {busan}박",
     validation: {
-      invalidNights: "숙박 기간은 3박, 5박, 7박 중 하나여야 합니다.",
+      invalidNights: "숙박 기간은 1박에서 14박 사이여야 합니다.",
       invalidAdults: "여행 인원은 1명에서 4명 사이여야 합니다.",
       noCities: "최소 한 개의 도시를 선택해야 합니다.",
       invalidTargetBudget: "목표 예산은 양의 정수여야 합니다.",

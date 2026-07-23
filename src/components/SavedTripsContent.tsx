@@ -168,7 +168,7 @@ export default function SavedTripsContent({ locale, dict }: SavedTripsContentPro
                         Travelers
                       </span>
                       <span className="font-semibold text-slate-700">
-                        {trip.draft.adultCount} {trip.draft.adultCount === 1 ? "Adult" : "Adults"}
+                        {trip.draft.adultCount} {trip.draft.adultCount === 1 ? "Person" : "People"}
                       </span>
                     </div>
                   </div>

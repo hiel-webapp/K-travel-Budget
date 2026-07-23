@@ -45,7 +45,7 @@ export function formatTravelerCount(count: number, dict: Dictionary, locale: "ko
   if (locale === "ko") {
     return `성인 ${count}명`;
   }
-  return `${count} ${count === 1 ? "adult" : "adults"}`;
+  return `${count} ${count === 1 ? "person" : "people"}`;
 }
 
 /**

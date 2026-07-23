@@ -73,7 +73,7 @@ export function getCitiesSentenceLabel(cities: SupportedCity[]): string {
  */
 export function formatTripSentence(draft: TripDraft): string {
   const nightsPhrase = `${draft.totalNights}-night`;
-  const travelersPhrase = draft.adultCount === 1 ? "1 adult" : `${draft.adultCount} adults`;
+  const travelersPhrase = draft.adultCount === 1 ? "1 person" : `${draft.adultCount} people`;
   const citiesPhrase = getCitiesSentenceLabel(draft.selectedCities);
   const budgetPhrase = BUDGET_TIER_PHRASES[draft.budgetTier];
 
@@ -122,10 +122,14 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
 
   const d = draft as Record<string, unknown>;
 
-  // 1. totalNights 검증
-  const allowedNights = [3, 5, 7];
+  // 1. totalNights 검증 (1~14박 허용)
   const totalNights = d.totalNights as number;
-  if (!allowedNights.includes(totalNights)) {
+  if (
+    typeof totalNights !== "number" ||
+    !Number.isInteger(totalNights) ||
+    totalNights < 1 ||
+    totalNights > 14
+  ) {
     errors.push("invalid_nights");
   }
 
@@ -246,7 +250,7 @@ export function migrateLegacyState(legacy: unknown): TripDraft | null {
 
     // 2. nights 파싱
     let totalNights = parseInt(l.nights as string, 10);
-    if (isNaN(totalNights) || ![3, 5, 7].includes(totalNights)) {
+    if (isNaN(totalNights) || totalNights < 1 || totalNights > 14) {
       totalNights = 5;
     }
 

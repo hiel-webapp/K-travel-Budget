@@ -31,7 +31,7 @@ export const en: Dictionary = {
     allocationSeoulOnly: "Seoul {seoul} nights",
     allocationBusanOnly: "Busan {busan} nights",
     validation: {
-      invalidNights: "Stay duration must be 3, 5, or 7 nights.",
+      invalidNights: "Stay duration must be between 1 and 14 nights.",
       invalidAdults: "Travelers count must be between 1 and 4.",
       noCities: "At least one city must be selected.",
       invalidTargetBudget: "Target budget must be a positive integer.",

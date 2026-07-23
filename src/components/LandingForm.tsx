@@ -63,16 +63,16 @@ function StaticLandingForm({ dict }: { dict: Dictionary }) {
         <div className="text-center text-xl md:text-2xl font-semibold leading-relaxed tracking-tight text-[#0f172a] mb-8">
           <div className="flex flex-wrap justify-center items-center gap-y-4 gap-x-2">
             <span>I&apos;m planning a</span>
-            <div className="relative inline-block border-b-2 border-dashed border-slate-300 bg-slate-50 px-2 py-0.5 rounded">
-              <select disabled value={defaultNights} className="appearance-none bg-transparent pr-4 font-bold text-[#e25c5c] text-center" aria-label="Trip duration">
-                <option value={5}>5-night</option>
-              </select>
-              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</span>
+            {/* Stepper for Static Landing Form */}
+            <div className="inline-flex items-center gap-1 border-b-2 border-dashed border-slate-300 bg-slate-50 px-2 py-0.5 rounded select-none">
+              <button disabled className="w-5 h-5 flex items-center justify-center rounded bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed">-</button>
+              <span className="font-bold text-[#e25c5c] px-1 text-center">{defaultNights}-night</span>
+              <button disabled className="w-5 h-5 flex items-center justify-center rounded bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed">+</button>
             </div>
             <span>trip for</span>
             <div className="relative inline-block border-b-2 border-dashed border-slate-300 bg-slate-50 px-2 py-0.5 rounded">
               <select disabled value={2} className="appearance-none bg-transparent pr-4 font-bold text-[#e25c5c] text-center" aria-label="Number of travelers">
-                <option value={2}>2 adults</option>
+                <option value={2}>2 people</option>
               </select>
               <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">▼</span>
             </div>
@@ -232,19 +232,29 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           <div className="flex flex-wrap justify-center items-center gap-y-4 gap-x-2">
             <span>I&apos;m planning a</span>
             
-            {/* Nights Selector */}
-            <div className="relative inline-block border-b-2 border-dashed border-slate-300 hover:border-[#e25c5c] focus-within:border-[#e25c5c] bg-slate-50/50 hover:bg-slate-100/50 px-2 py-0.5 rounded transition-colors">
-              <select
-                value={totalNights}
-                onChange={(e) => handleNightsChange(Number(e.target.value))}
-                className="appearance-none bg-transparent pr-4 font-bold text-[#e25c5c] cursor-pointer focus:outline-none text-center"
-                aria-label="Trip duration in nights"
+            {/* Nights Stepper */}
+            <div className="inline-flex items-center gap-1 border-b-2 border-dashed border-slate-300 hover:border-[#e25c5c] focus-within:border-[#e25c5c] bg-slate-50/50 hover:bg-slate-100/50 px-2 py-0.5 rounded transition-colors select-none">
+              <button
+                type="button"
+                onClick={() => handleNightsChange(Math.max(1, totalNights - 1))}
+                disabled={totalNights <= 1}
+                aria-label="Decrease nights"
+                className="w-5 h-5 flex items-center justify-center rounded bg-slate-200 hover:bg-[#e25c5c] hover:text-white disabled:opacity-40 disabled:hover:bg-slate-200 disabled:hover:text-slate-600 text-slate-600 font-bold text-xs transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
-                <option value={3}>3-night</option>
-                <option value={5}>5-night</option>
-                <option value={7}>7-night</option>
-              </select>
-              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none select-none">▼</span>
+                -
+              </button>
+              <span className="font-bold text-[#e25c5c] px-1 text-center min-w-[65px]">
+                {totalNights}-night
+              </span>
+              <button
+                type="button"
+                onClick={() => handleNightsChange(Math.min(14, totalNights + 1))}
+                disabled={totalNights >= 14}
+                aria-label="Increase nights"
+                className="w-5 h-5 flex items-center justify-center rounded bg-slate-200 hover:bg-[#e25c5c] hover:text-white disabled:opacity-40 disabled:hover:bg-slate-200 disabled:hover:text-slate-600 text-slate-600 font-bold text-xs transition-colors cursor-pointer disabled:cursor-not-allowed"
+              >
+                +
+              </button>
             </div>
 
             <span>trip for</span>
@@ -257,10 +267,10 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 className="appearance-none bg-transparent pr-4 font-bold text-[#e25c5c] cursor-pointer focus:outline-none text-center"
                 aria-label="Number of travelers"
               >
-                <option value={1}>1 adult</option>
-                <option value={2}>2 adults</option>
-                <option value={3}>3 adults</option>
-                <option value={4}>4 adults</option>
+                <option value={1}>1 person</option>
+                <option value={2}>2 people</option>
+                <option value={3}>3 people</option>
+                <option value={4}>4 people</option>
               </select>
               <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none select-none">▼</span>
             </div>

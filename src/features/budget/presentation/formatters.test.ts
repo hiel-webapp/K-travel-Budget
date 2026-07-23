@@ -36,8 +36,8 @@ describe("Budget Presentation Formatters", () => {
 
   it("should format traveler count for both locales", () => {
     expect(formatTravelerCount(2, ko, "ko")).toBe("성인 2명");
-    expect(formatTravelerCount(2, en, "en")).toBe("2 adults");
-    expect(formatTravelerCount(1, en, "en")).toBe("1 adult");
+    expect(formatTravelerCount(2, en, "en")).toBe("2 people");
+    expect(formatTravelerCount(1, en, "en")).toBe("1 person");
   });
 
   it("should format city allocation summaries", () => {

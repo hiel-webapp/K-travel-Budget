@@ -186,7 +186,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             {formatKrw(plan.perTravelerTotalKrw)}
           </strong>
           <span className="text-[10px] text-slate-400 font-semibold block">
-            Based on {draft.adultCount} {draft.adultCount === 1 ? "traveler" : "travelers"}
+            Based on {draft.adultCount} {draft.adultCount === 1 ? "person" : "people"}
           </span>
         </div>
 

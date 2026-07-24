@@ -259,7 +259,7 @@ export default function TrendContent({ locale, dict }: TrendContentProps) {
               <div className="space-y-3 pt-1">
                 <div className="flex items-center gap-4 text-xs font-semibold text-slate-700 flex-wrap">
                   <span className="flex items-center gap-1">
-                    💳 {heroItem.translations[lang].priceDisplay || "₩15,000~ (1인 기준)"}
+                    💳 {heroItem.translations[lang].priceDisplay || "₩ 15,000~ (1인 기준)"}
                   </span>
                   <span className="text-slate-300">•</span>
                   <span className="flex items-center gap-1">

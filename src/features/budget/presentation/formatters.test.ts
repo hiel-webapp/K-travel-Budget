@@ -18,9 +18,9 @@ import { BudgetLineItem, BudgetPlan } from "../domain/types";
 
 describe("Budget Presentation Formatters", () => {
   it("should format KRW currency correctly without decimals", () => {
-    // Intl.NumberFormat ko-KR 기호 ₩와 쉼표를 정확히 반환하는지 테스트
-    // 주의: 공백 문자(non-breaking space 등)가 ₩와 숫자 사이에 들어올 수 있으므로 정규식으로 검증하거나 단순 포함으로 검사할 수도 있으나 정합적으로 검사
+    // Intl.NumberFormat ko-KR 기호 ₩ 뒤 공백 1칸 적용 검증 (₩ 1,392,600)
     const result = formatKrw(1392600);
+    expect(result).toBe("₩ 1,392,600");
     expect(result.replace(/\s/g, "")).toBe("₩1,392,600");
   });
 
@@ -192,13 +192,13 @@ describe("Budget Presentation Formatters", () => {
       expect(summary).toContain("5박 6일");
       expect(summary).toContain("2명");
       expect(summary).toContain("Seoul, Busan");
-      expect(summary).toContain("₩1,292,600"); // 총 예상 예산
-      expect(summary).toContain("₩646,300"); // 1인당
-      expect(summary).toContain("₩215,433"); // 하루 평균
+      expect(summary).toContain("₩ 1,292,600"); // 총 예상 예산
+      expect(summary).toContain("₩ 646,300"); // 1인당
+      expect(summary).toContain("₩ 215,433"); // 하루 평균
       expect(summary).toContain("사용률");
       expect(summary).toContain("도시별 소계");
-      expect(summary).toContain("Seoul: ₩721,000");
-      expect(summary).toContain("Busan: ₩452,000");
+      expect(summary).toContain("Seoul: ₩ 721,000");
+      expect(summary).toContain("Busan: ₩ 452,000");
       expect(summary).toContain("카테고리별 소계");
       expect(summary).toContain("숙박");
 

@@ -340,7 +340,7 @@ describe("HypeHeritage 12.1단계: Food UI Read-only 렌더링 및 타입 안전
       // 선택된 상태 확인
       expect(html).toContain("옵션 해제");
       expect(html).toContain("value=\"3\"");
-      expect(html).toContain("₩6,000");
+      expect(html).toContain("₩ 6,000");
     });
 
     it("should display Alcohol and Beverage badges appropriately", () => {
@@ -411,9 +411,9 @@ describe("HypeHeritage 12.1단계: Food UI Read-only 렌더링 및 타입 안전
       expect(html).toContain("1일차 저녁 식사");
       expect(html).toContain("대체 음식");
       expect(html).toContain("공기밥");
-      expect(html).toContain("₩6,000"); // Engine이 산출한 최종 lineTotalKrw
+      expect(html).toContain("₩ 6,000"); // Engine이 산출한 최종 lineTotalKrw
       expect(html).toContain("음식 소계");
-      expect(html).toContain("₩200,000");
+      expect(html).toContain("₩ 200,000");
     });
   });
 });

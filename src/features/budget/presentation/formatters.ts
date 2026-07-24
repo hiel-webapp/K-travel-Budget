@@ -9,15 +9,17 @@ import {
 } from "../domain/types";
 
 /**
- * 금액을 KRW 통화 기호와 천 단위 쉼표가 붙은 형식으로 포맷팅 (소수점 없음)
+ * 금액을 KRW 통화 기호('₩ ')와 천 단위 쉼표가 붙은 형식으로 포맷팅 (소수점 없음, ₩ 뒤 공백 1칸 적용)
  */
 export function formatKrw(amount: number): string {
-  return new Intl.NumberFormat("ko-KR", {
+  const formatted = new Intl.NumberFormat("ko-KR", {
     style: "currency",
     currency: "KRW",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+
+  return formatted.replace(/^₩\s*/, "₩ ");
 }
 
 /**

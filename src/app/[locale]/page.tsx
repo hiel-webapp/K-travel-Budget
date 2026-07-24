@@ -17,18 +17,18 @@ export default async function LocalePage({ params }: PageProps) {
   const dict = await getDictionary(locale as Locale);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center w-full max-w-[960px] mx-auto px-4 py-8 md:py-16">
+    <div className="flex flex-1 flex-col items-center justify-start w-[min(100%-32px,720px)] mx-auto px-0 py-6 md:py-12">
       {/* Brand Title & Localized Tagline */}
-      <div className="text-center mb-10 md:mb-14 space-y-4">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#0f172a] sm:text-6xl">
+      <div className="text-center mb-8 md:mb-10 space-y-3 md:space-y-4">
+        <h1 className="text-[32px] md:text-[48px] font-bold leading-[1.2] tracking-[-0.02em] text-[#1d1d1f]">
           HypeHeritage
         </h1>
-        <p className="text-base md:text-lg font-medium text-slate-500 max-w-2xl mx-auto">
+        <p className="text-[16px] md:text-[18px] text-[#666b73] leading-[1.6] max-w-xl mx-auto font-normal">
           {dict.landing.tagline}
         </p>
       </div>
 
-      {/* Interactive Mad-libs Card Form */}
+      {/* Interactive Travel Budget Calculator Form */}
       <LandingForm locale={locale as Locale} dict={dict} />
     </div>
   );

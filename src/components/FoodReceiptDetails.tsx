@@ -57,7 +57,7 @@ export default function FoodReceiptDetails({
               {/* 슬롯 기본 헤더 */}
               <div className="flex items-center justify-between font-bold">
                 <span className="text-slate-800">{slotName}</span>
-                <span className="text-slate-500 font-mono">
+                <span className="text-slate-500 tabular-nums">
                   {formatKrw(slot.unitPriceKrw)}
                 </span>
               </div>
@@ -117,11 +117,11 @@ export default function FoodReceiptDetails({
                               </span>
                             )}
                           </div>
-                          <span className="text-[9px] text-slate-400 font-mono block">
+                          <span className="text-[9px] text-slate-400 tabular-nums block">
                             {priceExpression}
                           </span>
                         </div>
-                        <span className={`font-mono font-bold ${isOrphan ? "line-through text-rose-400" : "text-slate-700"}`}>
+                        <span className={`tabular-nums font-bold ${isOrphan ? "line-through text-rose-400" : "text-slate-700"}`}>
                           {formatKrw(addOn.lineTotalKrw)}
                         </span>
                       </div>
@@ -143,7 +143,7 @@ export default function FoodReceiptDetails({
 
           <div className="flex justify-between items-baseline font-bold text-slate-700 pt-1 text-xs">
             <span>{dict.planner.cityFoodSubtotal}</span>
-            <span className="font-mono text-slate-900">
+            <span className="tabular-nums text-slate-900">
               {formatKrw(mealPlan.lineTotalKrw)}
             </span>
           </div>

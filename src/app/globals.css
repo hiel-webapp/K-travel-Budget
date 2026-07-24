@@ -52,6 +52,21 @@ h1, h2, h3, h4, h5, h6 {
   color: #0f172a;
 }
 
+/* Tabular numbers for price alignment without breaking KRW symbol scale */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-pretendard);
+}
+
+/* Universal KRW symbol alignment */
+.krw-symbol {
+  font-family: var(--font-pretendard);
+  font-weight: inherit;
+  font-size: 0.9em;
+  display: inline-block;
+  margin-right: 0.15em;
+}
+
 /* Accessibility focus-visible state styling */
 *:focus-visible {
   outline: 2px solid var(--coral-red);

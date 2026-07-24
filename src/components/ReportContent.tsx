@@ -235,12 +235,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               {isOverBudget ? (
                 <>
                   <span className="text-red-500">{dict.planner.reportDiffOver}</span>
-                  <span className="text-red-500 font-mono">+{formatKrw(diffAmount)}</span>
+                  <span className="text-red-500 tabular-nums">+{formatKrw(diffAmount)}</span>
                 </>
               ) : (
                 <>
                   <span className="text-[#4d7c67]">{dict.planner.reportDiffUnder}</span>
-                  <span className="text-[#4d7c67] font-mono">-{formatKrw(diffAmount)}</span>
+                  <span className="text-[#4d7c67] tabular-nums">-{formatKrw(diffAmount)}</span>
                 </>
               )}
             </div>
@@ -271,7 +271,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   return (
                     <tr key={cat}>
                       <td className="py-2.5 text-slate-700 font-bold">{getCategoryLabel(cat, dict)}</td>
-                      <td className="py-2.5 text-right font-mono text-[#0f172a] font-extrabold">
+                      <td className="py-2.5 text-right font-sans tabular-nums text-[#0f172a] font-extrabold">
                         {formatKrw(subtotal)}
                       </td>
                     </tr>
@@ -308,7 +308,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       <td className="py-2.5 text-center text-slate-600 font-bold">
                         {section.nights}박
                       </td>
-                      <td className="py-2.5 text-right font-mono text-[#0f172a] font-extrabold">
+                      <td className="py-2.5 text-right font-sans tabular-nums text-[#0f172a] font-extrabold">
                         {formatKrw(section.subtotalKrw)}
                       </td>
                     </tr>
@@ -319,7 +319,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     <td className="py-2.5 text-slate-700 font-bold" colSpan={2}>
                       Intercity Transit (KTX)
                     </td>
-                    <td className="py-2.5 text-right font-mono text-[#0f172a] font-extrabold">
+                    <td className="py-2.5 text-right font-sans tabular-nums text-[#0f172a] font-extrabold">
                       {formatKrw(plan.intercitySection.subtotalKrw)}
                     </td>
                   </tr>
@@ -358,7 +358,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       <span className="text-slate-800 font-bold block">{getBasketLabel(item.basketId, dict, locale)}</span>
                       <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
                     </div>
-                    <span className="font-mono font-bold text-[#0f172a] whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
+                    <span className="font-sans tabular-nums font-bold text-[#0f172a] whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
                   </div>
                 ))}
               </div>
@@ -390,7 +390,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
                           <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
                         </div>
-                        <span className="font-mono font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
+                        <span className="font-sans tabular-nums font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
                       </div>
                       {item.category === "FOOD" && isCalculatedMealPlan(item.mealPlan) && (
                         <div className="w-full overflow-x-auto">
@@ -425,7 +425,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
                       <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
                     </div>
-                    <span className="font-mono font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
+                    <span className="font-sans tabular-nums font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
                   </div>
                 ))}
               </div>

@@ -1147,7 +1147,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </div>
 
                     <div className="flex items-baseline justify-between md:text-right gap-4">
-                      <span className="text-xs text-slate-400 italic font-mono md:block">
+                      <span className="text-xs text-slate-400 italic tabular-nums md:block">
                         {getCalculationExpression(item, dict, locale)}
                       </span>
                       <strong className="text-base font-extrabold text-[#0f172a]">
@@ -1216,7 +1216,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <span className="font-bold text-slate-400 uppercase tracking-wider">
                     {dict.planner.budgetUsage}
                   </span>
-                  <span className={`font-mono font-extrabold ${isOverBudget ? "text-red-500" : "text-[#4d7c67]"}`}>
+                  <span className={`tabular-nums font-extrabold ${isOverBudget ? "text-red-500" : "text-[#4d7c67]"}`}>
                     {formatPercentage(plan.targetBudgetUsagePercent)}
                   </span>
                 </div>
@@ -1233,12 +1233,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   {isOverBudget ? (
                     <>
                       <span className="text-red-500">{dict.planner.overBudget}</span>
-                      <span className="text-red-500 font-mono">+{formatKrw(plan.overBudgetAmountKrw)}</span>
+                      <span className="text-red-500 tabular-nums">+{formatKrw(plan.overBudgetAmountKrw)}</span>
                     </>
                   ) : (
                     <>
                       <span className="text-slate-400">{dict.planner.remainingBudget}</span>
-                      <span className="text-[#4d7c67] font-mono">{formatKrw(plan.remainingBudgetKrw)}</span>
+                      <span className="text-[#4d7c67] tabular-nums">{formatKrw(plan.remainingBudgetKrw)}</span>
                     </>
                   )}
                 </div>
@@ -1258,7 +1258,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <span className="text-slate-800 font-bold block">{getBasketLabel(item.basketId, dict, locale)}</span>
                         <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
                       </div>
-                      <span className="font-mono font-bold text-[#0f172a]">{formatKrw(item.lineTotalKrw)}</span>
+                      <span className="font-sans tabular-nums font-bold text-[#0f172a]">{formatKrw(item.lineTotalKrw)}</span>
                     </div>
                   ))}
                 </div>
@@ -1288,7 +1288,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
                               <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
                             </div>
-                            <span className="font-mono font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
+                            <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
                           </div>
                           {item.category === "FOOD" && isCalculatedMealPlan(item.mealPlan) && (
                             <FoodReceiptDetails
@@ -1320,7 +1320,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
                           <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
                         </div>
-                        <span className="font-mono font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
+                        <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
                       </div>
                     ))}
                   </div>
@@ -1339,11 +1339,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
                 <div className="flex justify-between text-xs text-slate-400">
                   <span>{dict.planner.perTraveler}</span>
-                  <span className="font-mono font-bold text-slate-600">{formatKrw(plan.perTravelerTotalKrw)}</span>
+                  <span className="font-sans tabular-nums font-bold text-slate-600">{formatKrw(plan.perTravelerTotalKrw)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-slate-400">
                   <span>{dict.planner.dailyAverage}</span>
-                  <span className="font-mono font-bold text-slate-600">{formatKrw(plan.dailyAverageKrw)}</span>
+                  <span className="font-sans tabular-nums font-bold text-slate-600">{formatKrw(plan.dailyAverageKrw)}</span>
                 </div>
               </div>
 

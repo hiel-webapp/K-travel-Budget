@@ -642,7 +642,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   return (
-    <div className="w-full max-w-7xl px-4 py-8 md:px-8">
+    <div className="w-full max-w-7xl px-4 pt-2 pb-8 md:px-8">
       <h1 className="sr-only">{dict.common.title}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-start">
@@ -1175,7 +1175,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         </div>
 
         {/* ================= RIGHT STICKY SMART RECEIPT (40%) ================= */}
-        <div className="lg:col-span-4 lg:sticky lg:top-[96px] space-y-6">
+        <div className="lg:col-span-4 lg:sticky lg:top-[76px] space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#e25c5c] to-[#e25c5c]/60"></div>
 

@@ -115,9 +115,9 @@ export default function TrendContent({ locale, dict }: TrendContentProps) {
       )}
 
       {/* Header Banner Section */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="text-[#b93829] font-extrabold text-xs tracking-tight">
+      <div className="text-center space-y-2 pt-2">
+        <div className="flex items-center justify-center gap-2.5 flex-wrap">
+          <span className="text-[#b93829] font-extrabold text-xs tracking-tight uppercase">
             {dict.trendSection.trendTopTag || "지금 한국이 주목하는 것"}
           </span>
           <span className="bg-[#fdf2f2] text-[#b93829] border border-[#fce8e8] text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
@@ -129,7 +129,7 @@ export default function TrendContent({ locale, dict }: TrendContentProps) {
           {dict.planner.trendHeroTitle}
         </h1>
 
-        <p className="text-sm text-slate-500 max-w-3xl leading-relaxed">
+        <p className="text-xs md:text-sm text-slate-500 max-w-2xl mx-auto leading-relaxed">
           {dict.planner.trendHeroSubtitle}
         </p>
       </div>

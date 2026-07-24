@@ -149,21 +149,27 @@ export async function fetchKtoApi<T>({
   const { apiKey, mobileApp } = getKtoCredentials();
   const baseUrl = locale === "en" ? KTO_BASE_URL_ENG : KTO_BASE_URL_KOR;
 
-  const url = new URL(`${baseUrl}${endpoint}`);
-  url.searchParams.append("serviceKey", normalizeServiceKey(apiKey));
-  url.searchParams.append("MobileOS", "ETC");
-  url.searchParams.append("MobileApp", mobileApp);
-  url.searchParams.append("_type", "json");
+  const decodedKey = decodeURIComponent(apiKey);
+  const encodedKey = encodeURIComponent(decodedKey);
+
+  const queryParams = new URLSearchParams({
+    MobileOS: "ETC",
+    MobileApp: mobileApp,
+    _type: "json",
+  });
 
   for (const [key, value] of Object.entries(params)) {
-    url.searchParams.append(key, String(value));
+    queryParams.append(key, String(value));
   }
 
-  const response = await fetch(url.toString(), {
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint.slice(1) : endpoint;
+  const fullUrl = `${baseUrl}/${cleanEndpoint}?serviceKey=${encodedKey}&${queryParams.toString()}`;
+
+  const response = await fetch(fullUrl, {
     headers: {
       Accept: "application/json",
     },
-    next: { revalidate: 86400 }, // 24시간 캐싱
+    next: { revalidate: 86400 },
   });
 
   if (!response.ok) {

@@ -7,23 +7,44 @@ import { MOCK_TRENDS } from "./mock-trends";
 export interface ListTrendsFilter {
   city?: SupportedCity | "ALL";
   category?: TrendCategory | "ALL";
+  searchQuery?: string;
+  sortBy?: "POPULAR" | "RECENT";
 }
 
 /**
  * 공개 K-Trend 항목들을 필터 조건에 따라 조회합니다.
  */
 export function listTrends(filter: ListTrendsFilter = {}): TrendItem[] {
-  const { city = "ALL", category = "ALL" } = filter;
+  const { city = "ALL", category = "ALL", searchQuery = "", sortBy = "POPULAR" } = filter;
 
-  return MOCK_TRENDS.filter((item) => {
+  const items = MOCK_TRENDS.filter((item) => {
     if (city !== "ALL" && item.city !== "ALL" && item.city !== city) {
       return false;
     }
     if (category !== "ALL" && item.category !== category) {
       return false;
     }
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      const matchKo =
+        item.translations.ko.title.toLowerCase().includes(query) ||
+        item.translations.ko.overview.toLowerCase().includes(query) ||
+        (item.categoryLabel?.ko.toLowerCase().includes(query) ?? false) ||
+        item.tags.some((t) => t.toLowerCase().includes(query));
+      const matchEn =
+        item.translations.en.title.toLowerCase().includes(query) ||
+        item.translations.en.overview.toLowerCase().includes(query) ||
+        (item.categoryLabel?.en.toLowerCase().includes(query) ?? false);
+      if (!matchKo && !matchEn) return false;
+    }
     return true;
   });
+
+  if (sortBy === "RECENT") {
+    return [...items].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  return items;
 }
 
 export interface PersonalizedTrendInput {

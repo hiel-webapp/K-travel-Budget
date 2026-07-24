@@ -329,12 +329,12 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           
           <button
             type="submit"
-            className="w-full sm:w-auto h-12 px-8 rounded-xl bg-[#e25c5c] text-white font-bold shadow hover:bg-[#d14b4b] hover:shadow-md transition-all active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer"
+            className="w-full sm:w-auto h-12 px-9 rounded-xl bg-[#b93829] text-white font-extrabold shadow-sm hover:bg-[#a12f22] hover:shadow-md transition-all active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[#b93829] cursor-pointer tracking-tight"
           >
             {dict.landing.cta}
           </button>
           
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-400 font-medium">
             {dict.landing.helper}
           </span>
         </div>

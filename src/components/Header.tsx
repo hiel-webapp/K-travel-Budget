@@ -38,7 +38,7 @@ export default function Header({ locale, dict }: HeaderProps) {
         <div className="flex justify-start">
           <Link
             href={`/${locale}`}
-            className="text-xl font-extrabold tracking-tight text-[#0f172a] hover:text-[#e25c5c] transition-colors focus-visible:outline-2 focus-visible:outline-[#e25c5c] rounded-md px-2 py-1"
+            className="text-xl md:text-2xl font-black tracking-tight text-[#0f172a] hover:text-[#b93829] transition-colors focus-visible:outline-2 focus-visible:outline-[#b93829] rounded-md px-2 py-1"
             aria-label={dict.common.logoAlt}
           >
             HypeHeritage
@@ -47,21 +47,21 @@ export default function Header({ locale, dict }: HeaderProps) {
 
         {/* Center: Navigation (Viewport center alignment) */}
         <nav className="flex justify-center h-full">
-          <ul className="flex items-center gap-4 md:gap-6 h-full">
+          <ul className="flex items-center gap-5 md:gap-8 h-full">
             {navItems.map((item) => {
               const active = isActive(item.key);
               return (
                 <li key={item.key} className="h-full flex items-center relative">
                   <Link
                     href={item.path}
-                    className={`text-xs md:text-sm font-medium transition-colors hover:text-[#e25c5c] focus-visible:outline-2 focus-visible:outline-[#e25c5c] rounded-md px-2 py-1 flex flex-col items-center justify-center h-full ${
-                      active ? "text-[#e25c5c] font-semibold" : "text-[#1e293b]"
+                    className={`text-xs md:text-sm font-bold tracking-tight transition-colors hover:text-[#b93829] focus-visible:outline-2 focus-visible:outline-[#b93829] rounded-md px-2 py-1 flex flex-col items-center justify-center h-full ${
+                      active ? "text-[#b93829] font-extrabold" : "text-slate-700"
                     }`}
                     aria-current={active ? "page" : undefined}
                   >
                     {item.label}
                     {active && (
-                      <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#e25c5c] rounded-full" />
+                      <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#b93829] rounded-full" />
                     )}
                   </Link>
                 </li>
@@ -73,25 +73,25 @@ export default function Header({ locale, dict }: HeaderProps) {
         {/* Right: Controls */}
         <div className="flex justify-end items-center gap-3">
           {/* Locale Switcher */}
-          <div className="flex items-center text-[10px] md:text-xs font-semibold border border-slate-200 rounded-full p-0.5 bg-slate-50/50">
+          <div className="flex items-center text-[10px] md:text-xs font-bold border border-slate-200 rounded-full p-0.5 bg-slate-50/50">
             <Link
               href={getLanguageLink("ko")}
-              className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full transition-colors ${
+              className={`px-2.5 md:px-3.5 py-0.5 md:py-1 rounded-full transition-colors ${
                 locale === "ko"
-                  ? "bg-white text-[#e25c5c] shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-white text-[#b93829] shadow-xs font-extrabold"
+                  : "text-slate-500 hover:text-slate-900 font-bold"
               }`}
               aria-label="한국어로 변경"
             >
               KO
             </Link>
-            <span className="text-slate-300 select-none px-1">/</span>
+            <span className="text-slate-300 select-none px-0.5">/</span>
             <Link
               href={getLanguageLink("en")}
-              className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full transition-colors ${
+              className={`px-2.5 md:px-3.5 py-0.5 md:py-1 rounded-full transition-colors ${
                 locale === "en"
-                  ? "bg-white text-[#e25c5c] shadow-sm"
-                  : "text-slate-500 hover:text-slate-900"
+                  ? "bg-white text-[#b93829] shadow-xs font-extrabold"
+                  : "text-slate-500 hover:text-slate-900 font-bold"
               }`}
               aria-label="Change language to English"
             >

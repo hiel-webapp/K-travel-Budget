@@ -11,9 +11,35 @@ export interface GuideItem {
   id: string;
   title: string;
   category: string;
+  categoryLabel?: {
+    ko: string;
+    en: string;
+  };
+  subTag?: {
+    ko: string;
+    en: string;
+  };
+  subTagType?: "ESSENTIAL" | "BASIC" | "TRANSIT" | "CULTURE" | "SHOPPING" | "EMERGENCY";
+  readTime?: string;
+  updatedDate?: string;
   overview: string;
   details: string[];
+  checklist?: string[];
+  imageUrl?: string;
+  isHero?: boolean;
   officialChannelNotice?: string;
+}
+
+export interface GuideFAQ {
+  id: string;
+  question: {
+    ko: string;
+    en: string;
+  };
+  answer: {
+    ko: string;
+    en: string;
+  };
 }
 
 export const K_TREND_CONTENTS: Record<"ko" | "en", TrendItem[]> = {
@@ -34,22 +60,6 @@ export const K_TREND_CONTENTS: Record<"ko" | "en", TrendItem[]> = {
       tip: "퍼스널 컬러 분석 예약은 해외 예약 전문 플랫폼이나 다국어 지원 샵을 통해 사전에 확보하는 것을 추천합니다.",
       tags: ["Seoul", "Shopping"],
     },
-    {
-      id: "local-cafe",
-      title: "로컬 카페 문화와 디저트",
-      category: "Lifestyle",
-      overview: "단순히 커피를 마시는 공간을 넘어 고유한 인테리어와 시그니처 베이커리를 즐기는 미식 문화입니다.",
-      tip: "한옥 카페나 바다가 보이는 루프탑 카페 등 지역 테마별 카페 리스트를 탐색해보세요.",
-      tags: ["Seoul", "Busan", "Food"],
-    },
-    {
-      id: "nightlife",
-      title: "한강공원 및 야간 피크닉",
-      category: "Leisure",
-      overview: "선선한 밤바람을 맞으며 한강변에서 배달 음식을 먹거나 밤바다를 걷는 낭만적인 야외 문화입니다.",
-      tip: "한강 둔치 배달 구역을 활용하거나 즉석 라면 제조 기계를 체험해보는 재미가 쏠쏠합니다.",
-      tags: ["Seoul", "Busan", "Activity"],
-    },
   ],
   en: [
     {
@@ -68,31 +78,125 @@ export const K_TREND_CONTENTS: Record<"ko" | "en", TrendItem[]> = {
       tip: "Book personal color consultations well in advance through online booking portals offering English services.",
       tags: ["Seoul", "Shopping"],
     },
-    {
-      id: "local-cafe",
-      title: "Local Cafe & Dessert Culture",
-      category: "Lifestyle",
-      overview: "A rich culinary scene emphasizing aesthetic interiors and signature pastries rather than simple coffee.",
-      tip: "Check out Hanok (traditional houses) cafes in Seoul or beach-view rooftop cafes in Busan.",
-      tags: ["Seoul", "Busan", "Food"],
-    },
-    {
-      id: "nightlife",
-      title: "Han River Parks & Night Picnic",
-      category: "Leisure",
-      overview: "Relaxing outdoors, eating delivered meals by the river at night, or walking along beautiful beaches.",
-      tip: "Try utilizing dedicated delivery zones in Han River parks or cooking instant ramen using public vending boilers.",
-      tags: ["Seoul", "Busan", "Activity"],
-    },
   ],
 };
+
+export const K_GUIDE_FAQS: GuideFAQ[] = [
+  {
+    id: "faq-calling-server",
+    question: {
+      ko: "식당에서 직원을 어떻게 부르나요?",
+      en: "How do I call a server at a restaurant?",
+    },
+    answer: {
+      ko: "테이블에 부저(호출벨)가 있다면 눌러주세요. 벨이 없다면 손을 가볍게 들며 '저기요' 또는 '여기요'라고 말씀하시면 됩니다.",
+      en: "Press the table call button if available. If not, raise your hand slightly and say 'Jeogiyo' (Excuse me).",
+    },
+  },
+  {
+    id: "faq-[#b93829]-refill",
+    question: {
+      ko: "반찬을 더 달라고 해도 되나요?",
+      en: "Can I ask for extra side dishes for free?",
+    },
+    answer: {
+      ko: "네, 대개의 한식당에서 기본 반찬(김치, 깍두기 등)은 무료 리필이 가능합니다. '셀프바'가 있다면 직접 가져다 드시면 됩니다.",
+      en: "Yes, complimentary side dishes (Banchan) can be refilled for free at most casual Korean diners or self-service bars.",
+    },
+  },
+  {
+    id: "faq-bus-card-tag",
+    question: {
+      ko: "버스를 탈 때와 내릴 때 모두 카드를 찍나요?",
+      en: "Do I tap my transit card both when getting on and off the bus?",
+    },
+    answer: {
+      ko: "네, 환승 할인을 받고 이동 거리에 따른 추가 요금을 예방하려면 승차 및 하차 시 반드시 단말기에 카드를 태그해야 합니다.",
+      en: "Yes, tapping both on entry and exit is required to receive transfer discounts and avoid maximum distance penalties.",
+    },
+  },
+  {
+    id: "faq-street-food-card",
+    question: {
+      ko: "길거리 음식은 카드로 결제할 수 있나요?",
+      en: "Can I pay for street food with a credit card?",
+    },
+    answer: {
+      ko: "전통시장 고정 포장마차는 카드가 가능하지만, 노점상은 현금이나 계좌이체를 선호하므로 소액 현금을 지참하는 것이 좋습니다.",
+      en: "Fixed stalls often take cards, but mobile street vendors usually prefer cash or bank transfers. Keeping small cash is recommended.",
+    },
+  },
+  {
+    id: "faq-taxi-card",
+    question: {
+      ko: "택시에서 신용카드 결제가 가능한가요?",
+      en: "Can I pay with a credit card in a taxi?",
+    },
+    answer: {
+      ko: "네, 한국의 모든 일반/모범 택시는 신용카드, 체크카드, T-money 교통카드로 결제할 수 있습니다.",
+      en: "Yes, all Korean taxis accept international credit cards, debit cards, and T-money transit cards.",
+    },
+  },
+  {
+    id: "faq-water-free",
+    question: {
+      ko: "식당에서 물은 유료인가요?",
+      en: "Is drinking water free at restaurants in Korea?",
+    },
+    answer: {
+      ko: "아닙니다, 한국의 식당에서는 물과 정수기 차가 기본적으로 무료 제공됩니다. 물병이나 셀프 정수기를 이용하시면 됩니다.",
+      en: "No, drinking water is completely free at virtually all restaurants in Korea, either brought to your table or self-service.",
+    },
+  },
+];
 
 export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
   ko: [
     {
+      id: "dining-etiquette",
+      title: "한국 식당에서 당황하지 않는 기본 이용법",
+      category: "DINING",
+      categoryLabel: {
+        ko: "식당·음식",
+        en: "Dining & Food",
+      },
+      subTag: {
+        ko: "여행 전 필수",
+        en: "Pre-trip Essential",
+      },
+      subTagType: "ESSENTIAL",
+      readTime: "3분 읽기",
+      updatedDate: "2026년 7월",
+      overview: "직원을 부르는 방법, 기본 반찬, 추가 주문, 결제 위치 등 한국 식당에서 자주 마주치는 상황을 한 번에 알아보세요.",
+      checklist: [
+        "테이블 호출벨",
+        "기본 반찬 추가 정책",
+        "2인분 최소 주문",
+        "계산대 결제",
+      ],
+      details: [
+        "대부분의 한식당에서는 기본 반찬(Kimchi 등)이 무료로 무제한 제공되며, 추가 반찬은 '셀프(Self)' 코너를 활용합니다.",
+        "테이블 옆면 서랍을 열면 숟가락, 젓가락, 휴지가 정돈되어 있습니다.",
+        "벨을 누르면 종업원이 응대하며, 결제는 기본적으로 나가실 때 출입구 카운터에서 진행됩니다.",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?q=80&w=800&auto=format&fit=crop",
+      isHero: true,
+    },
+    {
       id: "arrival-transit",
-      title: "공항 연결 및 대중교통 이용",
-      category: "Transportation",
+      title: "교통카드 구매와 충전 및 지하철 환승",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통",
+        en: "Transit",
+      },
+      subTag: {
+        ko: "기초 정보",
+        en: "Basic Info",
+      },
+      subTagType: "BASIC",
+      readTime: "2분",
+      updatedDate: "2026년 7월",
       overview: "인천공항 입국 후 지하철(공항철도), 버스, 택시를 이용해 목적지로 이동하는 핵심 실무 정보입니다.",
       details: [
         "지하철 및 버스 탑승 시 T-money 카드를 편의점에서 구매 후 현금으로 충전해 사용하는 편이 가장 경제적입니다.",
@@ -102,8 +206,19 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
     },
     {
       id: "payment-exchange",
-      title: "결제 방식 및 환전 수칙",
-      category: "Finance",
+      title: "카드 결제와 현금이 필요한 순간",
+      category: "PAYMENT",
+      categoryLabel: {
+        ko: "결제·환승",
+        en: "Payment",
+      },
+      subTag: {
+        ko: "여행 전 필수",
+        en: "Pre-trip Essential",
+      },
+      subTagType: "ESSENTIAL",
+      readTime: "3분",
+      updatedDate: "2026년 7월",
       overview: "한국의 대부분 매장은 신용카드와 간편결제 기반이며, 전통시장 등 일부 상황에서 소액의 현금이 활용됩니다.",
       details: [
         "해외 발행 Visa, Mastercard 카드는 프랜차이즈 및 주요 소매점에서 무리 없이 작동합니다.",
@@ -111,21 +226,21 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       ],
     },
     {
-      id: "dining-etiquette",
-      title: "식당 이용 및 주문 예절",
-      category: "Dining",
-      overview: "한국 식당 고유의 주문 방식 및 셀프 서비스 문화와 에티켓 가이드입니다.",
-      details: [
-        "대부분의 한식당에서는 기본 반찬(Kimchi 등)이 무료로 무제한 제공되며, 추가 반찬은 '셀프(Self)' 코너를 활용합니다.",
-        "테이블 옆면 서랍을 열면 숟가락, 젓가락, 휴지가 정돈되어 있습니다.",
-        "벨을 누르면 종업원이 응대하며, 결제는 기본적으로 나가실 때 출입구 카운터에서 진행됩니다.",
-      ],
-    },
-    {
       id: "public-rules",
-      title: "공공장소 기본 예절",
-      category: "Etiquette",
-      overview: "현지인들과 조화롭고 유쾌하게 어우러지기 위해 지켜야 할 일상생활 규정입니다.",
+      title: "한국에는 팁을 줘야 하나요? (공공 예절)",
+      category: "PAYMENT",
+      categoryLabel: {
+        ko: "결제·환승",
+        en: "Payment",
+      },
+      subTag: {
+        ko: "문화 차이",
+        en: "Culture Gap",
+      },
+      subTagType: "CULTURE",
+      readTime: "1분",
+      updatedDate: "2026년 7월",
+      overview: "현지인들과 조화롭고 유쾌하게 어우러지기 위해 지켜야 할 일상생활 규정 및 팁 문화 안내입니다.",
       details: [
         "지하철이나 버스 안에서는 공공 전화를 피하고 작은 목소리로 대화하는 것이 기본 매너입니다.",
         "에스컬레이터 탑승 시 한쪽 통행을 준수하며, 노약자 및 임산부 배려석은 가능한 비워둡니다.",
@@ -133,8 +248,19 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
     },
     {
       id: "emergency-safety",
-      title: "응급 상황 및 안전 가이드",
-      category: "Safety",
+      title: "분실·병원·경찰 긴급 안내",
+      category: "SAFETY",
+      categoryLabel: {
+        ko: "안전·긴급",
+        en: "Safety & Emergency",
+      },
+      subTag: {
+        ko: "긴급 정보",
+        en: "Emergency Info",
+      },
+      subTagType: "EMERGENCY",
+      readTime: "3분",
+      updatedDate: "2026년 7월",
       overview: "여행 중 여권 분실, 질병 발생, 조난 시 즉각적인 도움을 받을 수 있는 핫라인입니다.",
       details: [
         "화재 및 응급 구조 지원전화는 119 이며, 경찰서 신고 전화는 112 입니다.",
@@ -145,20 +271,72 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
     },
     {
       id: "checkout-trash",
-      title: "숙소 이용 및 분리배출 요령",
-      category: "Stay",
-      overview: "공유 숙소 또는 레지던스 이용 시 환경 자원 보호를 위해 준수해야 할 필수 지침입니다.",
+      title: "택스리펀 및 숙소 이용 분리배출 요령",
+      category: "SHOPPING",
+      categoryLabel: {
+        ko: "쇼핑",
+        en: "Shopping",
+      },
+      subTag: {
+        ko: "쇼핑 도움",
+        en: "Shopping Help",
+      },
+      subTagType: "SHOPPING",
+      readTime: "4분",
+      updatedDate: "2026년 7월",
+      overview: "공유 숙소 또는 레지던스 이용 시 환경 자원 보호를 위해 준수해야 할 필수 지침 및 택스리펀 정보.",
       details: [
         "음식물 쓰레기, 재활용품(플라스틱/유리/캔), 일반 쓰레기를 반드시 구분해서 정해진 수거 장소에 버려야 합니다.",
-        "숙소 내부 규정을 확인하여 체크아웃 시 냉난방기와 조명을 모두 끄는 에너지 절약에 협조해주세요.",
+        "Tax Free 표시 매장에서 구매 시 현장 즉시 할인받거나 공항 출국장 키오스크에서 환급받을 수 있습니다.",
       ],
     },
   ],
   en: [
     {
+      id: "dining-etiquette",
+      title: "Essential Dining Etiquette in Korean Restaurants",
+      category: "DINING",
+      categoryLabel: {
+        ko: "식당·음식",
+        en: "Dining & Food",
+      },
+      subTag: {
+        ko: "여행 전 필수",
+        en: "Pre-trip Essential",
+      },
+      subTagType: "ESSENTIAL",
+      readTime: "3 min read",
+      updatedDate: "July 2026",
+      overview: "Learn how to call servers, refill complimentary banchan, order minimum portions, and pay at the door counter.",
+      checklist: [
+        "Table call button",
+        "Complimentary side refilling",
+        "2-person minimum ordering",
+        "Counter payment on exit",
+      ],
+      details: [
+        "Side dishes (Banchan, like Kimchi) are complimentary and refilled at self-service sidebars in most casual Korean diners.",
+        "Utensils and napkins are usually kept in a sliding drawer on the side of your dining table.",
+        "Press the call button on the table to summon a server, and pay at the counter near the entrance when exiting.",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?q=80&w=800&auto=format&fit=crop",
+      isHero: true,
+    },
+    {
       id: "arrival-transit",
       title: "Airport Connections & Transit Guides",
-      category: "Transportation",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통",
+        en: "Transit",
+      },
+      subTag: {
+        ko: "기초 정보",
+        en: "Basic Info",
+      },
+      subTagType: "BASIC",
+      readTime: "2 min",
+      updatedDate: "July 2026",
       overview: "In-depth transit information on trains, buses, and taxis to travel from Incheon Airport to your destinations.",
       details: [
         "Purchase a T-money transit card at any convenience store and top it up with cash for optimal fares on subways and buses.",
@@ -169,7 +347,18 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
     {
       id: "payment-exchange",
       title: "Payments & Money Exchange Rules",
-      category: "Finance",
+      category: "PAYMENT",
+      categoryLabel: {
+        ko: "결제·환승",
+        en: "Payment",
+      },
+      subTag: {
+        ko: "여행 전 필수",
+        en: "Pre-trip Essential",
+      },
+      subTagType: "ESSENTIAL",
+      readTime: "3 min",
+      updatedDate: "July 2026",
       overview: "Most merchants in Korea accept international credit cards, but keeping some cash is recommended for small shops.",
       details: [
         "Visa and Mastercard issued overseas work fine at franchise stores and major retail shops.",
@@ -177,20 +366,20 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       ],
     },
     {
-      id: "dining-etiquette",
-      title: "Restaurant Manners & Ordering Customs",
-      category: "Dining",
-      overview: "Common local ordering routines, self-service dining bars, and local restaurant etiquette.",
-      details: [
-        "Side dishes (Banchan, like Kimchi) are complimentary and refilled at self-service sidebars in most casual Korean diners.",
-        "Utensils and napkins are usually kept in a sliding drawer on the side of your dining table.",
-        "Press the call button on the table to summon a server, and pay at the counter near the entrance when exiting.",
-      ],
-    },
-    {
       id: "public-rules",
-      title: "Public Manners & Etiquettes",
-      category: "Etiquette",
+      title: "Public Manners & Etiquettes (Tipping Rules)",
+      category: "PAYMENT",
+      categoryLabel: {
+        ko: "결제·환승",
+        en: "Payment",
+      },
+      subTag: {
+        ko: "문화 차이",
+        en: "Culture Gap",
+      },
+      subTagType: "CULTURE",
+      readTime: "1 min",
+      updatedDate: "July 2026",
       overview: "Daily regulations and practices to harmonize with locals during your transit and sightseeing activities.",
       details: [
         "Avoid making phone calls inside subways or buses, and speak in low tones to maintain public quietness.",
@@ -200,7 +389,18 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
     {
       id: "emergency-safety",
       title: "Emergency Hotlines & Safety Assistance",
-      category: "Safety",
+      category: "SAFETY",
+      categoryLabel: {
+        ko: "안전·긴급",
+        en: "Safety & Emergency",
+      },
+      subTag: {
+        ko: "긴급 정보",
+        en: "Emergency Info",
+      },
+      subTagType: "EMERGENCY",
+      readTime: "3 min",
+      updatedDate: "July 2026",
       overview: "Crucial contact numbers for health emergencies, reporting incidents, or receiving multilingual translations.",
       details: [
         "Dial 119 for medical emergency rescue, and dial 112 to contact local police stations.",
@@ -211,9 +411,20 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
     },
     {
       id: "checkout-trash",
-      title: "Lodgings Rules & Trash Recycling",
-      category: "Stay",
-      overview: "Crucial practices regarding room checkout routines and mandatory recycling codes for shared accommodations.",
+      title: "Lodgings Rules & Tax Refund Guide",
+      category: "SHOPPING",
+      categoryLabel: {
+        ko: "쇼핑",
+        en: "Shopping",
+      },
+      subTag: {
+        ko: "쇼핑 도움",
+        en: "Shopping Help",
+      },
+      subTagType: "SHOPPING",
+      readTime: "4 min",
+      updatedDate: "July 2026",
+      overview: "Crucial practices regarding room checkout routines, mandatory recycling codes, and claim instant tax refunds.",
       details: [
         "Separate recyclables (plastic, glass, cans), food waste, and general waste into designated bins before discarding.",
         "Review host checkout notes and support energy saving by turning off air conditioners and heaters when leaving.",

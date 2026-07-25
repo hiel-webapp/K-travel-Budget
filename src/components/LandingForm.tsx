@@ -366,40 +366,11 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             </div>
             
             {/* Progress Bar */}
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#b93829] transition-all duration-300 rounded-full"
                 style={{ width: `${mobileStep * 25}%` }}
               />
-            </div>
-
-            {/* Step Tabs */}
-            <div className="grid grid-cols-4 gap-1">
-              {[
-                { step: 1, label: "기간" },
-                { step: 2, label: "인원" },
-                { step: 3, label: "목적지" },
-                { step: 4, label: "예산" },
-              ].map((tab) => {
-                const isActive = mobileStep === tab.step;
-                const isPassed = mobileStep > tab.step;
-                return (
-                  <button
-                    key={tab.step}
-                    type="button"
-                    onClick={() => setMobileStep(tab.step as 1 | 2 | 3 | 4)}
-                    className={`py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
-                      isActive
-                        ? "bg-[#b93829] text-white shadow-2xs"
-                        : isPassed
-                        ? "bg-[#fdf2f2] text-[#b93829]"
-                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                    }`}
-                  >
-                    {tab.step}. {tab.label}
-                  </button>
-                );
-              })}
             </div>
           </div>
 

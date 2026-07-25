@@ -74,8 +74,8 @@ function StaticLandingForm({ dict }: { dict: Dictionary }) {
             </div>
             <span>to</span>
             <div className="relative inline-block border-b-2 border-dashed border-[#dedede] bg-slate-50 px-3 py-1 rounded min-h-[44px]">
-              <select disabled value="SEOUL_BUSAN" className="appearance-none bg-transparent pr-4 font-bold text-[#b93829] text-center" aria-label="Destination">
-                <option value="SEOUL_BUSAN">Seoul and Busan</option>
+              <select disabled value="SEOUL" className="appearance-none bg-transparent pr-4 font-bold text-[#b93829] text-center" aria-label="Destination">
+                <option value="SEOUL">Seoul</option>
               </select>
             </div>
             <span>{BUDGET_TENSE_MAP[defaultBudget].pre}</span>
@@ -116,14 +116,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   const adultCount = draft.adultCount;
   const budgetTier = draft.budgetTier;
 
-  let citiesKey = "SEOUL_BUSAN";
-  if (draft.selectedCities.includes("SEOUL") && draft.selectedCities.includes("BUSAN")) {
-    citiesKey = "SEOUL_BUSAN";
-  } else if (draft.selectedCities.includes("SEOUL")) {
-    citiesKey = "SEOUL";
-  } else if (draft.selectedCities.includes("BUSAN")) {
-    citiesKey = "BUSAN";
-  }
+  const selectedCityCode = draft.selectedCities[0] || "SEOUL";
 
   const handleNightsChange = (newNights: number) => {
     const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
@@ -141,20 +134,8 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     }));
   };
 
-  const handleCitiesChange = (key: string) => {
-    let cities: SupportedCity[] = ["SEOUL", "BUSAN"];
-    if (key === "SEOUL_BUSAN_JEJU") cities = ["SEOUL", "BUSAN", "JEJU"];
-    else if (key === "SEOUL") cities = ["SEOUL"];
-    else if (key === "BUSAN") cities = ["BUSAN"];
-    else if (key === "JEJU") cities = ["JEJU"];
-    else if (key === "INCHEON") cities = ["INCHEON"];
-    else if (key === "GYEONGJU") cities = ["GYEONGJU"];
-    else if (key === "JEONJU") cities = ["JEONJU"];
-    else if (key === "GANGNEUNG") cities = ["GANGNEUNG"];
-    else if (key === "SUWON") cities = ["SUWON"];
-    else if (key === "YEOSU") cities = ["YEOSU"];
-    else if (key === "SOKCHO") cities = ["SOKCHO"];
-
+  const handleCitiesChange = (cityCode: SupportedCity) => {
+    const cities: SupportedCity[] = [cityCode];
     const newAllocations = calculateDefaultNightAllocation(cities, draft.totalNights);
     setDraft((prev) => ({
       ...prev,
@@ -266,13 +247,11 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             {/* Cities Selector */}
             <div className="relative inline-block border-b-2 border-dashed border-[#dedede] hover:border-[#b93829] focus-within:border-[#b93829] bg-[#faf9f7] hover:bg-slate-100/60 px-3 py-1 rounded transition-colors min-h-[48px] leading-[44px]">
               <select
-                value={citiesKey}
-                onChange={(e) => handleCitiesChange(e.target.value)}
+                value={selectedCityCode}
+                onChange={(e) => handleCitiesChange(e.target.value as SupportedCity)}
                 className="appearance-none bg-transparent pr-5 font-bold text-[#b93829] text-[17px] cursor-pointer focus:outline-none text-center"
-                aria-label="Destination cities"
+                aria-label="Destination city"
               >
-                <option value="SEOUL_BUSAN">Seoul and Busan</option>
-                <option value="SEOUL_BUSAN_JEJU">Seoul, Busan, and Jeju</option>
                 <option value="SEOUL">Seoul</option>
                 <option value="BUSAN">Busan</option>
                 <option value="JEJU">Jeju</option>
@@ -372,8 +351,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <span className="text-[14px] font-semibold text-[#666b73] block">📍 여행 목적지 (Destinations)</span>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { key: "SEOUL_BUSAN", label: "서울 & 부산" },
-                { key: "SEOUL_BUSAN_JEJU", label: "서울·부산·제주" },
                 { key: "SEOUL", label: "서울" },
                 { key: "BUSAN", label: "부산" },
                 { key: "JEJU", label: "제주" },
@@ -385,12 +362,12 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 { key: "YEOSU", label: "여수" },
                 { key: "SOKCHO", label: "속초" },
               ].map((cityOpt) => {
-                const isSelected = citiesKey === cityOpt.key;
+                const isSelected = selectedCityCode === cityOpt.key;
                 return (
                   <button
                     key={cityOpt.key}
                     type="button"
-                    onClick={() => handleCitiesChange(cityOpt.key)}
+                    onClick={() => handleCitiesChange(cityOpt.key as SupportedCity)}
                     className={`min-h-[48px] px-2 py-2.5 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
                       isSelected
                         ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"

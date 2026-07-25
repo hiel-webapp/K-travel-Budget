@@ -72,10 +72,9 @@ export interface TripDraftStorageEnvelope {
 export const DEFAULT_TRIP_DRAFT: TripDraft = {
   totalNights: 5,
   adultCount: 2,
-  selectedCities: ["SEOUL", "BUSAN"],
+  selectedCities: ["SEOUL"],
   cityNightAllocations: {
-    SEOUL: 3,
-    BUSAN: 2,
+    SEOUL: 5,
   },
   budgetTier: "STANDARD",
   targetBudgetKrw: 3000000,

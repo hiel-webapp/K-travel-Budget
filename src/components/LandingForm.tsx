@@ -74,29 +74,23 @@ function StaticLandingForm({ dict }: { dict: Dictionary }) {
   return (
     <div className="w-full flex flex-col items-center opacity-70 pointer-events-none">
       <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-6 md:p-10 shadow-xs">
-        <div className="text-center text-[20px] md:text-[26px] font-semibold leading-[1.75] tracking-[-0.015em] text-[#1d1d1f] mb-8">
-          <div className="flex flex-wrap justify-center items-center gap-y-3 gap-x-2">
-            <span>I&apos;m planning a</span>
-            <div className="inline-flex items-center gap-1 border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
-              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">🗓️ Select Nights ▾</span>
-            </div>
-            <span>trip for</span>
-            <div className="relative inline-block border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
-              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">👥 Select Travelers ▾</span>
-            </div>
-            <span>to</span>
-            <div className="relative inline-block border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
-              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">📍 Select Destinations ▾</span>
-            </div>
-            <span>with a</span>
-            <div className="relative inline-block border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
-              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">💎 Select Budget ▾</span>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
+            <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
+          </div>
+          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
+            <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
+          </div>
+          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
+            <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
+          </div>
+          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
+            <span className="text-[15px] font-bold text-[#1d1d1f]">💎 4단계: 예산 스타일 선택</span>
           </div>
         </div>
 
         <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] flex items-center justify-center">
-          💡 4가지 필수 여행 정보(기간, 인원, 목적지, 예산)를 모두 선택해 주세요.
+          💡 여행 정보(기간, 인원, 목적지, 예산)를 선택해 주세요.
         </div>
 
         <div className="flex flex-col items-center gap-3">
@@ -306,299 +300,181 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       {/* Container Card */}
       <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-5 sm:p-8 md:p-10 shadow-xs transition-shadow duration-300">
 
-        {/* ================= DESKTOP UI: 감성적인 자연어 문장형 (sm 이상) ================= */}
+        {/* ================= DESKTOP UI: 4단계 진행형 카드리포트 레이아웃 (sm 이상) ================= */}
         <div className="hidden sm:block mb-8">
-          {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0 || budgetTier !== null) && (
-            <div className="flex justify-end mb-2">
+          <div className="flex items-center justify-between mb-6 px-1">
+            <div>
+              <h2 className="text-xl md:text-2xl font-extrabold text-[#1d1d1f]">내 한국 여행 예산 만들기</h2>
+              <p className="text-xs text-[#666b73] mt-1">아래 4개 단계를 선택하여 나만의 맞춤 한국 여행 예산을 구성해 보세요.</p>
+            </div>
+            {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0 || budgetTier !== null) && (
               <button
                 type="button"
                 onClick={handleResetDraft}
-                className="text-xs font-semibold text-slate-500 hover:text-[#b93829] flex items-center gap-1 transition-colors cursor-pointer bg-slate-100 hover:bg-red-50 px-3 py-1 rounded-full border border-slate-200"
+                className="text-xs font-semibold text-slate-500 hover:text-[#b93829] flex items-center gap-1 transition-colors cursor-pointer bg-slate-100 hover:bg-red-50 px-3.5 py-1.5 rounded-full border border-slate-200"
               >
                 <span>↺</span>
                 <span>일정 초기화</span>
               </button>
-            </div>
-          )}
-          <div className="text-center text-[22px] md:text-[26px] font-semibold leading-[1.75] tracking-[-0.015em] text-[#1d1d1f]">
-            <div className="flex flex-wrap justify-center items-center gap-y-4 gap-x-2">
-            <span>I&apos;m planning a</span>
+            )}
+          </div>
 
-            {/* Field 1: Total Nights Stepper / Popover */}
-            <div className="relative inline-block" ref={nightsDropdownRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsNightsDropdownOpen((prev) => !prev);
-                  setIsAdultsDropdownOpen(false);
-                  setIsCityDropdownOpen(false);
-                  setIsBudgetDropdownOpen(false);
-                }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
-                  totalNights !== null
-                    ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
-                    : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
-                }`}
-                aria-label="Select nights"
-              >
-                <span>{totalNights !== null ? `${totalNights}-night` : "🗓️ Select Nights"}</span>
-                <span className="text-[10px] text-[#b93829] select-none ml-0.5">▼</span>
-              </button>
-
-              {isNightsDropdownOpen && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 bg-[#faf9f7] border border-[#dedede] rounded-[18px] p-5 shadow-2xl z-50 text-left space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
-                    <span className="text-xs font-bold text-[#b93829]">
-                      {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
-                    <button
-                      type="button"
-                      onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
-                      disabled={(totalNights || 1) <= 1}
-                      aria-label="Decrease nights"
-                      className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
-                    >
-                      -
-                    </button>
-                    <div className="text-center">
-                      <span className="font-extrabold text-[#1d1d1f] text-[17px] block">
-                        {totalNights !== null ? `${totalNights} Nights` : "기간 선택"}
-                      </span>
-                      <span className="text-[11px] text-[#666b73]">
-                        {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "박수 선택"}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
-                      disabled={(totalNights || 0) >= 14}
-                      aria-label="Increase nights"
-                      className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <div className="pt-1">
-                    <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[3, 5, 7, 10].map((preset) => (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => {
-                            handleNightsChange(preset);
-                            setIsNightsDropdownOpen(false);
-                          }}
-                          className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                            totalNights === preset
-                              ? "bg-[#b93829] border-[#b93829] text-white"
-                              : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
-                          }`}
-                        >
-                          {preset}박
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <span>trip for</span>
-
-            {/* Field 2: Travelers Selector Popover */}
-            <div className="relative inline-block" ref={adultsDropdownRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAdultsDropdownOpen((prev) => !prev);
-                  setIsNightsDropdownOpen(false);
-                  setIsCityDropdownOpen(false);
-                  setIsBudgetDropdownOpen(false);
-                }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
-                  adultCount !== null
-                    ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
-                    : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
-                }`}
-                aria-label="Number of travelers"
-              >
-                <span>{adultCount !== null ? `${adultCount} ${adultCount === 1 ? "person" : "people"}` : "👥 Select Travelers"}</span>
-                <span className="text-[10px] text-[#b93829] select-none ml-0.5">▼</span>
-              </button>
-
-              {isAdultsDropdownOpen && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-[#faf9f7] border border-[#dedede] rounded-[18px] p-5 shadow-2xl z-50 text-left space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
-                    {adultCount !== null && <span className="text-xs font-bold text-[#b93829]">{adultCount}명 선택됨</span>}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {[
-                      { count: 1, label: "1명 (나홀로 여행)" },
-                      { count: 2, label: "2명 (커플/친구)" },
-                      { count: 3, label: "3명 (소규모 그룹)" },
-                      { count: 4, label: "4명 (가족/그룹)" },
-                    ].map((item) => {
-                      const isSelected = adultCount === item.count;
-                      return (
-                        <button
-                          key={item.count}
-                          type="button"
-                          onClick={() => {
-                            handleAdultsChange(item.count);
-                            setIsAdultsDropdownOpen(false);
-                          }}
-                          className={`p-3 rounded-[12px] border text-left transition-all cursor-pointer flex items-center justify-between ${
-                            isSelected
-                              ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                              : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                          }`}
-                        >
-                          <span className="text-xs">{item.label}</span>
-                          {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <span>to</span>
-
-            {/* Field 3: Cities Selector Popover */}
-            <div className="relative inline-block" ref={cityDropdownRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsCityDropdownOpen((prev) => !prev);
-                  setIsNightsDropdownOpen(false);
-                  setIsAdultsDropdownOpen(false);
-                  setIsBudgetDropdownOpen(false);
-                }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
-                  draft.selectedCities.length > 0
-                    ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
-                    : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
-                }`}
-                aria-expanded={isCityDropdownOpen}
-                aria-label="Destination cities"
-              >
-                <span>{draft.selectedCities.length > 0 ? getCitiesSentenceLabel(draft.selectedCities) : "📍 Select Destinations"}</span>
-                <span className="text-[10px] text-[#b93829] select-none ml-0.5">▼</span>
-              </button>
-
-              {isCityDropdownOpen && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-80 bg-[#faf9f7] border border-[#dedede] rounded-[18px] p-5 shadow-2xl z-50 text-left space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
-                    <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {ALL_CITY_OPTIONS.map((cityOpt) => {
-                      const isSelected = draft.selectedCities.includes(cityOpt.key);
-                      return (
-                        <button
-                          key={cityOpt.key}
-                          type="button"
-                          onClick={() => toggleCitySelection(cityOpt.key)}
-                          className={`min-h-[44px] px-2 py-2 rounded-[12px] border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
-                            isSelected
-                              ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                              : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                          }`}
-                        >
-                          {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                          <span>{locale === "ko" ? cityOpt.nameKo : cityOpt.nameEn}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <span>{budgetTier ? BUDGET_TENSE_MAP[budgetTier].pre : "with a"}</span>
-
-            {/* Field 4: Budget Tier Selector Popover */}
-            <div className="relative inline-block" ref={budgetDropdownRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsBudgetDropdownOpen((prev) => !prev);
-                  setIsNightsDropdownOpen(false);
-                  setIsAdultsDropdownOpen(false);
-                  setIsCityDropdownOpen(false);
-                }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
-                  budgetTier !== null
-                    ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
-                    : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
-                }`}
-                aria-label="Budget tier"
-              >
-                <span>
-                  {budgetTier !== null
-                    ? budgetTier === "BUDGET"
-                      ? "Budget"
-                      : budgetTier === "STANDARD"
-                      ? "Standard"
-                      : "Premium"
-                    : "💎 Select Budget"}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Step 1 Card: 🗓️ 여행 기간 */}
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
+                <span className="text-xs font-extrabold text-[#b93829]">
+                  {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
                 </span>
-                <span className="text-[10px] text-[#b93829] select-none ml-0.5">▼</span>
-              </button>
-
-              {isBudgetDropdownOpen && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-[#faf9f7] border border-[#dedede] rounded-[18px] p-5 shadow-2xl z-50 text-left space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[14px] font-bold text-[#1d1d1f]">💎 4단계: 예산 스타일 선택</span>
-                    {budgetTier !== null && <span className="text-xs font-bold text-[#b93829]">{budgetTier}</span>}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { key: "BUDGET", label: "Budget", desc: "실속형" },
-                      { key: "STANDARD", label: "Standard", desc: "일반형" },
-                      { key: "PREMIUM", label: "Premium", desc: "프리미엄" },
-                    ].map((tierOpt) => {
-                      const isSelected = budgetTier === tierOpt.key;
-                      return (
-                        <button
-                          key={tierOpt.key}
-                          type="button"
-                          onClick={() => {
-                            handleBudgetChange(tierOpt.key as BudgetTier);
-                            setIsBudgetDropdownOpen(false);
-                          }}
-                          className={`min-h-[52px] p-2 rounded-[12px] border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
-                            isSelected
-                              ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                              : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                          }`}
-                        >
-                          <div className="flex items-center gap-1">
-                            {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                            <span className="text-[13px]">{tierOpt.label}</span>
-                          </div>
-                          <span className="text-[10px] text-[#666b73] font-normal">{tierOpt.desc}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+              </div>
+              <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
+                <button
+                  type="button"
+                  onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
+                  disabled={(totalNights || 1) <= 1}
+                  aria-label="Decrease nights"
+                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                >
+                  -
+                </button>
+                <div className="text-center">
+                  <span className="font-extrabold text-[#1d1d1f] text-[18px] block">
+                    {totalNights !== null ? `${totalNights} Nights` : "기간 선택"}
+                  </span>
+                  <span className="text-xs text-[#666b73]">
+                    {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "아래 버튼을 눌러 박수 선택"}
+                  </span>
                 </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
+                  disabled={(totalNights || 0) >= 14}
+                  aria-label="Increase nights"
+                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="pt-1">
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[3, 5, 7, 10].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => handleNightsChange(preset)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                        totalNights === preset
+                          ? "bg-[#b93829] border-[#b93829] text-white"
+                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                      }`}
+                    >
+                      {preset}박
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <span>{budgetTier ? BUDGET_TENSE_MAP[budgetTier].post : "budget."}</span>
+            {/* Step 2 Card: 👥 여행 인원 */}
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
+                {adultCount !== null && <span className="text-xs font-bold text-[#b93829]">{adultCount}명 선택됨</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { count: 1, label: "1명 (나홀로 여행)" },
+                  { count: 2, label: "2명 (커플/친구)" },
+                  { count: 3, label: "3명 (소규모 그룹)" },
+                  { count: 4, label: "4명 (가족/그룹)" },
+                ].map((item) => {
+                  const isSelected = adultCount === item.count;
+                  return (
+                    <button
+                      key={item.count}
+                      type="button"
+                      onClick={() => handleAdultsChange(item.count)}
+                      className={`p-3.5 rounded-[14px] border text-left transition-all cursor-pointer flex items-center justify-between ${
+                        isSelected
+                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
+                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      }`}
+                    >
+                      <span className="text-sm">{item.label}</span>
+                      {isSelected && <span className="text-[#b93829] font-bold">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 3 Card: 📍 여행 목적지 */}
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
+                <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {ALL_CITY_OPTIONS.map((cityOpt) => {
+                  const isSelected = draft.selectedCities.includes(cityOpt.key);
+                  return (
+                    <button
+                      key={cityOpt.key}
+                      type="button"
+                      onClick={() => toggleCitySelection(cityOpt.key)}
+                      className={`min-h-[46px] px-2 py-2 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
+                        isSelected
+                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
+                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      }`}
+                    >
+                      {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
+                      <span>{cityOpt.nameKo}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 4 Card: 💎 예산 스타일 */}
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">💎 4단계: 예산 스타일 선택</span>
+                {budgetTier !== null && <span className="text-xs font-bold text-[#b93829]">{budgetTier}</span>}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: "BUDGET", label: "Budget", desc: "실속형" },
+                  { key: "STANDARD", label: "Standard", desc: "일반형" },
+                  { key: "PREMIUM", label: "Premium", desc: "프리미엄" },
+                ].map((tierOpt) => {
+                  const isSelected = budgetTier === tierOpt.key;
+                  return (
+                    <button
+                      key={tierOpt.key}
+                      type="button"
+                      onClick={() => handleBudgetChange(tierOpt.key as BudgetTier)}
+                      className={`min-h-[56px] p-2 rounded-[12px] border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                        isSelected
+                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
+                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1">
+                        {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
+                        <span className="text-[14px]">{tierOpt.label}</span>
+                      </div>
+                      <span className="text-[11px] text-[#666b73] font-normal">{tierOpt.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
         {/* ================= MOBILE UI: 4단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
         <div className="block sm:hidden mb-6">

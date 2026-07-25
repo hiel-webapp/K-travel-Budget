@@ -347,6 +347,12 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
         {/* ================= MOBILE UI: 4단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
         <div className="block sm:hidden mb-6">
           
+          {validationError && (
+            <div className="text-xs text-[#ef4444] font-semibold mb-3 p-2.5 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
+              ⚠️ {validationError}
+            </div>
+          )}
+
           {/* 상단 4단계 Progress Nav */}
           <div className="mb-5">
             <div className="flex items-center justify-between text-xs font-bold text-[#666b73] mb-2 px-1">
@@ -641,7 +647,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
         </div>
 
         {/* CTA 버튼 & 안내 (데스크톱 전용) */}
-        <div className="flex flex-col items-center gap-3">
+        <div className="hidden sm:flex flex-col items-center gap-3">
           {validationError && (
             <div className="text-xs text-[#ef4444] font-semibold mb-2" aria-live="polite">
               ⚠️ {validationError}

@@ -180,13 +180,13 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
     errors.push("invalid_nights");
   }
 
-  // 2. adultCount 검증
+  // 2. adultCount 검증 (1~10명 허용)
   const adultCount = d.adultCount as number | null;
   if (
     adultCount === null ||
     typeof adultCount !== "number" ||
     adultCount < 1 ||
-    adultCount > 4
+    adultCount > 10
   ) {
     errors.push("invalid_adults");
   }

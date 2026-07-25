@@ -382,32 +382,57 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
-                {adultCount !== null && <span className="text-xs font-bold text-[#b93829]">{adultCount}명 선택됨</span>}
+                <span className="text-xs font-extrabold text-[#b93829]">
+                  {adultCount !== null ? `${adultCount}명` : "미선택"}
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { count: 1, label: "1명 (나홀로 여행)" },
-                  { count: 2, label: "2명 (커플/친구)" },
-                  { count: 3, label: "3명 (소규모 그룹)" },
-                  { count: 4, label: "4명 (가족/그룹)" },
-                ].map((item) => {
-                  const isSelected = adultCount === item.count;
-                  return (
+              <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
+                <button
+                  type="button"
+                  onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))}
+                  disabled={(adultCount || 1) <= 1}
+                  aria-label="Decrease travelers"
+                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                >
+                  -
+                </button>
+                <div className="text-center">
+                  <span className="font-extrabold text-[#1d1d1f] text-[18px] block">
+                    {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
+                  </span>
+                  <span className="text-xs text-[#666b73]">
+                    {adultCount !== null ? `${adultCount}명의 한국 여행` : "아래 버튼을 눌러 인원 선택 (최대 10명)"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))}
+                  disabled={(adultCount || 0) >= 10}
+                  aria-label="Increase travelers"
+                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
+
+              <div className="pt-1">
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 인원 빠른 선택:</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((countPreset) => (
                     <button
-                      key={item.count}
+                      key={countPreset}
                       type="button"
-                      onClick={() => handleAdultsChange(item.count)}
-                      className={`p-3.5 rounded-[14px] border text-left transition-all cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      onClick={() => handleAdultsChange(countPreset)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        adultCount === countPreset
+                          ? "bg-[#b93829] border-[#b93829] text-white"
+                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
                       }`}
                     >
-                      <span className="text-sm">{item.label}</span>
-                      {isSelected && <span className="text-[#b93829] font-bold">✓</span>}
+                      {countPreset}명
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -581,32 +606,58 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
-                <span className="text-xs text-[#666b73]">선택 시 자동 다음 이동</span>
+                <span className="text-xs font-extrabold text-[#b93829]">
+                  {adultCount !== null ? `${adultCount}명` : "미선택"}
+                </span>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { count: 1, label: "1명 (나홀로 여행)" },
-                  { count: 2, label: "2명 (커플/친구)" },
-                  { count: 3, label: "3명 (소규모 그룹)" },
-                  { count: 4, label: "4명 (가족/그룹)" },
-                ].map((item) => {
-                  const isSelected = adultCount === item.count;
-                  return (
+              <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
+                <button
+                  type="button"
+                  onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))}
+                  disabled={(adultCount || 1) <= 1}
+                  aria-label="Decrease travelers"
+                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
+                >
+                  -
+                </button>
+                <div className="text-center">
+                  <span className="font-extrabold text-[#1d1d1f] text-xl block">
+                    {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
+                  </span>
+                  <span className="text-xs text-[#666b73]">
+                    {adultCount !== null ? `${adultCount}명의 한국 여행` : "아래 버튼을 눌러 인원 선택 (최대 10명)"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))}
+                  disabled={(adultCount || 0) >= 10}
+                  aria-label="Increase travelers"
+                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Quick Select Preset Chips */}
+              <div className="pt-1">
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 인원 빠른 선택:</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((countPreset) => (
                     <button
-                      key={item.count}
+                      key={countPreset}
                       type="button"
-                      onClick={() => handleAdultsChange(item.count)}
-                      className={`p-3.5 rounded-[14px] border text-left transition-all cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      onClick={() => handleAdultsChange(countPreset)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        adultCount === countPreset
+                          ? "bg-[#b93829] border-[#b93829] text-white"
+                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
                       }`}
                     >
-                      <span className="text-sm">{item.label}</span>
-                      {isSelected && <span className="text-[#b93829] font-bold">✓</span>}
+                      {countPreset}명
                     </button>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </div>
           )}

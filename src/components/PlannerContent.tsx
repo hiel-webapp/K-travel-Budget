@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES } from "../lib/trip-domain";
+import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
 
 import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
@@ -61,6 +61,19 @@ export default function PlannerContent({ locale, dict }: PlannerContentProps) {
   return <HydratedPlannerContent locale={locale} dict={dict} />;
 }
 
+const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[] = [
+  { key: "SEOUL", nameKo: "서울", nameEn: "Seoul" },
+  { key: "BUSAN", nameKo: "부산", nameEn: "Busan" },
+  { key: "JEJU", nameKo: "제주", nameEn: "Jeju" },
+  { key: "INCHEON", nameKo: "인천", nameEn: "Incheon" },
+  { key: "GYEONGJU", nameKo: "경주", nameEn: "Gyeongju" },
+  { key: "JEONJU", nameKo: "전주", nameEn: "Jeonju" },
+  { key: "GANGNEUNG", nameKo: "강릉", nameEn: "Gangneung" },
+  { key: "SUWON", nameKo: "수원", nameEn: "Suwon" },
+  { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
+  { key: "SOKCHO", nameKo: "속초", nameEn: "Sokcho" },
+];
+
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
   const [state, setState] = useState<PlannerState>(() => {
@@ -112,6 +125,86 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [saveTitle, setSaveTitle] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
+
+  // 여행 조건 수정 팝오버 모달 상태
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editTab, setEditTab] = useState<"NIGHTS" | "ADULTS" | "CITIES">("NIGHTS");
+  const [editDraft, setEditDraft] = useState<TripDraft | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  const handleModalNightsChange = (newNights: number) => {
+    if (!editDraft) return;
+    const newAllocations = calculateDefaultNightAllocation(editDraft.selectedCities, newNights);
+    setEditDraft({
+      ...editDraft,
+      totalNights: newNights,
+      cityNightAllocations: newAllocations,
+    });
+  };
+
+  const handleModalAdultsChange = (newAdults: number) => {
+    if (!editDraft) return;
+    setEditDraft({
+      ...editDraft,
+      adultCount: newAdults,
+    });
+  };
+
+  const handleModalToggleCity = (cityCode: SupportedCity) => {
+    if (!editDraft) return;
+    let nextCities: SupportedCity[];
+    if (editDraft.selectedCities.includes(cityCode)) {
+      nextCities = editDraft.selectedCities.filter((c) => c !== cityCode);
+    } else {
+      if (editDraft.selectedCities.length >= 4) return;
+      nextCities = [...editDraft.selectedCities, cityCode];
+    }
+    const newAllocations = calculateDefaultNightAllocation(nextCities, editDraft.totalNights);
+    setEditDraft({
+      ...editDraft,
+      selectedCities: nextCities,
+      cityNightAllocations: newAllocations,
+    });
+  };
+
+  const handleApplyTripDetailsEdit = () => {
+    if (!editDraft) return;
+    setEditError(null);
+
+    const validation = validateTripDraft(editDraft);
+    if (!validation.success) {
+      const firstError = validation.errors[0];
+      let errMsg = "여행 정보를 올바르게 입력해 주세요.";
+      if (firstError === "invalid_nights") errMsg = "여행 기간은 1박~14박 사이로 설정해 주세요.";
+      if (firstError === "invalid_adults") errMsg = "여행 인원은 1명~10명 사이로 설정해 주세요.";
+      if (firstError === "invalid_cities_count" || firstError === "invalid_city") errMsg = "여행 목적지는 최소 1곳 이상 선택해 주세요.";
+      setEditError(errMsg);
+      return;
+    }
+
+    saveTripDraft(editDraft);
+    if (state.status === "ready") {
+      savePlannerPreferences({
+        accommodationByCity: state.preferences.accommodationByCity,
+        foodOverrides: state.preferences.foodOverrides,
+        foodAddOnOverrides: state.preferences.addOnSelections,
+        attractionByCity: state.preferences.attractionByCity,
+        draft: editDraft,
+      });
+    }
+
+    setState((prev) => {
+      if (prev.status !== "ready") return prev;
+      return {
+        ...prev,
+        draft: editDraft,
+      };
+    });
+
+    setIsEditModalOpen(false);
+    setToastMessage("여행 조건이 반영되어 예산이 실시간 재계산되었습니다.");
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
@@ -693,12 +786,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </span>
               </div>
 
-              <Link
-                href={`/${locale}`}
-                className="text-xs font-bold text-[#e25c5c] hover:underline focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1"
+              <button
+                type="button"
+                onClick={() => {
+                  setEditDraft(draft);
+                  setEditTab("NIGHTS");
+                  setEditError(null);
+                  setIsEditModalOpen(true);
+                }}
+                className="text-xs font-bold text-[#e25c5c] hover:underline hover:text-[#d14b4b] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1 flex items-center gap-1 transition-colors"
               >
-                {dict.planner.editTripDetails} {" \u2192"}
-              </Link>
+                <span>{dict.planner.editTripDetails}</span>
+                <span>→</span>
+              </button>
             </div>
 
             {/* Interactive Budget Tier Selector Switch */}
@@ -1502,6 +1602,253 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ================= ✈️ 여행 조건 수정 탭 분리형 스마트 팝오버 모달 ================= */}
+      {isEditModalOpen && editDraft && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-[#faf9f7]">
+              <div>
+                <h3 className="text-lg font-extrabold text-[#0f172a]">✈️ 여행 조건 수정</h3>
+                <p className="text-xs text-slate-500 mt-0.5">기간, 인원, 목적지를 수정한 후 적용하여 실시간 예산을 재계산하세요.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                aria-label="닫기"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Tab Bar */}
+            <div className="flex border-b border-slate-200 bg-slate-50 p-1.5 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setEditTab("NIGHTS")}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                  editTab === "NIGHTS"
+                    ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                🗓️ 기간 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setEditTab("ADULTS")}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                  editTab === "ADULTS"
+                    ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                👥 인원 ({editDraft.adultCount ? `${editDraft.adultCount}명` : "미선택"})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setEditTab("CITIES")}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                  editTab === "CITIES"
+                    ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                📍 목적지 ({editDraft.selectedCities.length}곳)
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 overflow-y-auto flex-1 bg-white">
+              {editError && (
+                <div className="text-xs text-[#ef4444] font-semibold p-2.5 bg-red-50 border border-red-200 rounded-xl text-center">
+                  ⚠️ {editError}
+                </div>
+              )}
+
+              {/* Tab 1: 🗓️ 여행 기간 설정 */}
+              {editTab === "NIGHTS" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span>여행 기간 설정 (1박 ~ 14박)</span>
+                    <span className="text-[#e25c5c]">
+                      {editDraft.totalNights !== null ? `${editDraft.totalNights}박 ${editDraft.totalNights + 1}일` : "미선택"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2 bg-[#faf9f7] p-3 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => handleModalNightsChange(Math.max(1, (editDraft.totalNights || 5) - 1))}
+                      disabled={(editDraft.totalNights || 1) <= 1}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <div className="text-center">
+                      <span className="font-extrabold text-slate-900 text-lg block">
+                        {editDraft.totalNights !== null ? `${editDraft.totalNights} Nights` : "기간 선택"}
+                      </span>
+                      <span className="text-xs text-slate-500 block">
+                        {editDraft.totalNights !== null ? `${editDraft.totalNights + 1}일간의 한국 여행` : "박수 선택"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleModalNightsChange(Math.min(14, (editDraft.totalNights || 0) + 1))}
+                      disabled={(editDraft.totalNights || 0) >= 14}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div>
+                    <span className="text-xs font-semibold text-slate-500 block mb-2">자주 찾는 일정 빠른 선택:</span>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[3, 5, 7, 10].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => handleModalNightsChange(preset)}
+                          className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                            editDraft.totalNights === preset
+                              ? "bg-[#e25c5c] border-[#e25c5c] text-white"
+                              : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
+                          }`}
+                        >
+                          {preset}박
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 2: 👥 여행 인원 선택 */}
+              {editTab === "ADULTS" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span>여행 인원 선택 (최대 10명)</span>
+                    <span className="text-[#e25c5c]">
+                      {editDraft.adultCount !== null ? `${editDraft.adultCount}명` : "미선택"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2 bg-[#faf9f7] p-3 rounded-xl border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => handleModalAdultsChange(Math.max(1, (editDraft.adultCount || 2) - 1))}
+                      disabled={(editDraft.adultCount || 1) <= 1}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <div className="text-center">
+                      <span className="font-extrabold text-slate-900 text-lg block">
+                        {editDraft.adultCount !== null ? `${editDraft.adultCount} ${editDraft.adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
+                      </span>
+                      <span className="text-xs text-slate-500 block">
+                        {editDraft.adultCount !== null ? `${editDraft.adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleModalAdultsChange(Math.min(10, (editDraft.adultCount || 0) + 1))}
+                      disabled={(editDraft.adultCount || 0) >= 10}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <div>
+                    <span className="text-xs font-semibold text-slate-500 block mb-2">자주 찾는 인원 빠른 선택:</span>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[1, 2, 3, 4].map((preset) => (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() => handleModalAdultsChange(preset)}
+                          className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                            editDraft.adultCount === preset
+                              ? "bg-[#e25c5c] border-[#e25c5c] text-white"
+                              : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
+                          }`}
+                        >
+                          {preset}명
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 3: 📍 여행 목적지 선택 */}
+              {editTab === "CITIES" && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <span>여행 목적지 선택 (최대 4곳)</span>
+                    <span className="text-[#e25c5c]">다중 선택 ({editDraft.selectedCities.length}/4)</span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {ALL_CITY_OPTIONS.map((cityOpt) => {
+                      const isSelected = editDraft.selectedCities.includes(cityOpt.key);
+                      return (
+                        <button
+                          key={cityOpt.key}
+                          type="button"
+                          onClick={() => handleModalToggleCity(cityOpt.key)}
+                          className={`min-h-[44px] px-2 py-2 rounded-xl border text-xs transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
+                            isSelected
+                              ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-slate-900 font-bold shadow-2xs"
+                              : "bg-white border-slate-200 text-slate-600 font-semibold hover:border-slate-300"
+                          }`}
+                        >
+                          {isSelected && <span className="text-[#e25c5c] font-bold">✓</span>}
+                          <span>{cityOpt.nameKo}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 bg-[#faf9f7] flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setEditDraft(draft)}
+                className="text-xs font-semibold text-slate-500 hover:text-[#e25c5c] flex items-center gap-1 cursor-pointer bg-white px-3 py-2 rounded-xl border border-slate-200 transition-colors"
+              >
+                <span>↺ 초기화</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyTripDetailsEdit}
+                  className="px-5 py-2 text-xs font-bold text-white bg-[#e25c5c] hover:bg-[#d14b4b] rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  변경사항 적용하기
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

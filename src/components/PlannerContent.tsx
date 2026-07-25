@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, SupportedCity, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES } from "../lib/trip-domain";
-import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
+import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES } from "../lib/trip-domain";
+import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
 
 import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
@@ -293,6 +293,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     } else {
       setSaveError(true);
     }
+  };
+
+  const handleBudgetTierChange = (newTier: BudgetTier) => {
+    const nextDraft: TripDraft = {
+      ...draft,
+      budgetTier: newTier,
+    };
+    saveTripDraft(nextDraft);
+    setState((prev) => {
+      if (prev.status !== "ready") return prev;
+      return {
+        ...prev,
+        draft: nextDraft,
+      };
+    });
   };
 
   const handleResetStay = (cityTarget: SupportedCity) => {
@@ -684,6 +699,38 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               >
                 {dict.planner.editTripDetails} {" \u2192"}
               </Link>
+            </div>
+
+            {/* Interactive Budget Tier Selector Switch */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-600">💎 예산 스타일 1초 비교/전환:</span>
+                <span className="text-[11px] text-[#e25c5c] font-semibold">선택 시 전체 예산 즉시 재계산</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: "BUDGET", label: "💡 실속형", desc: "Budget" },
+                  { key: "STANDARD", label: "⭐️ 일반형", desc: "Standard" },
+                  { key: "PREMIUM", label: "👑 프리미엄", desc: "Premium" },
+                ].map((tierOpt) => {
+                  const isSelected = (draft.budgetTier || "STANDARD") === tierOpt.key;
+                  return (
+                    <button
+                      key={tierOpt.key}
+                      type="button"
+                      onClick={() => handleBudgetTierChange(tierOpt.key as BudgetTier)}
+                      className={`py-2 px-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                        isSelected
+                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-bold shadow-2xs"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                      }`}
+                    >
+                      <span className="text-xs font-bold">{tierOpt.label}</span>
+                      <span className="text-[10px] text-slate-400 font-normal">{tierOpt.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

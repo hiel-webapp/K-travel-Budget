@@ -74,7 +74,7 @@ function StaticLandingForm({ dict }: { dict: Dictionary }) {
   return (
     <div className="w-full flex flex-col items-center opacity-70 pointer-events-none">
       <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-6 md:p-10 shadow-xs">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
           <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
             <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
           </div>
@@ -84,20 +84,16 @@ function StaticLandingForm({ dict }: { dict: Dictionary }) {
           <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
             <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
           </div>
-          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
-            <span className="text-[15px] font-bold text-[#1d1d1f]">💎 4단계: 예산 스타일 선택</span>
-          </div>
         </div>
 
         <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] flex items-center justify-center">
-          💡 여행 정보(기간, 인원, 목적지, 예산)를 선택해 주세요.
+          💡 여행 정보(기간, 인원, 목적지)를 선택해 주세요.
         </div>
 
         <div className="flex flex-col items-center gap-3">
           <button disabled className="w-full sm:w-auto min-h-[52px] md:min-h-[56px] px-10 rounded-[14px] bg-slate-200 text-slate-400 font-bold text-[17px] md:text-[18px] cursor-not-allowed border border-slate-300">
             {dict.landing.cta}
           </button>
-          <span className="text-[14px] text-[#666b73] font-normal">{dict.landing.helper}</span>
         </div>
       </div>
     </div>
@@ -112,20 +108,18 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
   const [initialData] = useState(() => loadActiveDraft());
   const [draft, setDraft] = useState<TripDraft>(initialData.draft);
-  const [mobileStep, setMobileStep] = useState<1 | 2 | 3 | 4>(
-    (initialData.mobileStep as 1 | 2 | 3 | 4) || 1
+  const [mobileStep, setMobileStep] = useState<1 | 2 | 3>(
+    (initialData.mobileStep as 1 | 2 | 3) || 1
   );
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const totalNights = draft.totalNights;
   const adultCount = draft.adultCount;
-  const budgetTier = draft.budgetTier;
 
   const isFormComplete =
     totalNights !== null &&
     adultCount !== null &&
-    draft.selectedCities.length >= 1 &&
-    budgetTier !== null;
+    draft.selectedCities.length >= 1;
 
   // 실시간 입력 정보 자동 보존 (새로고침 및 메인 이동 시에도 보존)
   useEffect(() => {
@@ -138,35 +132,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     setMobileStep(1);
     setValidationError(null);
   };
-
-  const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
-  const [isAdultsDropdownOpen, setIsAdultsDropdownOpen] = useState(false);
-  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
-  const [isBudgetDropdownOpen, setIsBudgetDropdownOpen] = useState(false);
-
-  const nightsDropdownRef = useRef<HTMLDivElement>(null);
-  const adultsDropdownRef = useRef<HTMLDivElement>(null);
-  const cityDropdownRef = useRef<HTMLDivElement>(null);
-  const budgetDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
-        setIsCityDropdownOpen(false);
-      }
-      if (nightsDropdownRef.current && !nightsDropdownRef.current.contains(event.target as Node)) {
-        setIsNightsDropdownOpen(false);
-      }
-      if (adultsDropdownRef.current && !adultsDropdownRef.current.contains(event.target as Node)) {
-        setIsAdultsDropdownOpen(false);
-      }
-      if (budgetDropdownRef.current && !budgetDropdownRef.current.contains(event.target as Node)) {
-        setIsBudgetDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleNightsChange = (newNights: number) => {
     const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
@@ -201,17 +166,9 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     }));
   };
 
-  const handleBudgetChange = (tier: BudgetTier) => {
-    setDraft((prev) => ({
-      ...prev,
-      budgetTier: tier,
-    }));
-  };
-
   const getAllocationSummaryText = () => {
     const parts: string[] = [];
 
-    // 1. 기간
     if (draft.totalNights !== null && draft.totalNights > 0) {
       parts.push(
         locale === "ko"
@@ -220,7 +177,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       );
     }
 
-    // 2. 인원
     if (draft.adultCount !== null && draft.adultCount > 0) {
       parts.push(
         locale === "ko"
@@ -229,7 +185,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       );
     }
 
-    // 3. 목적지
     if (draft.selectedCities && draft.selectedCities.length > 0) {
       if (locale === "ko") {
         const cityNames = draft.selectedCities.map((c) => CITY_KOREAN_NAMES[c] || c);
@@ -239,23 +194,10 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       }
     }
 
-    // 4. 예산 스타일
-    if (draft.budgetTier) {
-      const tierMap: Record<BudgetTier, { ko: string; en: string }> = {
-        BUDGET: { ko: "실속형", en: "Budget Tier" },
-        STANDARD: { ko: "일반형", en: "Standard Tier" },
-        PREMIUM: { ko: "프리미엄", en: "Premium Tier" },
-      };
-      const t = tierMap[draft.budgetTier];
-      if (t) {
-        parts.push(locale === "ko" ? t.ko : t.en);
-      }
-    }
-
     if (parts.length === 0) {
       return locale === "ko"
-        ? "💡 여행 정보(기간, 인원, 목적지, 예산)를 선택해 주세요."
-        : "💡 Select your trip options (nights, travelers, destinations, budget).";
+        ? "💡 3가지 필수 여행 정보(기간, 인원, 목적지)를 선택해 주세요."
+        : "💡 Select your trip options (nights, travelers, destinations).";
     }
 
     return `💡 ${parts.join(" · ")}`;
@@ -265,27 +207,31 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     e.preventDefault();
     setValidationError(null);
 
-    const validation = validateTripDraft(draft);
+    const draftToSave: TripDraft = {
+      ...draft,
+      budgetTier: draft.budgetTier || "STANDARD",
+    };
+
+    const validation = validateTripDraft(draftToSave);
     if (!validation.success) {
       const firstError = validation.errors[0];
       let errMsg = dict.landing.validation.saveFailed;
       if (firstError === "invalid_nights") errMsg = dict.landing.validation.invalidNights;
       if (firstError === "invalid_adults") errMsg = dict.landing.validation.invalidAdults;
       if (firstError === "invalid_cities_count" || firstError === "invalid_city") errMsg = dict.landing.validation.noCities;
-      if (firstError === "invalid_budget_tier") errMsg = "예산 스타일을 선택해 주세요.";
 
       setValidationError(errMsg);
       return;
     }
 
-    const saved = saveTripDraft(draft);
+    const saved = saveTripDraft(draftToSave);
     if (!saved) {
       setValidationError(dict.landing.validation.saveFailed);
       return;
     }
 
     savePlannerPreferences({
-      draft,
+      draft: draftToSave,
       accommodationByCity: {},
       foodOverrides: {},
       foodAddOnOverrides: {},
@@ -297,17 +243,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
-      {/* Container Card */}
       <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-5 sm:p-8 md:p-10 shadow-xs transition-shadow duration-300">
 
-        {/* ================= DESKTOP UI: 4단계 진행형 카드리포트 레이아웃 (sm 이상) ================= */}
         <div className="hidden sm:block mb-8">
           <div className="flex items-center justify-between mb-6 px-1">
             <div>
               <h2 className="text-xl md:text-2xl font-extrabold text-[#1d1d1f]">내 한국 여행 예산 만들기</h2>
-              <p className="text-xs text-[#666b73] mt-1">아래 4개 단계를 선택하여 나만의 맞춤 한국 여행 예산을 구성해 보세요.</p>
+              <p className="text-xs text-[#666b73] mt-1">아래 3개 단계를 선택하여 나만의 맞춤 한국 여행 예산을 구성해 보세요.</p>
             </div>
-            {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0 || budgetTier !== null) && (
+            {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
               <button
                 type="button"
                 onClick={handleResetDraft}
@@ -319,8 +263,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Step 1 Card: 🗓️ 여행 기간 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
@@ -328,22 +271,22 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
+              <div className="flex items-center justify-between gap-2 bg-white p-3 rounded-[14px] border border-[#dedede]">
                 <button
                   type="button"
                   onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
                   disabled={(totalNights || 1) <= 1}
                   aria-label="Decrease nights"
-                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
                 >
                   -
                 </button>
                 <div className="text-center">
-                  <span className="font-extrabold text-[#1d1d1f] text-[18px] block">
+                  <span className="font-extrabold text-[#1d1d1f] text-[17px] block">
                     {totalNights !== null ? `${totalNights} Nights` : "기간 선택"}
                   </span>
-                  <span className="text-xs text-[#666b73]">
-                    {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "아래 버튼을 눌러 박수 선택"}
+                  <span className="text-[11px] text-[#666b73]">
+                    {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "박수 선택"}
                   </span>
                 </div>
                 <button
@@ -351,7 +294,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
                   disabled={(totalNights || 0) >= 14}
                   aria-label="Increase nights"
-                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
                 >
                   +
                 </button>
@@ -359,13 +302,13 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
               <div className="pt-1">
                 <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-1.5">
                   {[3, 5, 7, 10].map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => handleNightsChange(preset)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                      className={`py-1.5 rounded-xl text-xs font-bold border transition-all ${
                         totalNights === preset
                           ? "bg-[#b93829] border-[#b93829] text-white"
                           : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
@@ -378,7 +321,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
             </div>
 
-            {/* Step 2 Card: 👥 여행 인원 */}
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
@@ -386,22 +328,22 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   {adultCount !== null ? `${adultCount}명` : "미선택"}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
+              <div className="flex items-center justify-between gap-2 bg-white p-3 rounded-[14px] border border-[#dedede]">
                 <button
                   type="button"
                   onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))}
                   disabled={(adultCount || 1) <= 1}
                   aria-label="Decrease travelers"
-                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
                 >
                   -
                 </button>
                 <div className="text-center">
-                  <span className="font-extrabold text-[#1d1d1f] text-[18px] block">
+                  <span className="font-extrabold text-[#1d1d1f] text-[17px] block">
                     {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
                   </span>
-                  <span className="text-xs text-[#666b73]">
-                    {adultCount !== null ? `${adultCount}명의 한국 여행` : "아래 버튼을 눌러 인원 선택 (최대 10명)"}
+                  <span className="text-[11px] text-[#666b73]">
+                    {adultCount !== null ? `${adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}
                   </span>
                 </div>
                 <button
@@ -409,7 +351,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))}
                   disabled={(adultCount || 0) >= 10}
                   aria-label="Increase travelers"
-                  className="w-10 h-10 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
                 >
                   +
                 </button>
@@ -417,13 +359,13 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
               <div className="pt-1">
                 <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 인원 빠른 선택:</span>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-1.5">
                   {[1, 2, 3, 4].map((countPreset) => (
                     <button
                       key={countPreset}
                       type="button"
                       onClick={() => handleAdultsChange(countPreset)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                         adultCount === countPreset
                           ? "bg-[#b93829] border-[#b93829] text-white"
                           : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
@@ -436,13 +378,12 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
             </div>
 
-            {/* Step 3 Card: 📍 여행 목적지 */}
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
                 <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 {ALL_CITY_OPTIONS.map((cityOpt) => {
                   const isSelected = draft.selectedCities.includes(cityOpt.key);
                   return (
@@ -450,7 +391,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                       key={cityOpt.key}
                       type="button"
                       onClick={() => toggleCitySelection(cityOpt.key)}
-                      className={`min-h-[46px] px-2 py-2 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
+                      className={`min-h-[42px] px-1.5 py-1.5 rounded-[12px] border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
                         isSelected
                           ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
                           : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
@@ -463,65 +404,26 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 })}
               </div>
             </div>
-
-            {/* Step 4 Card: 💎 예산 스타일 */}
-            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-[#1d1d1f]">💎 4단계: 예산 스타일 선택</span>
-                {budgetTier !== null && <span className="text-xs font-bold text-[#b93829]">{budgetTier}</span>}
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { key: "BUDGET", label: "Budget", desc: "실속형" },
-                  { key: "STANDARD", label: "Standard", desc: "일반형" },
-                  { key: "PREMIUM", label: "Premium", desc: "프리미엄" },
-                ].map((tierOpt) => {
-                  const isSelected = budgetTier === tierOpt.key;
-                  return (
-                    <button
-                      key={tierOpt.key}
-                      type="button"
-                      onClick={() => handleBudgetChange(tierOpt.key as BudgetTier)}
-                      className={`min-h-[56px] p-2 rounded-[12px] border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
-                        isSelected
-                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1">
-                        {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                        <span className="text-[14px]">{tierOpt.label}</span>
-                      </div>
-                      <span className="text-[11px] text-[#666b73] font-normal">{tierOpt.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* ================= MOBILE UI: 4단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
         <div className="block sm:hidden mb-6">
-
           {validationError && (
             <div className="text-xs text-[#ef4444] font-semibold mb-3 p-2.5 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
               ⚠️ {validationError}
             </div>
           )}
 
-          {/* 상단 4단계 Progress Nav */}
           <div className="mb-5">
             <div className="flex items-center justify-between text-xs font-bold text-[#666b73] mb-2 px-1">
-              <span className="text-[#b93829] font-extrabold">{mobileStep}단계 / 4단계</span>
+              <span className="text-[#b93829] font-extrabold">{mobileStep}단계 / 3단계</span>
               <div className="flex items-center gap-2">
                 <span>
                   {mobileStep === 1 && "1. 여행 기간 설정"}
                   {mobileStep === 2 && "2. 여행 인원 선택"}
                   {mobileStep === 3 && "3. 여행 목적지 선택"}
-                  {mobileStep === 4 && "4. 예산 스타일 선택"}
                 </span>
-                {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0 || budgetTier !== null) && (
+                {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
                   <button
                     type="button"
                     onClick={handleResetDraft}
@@ -533,16 +435,14 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
             </div>
 
-            {/* Progress Bar */}
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className="h-full bg-[#b93829] transition-all duration-300 rounded-full"
-                style={{ width: `${mobileStep * 25}%` }}
+                style={{ width: `${mobileStep * 33.33}%` }}
               />
             </div>
           </div>
 
-          {/* Step 1: 🗓️ 여행 기간 (Nights Stepper) */}
           {mobileStep === 1 && (
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
@@ -552,53 +452,12 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 </span>
               </div>
               <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
-                <button
-                  type="button"
-                  onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
-                  disabled={(totalNights || 1) <= 1}
-                  aria-label="Decrease nights"
-                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
-                >
-                  -
-                </button>
+                <button type="button" onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))} disabled={(totalNights || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">-</button>
                 <div className="text-center">
-                  <span className="font-extrabold text-[#1d1d1f] text-[20px] block">
-                    {totalNights !== null ? `${totalNights} Nights` : "기간을 선택하세요"}
-                  </span>
-                  <span className="text-xs text-[#666b73]">
-                    {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "아래 버튼을 터치해 박수 선택"}
-                  </span>
+                  <span className="font-extrabold text-[#1d1d1f] text-[20px] block">{totalNights !== null ? `${totalNights} Nights` : "기간 선택"}</span>
+                  <span className="text-xs text-[#666b73]">{totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "박수 선택"}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
-                  disabled={(totalNights || 0) >= 14}
-                  aria-label="Increase nights"
-                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
-                >
-                  +
-                </button>
-              </div>
-
-              {/* Quick Select Preset Chips */}
-              <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
-                <div className="grid grid-cols-4 gap-2">
-                  {[3, 5, 7, 10].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => handleNightsChange(preset)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
-                        totalNights === preset
-                          ? "bg-[#b93829] border-[#b93829] text-white"
-                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
-                      }`}
-                    >
-                      {preset}박
-                    </button>
-                  ))}
-                </div>
+                <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
               </div>
             </div>
           )}
@@ -606,63 +465,18 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
-                <span className="text-xs font-extrabold text-[#b93829]">
-                  {adultCount !== null ? `${adultCount}명` : "미선택"}
-                </span>
+                <span className="text-xs font-extrabold text-[#b93829]">{adultCount !== null ? `${adultCount}명` : "미선택"}</span>
               </div>
               <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
-                <button
-                  type="button"
-                  onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))}
-                  disabled={(adultCount || 1) <= 1}
-                  aria-label="Decrease travelers"
-                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
-                >
-                  -
-                </button>
+                <button type="button" onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))} disabled={(adultCount || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">-</button>
                 <div className="text-center">
-                  <span className="font-extrabold text-[#1d1d1f] text-xl block">
-                    {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
-                  </span>
-                  <span className="text-xs text-[#666b73]">
-                    {adultCount !== null ? `${adultCount}명의 한국 여행` : "아래 버튼을 눌러 인원 선택 (최대 10명)"}
-                  </span>
+                  <span className="font-extrabold text-[#1d1d1f] text-xl block">{adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}</span>
+                  <span className="text-xs text-[#666b73]">{adultCount !== null ? `${adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))}
-                  disabled={(adultCount || 0) >= 10}
-                  aria-label="Increase travelers"
-                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
-                >
-                  +
-                </button>
-              </div>
-
-              {/* Quick Select Preset Chips */}
-              <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 인원 빠른 선택:</span>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4].map((countPreset) => (
-                    <button
-                      key={countPreset}
-                      type="button"
-                      onClick={() => handleAdultsChange(countPreset)}
-                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        adultCount === countPreset
-                          ? "bg-[#b93829] border-[#b93829] text-white"
-                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
-                      }`}
-                    >
-                      {countPreset}명
-                    </button>
-                  ))}
-                </div>
+                <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
               </div>
             </div>
           )}
-
-          {/* Step 3: 📍 여행 목적지 (Destinations) */}
           {mobileStep === 3 && (
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
@@ -670,73 +484,21 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
               </div>
               <div className="grid grid-cols-3 gap-2">
-                {ALL_CITY_OPTIONS.map((cityOpt) => {
-                  const isSelected = draft.selectedCities.includes(cityOpt.key);
-                  return (
-                    <button
-                      key={cityOpt.key}
-                      type="button"
-                      onClick={() => toggleCitySelection(cityOpt.key)}
-                      className={`min-h-[48px] px-2 py-2.5 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
-                        isSelected
-                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                      }`}
-                    >
-                      {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                      <span>{cityOpt.nameKo}</span>
-                    </button>
-                  );
-                })}
+                {ALL_CITY_OPTIONS.map((cityOpt) => (
+                  <button key={cityOpt.key} type="button" onClick={() => toggleCitySelection(cityOpt.key)} className={`min-h-[48px] px-2 py-2.5 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${draft.selectedCities.includes(cityOpt.key) ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs" : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"}`}>
+                    {draft.selectedCities.includes(cityOpt.key) && <span className="text-[#b93829] font-bold text-xs">✓</span>}
+                    {cityOpt.nameKo}
+                  </button>
+                ))}
               </div>
             </div>
           )}
-
-          {/* Step 4: 💎 예산 스타일 (Budget Tier Cards & Final CTA) */}
-          {mobileStep === 4 && (
-            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-[#1d1d1f]">💎 4단계: 예산 스타일 선택</span>
-                <span className="text-xs text-[#666b73]">최종 단계</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { key: "BUDGET", label: "Budget", desc: "실속형" },
-                  { key: "STANDARD", label: "Standard", desc: "일반형" },
-                  { key: "PREMIUM", label: "Premium", desc: "프리미엄" },
-                ].map((tierOpt) => {
-                  const isSelected = budgetTier === tierOpt.key;
-                  return (
-                    <button
-                      key={tierOpt.key}
-                      type="button"
-                      onClick={() => handleBudgetChange(tierOpt.key as BudgetTier)}
-                      className={`min-h-[56px] p-2 rounded-[12px] border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
-                        isSelected
-                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1">
-                        {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                        <span className="text-[14px]">{tierOpt.label}</span>
-                      </div>
-                      <span className="text-[11px] text-[#666b73] font-normal">{tierOpt.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
         </div>
 
-        {/* 도시별 숙박일 배분 요약 (데스크톱 전용) */}
         <div className="hidden sm:flex text-center text-[14px] text-[#666b73] font-medium mb-6 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] items-center justify-center">
           {getAllocationSummaryText()}
         </div>
 
-        {/* CTA 버튼 & 안내 (데스크톱 전용) */}
         <div className="hidden sm:flex flex-col items-center gap-3">
           {validationError && (
             <div className="text-xs text-[#ef4444] font-semibold mb-2" aria-live="polite">
@@ -757,54 +519,27 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           </button>
           
           <span className="text-[14px] text-[#666b73] font-normal">
-            {isFormComplete ? dict.landing.helper : "4가지 여행 항목(기간, 인원, 목적지, 예산)을 모두 선택해 주세요."}
+            {isFormComplete ? dict.landing.helper : "3가지 필수 여행 항목(기간, 인원, 목적지)을 모두 선택해 주세요."}
           </span>
         </div>
-
       </div>
 
-      {/* ================= MOBILE STICKY BOTTOM NAVIGATION BAR ================= */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf9f7]/95 backdrop-blur-md border-t border-[#dedede] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg flex flex-col gap-2">
-        {/* 모든 단계(1~4단계) 공통: 실행 버튼 바로 위 고정 요약 위치 */}
         <div className="text-center text-xs font-semibold text-slate-600 py-1.5 px-3 rounded-full bg-white border border-[#dedede] w-full truncate shadow-2xs">
           {getAllocationSummaryText()}
         </div>
 
         {mobileStep === 1 && (
-          <button
-            type="button"
-            disabled={totalNights === null}
-            onClick={() => setMobileStep(2)}
-            className={`w-full min-h-[50px] rounded-[14px] text-[16px] font-bold transition-all ${
-              totalNights !== null
-                ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
-                : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
-            }`}
-          >
-            {totalNights !== null ? "다음 단계 (2/4 인원 선택) →" : "여행 기간을 선택해 주세요"}
+          <button type="button" disabled={totalNights === null} onClick={() => setMobileStep(2)} className={`w-full min-h-[50px] rounded-[14px] text-[16px] font-bold transition-all ${totalNights !== null ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer" : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"}`}>
+            {totalNights !== null ? "다음 단계 (2/3 인원 선택) →" : "여행 기간을 선택해 주세요"}
           </button>
         )}
 
         {mobileStep === 2 && (
           <div className="flex items-center gap-2 w-full">
-            <button
-              type="button"
-              onClick={() => setMobileStep(1)}
-              className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer"
-            >
-              ← 이전
-            </button>
-            <button
-              type="button"
-              disabled={adultCount === null}
-              onClick={() => setMobileStep(3)}
-              className={`w-2/3 min-h-[50px] rounded-[14px] text-[15px] font-bold transition-all ${
-                adultCount !== null
-                  ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
-              }`}
-            >
-              {adultCount !== null ? "다음 단계 (3/4 목적지) →" : "여행 인원을 선택해 주세요"}
+            <button type="button" onClick={() => setMobileStep(1)} className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer">← 이전</button>
+            <button type="button" disabled={adultCount === null} onClick={() => setMobileStep(3)} className={`w-2/3 min-h-[50px] rounded-[14px] text-[15px] font-bold transition-all ${adultCount !== null ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer" : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"}`}>
+              {adultCount !== null ? "다음 단계 (3/3 목적지) →" : "여행 인원을 선택해 주세요"}
             </button>
           </div>
         )}
@@ -819,30 +554,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               ← 이전
             </button>
             <button
-              type="button"
-              disabled={draft.selectedCities.length === 0}
-              onClick={() => setMobileStep(4)}
-              className={`w-2/3 min-h-[50px] rounded-[14px] text-[15px] font-bold transition-all ${
-                draft.selectedCities.length > 0
-                  ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
-              }`}
-            >
-              {draft.selectedCities.length > 0 ? "다음 단계 (4/4 예산) →" : "목적지를 1개 이상 선택해 주세요"}
-            </button>
-          </div>
-        )}
-
-        {mobileStep === 4 && (
-          <div className="flex items-center gap-2 w-full">
-            <button
-              type="button"
-              onClick={() => setMobileStep(3)}
-              className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer"
-            >
-              ← 이전
-            </button>
-            <button
               type="submit"
               disabled={!isFormComplete}
               className={`w-2/3 min-h-[50px] rounded-[14px] font-extrabold text-[16px] transition-all flex items-center justify-center gap-1 ${
@@ -851,7 +562,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
               }`}
             >
-              <span>{isFormComplete ? `${dict.landing.cta} 🚀` : "예산 스타일 선택 완료 필요"}</span>
+              <span>{isFormComplete ? `${dict.landing.cta} 🚀` : "목적지 1개 이상 선택 필요"}</span>
             </button>
           </div>
         )}

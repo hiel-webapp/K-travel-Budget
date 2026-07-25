@@ -540,7 +540,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           )}
         </div>
 
-        <div className="hidden sm:flex text-center text-[14px] text-[#666b73] font-medium mb-6 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] items-center justify-center">
+        <div className="hidden sm:flex text-center text-[14px] text-[#666b73] font-medium mt-6 mb-6 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] items-center justify-center">
           {getAllocationSummaryText()}
         </div>
 

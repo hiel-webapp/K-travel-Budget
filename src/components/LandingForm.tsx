@@ -10,6 +10,7 @@ import {
   calculateDefaultNightAllocation,
   validateTripDraft,
   getCitiesSentenceLabel,
+  CITY_KOREAN_NAMES,
 } from "src/lib/trip-domain";
 import { saveTripDraft, loadTripDraft, savePlannerPreferences } from "src/lib/storage-helper";
 import { formatCityAllocationSummary } from "src/features/budget/presentation/formatters";
@@ -154,7 +155,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       ...prev,
       adultCount: newAdults,
     }));
-    setMobileStep(3);
   };
 
   const toggleCitySelection = (cityCode: SupportedCity) => {
@@ -182,12 +182,56 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   };
 
   const getAllocationSummaryText = () => {
-    if (!isFormComplete) {
-      return locale === "ko"
-        ? "💡 4가지 여행 항목(기간, 인원, 목적지, 예산)을 모두 선택해 주세요."
-        : "💡 Select all 4 trip options (nights, travelers, destinations, budget tier).";
+    const parts: string[] = [];
+
+    // 1. 기간
+    if (draft.totalNights !== null && draft.totalNights > 0) {
+      parts.push(
+        locale === "ko"
+          ? `${draft.totalNights}박 ${draft.totalNights + 1}일`
+          : `${draft.totalNights} Nights (${draft.totalNights + 1} Days)`
+      );
     }
-    return formatCityAllocationSummary(draft.cityNightAllocations, dict, locale);
+
+    // 2. 인원
+    if (draft.adultCount !== null && draft.adultCount > 0) {
+      parts.push(
+        locale === "ko"
+          ? `${draft.adultCount}명`
+          : `${draft.adultCount} ${draft.adultCount === 1 ? "Person" : "People"}`
+      );
+    }
+
+    // 3. 목적지
+    if (draft.selectedCities && draft.selectedCities.length > 0) {
+      if (locale === "ko") {
+        const cityNames = draft.selectedCities.map((c) => CITY_KOREAN_NAMES[c] || c);
+        parts.push(cityNames.join(" · "));
+      } else {
+        parts.push(getCitiesSentenceLabel(draft.selectedCities));
+      }
+    }
+
+    // 4. 예산 스타일
+    if (draft.budgetTier) {
+      const tierMap: Record<BudgetTier, { ko: string; en: string }> = {
+        BUDGET: { ko: "실속형", en: "Budget Tier" },
+        STANDARD: { ko: "일반형", en: "Standard Tier" },
+        PREMIUM: { ko: "프리미엄", en: "Premium Tier" },
+      };
+      const t = tierMap[draft.budgetTier];
+      if (t) {
+        parts.push(locale === "ko" ? t.ko : t.en);
+      }
+    }
+
+    if (parts.length === 0) {
+      return locale === "ko"
+        ? "💡 여행 정보(기간, 인원, 목적지, 예산)를 선택해 주세요."
+        : "💡 Select your trip options (nights, travelers, destinations, budget).";
+    }
+
+    return `💡 ${parts.join(" · ")}`;
   };
 
   const handleSubmit = (e: React.FormEvent) => {

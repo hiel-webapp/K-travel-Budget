@@ -32,29 +32,29 @@ export default function Header({ locale, dict }: HeaderProps) {
   ] as const;
 
   return (
-    <header className="sticky top-0 z-50 w-full h-[72px] bg-white border-b border-[#e2e8f0]/40 px-4 md:px-8">
-      <div className="grid grid-cols-3 items-center w-full h-full max-w-[1280px] mx-auto">
+    <header className="sticky top-0 z-50 w-full h-[64px] md:h-[72px] bg-white border-b border-[#e2e8f0]/40 px-3 sm:px-6 md:px-8">
+      <div className="flex items-center justify-between w-full h-full max-w-[1280px] mx-auto gap-1 sm:gap-4">
         {/* Left: Logo */}
-        <div className="flex justify-start">
+        <div className="flex justify-start shrink-0">
           <Link
             href={`/${locale}`}
-            className="text-xl md:text-2xl font-black tracking-tight text-[#0f172a] hover:text-[#b93829] transition-colors focus-visible:outline-2 focus-visible:outline-[#b93829] rounded-md px-2 py-1"
+            className="text-[17px] sm:text-xl md:text-2xl font-black tracking-tight text-[#0f172a] hover:text-[#b93829] transition-colors focus-visible:outline-2 focus-visible:outline-[#b93829] rounded-md py-1 shrink-0 whitespace-nowrap"
             aria-label={dict.common.logoAlt}
           >
             HypeHeritage
           </Link>
         </div>
 
-        {/* Center: Navigation (Viewport center alignment) */}
-        <nav className="flex justify-center h-full">
-          <ul className="flex items-center gap-5 md:gap-8 h-full">
+        {/* Center: Navigation */}
+        <nav className="flex justify-center h-full items-center">
+          <ul className="flex items-center gap-1 sm:gap-3 md:gap-6 h-full">
             {navItems.map((item) => {
               const active = isActive(item.key);
               return (
                 <li key={item.key} className="h-full flex items-center relative">
                   <Link
                     href={item.path}
-                    className={`text-xs md:text-sm font-bold tracking-tight transition-colors hover:text-[#b93829] focus-visible:outline-2 focus-visible:outline-[#b93829] rounded-md px-2 py-1 flex flex-col items-center justify-center h-full ${
+                    className={`text-[11px] sm:text-xs md:text-sm font-bold tracking-tight transition-colors hover:text-[#b93829] focus-visible:outline-2 focus-visible:outline-[#b93829] rounded-md px-1 sm:px-2 py-1 whitespace-nowrap flex items-center ${
                       active ? "text-[#b93829] font-extrabold" : "text-slate-700"
                     }`}
                     aria-current={active ? "page" : undefined}
@@ -71,12 +71,12 @@ export default function Header({ locale, dict }: HeaderProps) {
         </nav>
 
         {/* Right: Controls */}
-        <div className="flex justify-end items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {/* Locale Switcher */}
-          <div className="flex items-center text-[10px] md:text-xs font-bold border border-slate-200 rounded-full p-0.5 bg-slate-50/50">
+          <div className="flex items-center text-[9px] sm:text-[10px] md:text-xs font-bold border border-slate-200 rounded-full p-0.5 bg-slate-50/50 whitespace-nowrap">
             <Link
               href={getLanguageLink("ko")}
-              className={`px-2.5 md:px-3.5 py-0.5 md:py-1 rounded-full transition-colors ${
+              className={`px-1.5 sm:px-2.5 md:px-3 py-0.5 md:py-1 rounded-full transition-colors ${
                 locale === "ko"
                   ? "bg-white text-[#b93829] shadow-xs font-extrabold"
                   : "text-slate-500 hover:text-slate-900 font-bold"
@@ -88,7 +88,7 @@ export default function Header({ locale, dict }: HeaderProps) {
             <span className="text-slate-300 select-none px-0.5">/</span>
             <Link
               href={getLanguageLink("en")}
-              className={`px-2.5 md:px-3.5 py-0.5 md:py-1 rounded-full transition-colors ${
+              className={`px-1.5 sm:px-2.5 md:px-3 py-0.5 md:py-1 rounded-full transition-colors ${
                 locale === "en"
                   ? "bg-white text-[#b93829] shadow-xs font-extrabold"
                   : "text-slate-500 hover:text-slate-900 font-bold"
@@ -101,12 +101,12 @@ export default function Header({ locale, dict }: HeaderProps) {
 
           {/* User Profile Placeholder */}
           <button
-            className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors focus-visible:outline-2 focus-visible:outline-[#e25c5c]"
+            className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors focus-visible:outline-2 focus-visible:outline-[#e25c5c] shrink-0"
             aria-label={dict.common.userAccount}
             type="button"
           >
             <svg
-              className="w-4 h-4 md:w-5 md:h-5 text-slate-500"
+              className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-slate-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

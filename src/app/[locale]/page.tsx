@@ -17,14 +17,17 @@ export default async function LocalePage({ params }: PageProps) {
   const dict = await getDictionary(locale as Locale);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-start w-full max-w-5xl md:max-w-6xl mx-auto px-4 py-6 md:py-12">
+    <div className="flex flex-1 flex-col items-center justify-start w-full max-w-[1140px] mx-auto px-4 py-6 md:py-10">
       {/* Brand Title & Localized Tagline */}
-      <div className="text-center mb-8 md:mb-10 space-y-3 md:space-y-4">
-        <h1 className="text-[32px] md:text-[48px] font-bold leading-[1.2] tracking-[-0.02em] text-[#1d1d1f]">
-          HypeHeritage
+      <div className="text-center mb-6 md:mb-8 space-y-2 md:space-y-2.5">
+        <h1 className="text-[28px] sm:text-[36px] md:text-[42px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#1d1d1f]">
+          내 한국 여행 예산 만들기
         </h1>
-        <p className="text-[16px] md:text-[18px] text-[#666b73] leading-[1.6] max-w-xl mx-auto font-normal">
+        <p className="text-[15px] sm:text-[17px] text-[#666b73] leading-[1.5] max-w-xl mx-auto font-medium">
           {dict.landing.tagline}
+        </p>
+        <p className="text-[13px] sm:text-[14px] text-[#86868b] font-normal">
+          아래 3개 단계를 선택하여 나만의 맞춤 한국 여행 예산을 구성해 보세요.
         </p>
       </div>
 

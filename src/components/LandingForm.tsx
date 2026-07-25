@@ -73,8 +73,8 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 function StaticLandingForm({ dict }: { dict: Dictionary }) {
   return (
     <div className="w-full flex flex-col items-center opacity-70 pointer-events-none">
-      <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-6 md:p-10 shadow-xs">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+      <div className="w-full max-w-[440px] lg:max-w-none bg-[#ffffff] border border-[#dedede] rounded-[24px] p-4 sm:p-6 md:p-7 shadow-xs">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
           <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
             <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
           </div>
@@ -243,15 +243,11 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
-      <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-5 sm:p-8 md:p-10 shadow-xs transition-shadow duration-300">
+      <div className="w-full max-w-[440px] lg:max-w-none bg-[#ffffff] border border-[#dedede] rounded-[24px] p-4 sm:p-6 md:p-7 shadow-xs transition-shadow duration-300">
 
-        <div className="hidden sm:block mb-8">
-          <div className="flex items-center justify-between mb-6 px-1">
-            <div>
-              <h2 className="text-xl md:text-2xl font-extrabold text-[#1d1d1f]">내 한국 여행 예산 만들기</h2>
-              <p className="text-xs text-[#666b73] mt-1">아래 3개 단계를 선택하여 나만의 맞춤 한국 여행 예산을 구성해 보세요.</p>
-            </div>
-            {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
+        <div className="hidden sm:block mb-6">
+          {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
+            <div className="flex justify-end mb-4 px-1">
               <button
                 type="button"
                 onClick={handleResetDraft}
@@ -260,8 +256,9 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 <span>↺</span>
                 <span>일정 초기화</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 justify-items-center">
             {/* Step 1 Card: 🗓️ 여행 기간 */}
@@ -408,7 +405,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
             </div>
           </div>
-        </div>
 
         {/* ================= MOBILE UI: 3단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
         <div className="block sm:hidden mb-6">

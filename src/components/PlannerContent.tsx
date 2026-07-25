@@ -977,14 +977,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           preferences.accommodationByCity[city] ||
                           plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId;
 
-                        const name = getBasketLabel(activeBasketId as BudgetBasketId, dict, locale);
+                        const name = getBasketLabel(activeBasketId as BudgetBasketId, dict, locale, city);
                         const price = getCatalogStayPrice(city, activeBasketId as BudgetBasketId);
 
                         return (
                           <div key={city} className="p-4 rounded-xl border border-slate-200 bg-slate-50/30 flex flex-col justify-between h-28">
                             <div>
                               <strong className="text-xs uppercase tracking-wider text-slate-500 font-bold block">
-                                {city === "SEOUL" ? "Seoul Stay" : "Busan Stay"}
+                                {CITY_KOREAN_NAMES[city] || city} Stay
                               </strong>
                               <span className="mt-1.5 text-sm font-extrabold text-[#0f172a] block">
                                 {name}
@@ -1017,7 +1017,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {city === "SEOUL" ? "Seoul" : "Busan"} {dict.planner.selectStayTitle}
+                            {CITY_KOREAN_NAMES[city] || city} {dict.planner.selectStayTitle}
                           </h4>
                           <p className="text-xs text-slate-400">
                             {dict.planner.selectStayDescription}
@@ -1038,7 +1038,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {basketOptions.map((opt) => {
                           const isSelected = activeBasketId === opt;
-                          const name = getBasketLabel(opt, dict, locale);
+                          const name = getBasketLabel(opt, dict, locale, city);
                           const price = getCatalogStayPrice(city, opt);
 
                           let desc = dict.planner.standardHotelDesc;
@@ -1091,14 +1091,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           preferences.attractionByCity?.[city] ||
                           plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId;
 
-                        const name = getBasketLabel(activeBasketId as BudgetBasketId, dict, locale);
+                        const name = getBasketLabel(activeBasketId as BudgetBasketId, dict, locale, city);
                         const price = getCatalogAttractionPrice(city, activeBasketId as BudgetBasketId);
 
                         return (
                           <div key={city} className="p-4 rounded-xl border border-slate-200 bg-slate-50/30 flex flex-col justify-between h-28">
                             <div>
                               <strong className="text-xs uppercase tracking-wider text-slate-500 font-bold block">
-                                {city === "SEOUL" ? "Seoul Attractions" : "Busan Attractions"}
+                                {CITY_KOREAN_NAMES[city] || city} Attractions
                               </strong>
                               <span className="mt-1.5 text-sm font-extrabold text-[#0f172a] block">
                                 {name}
@@ -1131,7 +1131,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {city === "SEOUL" ? "Seoul" : "Busan"} {dict.planner.selectAttractionTitle}
+                            {CITY_KOREAN_NAMES[city] || city} {dict.planner.selectAttractionTitle}
                           </h4>
                           <p className="text-xs text-slate-400">
                             {dict.planner.selectAttractionDescription}
@@ -1152,7 +1152,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {basketOptions.map((opt) => {
                           const isSelected = activeBasketId === opt;
-                          const name = getBasketLabel(opt, dict, locale);
+                          const name = getBasketLabel(opt, dict, locale, city);
                           const price = getCatalogAttractionPrice(city, opt);
 
                           let desc = dict.planner.balancedDesc;
@@ -1418,7 +1418,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 const section = plan.citySections[city];
                 if (!section || section.lineItems.length === 0) return null;
 
-                const label = city === "SEOUL" ? "Seoul" : "Busan";
+                const label = CITY_KOREAN_NAMES[city] || city;
                 const cityNights = section.nights;
 
                 return (
@@ -1435,7 +1435,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div key={item.id} className="space-y-1">
                           <div className="flex justify-between items-start text-xs">
                             <div>
-                              <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                              <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}</span>
                               <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
                             </div>
                             <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>

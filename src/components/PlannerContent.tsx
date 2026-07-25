@@ -349,10 +349,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const budgetStyleLabel =
     draft.budgetTier === "BUDGET"
-      ? "Budget"
+      ? (locale === "ko" ? "실속형" : "Budget")
       : draft.budgetTier === "PREMIUM"
-        ? "Premium"
-        : "Standard";
+        ? (locale === "ko" ? "프리미엄" : "Premium")
+        : (locale === "ko" ? "일반형" : "Standard");
 
   const isOverBudget = plan.grandTotalKrw > plan.targetBudgetKrw;
   const clampedUsage = Math.min(100, (plan.grandTotalKrw / plan.targetBudgetKrw) * 100);
@@ -804,14 +804,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             {/* Interactive Budget Tier Selector Switch */}
             <div className="pt-3 border-t border-slate-100 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">💎 예산 스타일 1초 비교/전환:</span>
-                <span className="text-[11px] text-[#e25c5c] font-semibold">선택 시 전체 예산 즉시 재계산</span>
+                <span className="text-xs font-bold text-slate-600">
+                  {locale === "ko" ? "💎 예산 스타일 1초 비교/전환:" : "💎 Budget Style 1-sec Compare/Switch:"}
+                </span>
+                <span className="text-[11px] text-[#e25c5c] font-semibold">
+                  {locale === "ko" ? "선택 시 전체 예산 즉시 재계산" : "Recalculate budget instantly upon click"}
+                </span>
               </div>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { key: "BUDGET", label: "💡 실속형", desc: "Budget" },
-                  { key: "STANDARD", label: "⭐️ 일반형", desc: "Standard" },
-                  { key: "PREMIUM", label: "👑 프리미엄", desc: "Premium" },
+                  { key: "BUDGET", label: locale === "ko" ? "💡 실속형" : "💡 Budget" },
+                  { key: "STANDARD", label: locale === "ko" ? "⭐️ 일반형" : "⭐️ Standard" },
+                  { key: "PREMIUM", label: locale === "ko" ? "👑 프리미엄" : "👑 Premium" },
                 ].map((tierOpt) => {
                   const isSelected = (draft.budgetTier || "STANDARD") === tierOpt.key;
                   return (
@@ -819,14 +823,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       key={tierOpt.key}
                       type="button"
                       onClick={() => handleBudgetTierChange(tierOpt.key as BudgetTier)}
-                      className={`py-2 px-3 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                      className={`py-2.5 px-3 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
                         isSelected
-                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-bold shadow-2xs"
-                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:border-slate-300"
+                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                          : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
                       }`}
                     >
-                      <span className="text-xs font-bold">{tierOpt.label}</span>
-                      <span className="text-[10px] text-slate-400 font-normal">{tierOpt.desc}</span>
+                      <span className="text-xs">{tierOpt.label}</span>
                     </button>
                   );
                 })}

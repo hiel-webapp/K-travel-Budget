@@ -428,16 +428,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   ))}
                 </div>
               </div>
-
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setMobileStep(2)}
-                  className="w-full py-3.5 rounded-[12px] bg-[#b93829] text-white font-bold text-sm shadow-2xs hover:bg-[#a12f22] active:scale-[0.98]"
-                >
-                  다음 단계 (2/4 인원 선택) →
-                </button>
-              </div>
             </div>
           )}
 
@@ -473,23 +463,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   );
                 })}
               </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setMobileStep(1)}
-                  className="w-1/3 py-3 rounded-[12px] bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
-                >
-                  ← 이전 단계
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobileStep(3)}
-                  className="w-2/3 py-3 rounded-[12px] bg-[#b93829] text-white font-bold text-xs shadow-2xs hover:bg-[#a12f22]"
-                >
-                  다음 단계 (3/4 목적지) →
-                </button>
-              </div>
             </div>
           )}
 
@@ -524,23 +497,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               {/* 실시간 도시 배분 서머리 */}
               <div className="bg-white p-2.5 rounded-xl border border-[#dedede] text-center text-xs font-semibold text-slate-600">
                 💡 {getAllocationSummaryText()}
-              </div>
-
-              <div className="flex items-center gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setMobileStep(2)}
-                  className="w-1/3 py-3 rounded-[12px] bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
-                >
-                  ← 이전 단계
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobileStep(4)}
-                  className="w-2/3 py-3 rounded-[12px] bg-[#b93829] text-white font-bold text-xs shadow-2xs hover:bg-[#a12f22]"
-                >
-                  다음 단계 (4/4 예산 선택) →
-                </button>
               </div>
             </div>
           )}
@@ -584,29 +540,13 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               <div className="bg-white p-3 rounded-xl border border-[#dedede] space-y-1 text-xs text-slate-600">
                 <div className="flex justify-between font-medium">
                   <span>총 일정 및 인원:</span>
-                  <span className="font-bold text-[#1d1d1f]">{totalNights}박 · {adultCount}명</span>
+                  <span className="font-bold text-[#1d1d1f]">{totalNights}박 ({totalNights + 1}일) · {adultCount}명</span>
                 </div>
                 <div className="flex justify-between font-medium">
                   <span>선택 목적지:</span>
                   <span className="font-bold text-[#b93829]">{getAllocationSummaryText()}</span>
                 </div>
               </div>
-
-              {/* 4단계 직관적 최종 실행 버튼 */}
-              <button
-                type="submit"
-                className="w-full py-4 rounded-[14px] bg-[#b93829] text-white font-extrabold text-base shadow-md hover:bg-[#a12f22] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <span>{dict.landing.cta} 🚀</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMobileStep(3)}
-                className="w-full py-2.5 rounded-[12px] bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
-              >
-                ← 이전 단계 (목적지 수정)
-              </button>
             </div>
           )}
 
@@ -639,23 +579,72 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
       </div>
 
-      {/* ================= MOBILE STICKY CTA (단계 대응 모바일 고정 하단 바) ================= */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf9f7]/90 backdrop-blur-md border-t border-[#dedede] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex flex-col items-center shadow-lg">
-        {mobileStep < 4 ? (
+      {/* ================= MOBILE STICKY BOTTOM NAVIGATION BAR ================= */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf9f7]/95 backdrop-blur-md border-t border-[#dedede] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg">
+        {mobileStep === 1 && (
           <button
             type="button"
-            onClick={() => setMobileStep((prev) => (prev < 4 ? ((prev + 1) as 1 | 2 | 3 | 4) : 4))}
-            className="w-full min-h-[52px] rounded-[14px] bg-[#b93829] text-white text-[16px] font-bold leading-[1.2] shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1"
+            onClick={() => setMobileStep(2)}
+            className="w-full min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[16px] font-bold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
           >
-            <span>{mobileStep + 1}단계로 이동 ({mobileStep === 1 ? "인원 선택" : mobileStep === 2 ? "목적지 선택" : "예산 스타일"}) →</span>
+            다음 단계 (2/4 인원 선택) →
           </button>
-        ) : (
-          <button
-            type="submit"
-            className="w-full min-h-[52px] rounded-[14px] bg-[#b93829] text-white text-[17px] font-bold leading-[1.2] shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
-          >
-            {dict.landing.cta} 🚀
-          </button>
+        )}
+
+        {mobileStep === 2 && (
+          <div className="flex items-center gap-2 w-full">
+            <button
+              type="button"
+              onClick={() => setMobileStep(1)}
+              className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer"
+            >
+              ← 이전
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileStep(3)}
+              className="w-2/3 min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[15px] font-bold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
+            >
+              다음 단계 (3/4 목적지) →
+            </button>
+          </div>
+        )}
+
+        {mobileStep === 3 && (
+          <div className="flex items-center gap-2 w-full">
+            <button
+              type="button"
+              onClick={() => setMobileStep(2)}
+              className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer"
+            >
+              ← 이전
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileStep(4)}
+              className="w-2/3 min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[15px] font-bold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
+            >
+              다음 단계 (4/4 예산) →
+            </button>
+          </div>
+        )}
+
+        {mobileStep === 4 && (
+          <div className="flex items-center gap-2 w-full">
+            <button
+              type="button"
+              onClick={() => setMobileStep(3)}
+              className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer"
+            >
+              ← 이전
+            </button>
+            <button
+              type="submit"
+              className="w-2/3 min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[16px] font-extrabold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1"
+            >
+              <span>{dict.landing.cta} 🚀</span>
+            </button>
+          </div>
         )}
       </div>
 

@@ -42,12 +42,12 @@ describe("Budget Presentation Formatters", () => {
 
   it("should format city allocation summaries", () => {
     const allocBoth = { SEOUL: 3, BUSAN: 2 };
-    expect(formatCityAllocationSummary(allocBoth, ko, "ko")).toBe("서울 3박 · 부산 2박");
-    expect(formatCityAllocationSummary(allocBoth, en, "en")).toBe("Seoul 3 nights · Busan 2 nights");
+    expect(formatCityAllocationSummary(allocBoth, ko, "ko")).toBe("서울 · 부산 / 총 5박 6일");
+    expect(formatCityAllocationSummary(allocBoth, en, "en")).toBe("Seoul, Busan / 5 Nights (6 Days)");
 
     const allocSeoul = { SEOUL: 5 };
-    expect(formatCityAllocationSummary(allocSeoul, ko, "ko")).toBe("서울 5박");
-    expect(formatCityAllocationSummary(allocSeoul, en, "en")).toBe("Seoul 5 nights");
+    expect(formatCityAllocationSummary(allocSeoul, ko, "ko")).toBe("서울 / 총 5박 6일");
+    expect(formatCityAllocationSummary(allocSeoul, en, "en")).toBe("Seoul / 5 Nights (6 Days)");
   });
 
   it("should return correct category labels", () => {

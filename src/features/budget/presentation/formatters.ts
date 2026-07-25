@@ -69,14 +69,22 @@ export function formatCityAllocationSummary(
     YEOSU: "Yeosu", SOKCHO: "Sokcho",
   };
 
-  const parts: string[] = [];
-  for (const [city, nights] of Object.entries(allocations)) {
-    if (nights > 0) {
-      const name = locale === "ko" ? (cityKoMap[city] || city) : (cityEnMap[city] || city);
-      parts.push(locale === "ko" ? `${name} ${nights}박` : `${name} ${nights} nights`);
-    }
+  const activeCities = Object.entries(allocations)
+    .filter(([_, nights]) => nights > 0)
+    .map(([city]) => (locale === "ko" ? (cityKoMap[city] || city) : (cityEnMap[city] || city)));
+
+  const totalNights = Object.values(allocations).reduce((sum, n) => sum + (n > 0 ? n : 0), 0);
+  const totalDays = totalNights + 1;
+
+  if (activeCities.length === 0) return "";
+
+  if (locale === "ko") {
+    const citiesStr = activeCities.join(" · ");
+    return `${citiesStr} / 총 ${totalNights}박 ${totalDays}일`;
+  } else {
+    const citiesStr = activeCities.join(", ");
+    return `${citiesStr} / ${totalNights} Nights (${totalDays} Days)`;
   }
-  return parts.join(" · ");
 }
 
 /**

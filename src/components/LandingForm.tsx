@@ -130,6 +130,8 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   const adultCount = draft.adultCount;
   const budgetTier = draft.budgetTier;
 
+  const [mobileStep, setMobileStep] = useState<1 | 2 | 3 | 4>(1);
+
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -157,6 +159,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       ...prev,
       adultCount: newAdults,
     }));
+    setMobileStep(3);
   };
 
   const toggleCitySelection = (cityCode: SupportedCity) => {
@@ -341,133 +344,303 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           </div>
         </div>
 
-        {/* ================= MOBILE UI: 직관적인 4대 독립 카드 레이아웃 (sm 미만) ================= */}
-        <div className="block sm:hidden space-y-6 mb-7">
+        {/* ================= MOBILE UI: 4단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
+        <div className="block sm:hidden mb-6">
           
-          {/* Card 1: 🗓️ 여행 기간 (Nights Stepper) */}
-          <div className="bg-[#faf9f7] p-4 rounded-[16px] border border-[#dedede] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[14px] font-semibold text-[#666b73]">🗓️ 여행 기간 (Nights)</span>
-              <span className="text-[17px] font-bold text-[#b93829]">{totalNights}박 ({totalNights + 1}일)</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 bg-white p-2 rounded-[12px] border border-[#dedede]">
-              <button
-                type="button"
-                onClick={() => handleNightsChange(Math.max(1, totalNights - 1))}
-                disabled={totalNights <= 1}
-                aria-label="Decrease nights"
-                className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer min-h-[48px] min-w-[48px]"
-              >
-                -
-              </button>
-              <span className="font-bold text-[#1d1d1f] text-[18px]">
-                {totalNights} Nights
+          {/* 상단 4단계 Progress Nav */}
+          <div className="mb-5">
+            <div className="flex items-center justify-between text-xs font-bold text-[#666b73] mb-2 px-1">
+              <span className="text-[#b93829] font-extrabold">{mobileStep}단계 / 4단계</span>
+              <span>
+                {mobileStep === 1 && "1. 여행 기간 설정"}
+                {mobileStep === 2 && "2. 여행 인원 선택"}
+                {mobileStep === 3 && "3. 여행 목적지 선택"}
+                {mobileStep === 4 && "4. 예산 스타일 선택"}
               </span>
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-3">
+              <div
+                className="h-full bg-[#b93829] transition-all duration-300 rounded-full"
+                style={{ width: `${mobileStep * 25}%` }}
+              />
+            </div>
+
+            {/* Step Tabs */}
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { step: 1, label: "기간" },
+                { step: 2, label: "인원" },
+                { step: 3, label: "목적지" },
+                { step: 4, label: "예산" },
+              ].map((tab) => {
+                const isActive = mobileStep === tab.step;
+                const isPassed = mobileStep > tab.step;
+                return (
+                  <button
+                    key={tab.step}
+                    type="button"
+                    onClick={() => setMobileStep(tab.step as 1 | 2 | 3 | 4)}
+                    className={`py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
+                      isActive
+                        ? "bg-[#b93829] text-white shadow-2xs"
+                        : isPassed
+                        ? "bg-[#fdf2f2] text-[#b93829]"
+                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    }`}
+                  >
+                    {tab.step}. {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Step 1: 🗓️ 여행 기간 (Nights Stepper) */}
+          {mobileStep === 1 && (
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
+                <span className="text-[17px] font-extrabold text-[#b93829]">{totalNights}박 ({totalNights + 1}일)</span>
+              </div>
+              <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
+                <button
+                  type="button"
+                  onClick={() => handleNightsChange(Math.max(1, totalNights - 1))}
+                  disabled={totalNights <= 1}
+                  aria-label="Decrease nights"
+                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
+                >
+                  -
+                </button>
+                <div className="text-center">
+                  <span className="font-extrabold text-[#1d1d1f] text-[20px] block">
+                    {totalNights} Nights
+                  </span>
+                  <span className="text-xs text-[#666b73]">{totalNights + 1}일간의 한국 여행</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleNightsChange(Math.min(14, totalNights + 1))}
+                  disabled={totalNights >= 14}
+                  aria-label="Increase nights"
+                  className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
+
+              {/* Quick Select Preset Chips */}
+              <div className="pt-1">
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[3, 5, 7, 10].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => handleNightsChange(preset)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                        totalNights === preset
+                          ? "bg-[#b93829] border-[#b93829] text-white"
+                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                      }`}
+                    >
+                      {preset}박
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setMobileStep(2)}
+                  className="w-full py-3.5 rounded-[12px] bg-[#b93829] text-white font-bold text-sm shadow-2xs hover:bg-[#a12f22] active:scale-[0.98]"
+                >
+                  다음 단계 (2/4 인원 선택) →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: 👥 여행 인원 (Travelers) */}
+          {mobileStep === 2 && (
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
+                <span className="text-xs text-[#666b73]">선택 시 자동 다음 이동</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { count: 1, label: "1명 (나홀로 여행)" },
+                  { count: 2, label: "2명 (커플/친구)" },
+                  { count: 3, label: "3명 (소규모 그룹)" },
+                  { count: 4, label: "4명 (가족/그룹)" },
+                ].map((item) => {
+                  const isSelected = adultCount === item.count;
+                  return (
+                    <button
+                      key={item.count}
+                      type="button"
+                      onClick={() => handleAdultsChange(item.count)}
+                      className={`p-3.5 rounded-[14px] border text-left transition-all cursor-pointer flex items-center justify-between ${
+                        isSelected
+                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
+                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      }`}
+                    >
+                      <span className="text-sm">{item.label}</span>
+                      {isSelected && <span className="text-[#b93829] font-bold">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setMobileStep(1)}
+                  className="w-1/3 py-3 rounded-[12px] bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
+                >
+                  ← 이전 단계
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileStep(3)}
+                  className="w-2/3 py-3 rounded-[12px] bg-[#b93829] text-white font-bold text-xs shadow-2xs hover:bg-[#a12f22]"
+                >
+                  다음 단계 (3/4 목적지) →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: 📍 여행 목적지 (Destinations) */}
+          {mobileStep === 3 && (
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
+                <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {ALL_CITY_OPTIONS.map((cityOpt) => {
+                  const isSelected = draft.selectedCities.includes(cityOpt.key);
+                  return (
+                    <button
+                      key={cityOpt.key}
+                      type="button"
+                      onClick={() => toggleCitySelection(cityOpt.key)}
+                      className={`min-h-[48px] px-2 py-2.5 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
+                        isSelected
+                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
+                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      }`}
+                    >
+                      {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
+                      <span>{cityOpt.nameKo}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 실시간 도시 배분 서머리 */}
+              <div className="bg-white p-2.5 rounded-xl border border-[#dedede] text-center text-xs font-semibold text-slate-600">
+                💡 {getAllocationSummaryText()}
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setMobileStep(2)}
+                  className="w-1/3 py-3 rounded-[12px] bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
+                >
+                  ← 이전 단계
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileStep(4)}
+                  className="w-2/3 py-3 rounded-[12px] bg-[#b93829] text-white font-bold text-xs shadow-2xs hover:bg-[#a12f22]"
+                >
+                  다음 단계 (4/4 예산 선택) →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: 💎 예산 스타일 (Budget Tier Cards & Final CTA) */}
+          {mobileStep === 4 && (
+            <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[15px] font-bold text-[#1d1d1f]">💎 4단계: 예산 스타일 선택</span>
+                <span className="text-xs text-[#666b73]">최종 단계</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: "BUDGET", label: "Budget", desc: "실속형" },
+                  { key: "STANDARD", label: "Standard", desc: "일반형" },
+                  { key: "PREMIUM", label: "Premium", desc: "프리미엄" },
+                ].map((tierOpt) => {
+                  const isSelected = budgetTier === tierOpt.key;
+                  return (
+                    <button
+                      key={tierOpt.key}
+                      type="button"
+                      onClick={() => handleBudgetChange(tierOpt.key as BudgetTier)}
+                      className={`min-h-[56px] p-2 rounded-[12px] border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
+                        isSelected
+                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
+                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1">
+                        {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
+                        <span className="text-[14px]">{tierOpt.label}</span>
+                      </div>
+                      <span className="text-[11px] text-[#666b73] font-normal">{tierOpt.desc}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 최종 입력 정보 확인 카드 */}
+              <div className="bg-white p-3 rounded-xl border border-[#dedede] space-y-1 text-xs text-slate-600">
+                <div className="flex justify-between font-medium">
+                  <span>총 일정 및 인원:</span>
+                  <span className="font-bold text-[#1d1d1f]">{totalNights}박 · {adultCount}명</span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span>선택 목적지:</span>
+                  <span className="font-bold text-[#b93829]">{getAllocationSummaryText()}</span>
+                </div>
+              </div>
+
+              {/* 4단계 직관적 최종 실행 버튼 */}
+              <button
+                type="submit"
+                className="w-full py-4 rounded-[14px] bg-[#b93829] text-white font-extrabold text-base shadow-md hover:bg-[#a12f22] active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>{dict.landing.cta} 🚀</span>
+              </button>
+
               <button
                 type="button"
-                onClick={() => handleNightsChange(Math.min(14, totalNights + 1))}
-                disabled={totalNights >= 14}
-                aria-label="Increase nights"
-                className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer min-h-[48px] min-w-[48px]"
+                onClick={() => setMobileStep(3)}
+                className="w-full py-2.5 rounded-[12px] bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200"
               >
-                +
+                ← 이전 단계 (목적지 수정)
               </button>
             </div>
-          </div>
-
-          {/* Card 2: 👥 여행 인원 (Travelers) */}
-          <div className="bg-[#faf9f7] p-4 rounded-[16px] border border-[#dedede] space-y-3">
-            <span className="text-[14px] font-semibold text-[#666b73] block">👥 여행 인원 (Travelers)</span>
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 4].map((count) => {
-                const isSelected = adultCount === count;
-                return (
-                  <button
-                    key={count}
-                    type="button"
-                    onClick={() => handleAdultsChange(count)}
-                    className={`min-h-[48px] py-2.5 rounded-[12px] border text-[15px] transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                      isSelected
-                        ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                        : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                    }`}
-                  >
-                    {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                    <span>{count}명</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Card 3: 📍 여행 목적지 (Destinations) */}
-          <div className="bg-[#faf9f7] p-4 rounded-[16px] border border-[#dedede] space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[14px] font-semibold text-[#666b73]">📍 여행 목적지 (Destinations)</span>
-              <span className="text-[12px] text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {ALL_CITY_OPTIONS.map((cityOpt) => {
-                const isSelected = draft.selectedCities.includes(cityOpt.key);
-                return (
-                  <button
-                    key={cityOpt.key}
-                    type="button"
-                    onClick={() => toggleCitySelection(cityOpt.key)}
-                    className={`min-h-[48px] px-2 py-2.5 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
-                      isSelected
-                        ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                        : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                    }`}
-                  >
-                    {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                    <span>{cityOpt.nameKo}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Card 4: 💎 예산 스타일 (Budget Tier Cards) */}
-          <div className="bg-[#faf9f7] p-4 rounded-[16px] border border-[#dedede] space-y-3">
-            <span className="text-[14px] font-semibold text-[#666b73] block">💎 예산 스타일 (Budget Tier)</span>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { key: "BUDGET", label: "Budget", desc: "실속형" },
-                { key: "STANDARD", label: "Standard", desc: "일반형" },
-                { key: "PREMIUM", label: "Premium", desc: "프리미엄" },
-              ].map((tierOpt) => {
-                const isSelected = budgetTier === tierOpt.key;
-                return (
-                  <button
-                    key={tierOpt.key}
-                    type="button"
-                    onClick={() => handleBudgetChange(tierOpt.key as BudgetTier)}
-                    className={`min-h-[52px] p-2 rounded-[12px] border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 ${
-                      isSelected
-                        ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                        : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="flex items-center gap-1">
-                      {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                      <span className="text-[14px]">{tierOpt.label}</span>
-                    </div>
-                    <span className="text-[11px] text-[#666b73] font-normal">{tierOpt.desc}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          )}
 
         </div>
 
-        {/* 도시별 숙박일 배분 요약 */}
+        {/* 도시별 숙박일 배분 요약 (데스크톱 전용 및 공통) */}
         <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 sm:mb-10 py-2 px-4 rounded-full bg-[#faf9f7] max-w-xs mx-auto border border-[#dedede] flex items-center justify-center">
           {getAllocationSummaryText()}
         </div>
 
-        {/* CTA 버튼 & 안내 (데스크톱 및 인라인) */}
+        {/* CTA 버튼 & 안내 (데스크톱 전용) */}
         <div className="flex flex-col items-center gap-3">
           {validationError && (
             <div className="text-xs text-[#ef4444] font-semibold mb-2" aria-live="polite">
@@ -489,14 +662,24 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
       </div>
 
-      {/* ================= MOBILE STICKY CTA (모바일 화면 하단 고정 버튼) ================= */}
+      {/* ================= MOBILE STICKY CTA (단계 대응 모바일 고정 하단 바) ================= */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf9f7]/90 backdrop-blur-md border-t border-[#dedede] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex flex-col items-center shadow-lg">
-        <button
-          type="submit"
-          className="w-full min-h-[52px] rounded-[14px] bg-[#b93829] text-white text-[17px] font-bold leading-[1.2] shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
-        >
-          {dict.landing.cta}
-        </button>
+        {mobileStep < 4 ? (
+          <button
+            type="button"
+            onClick={() => setMobileStep((prev) => (prev < 4 ? ((prev + 1) as 1 | 2 | 3 | 4) : 4))}
+            className="w-full min-h-[52px] rounded-[14px] bg-[#b93829] text-white text-[16px] font-bold leading-[1.2] shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1"
+          >
+            <span>{mobileStep + 1}단계로 이동 ({mobileStep === 1 ? "인원 선택" : mobileStep === 2 ? "목적지 선택" : "예산 스타일"}) →</span>
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="w-full min-h-[52px] rounded-[14px] bg-[#b93829] text-white text-[17px] font-bold leading-[1.2] shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
+          >
+            {dict.landing.cta} 🚀
+          </button>
+        )}
       </div>
 
     </form>

@@ -7,12 +7,20 @@ import {
   SupportedCity,
   BudgetTier,
   DEFAULT_TRIP_DRAFT,
+  EMPTY_TRIP_DRAFT,
   calculateDefaultNightAllocation,
   validateTripDraft,
   getCitiesSentenceLabel,
   CITY_KOREAN_NAMES,
 } from "src/lib/trip-domain";
-import { saveTripDraft, loadTripDraft, savePlannerPreferences } from "src/lib/storage-helper";
+import {
+  saveTripDraft,
+  loadTripDraft,
+  saveActiveDraft,
+  loadActiveDraft,
+  clearActiveDraft,
+  savePlannerPreferences,
+} from "src/lib/storage-helper";
 import { formatCityAllocationSummary } from "src/features/budget/presentation/formatters";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { Locale } from "src/lib/i18n/locales";
@@ -108,7 +116,11 @@ function StaticLandingForm({ dict }: { dict: Dictionary }) {
 function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
 
-  const [draft, setDraft] = useState<TripDraft>(() => loadTripDraft());
+  const [initialData] = useState(() => loadActiveDraft());
+  const [draft, setDraft] = useState<TripDraft>(initialData.draft);
+  const [mobileStep, setMobileStep] = useState<1 | 2 | 3 | 4>(
+    (initialData.mobileStep as 1 | 2 | 3 | 4) || 1
+  );
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const totalNights = draft.totalNights;
@@ -121,7 +133,17 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     draft.selectedCities.length >= 1 &&
     budgetTier !== null;
 
-  const [mobileStep, setMobileStep] = useState<1 | 2 | 3 | 4>(1);
+  // 실시간 입력 정보 자동 보존 (새로고침 및 메인 이동 시에도 보존)
+  useEffect(() => {
+    saveActiveDraft(draft, mobileStep);
+  }, [draft, mobileStep]);
+
+  const handleResetDraft = () => {
+    clearActiveDraft();
+    setDraft(EMPTY_TRIP_DRAFT);
+    setMobileStep(1);
+    setValidationError(null);
+  };
 
   const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
@@ -274,8 +296,21 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-5 sm:p-8 md:p-10 shadow-xs transition-shadow duration-300">
 
         {/* ================= DESKTOP UI: 감성적인 자연어 문장형 (sm 이상) ================= */}
-        <div className="hidden sm:block text-center text-[22px] md:text-[26px] font-semibold leading-[1.75] tracking-[-0.015em] text-[#1d1d1f] mb-8">
-          <div className="flex flex-wrap justify-center items-center gap-y-4 gap-x-2">
+        <div className="hidden sm:block mb-8">
+          {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0 || budgetTier !== null) && (
+            <div className="flex justify-end mb-2">
+              <button
+                type="button"
+                onClick={handleResetDraft}
+                className="text-xs font-semibold text-slate-500 hover:text-[#b93829] flex items-center gap-1 transition-colors cursor-pointer bg-slate-100 hover:bg-red-50 px-3 py-1 rounded-full border border-slate-200"
+              >
+                <span>↺</span>
+                <span>일정 초기화</span>
+              </button>
+            </div>
+          )}
+          <div className="text-center text-[22px] md:text-[26px] font-semibold leading-[1.75] tracking-[-0.015em] text-[#1d1d1f]">
+            <div className="flex flex-wrap justify-center items-center gap-y-4 gap-x-2">
             <span>I&apos;m planning a</span>
 
             {/* Field 1: Total Nights Stepper / Popover */}
@@ -437,6 +472,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <span>{budgetTier ? BUDGET_TENSE_MAP[budgetTier].post : "budget."}</span>
           </div>
         </div>
+      </div>
 
         {/* ================= MOBILE UI: 4단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
         <div className="block sm:hidden mb-6">
@@ -451,12 +487,23 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           <div className="mb-5">
             <div className="flex items-center justify-between text-xs font-bold text-[#666b73] mb-2 px-1">
               <span className="text-[#b93829] font-extrabold">{mobileStep}단계 / 4단계</span>
-              <span>
-                {mobileStep === 1 && "1. 여행 기간 설정"}
-                {mobileStep === 2 && "2. 여행 인원 선택"}
-                {mobileStep === 3 && "3. 여행 목적지 선택"}
-                {mobileStep === 4 && "4. 예산 스타일 선택"}
-              </span>
+              <div className="flex items-center gap-2">
+                <span>
+                  {mobileStep === 1 && "1. 여행 기간 설정"}
+                  {mobileStep === 2 && "2. 여행 인원 선택"}
+                  {mobileStep === 3 && "3. 여행 목적지 선택"}
+                  {mobileStep === 4 && "4. 예산 스타일 선택"}
+                </span>
+                {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0 || budgetTier !== null) && (
+                  <button
+                    type="button"
+                    onClick={handleResetDraft}
+                    className="text-[11px] font-semibold text-slate-500 hover:text-[#b93829] bg-slate-100 hover:bg-red-50 px-2 py-0.5 rounded-full border border-slate-200 transition-colors cursor-pointer"
+                  >
+                    ↺ 초기화
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Progress Bar */}

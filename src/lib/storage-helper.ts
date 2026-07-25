@@ -66,26 +66,43 @@ export function saveTripDraft(draft: TripDraft): boolean {
 }
 
 /**
- * 로컬스토리지로부터 TripDraft를 우선 로드하며, 필요 시 기존 레거시 상태를 마이그레이션합니다.
+ * 실시간 변경 중인 TripDraft와 모바일 단계(mobileStep)를 미완합 상태까지 즉시 보존합니다.
  */
-export function loadTripDraft(): TripDraft {
+export function saveActiveDraft(draft: TripDraft, mobileStep: number = 1): boolean {
+  if (!isClient()) return false;
+
+  try {
+    const envelope = {
+      schemaVersion: 1,
+      savedAt: new Date().toISOString(),
+      tripDraft: draft,
+      mobileStep,
+    };
+
+    localStorage.setItem(NEW_STORAGE_KEY, JSON.stringify(envelope));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 로컬스토리지로부터 저장된 실시간 TripDraft 및 mobileStep 상태를 복원합니다.
+ */
+export function loadActiveDraft(): { draft: TripDraft; mobileStep: number } {
   if (!isClient()) {
-    return EMPTY_TRIP_DRAFT;
+    return { draft: EMPTY_TRIP_DRAFT, mobileStep: 1 };
   }
 
   try {
     const rawNew = localStorage.getItem(NEW_STORAGE_KEY);
     if (rawNew) {
-      const envelope = JSON.parse(rawNew) as TripDraftStorageEnvelope;
-      if (
-        envelope &&
-        envelope.schemaVersion === 1 &&
-        envelope.tripDraft
-      ) {
-        const validation = validateTripDraft(envelope.tripDraft);
-        if (validation.success) {
-          return envelope.tripDraft;
-        }
+      const envelope = JSON.parse(rawNew);
+      if (envelope && envelope.tripDraft) {
+        return {
+          draft: envelope.tripDraft,
+          mobileStep: envelope.mobileStep || 1,
+        };
       }
     }
   } catch {
@@ -97,14 +114,36 @@ export function loadTripDraft(): TripDraft {
       const legacyObj = JSON.parse(rawLegacy);
       const migrated = migrateLegacyState(legacyObj);
       if (migrated) {
-        saveTripDraft(migrated);
-        return migrated;
+        saveActiveDraft(migrated, 1);
+        return { draft: migrated, mobileStep: 1 };
       }
     }
   } catch {
   }
 
-  return EMPTY_TRIP_DRAFT;
+  return { draft: EMPTY_TRIP_DRAFT, mobileStep: 1 };
+}
+
+/**
+ * 작성 중인 일정 정보와 보존 데이터를 완전 초기화합니다.
+ */
+export function clearActiveDraft(): boolean {
+  if (!isClient()) return false;
+
+  try {
+    localStorage.removeItem(NEW_STORAGE_KEY);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 로컬스토리지로부터 TripDraft를 우선 로드하며, 필요 시 기존 레거시 상태를 마이그레이션합니다.
+ */
+export function loadTripDraft(): TripDraft {
+  return loadActiveDraft().draft;
 }
 
 /**

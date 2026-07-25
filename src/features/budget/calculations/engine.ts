@@ -38,10 +38,11 @@ export function generateInitialBudgetPlan(
   const {
     selectedCities,
     cityNightAllocations,
-    budgetTier,
     targetBudgetKrw,
-    adultCount,
   } = tripDraft;
+  const budgetTier = tripDraft.budgetTier || "STANDARD";
+  const adultCount = tripDraft.adultCount || 2;
+  const totalNights = tripDraft.totalNights || 5;
 
   // 2. 도시별 섹션 연산
   const citySections: Partial<Record<SupportedCity, CityBudgetSection>> = {};
@@ -200,7 +201,7 @@ export function generateInitialBudgetPlan(
     cityCode: null,
     route: null,
     adultCount,
-    duration: tripDraft.totalNights,
+    duration: tripDraft.totalNights || 5,
     cityCount: selectedCities.length,
   });
 
@@ -249,7 +250,7 @@ export function generateInitialBudgetPlan(
 
   // 6. 예산 비교 지표 연산
   const perTravelerTotalKrw = Math.round(grandTotalKrw / adultCount);
-  const dailyAverageKrw = Math.round(grandTotalKrw / (tripDraft.totalNights + 1));
+  const dailyAverageKrw = Math.round(grandTotalKrw / (totalNights + 1));
   const targetBudgetUsagePercent = Math.round((grandTotalKrw / targetBudgetKrw) * 1000) / 10;
   const remainingBudgetKrw = Math.max(0, targetBudgetKrw - grandTotalKrw);
   const overBudgetAmountKrw = grandTotalKrw > targetBudgetKrw ? grandTotalKrw - targetBudgetKrw : 0;

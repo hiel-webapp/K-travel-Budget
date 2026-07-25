@@ -665,10 +665,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 items-center justify-between">
               <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium">
                 <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
-                  {formatTripDuration(draft.totalNights, dict, locale)}
+                  {formatTripDuration(draft.totalNights || 5, dict, locale)}
                 </span>
                 <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
-                  {formatTravelerCount(draft.adultCount, dict, locale)}
+                  {formatTravelerCount(draft.adultCount || 2, dict, locale)}
                 </span>
                 <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
                   {formatCityAllocationSummary(draft.cityNightAllocations, dict, locale)}

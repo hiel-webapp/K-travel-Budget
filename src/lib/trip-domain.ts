@@ -54,11 +54,11 @@ export type BudgetTier = "BUDGET" | "STANDARD" | "PREMIUM";
 export type CityNightAllocation = Partial<Record<SupportedCity, number>>;
 
 export interface TripDraft {
-  totalNights: number;
-  adultCount: number;
+  totalNights: number | null;
+  adultCount: number | null;
   selectedCities: SupportedCity[];
   cityNightAllocations: CityNightAllocation;
-  budgetTier: BudgetTier;
+  budgetTier: BudgetTier | null;
   targetBudgetKrw: number;
   schemaVersion: number;
 }
@@ -68,6 +68,16 @@ export interface TripDraftStorageEnvelope {
   savedAt: string;
   tripDraft: TripDraft;
 }
+
+export const EMPTY_TRIP_DRAFT: TripDraft = {
+  totalNights: null,
+  adultCount: null,
+  selectedCities: [],
+  cityNightAllocations: {},
+  budgetTier: null,
+  targetBudgetKrw: 3000000,
+  schemaVersion: 1,
+};
 
 export const DEFAULT_TRIP_DRAFT: TripDraft = {
   totalNights: 5,
@@ -114,10 +124,10 @@ export function getCitiesSentenceLabel(cities: SupportedCity[]): string {
  * TripDraft 도메인 모델로부터 자연스럽고 문법에 맞는 완성된 영어 여행 문장을 생성합니다.
  */
 export function formatTripSentence(draft: TripDraft): string {
-  const nightsPhrase = `${draft.totalNights}-night`;
-  const travelersPhrase = draft.adultCount === 1 ? "1 person" : `${draft.adultCount} people`;
-  const citiesPhrase = getCitiesSentenceLabel(draft.selectedCities);
-  const budgetPhrase = BUDGET_TIER_PHRASES[draft.budgetTier];
+  const nightsPhrase = draft.totalNights ? `${draft.totalNights}-night` : "___-night";
+  const travelersPhrase = draft.adultCount ? (draft.adultCount === 1 ? "1 person" : `${draft.adultCount} people`) : "___ people";
+  const citiesPhrase = draft.selectedCities.length > 0 ? getCitiesSentenceLabel(draft.selectedCities) : "___";
+  const budgetPhrase = draft.budgetTier ? BUDGET_TIER_PHRASES[draft.budgetTier] : "with a ___ budget.";
 
   return `I'm planning a ${nightsPhrase} trip for ${travelersPhrase} to ${citiesPhrase} ${budgetPhrase}`;
 }
@@ -127,11 +137,11 @@ export function formatTripSentence(draft: TripDraft): string {
  */
 export function calculateDefaultNightAllocation(
   cities: SupportedCity[],
-  totalNights: number
+  totalNights: number | null
 ): CityNightAllocation {
   const allocation: CityNightAllocation = {};
 
-  if (!cities || cities.length === 0) {
+  if (!cities || cities.length === 0 || totalNights === null || totalNights < 1) {
     return allocation;
   }
 
@@ -159,8 +169,9 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
   const d = draft as Record<string, unknown>;
 
   // 1. totalNights 검증 (1~14박 허용)
-  const totalNights = d.totalNights as number;
+  const totalNights = d.totalNights as number | null;
   if (
+    totalNights === null ||
     typeof totalNights !== "number" ||
     !Number.isInteger(totalNights) ||
     totalNights < 1 ||
@@ -170,8 +181,9 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
   }
 
   // 2. adultCount 검증
-  const adultCount = d.adultCount as number;
+  const adultCount = d.adultCount as number | null;
   if (
+    adultCount === null ||
     typeof adultCount !== "number" ||
     adultCount < 1 ||
     adultCount > 4
@@ -224,15 +236,15 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
     }
 
     // 할당 합계와 totalNights 일치 여부 확인
-    if (errors.length === 0 && allocatedSum !== totalNights) {
+    if (errors.length === 0 && totalNights !== null && allocatedSum !== totalNights) {
       errors.push("allocation_sum_mismatch");
     }
   }
 
   // 5. budgetTier 검증
   const allowedTiers: BudgetTier[] = ["BUDGET", "STANDARD", "PREMIUM"];
-  const budgetTier = d.budgetTier as BudgetTier;
-  if (!allowedTiers.includes(budgetTier)) {
+  const budgetTier = d.budgetTier as BudgetTier | null;
+  if (!budgetTier || !allowedTiers.includes(budgetTier)) {
     errors.push("invalid_budget_tier");
   }
 

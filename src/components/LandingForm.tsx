@@ -62,52 +62,36 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
  * 1. 서버 렌더링 및 최초 클라이언트 Hydration용 정적 폼 컴포넌트
  */
 function StaticLandingForm({ dict }: { dict: Dictionary }) {
-  const defaultNights = DEFAULT_TRIP_DRAFT.totalNights;
-  const defaultBudget = DEFAULT_TRIP_DRAFT.budgetTier;
-
-  const allocationText = dict.landing.allocationSeoulBusan
-    .replace("{seoul}", "3")
-    .replace("{busan}", "2");
-
   return (
     <div className="w-full flex flex-col items-center opacity-70 pointer-events-none">
       <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-6 md:p-10 shadow-xs">
         <div className="text-center text-[20px] md:text-[26px] font-semibold leading-[1.75] tracking-[-0.015em] text-[#1d1d1f] mb-8">
           <div className="flex flex-wrap justify-center items-center gap-y-3 gap-x-2">
             <span>I&apos;m planning a</span>
-            <div className="inline-flex items-center gap-1 border-b-2 border-dashed border-[#dedede] bg-slate-50 px-3 py-1 rounded select-none min-h-[44px]">
-              <button disabled className="w-8 h-8 flex items-center justify-center rounded bg-slate-200 text-slate-400 font-bold text-sm cursor-not-allowed">-</button>
-              <span className="font-bold text-[#b93829] px-1 text-center">{defaultNights}-night</span>
-              <button disabled className="w-8 h-8 flex items-center justify-center rounded bg-slate-200 text-slate-400 font-bold text-sm cursor-not-allowed">+</button>
+            <div className="inline-flex items-center gap-1 border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
+              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">🗓️ Select Nights ▾</span>
             </div>
             <span>trip for</span>
-            <div className="relative inline-block border-b-2 border-dashed border-[#dedede] bg-slate-50 px-3 py-1 rounded min-h-[44px]">
-              <select disabled value={2} className="appearance-none bg-transparent pr-4 font-bold text-[#b93829] text-center" aria-label="Number of travelers">
-                <option value={2}>2 people</option>
-              </select>
+            <div className="relative inline-block border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
+              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">👥 Select Travelers ▾</span>
             </div>
             <span>to</span>
-            <div className="relative inline-block border-b-2 border-dashed border-[#dedede] bg-slate-50 px-3 py-1 rounded min-h-[44px]">
-              <select disabled value="SEOUL" className="appearance-none bg-transparent pr-4 font-bold text-[#b93829] text-center" aria-label="Destination">
-                <option value="SEOUL">Seoul</option>
-              </select>
+            <div className="relative inline-block border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
+              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">📍 Select Destinations ▾</span>
             </div>
-            <span>{BUDGET_TENSE_MAP[defaultBudget].pre}</span>
-            <div className="relative inline-block border-b-2 border-dashed border-[#dedede] bg-slate-50 px-3 py-1 rounded min-h-[44px]">
-              <select disabled value={defaultBudget} className="appearance-none bg-transparent pr-4 font-bold text-[#b93829] text-center" aria-label="Budget tier">
-                <option value="STANDARD">Standard</option>
-              </select>
+            <span>with a</span>
+            <div className="relative inline-block border-2 border-dashed border-[#b93829] bg-[#fdf2f2] px-3.5 py-1 rounded-xl select-none min-h-[44px]">
+              <span className="font-bold text-[#b93829] px-1 text-center text-[17px]">💎 Select Budget ▾</span>
             </div>
-            <span>{BUDGET_TENSE_MAP[defaultBudget].post}</span>
           </div>
         </div>
 
-        <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 py-2 px-4 rounded-full bg-[#faf9f7] max-w-xs mx-auto border border-[#dedede] flex items-center justify-center">
-          {allocationText}
+        <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] flex items-center justify-center">
+          💡 4가지 필수 여행 정보(기간, 인원, 목적지, 예산)를 모두 선택해 주세요.
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <button disabled className="w-full sm:w-auto min-h-[52px] md:min-h-[56px] px-10 rounded-[14px] bg-[#b93829]/50 text-white font-bold text-[17px] md:text-[18px] cursor-not-allowed">
+          <button disabled className="w-full sm:w-auto min-h-[52px] md:min-h-[56px] px-10 rounded-[14px] bg-slate-200 text-slate-400 font-bold text-[17px] md:text-[18px] cursor-not-allowed border border-slate-300">
             {dict.landing.cta}
           </button>
           <span className="text-[14px] text-[#666b73] font-normal">{dict.landing.helper}</span>
@@ -130,15 +114,26 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   const adultCount = draft.adultCount;
   const budgetTier = draft.budgetTier;
 
+  const isFormComplete =
+    totalNights !== null &&
+    adultCount !== null &&
+    draft.selectedCities.length >= 1 &&
+    budgetTier !== null;
+
   const [mobileStep, setMobileStep] = useState<1 | 2 | 3 | 4>(1);
 
+  const [isNightsDropdownOpen, setIsNightsDropdownOpen] = useState(false);
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+  const nightsDropdownRef = useRef<HTMLDivElement>(null);
   const cityDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
         setIsCityDropdownOpen(false);
+      }
+      if (nightsDropdownRef.current && !nightsDropdownRef.current.contains(event.target as Node)) {
+        setIsNightsDropdownOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -165,7 +160,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   const toggleCitySelection = (cityCode: SupportedCity) => {
     let nextCities: SupportedCity[];
     if (draft.selectedCities.includes(cityCode)) {
-      if (draft.selectedCities.length <= 1) return;
       nextCities = draft.selectedCities.filter((c) => c !== cityCode);
     } else {
       if (draft.selectedCities.length >= 4) return;
@@ -188,6 +182,11 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   };
 
   const getAllocationSummaryText = () => {
+    if (!isFormComplete) {
+      return locale === "ko"
+        ? "💡 4가지 여행 항목(기간, 인원, 목적지, 예산)을 모두 선택해 주세요."
+        : "💡 Select all 4 trip options (nights, travelers, destinations, budget tier).";
+    }
     return formatCityAllocationSummary(draft.cityNightAllocations, dict, locale);
   };
 
@@ -202,7 +201,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       if (firstError === "invalid_nights") errMsg = dict.landing.validation.invalidNights;
       if (firstError === "invalid_adults") errMsg = dict.landing.validation.invalidAdults;
       if (firstError === "invalid_cities_count" || firstError === "invalid_city") errMsg = dict.landing.validation.noCities;
-      if (firstError === "invalid_target_budget") errMsg = dict.landing.validation.invalidTargetBudget;
+      if (firstError === "invalid_budget_tier") errMsg = "예산 스타일을 선택해 주세요.";
       
       setValidationError(errMsg);
       return;
@@ -235,62 +234,114 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           <div className="flex flex-wrap justify-center items-center gap-y-4 gap-x-2">
             <span>I&apos;m planning a</span>
             
-            {/* Stepper */}
-            <div className="inline-flex items-center gap-1.5 border-b-2 border-dashed border-[#dedede] hover:border-[#b93829] focus-within:border-[#b93829] bg-[#faf9f7] hover:bg-slate-100/60 px-3 py-1 rounded transition-colors select-none min-h-[48px]">
+            {/* Field 1: Total Nights Stepper / Popover */}
+            <div className="relative inline-block" ref={nightsDropdownRef}>
               <button
                 type="button"
-                onClick={() => handleNightsChange(Math.max(1, totalNights - 1))}
-                disabled={totalNights <= 1}
-                aria-label="Decrease nights"
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-200 hover:bg-[#b93829] hover:text-white disabled:opacity-40 text-[#1d1d1f] font-bold text-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
+                onClick={() => setIsNightsDropdownOpen((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
+                  totalNights !== null
+                    ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
+                    : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
+                }`}
+                aria-label="Select nights"
               >
-                -
+                <span>{totalNights !== null ? `${totalNights}-night` : "🗓️ Select Nights"}</span>
+                <span className="text-[10px] text-[#b93829] select-none ml-0.5">▼</span>
               </button>
-              <span className="font-bold text-[#b93829] px-1 text-center min-w-[72px] text-[17px]">
-                {totalNights}-night
-              </span>
-              <button
-                type="button"
-                onClick={() => handleNightsChange(Math.min(14, totalNights + 1))}
-                disabled={totalNights >= 14}
-                aria-label="Increase nights"
-                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-200 hover:bg-[#b93829] hover:text-white disabled:opacity-40 text-[#1d1d1f] font-bold text-sm transition-colors cursor-pointer disabled:cursor-not-allowed"
-              >
-                +
-              </button>
+
+              {isNightsDropdownOpen && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-white border border-[#dedede] rounded-2xl p-4 shadow-xl z-50 text-left space-y-3">
+                  <div className="text-xs font-bold text-slate-500 flex items-center justify-between">
+                    <span>🗓️ 여행 일정 설정</span>
+                    {totalNights !== null && <span className="text-[#b93829] font-bold">{totalNights}박 ({totalNights + 1}일)</span>}
+                  </div>
+                  <div className="flex items-center justify-between gap-3 bg-slate-50 p-2 rounded-xl border border-[#dedede]">
+                    <button
+                      type="button"
+                      onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
+                      disabled={(totalNights || 1) <= 1}
+                      aria-label="Decrease nights"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 hover:bg-[#b93829] hover:text-white text-[#1d1d1f] font-bold text-sm transition-colors cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span className="font-bold text-[#1d1d1f] text-base">
+                      {totalNights !== null ? `${totalNights} Nights` : "일정 선택"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
+                      disabled={(totalNights || 0) >= 14}
+                      aria-label="Increase nights"
+                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 hover:bg-[#b93829] hover:text-white text-[#1d1d1f] font-bold text-sm transition-colors cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5 pt-1">
+                    {[3, 5, 7, 10].map((preset) => (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          handleNightsChange(preset);
+                          setIsNightsDropdownOpen(false);
+                        }}
+                        className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                          totalNights === preset
+                            ? "bg-[#b93829] border-[#b93829] text-white"
+                            : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        {preset}박
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <span>trip for</span>
 
-            {/* Travelers Selector */}
-            <div className="relative inline-block border-b-2 border-dashed border-[#dedede] hover:border-[#b93829] focus-within:border-[#b93829] bg-[#faf9f7] hover:bg-slate-100/60 px-3 py-1 rounded transition-colors min-h-[48px] leading-[44px]">
+            {/* Field 2: Travelers Selector */}
+            <div className={`relative inline-block border-2 px-3 py-1 rounded-xl transition-colors min-h-[48px] leading-[44px] ${
+              adultCount !== null
+                ? "border-[#b93829] bg-[#fdf2f2]"
+                : "border-dashed border-[#b93829] bg-[#fdf2f2]"
+            }`}>
               <select
-                value={adultCount}
+                value={adultCount ?? ""}
                 onChange={(e) => handleAdultsChange(Number(e.target.value))}
                 className="appearance-none bg-transparent pr-5 font-bold text-[#b93829] text-[17px] cursor-pointer focus:outline-none text-center"
                 aria-label="Number of travelers"
               >
+                <option value="" disabled>👥 Select Travelers</option>
                 <option value={1}>1 person</option>
                 <option value={2}>2 people</option>
                 <option value={3}>3 people</option>
                 <option value={4}>4 people</option>
               </select>
-              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none select-none">▼</span>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#b93829] pointer-events-none select-none">▼</span>
             </div>
 
             <span>to</span>
 
-            {/* Cities Selector */}
+            {/* Field 3: Cities Selector */}
             <div className="relative inline-block" ref={cityDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsCityDropdownOpen((prev) => !prev)}
-                className="inline-flex items-center gap-1 border-b-2 border-dashed border-[#dedede] hover:border-[#b93829] focus:border-[#b93829] bg-[#faf9f7] hover:bg-slate-100/60 px-3 py-1 rounded transition-colors min-h-[48px] font-bold text-[#b93829] text-[17px] cursor-pointer"
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
+                  draft.selectedCities.length > 0
+                    ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
+                    : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
+                }`}
                 aria-expanded={isCityDropdownOpen}
                 aria-label="Destination cities"
               >
-                <span>{getCitiesSentenceLabel(draft.selectedCities)}</span>
-                <span className="text-[10px] text-slate-400 select-none ml-1">▼</span>
+                <span>{draft.selectedCities.length > 0 ? getCitiesSentenceLabel(draft.selectedCities) : "📍 Select Destinations"}</span>
+                <span className="text-[10px] text-[#b93829] select-none ml-0.5">▼</span>
               </button>
 
               {isCityDropdownOpen && (
@@ -323,24 +374,29 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               )}
             </div>
 
-            <span>{BUDGET_TENSE_MAP[budgetTier].pre}</span>
+            <span>{budgetTier ? BUDGET_TENSE_MAP[budgetTier].pre : "with a"}</span>
 
-            {/* Budget Tier Selector */}
-            <div className="relative inline-block border-b-2 border-dashed border-[#dedede] hover:border-[#b93829] focus-within:border-[#b93829] bg-[#faf9f7] hover:bg-slate-100/60 px-3 py-1 rounded transition-colors min-h-[48px] leading-[44px]">
+            {/* Field 4: Budget Tier Selector */}
+            <div className={`relative inline-block border-2 px-3 py-1 rounded-xl transition-colors min-h-[48px] leading-[44px] ${
+              budgetTier !== null
+                ? "border-[#b93829] bg-[#fdf2f2]"
+                : "border-dashed border-[#b93829] bg-[#fdf2f2]"
+            }`}>
               <select
-                value={budgetTier}
+                value={budgetTier ?? ""}
                 onChange={(e) => handleBudgetChange(e.target.value as BudgetTier)}
                 className="appearance-none bg-transparent pr-5 font-bold text-[#b93829] text-[17px] cursor-pointer focus:outline-none text-center"
                 aria-label="Budget tier"
               >
+                <option value="" disabled>💎 Select Budget</option>
                 <option value="BUDGET">Budget</option>
                 <option value="STANDARD">Standard</option>
                 <option value="PREMIUM">Premium</option>
               </select>
-              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none select-none">▼</span>
+              <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#b93829] pointer-events-none select-none">▼</span>
             </div>
 
-            <span>{BUDGET_TENSE_MAP[budgetTier].post}</span>
+            <span>{budgetTier ? BUDGET_TENSE_MAP[budgetTier].post : "budget."}</span>
           </div>
         </div>
 
@@ -379,13 +435,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
-                <span className="text-[17px] font-extrabold text-[#b93829]">{totalNights}박 ({totalNights + 1}일)</span>
+                <span className="text-[17px] font-extrabold text-[#b93829]">
+                  {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
+                </span>
               </div>
               <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
                 <button
                   type="button"
-                  onClick={() => handleNightsChange(Math.max(1, totalNights - 1))}
-                  disabled={totalNights <= 1}
+                  onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
+                  disabled={(totalNights || 1) <= 1}
                   aria-label="Decrease nights"
                   className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
                 >
@@ -393,14 +451,16 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 </button>
                 <div className="text-center">
                   <span className="font-extrabold text-[#1d1d1f] text-[20px] block">
-                    {totalNights} Nights
+                    {totalNights !== null ? `${totalNights} Nights` : "기간을 선택하세요"}
                   </span>
-                  <span className="text-xs text-[#666b73]">{totalNights + 1}일간의 한국 여행</span>
+                  <span className="text-xs text-[#666b73]">
+                    {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "아래 버튼을 터치해 박수 선택"}
+                  </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleNightsChange(Math.min(14, totalNights + 1))}
-                  disabled={totalNights >= 14}
+                  onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
+                  disabled={(totalNights || 0) >= 14}
                   aria-label="Increase nights"
                   className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer"
                 >
@@ -496,7 +556,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
               {/* 실시간 도시 배분 서머리 */}
               <div className="bg-white p-2.5 rounded-xl border border-[#dedede] text-center text-xs font-semibold text-slate-600">
-                💡 {getAllocationSummaryText()}
+                {getAllocationSummaryText()}
               </div>
             </div>
           )}
@@ -540,7 +600,9 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               <div className="bg-white p-3 rounded-xl border border-[#dedede] space-y-1 text-xs text-slate-600">
                 <div className="flex justify-between font-medium">
                   <span>총 일정 및 인원:</span>
-                  <span className="font-bold text-[#1d1d1f]">{totalNights}박 ({totalNights + 1}일) · {adultCount}명</span>
+                  <span className="font-bold text-[#1d1d1f]">
+                    {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "기간 미선택"} · {adultCount !== null ? `${adultCount}명` : "인원 미선택"}
+                  </span>
                 </div>
                 <div className="flex justify-between font-medium">
                   <span>선택 목적지:</span>
@@ -553,7 +615,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
         </div>
 
         {/* 도시별 숙박일 배분 요약 (데스크톱 전용 및 공통) */}
-        <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 sm:mb-10 py-2 px-4 rounded-full bg-[#faf9f7] max-w-xs mx-auto border border-[#dedede] flex items-center justify-center">
+        <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 sm:mb-10 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] flex items-center justify-center">
           {getAllocationSummaryText()}
         </div>
 
@@ -567,13 +629,18 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           
           <button
             type="submit"
-            className="w-full sm:w-auto min-h-[52px] md:min-h-[56px] px-10 rounded-[14px] bg-[#b93829] text-white text-[17px] md:text-[18px] font-bold leading-[1.2] shadow-sm hover:bg-[#a12f22] hover:shadow-md transition-all active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-[#b93829] cursor-pointer"
+            disabled={!isFormComplete}
+            className={`w-full sm:w-auto min-h-[52px] md:min-h-[56px] px-10 rounded-[14px] font-bold text-[17px] md:text-[18px] leading-[1.2] transition-all ${
+              isFormComplete
+                ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
+                : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
+            }`}
           >
             {dict.landing.cta}
           </button>
           
           <span className="text-[14px] text-[#666b73] font-normal">
-            {dict.landing.helper}
+            {isFormComplete ? dict.landing.helper : "4가지 여행 항목(기간, 인원, 목적지, 예산)을 모두 선택해 주세요."}
           </span>
         </div>
 
@@ -584,10 +651,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
         {mobileStep === 1 && (
           <button
             type="button"
+            disabled={totalNights === null}
             onClick={() => setMobileStep(2)}
-            className="w-full min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[16px] font-bold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
+            className={`w-full min-h-[50px] rounded-[14px] text-[16px] font-bold transition-all ${
+              totalNights !== null
+                ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
+                : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
+            }`}
           >
-            다음 단계 (2/4 인원 선택) →
+            {totalNights !== null ? "다음 단계 (2/4 인원 선택) →" : "여행 기간을 선택해 주세요"}
           </button>
         )}
 
@@ -602,10 +674,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             </button>
             <button
               type="button"
+              disabled={adultCount === null}
               onClick={() => setMobileStep(3)}
-              className="w-2/3 min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[15px] font-bold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
+              className={`w-2/3 min-h-[50px] rounded-[14px] text-[15px] font-bold transition-all ${
+                adultCount !== null
+                  ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
+              }`}
             >
-              다음 단계 (3/4 목적지) →
+              {adultCount !== null ? "다음 단계 (3/4 목적지) →" : "여행 인원을 선택해 주세요"}
             </button>
           </div>
         )}
@@ -621,10 +698,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             </button>
             <button
               type="button"
+              disabled={draft.selectedCities.length === 0}
               onClick={() => setMobileStep(4)}
-              className="w-2/3 min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[15px] font-bold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer"
+              className={`w-2/3 min-h-[50px] rounded-[14px] text-[15px] font-bold transition-all ${
+                draft.selectedCities.length > 0
+                  ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
+              }`}
             >
-              다음 단계 (4/4 예산) →
+              {draft.selectedCities.length > 0 ? "다음 단계 (4/4 예산) →" : "목적지를 1개 이상 선택해 주세요"}
             </button>
           </div>
         )}
@@ -640,9 +722,14 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             </button>
             <button
               type="submit"
-              className="w-2/3 min-h-[50px] rounded-[14px] bg-[#b93829] text-white text-[16px] font-extrabold shadow-md hover:bg-[#a12f22] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1"
+              disabled={!isFormComplete}
+              className={`w-2/3 min-h-[50px] rounded-[14px] font-extrabold text-[16px] transition-all flex items-center justify-center gap-1 ${
+                isFormComplete
+                  ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
+              }`}
             >
-              <span>{dict.landing.cta} 🚀</span>
+              <span>{isFormComplete ? `${dict.landing.cta} 🚀` : "예산 스타일 선택 완료 필요"}</span>
             </button>
           </div>
         )}

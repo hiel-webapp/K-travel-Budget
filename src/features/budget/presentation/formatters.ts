@@ -250,13 +250,16 @@ export function generateBudgetSummaryText(
     ? `${cityNamesSummary} 여행 계획`
     : `Trip to ${cityNamesSummary}`);
 
+  const nights = trip.totalNights || 5;
+  const adults = trip.adultCount || 2;
+
   const durationStr = locale === "ko"
-    ? `${trip.totalNights}박 ${trip.totalNights + 1}일`
-    : `${trip.totalNights} nights, ${trip.totalNights + 1} days`;
+    ? `${nights}박 ${nights + 1}일`
+    : `${nights} nights, ${nights + 1} days`;
 
   const travelerStr = locale === "ko"
-    ? `${trip.adultCount}명`
-    : `${trip.adultCount} ${trip.adultCount === 1 ? "traveler" : "travelers"}`;
+    ? `${adults}명`
+    : `${adults} ${adults === 1 ? "traveler" : "travelers"}`;
 
   const citiesStr = trip.selectedCities.map(getCityDisplayName).join(", ");
 

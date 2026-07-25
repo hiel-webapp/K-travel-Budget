@@ -198,7 +198,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             {formatKrw(plan.dailyAverageKrw)}
           </strong>
           <span className="text-[10px] text-slate-400 font-semibold block">
-            Total {draft.totalNights + 1} days ({draft.totalNights} nights)
+            Total {(draft.totalNights || 5) + 1} days ({draft.totalNights || 5} nights)
           </span>
         </div>
       </div>

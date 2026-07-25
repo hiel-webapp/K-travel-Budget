@@ -2,6 +2,7 @@ import {
   TripDraft,
   TripDraftStorageEnvelope,
   DEFAULT_TRIP_DRAFT,
+  EMPTY_TRIP_DRAFT,
   validateTripDraft,
   migrateLegacyState,
   SupportedCity,
@@ -69,7 +70,7 @@ export function saveTripDraft(draft: TripDraft): boolean {
  */
 export function loadTripDraft(): TripDraft {
   if (!isClient()) {
-    return DEFAULT_TRIP_DRAFT;
+    return EMPTY_TRIP_DRAFT;
   }
 
   try {
@@ -103,7 +104,7 @@ export function loadTripDraft(): TripDraft {
   } catch {
   }
 
-  return DEFAULT_TRIP_DRAFT;
+  return EMPTY_TRIP_DRAFT;
 }
 
 /**

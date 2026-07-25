@@ -11,6 +11,7 @@ import {
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { formatKrw } from "../features/budget/presentation/formatters";
+import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, SupportedCity } from "../lib/trip-domain";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 
@@ -125,7 +126,7 @@ export default function SavedTripsContent({ locale, dict }: SavedTripsContentPro
             });
 
             const citiesStr = trip.draft.selectedCities
-              .map((c) => (c === "SEOUL" ? "Seoul" : "Busan"))
+              .map((c) => (locale === "ko" ? CITY_KOREAN_NAMES[c as SupportedCity] || c : CITY_ENGLISH_NAMES[c as SupportedCity] || c))
               .join(" · ");
 
             const formattedDate = new Date(trip.savedAt).toLocaleString(

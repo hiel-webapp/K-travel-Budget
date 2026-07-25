@@ -15,7 +15,8 @@ import {
 } from "../features/budget/presentation/formatters";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
-import type { TripDraft } from "../lib/trip-domain";
+import type { TripDraft, SupportedCity } from "../lib/trip-domain";
+import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 import { isCalculatedMealPlan } from "../features/budget/domain/types";
 import type { PlannerPreferences, BudgetCategory } from "../features/budget/domain/types";
 import FoodReceiptDetails from "./FoodReceiptDetails";
@@ -303,7 +304,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   return (
                     <tr key={city}>
                       <td className="py-2.5 text-slate-700 font-bold">
-                        {city === "SEOUL" ? "Seoul" : "Busan"}
+                        {locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
                       </td>
                       <td className="py-2.5 text-center text-slate-600 font-bold">
                         {section.nights}박
@@ -370,7 +371,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             const section = plan.citySections[city];
             if (!section || section.lineItems.length === 0) return null;
 
-            const label = city === "SEOUL" ? "Seoul" : "Busan";
+            const label = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
             const cityNights = section.nights;
 
             return (
@@ -387,7 +388,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     <div key={item.id} className="space-y-1">
                       <div className="flex justify-between items-start text-xs gap-4">
                         <div>
-                          <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                          <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}</span>
                           <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
                         </div>
                         <span className="font-sans tabular-nums font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
@@ -463,7 +464,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {personalizedTrends.map(({ trend, reason }, idx) => {
               const trans = trend.translations[locale === "en" ? "en" : "ko"];
-              const cityName = trend.city === "ALL" ? (locale === "en" ? "All Cities" : "전체 도시") : trend.city === "SEOUL" ? (locale === "en" ? "Seoul" : "서울") : (locale === "en" ? "Busan" : "부산");
+              const cityName = trend.city === "ALL" ? (locale === "en" ? "All Cities" : "전체 도시") : (locale === "en" ? CITY_ENGLISH_NAMES[trend.city as SupportedCity] || trend.city : CITY_KOREAN_NAMES[trend.city as SupportedCity] || trend.city);
 
               return (
                 <div

@@ -6,6 +6,7 @@ import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { CalculatedMealPlan, EffectiveMealSlot } from "../features/budget/domain/types";
 import { formatKrw } from "../features/budget/presentation/formatters";
 import { MOCK_FOOD_ITEMS, MOCK_FOOD_ADD_ONS } from "../features/budget/catalog/mock-catalog";
+import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 
 interface FoodPlannerPanelProps {
   locale: Locale;
@@ -70,7 +71,7 @@ export default function FoodPlannerPanel({
   };
 
   const currentCity = mealPlan.slots[0].city;
-  const currentCityLabel = currentCity === "SEOUL" ? "Seoul" : "Busan";
+  const currentCityLabel = locale === "ko" ? CITY_KOREAN_NAMES[currentCity] || currentCity : CITY_ENGLISH_NAMES[currentCity] || currentCity;
 
   return (
     <div className="space-y-6">

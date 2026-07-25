@@ -311,9 +311,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const availableTabs: ("ALL" | "SEOUL" | "BUSAN")[] = ["ALL"];
-  if (draft.selectedCities.includes("SEOUL")) availableTabs.push("SEOUL");
-  if (draft.selectedCities.includes("BUSAN")) availableTabs.push("BUSAN");
+  const availableTabs: ("ALL" | SupportedCity)[] = ["ALL"];
+  draft.selectedCities.forEach((city) => {
+    if (!availableTabs.includes(city)) {
+      availableTabs.push(city);
+    }
+  });
 
   const getFilteredItems = (category: BudgetCategory): BudgetLineItem[] => {
     const items: BudgetLineItem[] = [];
@@ -736,17 +739,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
-    const found = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ACCOMMODATION" && b.id === basketId && (b.applicableCity === city || b.applicableCity === "SEOUL")
+    const cityMatch = MOCK_PRICE_CATALOG.find(
+      (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
     );
-    return found ? found.representativePriceKrw : 0;
+    if (cityMatch) return cityMatch.representativePriceKrw;
+    const fallbackMatch = MOCK_PRICE_CATALOG.find(
+      (b) => b.category === "ACCOMMODATION" && b.id === basketId
+    );
+    return fallbackMatch ? fallbackMatch.representativePriceKrw : 0;
   };
 
   const getCatalogAttractionPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
-    const found = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ATTRACTION" && b.id === basketId && (b.applicableCity === city || b.applicableCity === "SEOUL")
+    const cityMatch = MOCK_PRICE_CATALOG.find(
+      (b) => b.category === "ATTRACTION" && b.id === basketId && b.applicableCity === city
     );
-    return found ? found.representativePriceKrw : 0;
+    if (cityMatch) return cityMatch.representativePriceKrw;
+    const fallbackMatch = MOCK_PRICE_CATALOG.find(
+      (b) => b.category === "ATTRACTION" && b.id === basketId
+    );
+    return fallbackMatch ? fallbackMatch.representativePriceKrw : 0;
   };
 
   return (

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { Locale } from "../lib/i18n/locales";
 import { listPlaces, getPlaceById, PlaceItem } from "../lib/places";
-import { SupportedCity, ALL_SUPPORTED_CITIES } from "../lib/trip-domain";
+import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES } from "../lib/trip-domain";
 import { PlaceCategory } from "../lib/kto/types";
 import { loadSavedPlaceIds, toggleSavedPlaceId } from "../lib/storage-helper";
 
@@ -432,8 +432,8 @@ function PlaceCard({
 
         {/* City & Category Badges */}
         <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
-          <span className="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md">
-            {place.city === "SEOUL" ? "SEOUL" : "BUSAN"}
+          <span className="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase">
+            {CITY_ENGLISH_NAMES[place.city as SupportedCity] || place.city}
           </span>
           <span className="bg-[#e25c5c]/90 backdrop-blur-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md">
             {categoryLabel}

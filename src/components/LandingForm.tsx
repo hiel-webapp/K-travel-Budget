@@ -202,7 +202,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       if (firstError === "invalid_adults") errMsg = dict.landing.validation.invalidAdults;
       if (firstError === "invalid_cities_count" || firstError === "invalid_city") errMsg = dict.landing.validation.noCities;
       if (firstError === "invalid_budget_tier") errMsg = "예산 스타일을 선택해 주세요.";
-      
+
       setValidationError(errMsg);
       return;
     }
@@ -228,22 +228,21 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
       {/* Container Card */}
       <div className="w-full bg-[#ffffff] border border-[#dedede] rounded-[20px] p-5 sm:p-8 md:p-10 shadow-xs transition-shadow duration-300">
-        
+
         {/* ================= DESKTOP UI: 감성적인 자연어 문장형 (sm 이상) ================= */}
         <div className="hidden sm:block text-center text-[22px] md:text-[26px] font-semibold leading-[1.75] tracking-[-0.015em] text-[#1d1d1f] mb-8">
           <div className="flex flex-wrap justify-center items-center gap-y-4 gap-x-2">
             <span>I&apos;m planning a</span>
-            
+
             {/* Field 1: Total Nights Stepper / Popover */}
             <div className="relative inline-block" ref={nightsDropdownRef}>
               <button
                 type="button"
                 onClick={() => setIsNightsDropdownOpen((prev) => !prev)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
-                  totalNights !== null
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${totalNights !== null
                     ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
                     : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
-                }`}
+                  }`}
                 aria-label="Select nights"
               >
                 <span>{totalNights !== null ? `${totalNights}-night` : "🗓️ Select Nights"}</span>
@@ -288,11 +287,10 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                           handleNightsChange(preset);
                           setIsNightsDropdownOpen(false);
                         }}
-                        className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                          totalNights === preset
+                        className={`py-1.5 rounded-lg text-xs font-bold border transition-all ${totalNights === preset
                             ? "bg-[#b93829] border-[#b93829] text-white"
                             : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
-                        }`}
+                          }`}
                       >
                         {preset}박
                       </button>
@@ -305,11 +303,10 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <span>trip for</span>
 
             {/* Field 2: Travelers Selector */}
-            <div className={`relative inline-block border-2 px-3 py-1 rounded-xl transition-colors min-h-[48px] leading-[44px] ${
-              adultCount !== null
+            <div className={`relative inline-block border-2 px-3 py-1 rounded-xl transition-colors min-h-[48px] leading-[44px] ${adultCount !== null
                 ? "border-[#b93829] bg-[#fdf2f2]"
                 : "border-dashed border-[#b93829] bg-[#fdf2f2]"
-            }`}>
+              }`}>
               <select
                 value={adultCount ?? ""}
                 onChange={(e) => handleAdultsChange(Number(e.target.value))}
@@ -332,11 +329,10 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               <button
                 type="button"
                 onClick={() => setIsCityDropdownOpen((prev) => !prev)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${
-                  draft.selectedCities.length > 0
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl transition-all min-h-[48px] font-bold text-[17px] cursor-pointer ${draft.selectedCities.length > 0
                     ? "border-2 border-[#b93829] bg-[#fdf2f2] text-[#b93829]"
                     : "border-2 border-dashed border-[#b93829] bg-[#fdf2f2] text-[#b93829] hover:bg-[#fce8e8]"
-                }`}
+                  }`}
                 aria-expanded={isCityDropdownOpen}
                 aria-label="Destination cities"
               >
@@ -358,11 +354,10 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                           key={cityOpt.key}
                           type="button"
                           onClick={() => toggleCitySelection(cityOpt.key)}
-                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
-                            isSelected
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${isSelected
                               ? "bg-[#fdf2f2] text-[#b93829] border border-[#b93829]"
                               : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-transparent"
-                          }`}
+                            }`}
                         >
                           <span>{cityOpt.nameEn}</span>
                           {isSelected && <span>✓</span>}
@@ -377,11 +372,10 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <span>{budgetTier ? BUDGET_TENSE_MAP[budgetTier].pre : "with a"}</span>
 
             {/* Field 4: Budget Tier Selector */}
-            <div className={`relative inline-block border-2 px-3 py-1 rounded-xl transition-colors min-h-[48px] leading-[44px] ${
-              budgetTier !== null
+            <div className={`relative inline-block border-2 px-3 py-1 rounded-xl transition-colors min-h-[48px] leading-[44px] ${budgetTier !== null
                 ? "border-[#b93829] bg-[#fdf2f2]"
                 : "border-dashed border-[#b93829] bg-[#fdf2f2]"
-            }`}>
+              }`}>
               <select
                 value={budgetTier ?? ""}
                 onChange={(e) => handleBudgetChange(e.target.value as BudgetTier)}
@@ -402,7 +396,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
         {/* ================= MOBILE UI: 4단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
         <div className="block sm:hidden mb-6">
-          
+
           {validationError && (
             <div className="text-xs text-[#ef4444] font-semibold mb-3 p-2.5 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
               ⚠️ {validationError}
@@ -420,7 +414,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 {mobileStep === 4 && "4. 예산 스타일 선택"}
               </span>
             </div>
-            
+
             {/* Progress Bar */}
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div
@@ -490,8 +484,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
             </div>
           )}
-
-          {/* Step 2: 👥 여행 인원 (Travelers) */}
           {mobileStep === 2 && (
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
@@ -553,11 +545,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   );
                 })}
               </div>
-
-              {/* 실시간 도시 배분 서머리 */}
-              <div className="bg-white p-2.5 rounded-xl border border-[#dedede] text-center text-xs font-semibold text-slate-600">
-                {getAllocationSummaryText()}
-              </div>
             </div>
           )}
 
@@ -595,27 +582,13 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   );
                 })}
               </div>
-
-              {/* 최종 입력 정보 확인 카드 */}
-              <div className="bg-white p-3 rounded-xl border border-[#dedede] space-y-1 text-xs text-slate-600">
-                <div className="flex justify-between font-medium">
-                  <span>총 일정 및 인원:</span>
-                  <span className="font-bold text-[#1d1d1f]">
-                    {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "기간 미선택"} · {adultCount !== null ? `${adultCount}명` : "인원 미선택"}
-                  </span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span>선택 목적지:</span>
-                  <span className="font-bold text-[#b93829]">{getAllocationSummaryText()}</span>
-                </div>
-              </div>
             </div>
           )}
 
         </div>
 
-        {/* 도시별 숙박일 배분 요약 (데스크톱 전용 및 공통) */}
-        <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 sm:mb-10 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] flex items-center justify-center">
+        {/* 도시별 숙박일 배분 요약 (데스크톱 전용) */}
+        <div className="hidden sm:flex text-center text-[14px] text-[#666b73] font-medium mb-6 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] items-center justify-center">
           {getAllocationSummaryText()}
         </div>
 
@@ -647,7 +620,12 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
       </div>
 
       {/* ================= MOBILE STICKY BOTTOM NAVIGATION BAR ================= */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf9f7]/95 backdrop-blur-md border-t border-[#dedede] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#faf9f7]/95 backdrop-blur-md border-t border-[#dedede] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg flex flex-col gap-2">
+        {/* 모든 단계(1~4단계) 공통: 실행 버튼 바로 위 고정 요약 위치 */}
+        <div className="text-center text-xs font-semibold text-slate-600 py-1.5 px-3 rounded-full bg-white border border-[#dedede] w-full truncate shadow-2xs">
+          {getAllocationSummaryText()}
+        </div>
+
         {mobileStep === 1 && (
           <button
             type="button"

@@ -173,8 +173,8 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       };
       const plan = generateInitialBudgetPlan(trip);
 
-      expect(plan.citySections.SEOUL).not.toBeNull();
-      expect(plan.citySections.BUSAN).toBeNull();
+      expect(plan.citySections.SEOUL).toBeDefined();
+      expect(plan.citySections.BUSAN).toBeUndefined();
       expect(plan.categoryTotals.INTERCITY_TRANSPORT).toBe(0);
       expect(plan.intercitySection.lineItems.length).toBe(0);
       expect(plan.tripWideSection.lineItems.length).toBe(1); // Emergency fund must appear exactly once
@@ -188,8 +188,8 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
       };
       const plan = generateInitialBudgetPlan(trip);
 
-      expect(plan.citySections.SEOUL).toBeNull();
-      expect(plan.citySections.BUSAN).not.toBeNull();
+      expect(plan.citySections.SEOUL).toBeUndefined();
+      expect(plan.citySections.BUSAN).toBeDefined();
       expect(plan.categoryTotals.INTERCITY_TRANSPORT).toBe(0);
       expect(plan.intercitySection.lineItems.length).toBe(0);
     });

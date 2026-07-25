@@ -23,8 +23,8 @@ describe("KTO Ingestion & Supabase Client Unit Tests (Mock-based)", () => {
     });
 
     it("should reject invalid city input", () => {
-      expect(() => validateIngestOptions({ city: "INCHEON" as unknown as SupportedCity })).toThrowError(
-        "[KTO_INGEST_ERROR] Invalid city: 'INCHEON'"
+      expect(() => validateIngestOptions({ city: "INVALID_CITY" as unknown as SupportedCity })).toThrowError(
+        "[KTO_INGEST_ERROR] Invalid city: 'INVALID_CITY'"
       );
     });
 

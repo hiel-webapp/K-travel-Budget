@@ -14,8 +14,8 @@ describe("KTO Normalizer Unit Tests", () => {
       expect(resolveSupportedCity("6")).toBe("BUSAN");
     });
 
-    it("should return null for non-supported areaCodes like '31' (Gyeonggi) or undefined", () => {
-      expect(resolveSupportedCity("31")).toBeNull();
+    it("should return null for non-supported areaCodes like '99' or undefined", () => {
+      expect(resolveSupportedCity("99")).toBeNull();
       expect(resolveSupportedCity(undefined)).toBeNull();
     });
 
@@ -94,14 +94,14 @@ describe("KTO Normalizer Unit Tests", () => {
       expect(normalizeKtoPlace(missingId)).toBeNull();
     });
 
-    it("should exclude items outside Seoul and Busan", () => {
-      const gyeonggiItem: KtoAreaBasedListItem = {
+    it("should exclude items outside supported 10 cities", () => {
+      const unsupportedItem: KtoAreaBasedListItem = {
         contentid: "99999",
         contenttypeid: "32",
-        title: "판교 호텔",
-        areacode: "31",
+        title: "해외 호텔",
+        areacode: "99",
       };
-      expect(normalizeKtoPlace(gyeonggiItem)).toBeNull();
+      expect(normalizeKtoPlace(unsupportedItem)).toBeNull();
     });
 
     it("should mark item qualityStatus as INCOMPLETE when coords/images/description are missing", () => {

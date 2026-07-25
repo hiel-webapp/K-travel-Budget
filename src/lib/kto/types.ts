@@ -1,6 +1,6 @@
 import { SupportedCity } from "../trip-domain";
 
-export type KtoAreaCode = "1" | "6"; // 1: Seoul, 6: Busan
+export type KtoAreaCode = "1" | "2" | "6" | "31" | "32" | "34" | "35" | "36" | "37" | "39";
 export type KtoLocale = "ko" | "en";
 
 

@@ -1,4 +1,4 @@
-import { SupportedCity } from "../trip-domain";
+import { SupportedCity, ALL_SUPPORTED_CITIES } from "../trip-domain";
 import { extractKtoItemsAndCount, fetchKtoApi, getKtoCredentials } from "./client";
 import { CITY_TO_KTO_AREA_CODE, KTO_CONTENT_TYPE, KTO_ENDPOINTS } from "./constants";
 import { normalizeKtoPlace } from "./normalizer";
@@ -46,9 +46,9 @@ export function validateIngestOptions(options: KtoIngestOptions = {}) {
     "CULTURE",
   ];
 
-  if (city !== "SEOUL" && city !== "BUSAN" && city !== "ALL") {
+  if (city !== "ALL" && !ALL_SUPPORTED_CITIES.includes(city)) {
     throw new Error(
-      `[KTO_INGEST_ERROR] Invalid city: '${city}'. Allowed values are SEOUL, BUSAN, or ALL.`
+      `[KTO_INGEST_ERROR] Invalid city: '${city}'. Allowed values are ${ALL_SUPPORTED_CITIES.join(", ")}, or ALL.`
     );
   }
 
@@ -80,7 +80,7 @@ export async function ingestKtoPlaces(
   }
 
   const targetCities: SupportedCity[] =
-    city === "ALL" ? ["SEOUL", "BUSAN"] : [city];
+    city === "ALL" ? ALL_SUPPORTED_CITIES : [city];
 
   let runId: string | undefined = undefined;
   if (!dryRun) {

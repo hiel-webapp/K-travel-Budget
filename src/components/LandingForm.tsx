@@ -11,6 +11,7 @@ import {
   validateTripDraft,
 } from "src/lib/trip-domain";
 import { saveTripDraft, loadTripDraft, savePlannerPreferences } from "src/lib/storage-helper";
+import { formatCityAllocationSummary } from "src/features/budget/presentation/formatters";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { Locale } from "src/lib/i18n/locales";
 
@@ -142,8 +143,17 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
   const handleCitiesChange = (key: string) => {
     let cities: SupportedCity[] = ["SEOUL", "BUSAN"];
-    if (key === "SEOUL") cities = ["SEOUL"];
-    if (key === "BUSAN") cities = ["BUSAN"];
+    if (key === "SEOUL_BUSAN_JEJU") cities = ["SEOUL", "BUSAN", "JEJU"];
+    else if (key === "SEOUL") cities = ["SEOUL"];
+    else if (key === "BUSAN") cities = ["BUSAN"];
+    else if (key === "JEJU") cities = ["JEJU"];
+    else if (key === "INCHEON") cities = ["INCHEON"];
+    else if (key === "GYEONGJU") cities = ["GYEONGJU"];
+    else if (key === "JEONJU") cities = ["JEONJU"];
+    else if (key === "GANGNEUNG") cities = ["GANGNEUNG"];
+    else if (key === "SUWON") cities = ["SUWON"];
+    else if (key === "YEOSU") cities = ["YEOSU"];
+    else if (key === "SOKCHO") cities = ["SOKCHO"];
 
     const newAllocations = calculateDefaultNightAllocation(cities, draft.totalNights);
     setDraft((prev) => ({
@@ -161,19 +171,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   };
 
   const getAllocationSummaryText = () => {
-    const seoul = draft.cityNightAllocations.SEOUL || 0;
-    const busan = draft.cityNightAllocations.BUSAN || 0;
-
-    if (draft.selectedCities.includes("SEOUL") && draft.selectedCities.includes("BUSAN")) {
-      return dict.landing.allocationSeoulBusan
-        .replace("{seoul}", String(seoul))
-        .replace("{busan}", String(busan));
-    } else if (draft.selectedCities.includes("SEOUL")) {
-      return dict.landing.allocationSeoulOnly.replace("{seoul}", String(seoul));
-    } else if (draft.selectedCities.includes("BUSAN")) {
-      return dict.landing.allocationBusanOnly.replace("{busan}", String(busan));
-    }
-    return "";
+    return formatCityAllocationSummary(draft.cityNightAllocations, dict, locale);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -274,8 +272,17 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 aria-label="Destination cities"
               >
                 <option value="SEOUL_BUSAN">Seoul and Busan</option>
+                <option value="SEOUL_BUSAN_JEJU">Seoul, Busan, and Jeju</option>
                 <option value="SEOUL">Seoul</option>
                 <option value="BUSAN">Busan</option>
+                <option value="JEJU">Jeju</option>
+                <option value="INCHEON">Incheon</option>
+                <option value="GYEONGJU">Gyeongju</option>
+                <option value="JEONJU">Jeonju</option>
+                <option value="GANGNEUNG">Gangneung</option>
+                <option value="SUWON">Suwon</option>
+                <option value="YEOSU">Yeosu</option>
+                <option value="SOKCHO">Sokcho</option>
               </select>
               <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none select-none">▼</span>
             </div>
@@ -366,8 +373,17 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <div className="grid grid-cols-3 gap-2">
               {[
                 { key: "SEOUL_BUSAN", label: "서울 & 부산" },
-                { key: "SEOUL", label: "서울 전용" },
-                { key: "BUSAN", label: "부산 전용" },
+                { key: "SEOUL_BUSAN_JEJU", label: "서울·부산·제주" },
+                { key: "SEOUL", label: "서울" },
+                { key: "BUSAN", label: "부산" },
+                { key: "JEJU", label: "제주" },
+                { key: "INCHEON", label: "인천" },
+                { key: "GYEONGJU", label: "경주" },
+                { key: "JEONJU", label: "전주" },
+                { key: "GANGNEUNG", label: "강릉" },
+                { key: "SUWON", label: "수원" },
+                { key: "YEOSU", label: "여수" },
+                { key: "SOKCHO", label: "속초" },
               ].map((cityOpt) => {
                 const isSelected = citiesKey === cityOpt.key;
                 return (

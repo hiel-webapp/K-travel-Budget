@@ -1,4 +1,54 @@
-export type SupportedCity = "SEOUL" | "BUSAN";
+export type SupportedCity =
+  | "SEOUL"
+  | "BUSAN"
+  | "JEJU"
+  | "INCHEON"
+  | "GYEONGJU"
+  | "JEONJU"
+  | "GANGNEUNG"
+  | "SUWON"
+  | "YEOSU"
+  | "SOKCHO";
+
+export const CITY_ENGLISH_NAMES: Record<SupportedCity, string> = {
+  SEOUL: "Seoul",
+  BUSAN: "Busan",
+  JEJU: "Jeju",
+  INCHEON: "Incheon",
+  GYEONGJU: "Gyeongju",
+  JEONJU: "Jeonju",
+  GANGNEUNG: "Gangneung",
+  SUWON: "Suwon",
+  YEOSU: "Yeosu",
+  SOKCHO: "Sokcho",
+};
+
+export const CITY_KOREAN_NAMES: Record<SupportedCity, string> = {
+  SEOUL: "서울",
+  BUSAN: "부산",
+  JEJU: "제주",
+  INCHEON: "인천",
+  GYEONGJU: "경주",
+  JEONJU: "전주",
+  GANGNEUNG: "강릉",
+  SUWON: "수원",
+  YEOSU: "여수",
+  SOKCHO: "속초",
+};
+
+export const ALL_SUPPORTED_CITIES: SupportedCity[] = [
+  "SEOUL",
+  "BUSAN",
+  "JEJU",
+  "INCHEON",
+  "GYEONGJU",
+  "JEONJU",
+  "GANGNEUNG",
+  "SUWON",
+  "YEOSU",
+  "SOKCHO",
+];
+
 export type BudgetTier = "BUDGET" | "STANDARD" | "PREMIUM";
 
 export type CityNightAllocation = Partial<Record<SupportedCity, number>>;
@@ -54,18 +104,11 @@ export const BUDGET_TIER_LABELS: Record<BudgetTier, string> = {
  * 도시 리스트에 따른 영어 완성 레이블 매핑
  */
 export function getCitiesSentenceLabel(cities: SupportedCity[]): string {
-  const hasSeoul = cities.includes("SEOUL");
-  const hasBusan = cities.includes("BUSAN");
-  if (hasSeoul && hasBusan) {
-    return "Seoul and Busan";
-  }
-  if (hasSeoul) {
-    return "Seoul";
-  }
-  if (hasBusan) {
-    return "Busan";
-  }
-  return "";
+  if (!cities || cities.length === 0) return "";
+  const names = cities.map((c) => CITY_ENGLISH_NAMES[c] || c);
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }
 
 /**
@@ -89,22 +132,16 @@ export function calculateDefaultNightAllocation(
 ): CityNightAllocation {
   const allocation: CityNightAllocation = {};
 
-  if (cities.length === 0) {
+  if (!cities || cities.length === 0) {
     return allocation;
   }
 
-  if (cities.length === 1) {
-    allocation[cities[0]] = totalNights;
-    return allocation;
-  }
+  const baseNights = Math.floor(totalNights / cities.length);
+  let remainder = totalNights % cities.length;
 
-  // 서울과 부산이 둘 다 선택된 경우 (현재 2개 도시로 제한됨)
-  // 서울을 첫 도시로 보고 올림(ceil), 부산을 내림(floor)으로 자동 배분
-  if (cities.includes("SEOUL") && cities.includes("BUSAN")) {
-    const seoulNights = Math.ceil(totalNights / 2);
-    const busanNights = Math.floor(totalNights / 2);
-    allocation.SEOUL = seoulNights;
-    allocation.BUSAN = busanNights;
+  for (const city of cities) {
+    allocation[city] = baseNights + (remainder > 0 ? 1 : 0);
+    if (remainder > 0) remainder--;
   }
 
   return allocation;
@@ -148,11 +185,11 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
   if (
     !Array.isArray(selectedCities) ||
     selectedCities.length === 0 ||
-    selectedCities.length > 2
+    selectedCities.length > 4
   ) {
     errors.push("invalid_cities_count");
   } else {
-    const validCities: SupportedCity[] = ["SEOUL", "BUSAN"];
+    const validCities = ALL_SUPPORTED_CITIES;
     const uniqueCities = new Set(selectedCities);
     
     if (uniqueCities.size !== selectedCities.length) {

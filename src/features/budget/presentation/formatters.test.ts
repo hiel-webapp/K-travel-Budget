@@ -191,14 +191,14 @@ describe("Budget Presentation Formatters", () => {
       expect(summary).toContain("여름 휴가 계획");
       expect(summary).toContain("5박 6일");
       expect(summary).toContain("2명");
-      expect(summary).toContain("Seoul, Busan");
+      expect(summary).toContain("서울, 부산");
       expect(summary).toContain("₩ 1,292,600"); // 총 예상 예산
       expect(summary).toContain("₩ 646,300"); // 1인당
       expect(summary).toContain("₩ 215,433"); // 하루 평균
       expect(summary).toContain("사용률");
       expect(summary).toContain("도시별 소계");
-      expect(summary).toContain("Seoul: ₩ 721,000");
-      expect(summary).toContain("Busan: ₩ 452,000");
+      expect(summary).toContain("서울: ₩ 721,000");
+      expect(summary).toContain("부산: ₩ 452,000");
       expect(summary).toContain("카테고리별 소계");
       expect(summary).toContain("숙박");
 

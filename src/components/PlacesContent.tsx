@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { Locale } from "../lib/i18n/locales";
 import { listPlaces, getPlaceById, PlaceItem } from "../lib/places";
-import { SupportedCity } from "../lib/trip-domain";
+import { SupportedCity, ALL_SUPPORTED_CITIES } from "../lib/trip-domain";
 import { PlaceCategory } from "../lib/kto/types";
 import { loadSavedPlaceIds, toggleSavedPlaceId } from "../lib/storage-helper";
 
@@ -45,7 +45,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   const paramSavedOnly = searchParams.get("savedOnly") === "true";
 
   const [selectedCity, setSelectedCity] = useState<SupportedCity | "ALL">(
-    paramCity === "SEOUL" || paramCity === "BUSAN" ? paramCity : "ALL"
+    paramCity !== "ALL" && ALL_SUPPORTED_CITIES.includes(paramCity as SupportedCity) ? (paramCity as SupportedCity) : "ALL"
   );
   const [selectedCategory, setSelectedCategory] = useState<PlaceCategory | "ALL">(
     paramCategory === "ACCOMMODATION" ||
@@ -203,6 +203,14 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
               <option value="ALL">{dict.places.allCities}</option>
               <option value="SEOUL">Seoul (서울)</option>
               <option value="BUSAN">Busan (부산)</option>
+              <option value="JEJU">Jeju (제주)</option>
+              <option value="INCHEON">Incheon (인천)</option>
+              <option value="GYEONGJU">Gyeongju (경주)</option>
+              <option value="JEONJU">Jeonju (전주)</option>
+              <option value="GANGNEUNG">Gangneung (강릉)</option>
+              <option value="SUWON">Suwon (수원)</option>
+              <option value="YEOSU">Yeosu (여수)</option>
+              <option value="SOKCHO">Sokcho (속초)</option>
             </select>
           </div>
 

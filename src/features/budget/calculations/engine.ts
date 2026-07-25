@@ -44,10 +44,7 @@ export function generateInitialBudgetPlan(
   } = tripDraft;
 
   // 2. 도시별 섹션 연산
-  const citySections: Record<SupportedCity, CityBudgetSection | null> = {
-    SEOUL: null,
-    BUSAN: null,
-  };
+  const citySections: Partial<Record<SupportedCity, CityBudgetSection>> = {};
 
   const lineItems: BudgetLineItem[] = [];
 
@@ -152,7 +149,10 @@ export function generateInitialBudgetPlan(
         b.category === category &&
         b.id === basketId &&
         b.isActive &&
-        (b.applicableRoute === route || b.applicableRoute === [...selectedCities].reverse().join("-"))
+        (b.applicableRoute === route ||
+          b.applicableRoute === [...selectedCities].reverse().join("-") ||
+          b.applicableRoute === "SEOUL-BUSAN" ||
+          !b.applicableRoute)
     );
 
     if (!basket) {
@@ -281,11 +281,20 @@ function findBasket(
   category: BudgetCategory,
   city: SupportedCity
 ): BudgetBasketDefinition | undefined {
-  return catalog.find(
+  const directMatch = catalog.find(
     (b) =>
       b.category === category &&
       b.id === basketId &&
       b.applicableCity === city &&
+      b.isActive
+  );
+  if (directMatch) return directMatch;
+
+  return catalog.find(
+    (b) =>
+      b.category === category &&
+      b.id === basketId &&
+      (b.applicableCity === "SEOUL" || !b.applicableCity) &&
       b.isActive
   );
 }

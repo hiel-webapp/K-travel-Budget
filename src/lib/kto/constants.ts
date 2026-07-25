@@ -15,11 +15,26 @@ export const KTO_ENDPOINTS = {
 export const CITY_TO_KTO_AREA_CODE: Record<SupportedCity, KtoAreaCode> = {
   SEOUL: "1",
   BUSAN: "6",
+  JEJU: "39",
+  INCHEON: "2",
+  GYEONGJU: "37",
+  JEONJU: "35",
+  GANGNEUNG: "32",
+  SUWON: "31",
+  YEOSU: "36",
+  SOKCHO: "32",
 };
 
 export const KTO_AREA_CODE_TO_CITY: Record<string, SupportedCity> = {
   "1": "SEOUL",
   "6": "BUSAN",
+  "39": "JEJU",
+  "2": "INCHEON",
+  "37": "GYEONGJU",
+  "35": "JEONJU",
+  "32": "GANGNEUNG",
+  "31": "SUWON",
+  "36": "YEOSU",
 };
 
 export const KTO_CONTENT_TYPE = {

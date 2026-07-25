@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, SupportedCity } from "../lib/trip-domain";
+import { TripDraft, validateTripDraft, SupportedCity, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES } from "../lib/trip-domain";
 import { loadTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
 
 import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
@@ -103,7 +103,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   });
 
-  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "SEOUL" | "BUSAN">("ALL");
+  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | SupportedCity>("ALL");
   const [activeCategory, setActiveCategory] = useState<BudgetCategory>("ACCOMMODATION");
   const [saveError, setSaveError] = useState<boolean>(false);
 
@@ -629,14 +629,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const found = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
+      (b) => b.category === "ACCOMMODATION" && b.id === basketId && (b.applicableCity === city || b.applicableCity === "SEOUL")
     );
     return found ? found.representativePriceKrw : 0;
   };
 
   const getCatalogAttractionPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const found = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ATTRACTION" && b.id === basketId && b.applicableCity === city
+      (b) => b.category === "ATTRACTION" && b.id === basketId && (b.applicableCity === city || b.applicableCity === "SEOUL")
     );
     return found ? found.representativePriceKrw : 0;
   };
@@ -694,9 +694,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const label =
                 tab === "ALL"
                   ? dict.planner.allTabs
-                  : tab === "SEOUL"
-                    ? "Seoul"
-                    : "Busan";
+                  : locale === "ko"
+                    ? CITY_KOREAN_NAMES[tab as SupportedCity] || tab
+                    : CITY_ENGLISH_NAMES[tab as SupportedCity] || tab;
 
               return (
                 <button

@@ -129,7 +129,7 @@ export interface TripWideBudgetSection {
 export interface BudgetPlan {
   schemaVersion: number;
   trip: TripDraft;
-  citySections: Record<SupportedCity, CityBudgetSection | null>;
+  citySections: Partial<Record<SupportedCity, CityBudgetSection | null>>;
   intercitySection: IntercityBudgetSection;
   tripWideSection: TripWideBudgetSection;
   categoryTotals: Record<BudgetCategory, number>;

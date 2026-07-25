@@ -58,26 +58,25 @@ export function formatCityAllocationSummary(
   dict: Dictionary,
   locale: "ko" | "en"
 ): string {
-  const seoulNights = allocations.SEOUL || 0;
-  const busanNights = allocations.BUSAN || 0;
+  const cityKoMap: Record<string, string> = {
+    SEOUL: "서울", BUSAN: "부산", JEJU: "제주", INCHEON: "인천",
+    GYEONGJU: "경주", JEONJU: "전주", GANGNEUNG: "강릉", SUWON: "수원",
+    YEOSU: "여수", SOKCHO: "속초",
+  };
+  const cityEnMap: Record<string, string> = {
+    SEOUL: "Seoul", BUSAN: "Busan", JEJU: "Jeju", INCHEON: "Incheon",
+    GYEONGJU: "Gyeongju", JEONJU: "Jeonju", GANGNEUNG: "Gangneung", SUWON: "Suwon",
+    YEOSU: "Yeosu", SOKCHO: "Sokcho",
+  };
 
-  if (seoulNights > 0 && busanNights > 0) {
-    if (locale === "ko") {
-      return `서울 ${seoulNights}박 · 부산 ${busanNights}박`;
+  const parts: string[] = [];
+  for (const [city, nights] of Object.entries(allocations)) {
+    if (nights > 0) {
+      const name = locale === "ko" ? (cityKoMap[city] || city) : (cityEnMap[city] || city);
+      parts.push(locale === "ko" ? `${name} ${nights}박` : `${name} ${nights} nights`);
     }
-    return `Seoul ${seoulNights} nights · Busan ${busanNights} nights`;
-  } else if (seoulNights > 0) {
-    if (locale === "ko") {
-      return `서울 ${seoulNights}박`;
-    }
-    return `Seoul ${seoulNights} nights`;
-  } else if (busanNights > 0) {
-    if (locale === "ko") {
-      return `부산 ${busanNights}박`;
-    }
-    return `Busan ${busanNights} nights`;
   }
-  return "";
+  return parts.join(" · ");
 }
 
 /**
@@ -222,10 +221,26 @@ export function generateBudgetSummaryText(
   const isOverBudget = grandTotalKrw > targetBudgetKrw;
   const diffAmount = Math.abs(grandTotalKrw - targetBudgetKrw);
 
+  const getCityDisplayName = (c: string) => {
+    const mapKo: Record<string, string> = {
+      SEOUL: "서울", BUSAN: "부산", JEJU: "제주", INCHEON: "인천",
+      GYEONGJU: "경주", JEONJU: "전주", GANGNEUNG: "강릉", SUWON: "수원",
+      YEOSU: "여수", SOKCHO: "속초",
+    };
+    const mapEn: Record<string, string> = {
+      SEOUL: "Seoul", BUSAN: "Busan", JEJU: "Jeju", INCHEON: "Incheon",
+      GYEONGJU: "Gyeongju", JEONJU: "Jeonju", GANGNEUNG: "Gangneung", SUWON: "Suwon",
+      YEOSU: "Yeosu", SOKCHO: "Sokcho",
+    };
+    return locale === "ko" ? (mapKo[c] || c) : (mapEn[c] || c);
+  };
+
+  const cityNamesSummary = trip.selectedCities.map(getCityDisplayName).join(" & ");
+
   // 여행 제목 및 기본 요약
   const tripTitle = title || (locale === "ko"
-    ? `서울 & 부산 여행 계획`
-    : `Trip to Seoul & Busan`);
+    ? `${cityNamesSummary} 여행 계획`
+    : `Trip to ${cityNamesSummary}`);
 
   const durationStr = locale === "ko"
     ? `${trip.totalNights}박 ${trip.totalNights + 1}일`
@@ -235,7 +250,7 @@ export function generateBudgetSummaryText(
     ? `${trip.adultCount}명`
     : `${trip.adultCount} ${trip.adultCount === 1 ? "traveler" : "travelers"}`;
 
-  const citiesStr = trip.selectedCities.map((c) => (c === "SEOUL" ? "Seoul" : "Busan")).join(", ");
+  const citiesStr = trip.selectedCities.map(getCityDisplayName).join(", ");
 
   // 예산 차액/상태 구문
   let statusStr = "";
@@ -259,7 +274,7 @@ export function generateBudgetSummaryText(
     .map((city) => {
       const section = plan.citySections[city];
       if (!section) return null;
-      const name = city === "SEOUL" ? "Seoul" : "Busan";
+      const name = getCityDisplayName(city);
       return ` - ${name}: ${formatKrw(section.subtotalKrw)}`;
     })
     .filter(Boolean)

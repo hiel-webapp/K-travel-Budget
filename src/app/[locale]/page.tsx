@@ -17,7 +17,7 @@ export default async function LocalePage({ params }: PageProps) {
   const dict = await getDictionary(locale as Locale);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-start w-[min(100%-32px,720px)] mx-auto px-0 py-6 md:py-12">
+    <div className="flex flex-1 flex-col items-center justify-start w-full max-w-5xl md:max-w-6xl mx-auto px-4 py-6 md:py-12">
       {/* Brand Title & Localized Tagline */}
       <div className="text-center mb-8 md:mb-10 space-y-3 md:space-y-4">
         <h1 className="text-[32px] md:text-[48px] font-bold leading-[1.2] tracking-[-0.02em] text-[#1d1d1f]">

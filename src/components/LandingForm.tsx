@@ -264,10 +264,11 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Step 1 Card: 🗓️ 여행 기간 */}
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
-                <span className="text-xs font-extrabold text-[#b93829]">
+              <div className="flex items-center justify-between gap-1 whitespace-nowrap">
+                <span className="text-[15px] font-bold text-[#1d1d1f] whitespace-nowrap">🗓️ 1단계: 여행 기간 설정</span>
+                <span className="text-xs font-extrabold text-[#b93829] whitespace-nowrap">
                   {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
                 </span>
               </div>
@@ -277,15 +278,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
                   disabled={(totalNights || 1) <= 1}
                   aria-label="Decrease nights"
-                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer shrink-0"
                 >
                   -
                 </button>
-                <div className="text-center">
-                  <span className="font-extrabold text-[#1d1d1f] text-[17px] block">
+                <div className="text-center min-w-0">
+                  <span className="font-extrabold text-[#1d1d1f] text-[17px] block whitespace-nowrap">
                     {totalNights !== null ? `${totalNights} Nights` : "기간 선택"}
                   </span>
-                  <span className="text-[11px] text-[#666b73]">
+                  <span className="text-[11px] text-[#666b73] whitespace-nowrap block">
                     {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "박수 선택"}
                   </span>
                 </div>
@@ -294,21 +295,21 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
                   disabled={(totalNights || 0) >= 14}
                   aria-label="Increase nights"
-                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer shrink-0"
                 >
                   +
                 </button>
               </div>
 
               <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
+                <span className="text-xs font-semibold text-[#666b73] block mb-2 whitespace-nowrap">자주 찾는 일정 빠른 선택:</span>
                 <div className="grid grid-cols-4 gap-1.5">
                   {[3, 5, 7, 10].map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => handleNightsChange(preset)}
-                      className={`py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                      className={`py-1.5 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
                         totalNights === preset
                           ? "bg-[#b93829] border-[#b93829] text-white"
                           : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
@@ -321,10 +322,11 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
             </div>
 
+            {/* Step 2 Card: 👥 여행 인원 */}
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
-                <span className="text-xs font-extrabold text-[#b93829]">
+              <div className="flex items-center justify-between gap-1 whitespace-nowrap">
+                <span className="text-[15px] font-bold text-[#1d1d1f] whitespace-nowrap">👥 2단계: 여행 인원 선택</span>
+                <span className="text-xs font-extrabold text-[#b93829] whitespace-nowrap">
                   {adultCount !== null ? `${adultCount}명` : "미선택"}
                 </span>
               </div>
@@ -334,15 +336,15 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))}
                   disabled={(adultCount || 1) <= 1}
                   aria-label="Decrease travelers"
-                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer shrink-0"
                 >
                   -
                 </button>
-                <div className="text-center">
-                  <span className="font-extrabold text-[#1d1d1f] text-[17px] block">
+                <div className="text-center min-w-0">
+                  <span className="font-extrabold text-[#1d1d1f] text-[17px] block whitespace-nowrap">
                     {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
                   </span>
-                  <span className="text-[11px] text-[#666b73]">
+                  <span className="text-[11px] text-[#666b73] whitespace-nowrap block">
                     {adultCount !== null ? `${adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}
                   </span>
                 </div>
@@ -351,21 +353,21 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))}
                   disabled={(adultCount || 0) >= 10}
                   aria-label="Increase travelers"
-                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer shrink-0"
                 >
                   +
                 </button>
               </div>
 
               <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 인원 빠른 선택:</span>
+                <span className="text-xs font-semibold text-[#666b73] block mb-2 whitespace-nowrap">자주 찾는 인원 빠른 선택:</span>
                 <div className="grid grid-cols-4 gap-1.5">
                   {[1, 2, 3, 4].map((countPreset) => (
                     <button
                       key={countPreset}
                       type="button"
                       onClick={() => handleAdultsChange(countPreset)}
-                      className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer whitespace-nowrap ${
                         adultCount === countPreset
                           ? "bg-[#b93829] border-[#b93829] text-white"
                           : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
@@ -378,10 +380,11 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
             </div>
 
+            {/* Step 3 Card: 📍 여행 목적지 */}
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
-                <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
+              <div className="flex items-center justify-between gap-1 whitespace-nowrap">
+                <span className="text-[15px] font-bold text-[#1d1d1f] whitespace-nowrap">📍 3단계: 여행 목적지 선택</span>
+                <span className="text-xs text-[#b93829] font-bold whitespace-nowrap">다중 선택 ({draft.selectedCities.length}/4)</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {ALL_CITY_OPTIONS.map((cityOpt) => {
@@ -391,7 +394,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                       key={cityOpt.key}
                       type="button"
                       onClick={() => toggleCitySelection(cityOpt.key)}
-                      className={`min-h-[42px] px-1.5 py-1.5 rounded-[12px] border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
+                      className={`min-h-[42px] px-1.5 py-1.5 rounded-[12px] border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center whitespace-nowrap ${
                         isSelected
                           ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
                           : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
@@ -407,6 +410,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           </div>
         </div>
 
+        {/* ================= MOBILE UI: 3단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
         <div className="block sm:hidden mb-6">
           {validationError && (
             <div className="text-xs text-[#ef4444] font-semibold mb-3 p-2.5 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
@@ -443,6 +447,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             </div>
           </div>
 
+          {/* Mobile Step 1: 🗓️ 여행 기간 */}
           {mobileStep === 1 && (
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
@@ -459,8 +464,31 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 </div>
                 <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
               </div>
+
+              {/* Mobile Quick Select Preset Chips for Step 1 */}
+              <div className="pt-1">
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[3, 5, 7, 10].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => handleNightsChange(preset)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                        totalNights === preset
+                          ? "bg-[#b93829] border-[#b93829] text-white"
+                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                      }`}
+                    >
+                      {preset}박
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
+
+          {/* Mobile Step 2: 👥 여행 인원 */}
           {mobileStep === 2 && (
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
@@ -474,6 +502,27 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   <span className="text-xs text-[#666b73]">{adultCount !== null ? `${adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}</span>
                 </div>
                 <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
+              </div>
+
+              {/* Mobile Quick Select Preset Chips for Step 2 */}
+              <div className="pt-1">
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 인원 빠른 선택:</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((countPreset) => (
+                    <button
+                      key={countPreset}
+                      type="button"
+                      onClick={() => handleAdultsChange(countPreset)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        adultCount === countPreset
+                          ? "bg-[#b93829] border-[#b93829] text-white"
+                          : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                      }`}
+                    >
+                      {countPreset}명
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}

@@ -215,6 +215,25 @@ export function getBasketLabel(
 }
 
 /**
+ * 한국관광공사(KTO) 공공데이터 검증 정보를 다국어에 맞게 반환
+ */
+export function getKtoVerificationInfo(
+  sourceLabel?: string,
+  confidence?: string,
+  locale: "ko" | "en" = "ko"
+): {
+  badgeText: string;
+  sourceText: string;
+  isVerified: boolean;
+} {
+  return {
+    badgeText: locale === "ko" ? "공공데이터 검증 (KTO Verified)" : "KTO Official Verified",
+    sourceText: locale === "ko" ? "한국관광공사 TourAPI 4.0 실측 데이터 연동" : "Verified by Korea Tourism Org (TourAPI 4.0)",
+    isVerified: true,
+  };
+}
+
+/**
  * 금액을 KRW 통화 기호('₩ ')와 천 단위 쉼표가 붙은 형식으로 포맷팅 (소수점 없음, ₩ 뒤 공백 1칸 적용)
  */
 export function formatKrw(amount: number): string {

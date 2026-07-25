@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   TripDraft,
@@ -9,6 +9,7 @@ import {
   DEFAULT_TRIP_DRAFT,
   calculateDefaultNightAllocation,
   validateTripDraft,
+  getCitiesSentenceLabel,
 } from "src/lib/trip-domain";
 import { saveTripDraft, loadTripDraft, savePlannerPreferences } from "src/lib/storage-helper";
 import { formatCityAllocationSummary } from "src/features/budget/presentation/formatters";
@@ -19,6 +20,19 @@ interface LandingFormProps {
   locale: Locale;
   dict: Dictionary;
 }
+
+const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[] = [
+  { key: "SEOUL", nameKo: "서울", nameEn: "Seoul" },
+  { key: "BUSAN", nameKo: "부산", nameEn: "Busan" },
+  { key: "JEJU", nameKo: "제주", nameEn: "Jeju" },
+  { key: "INCHEON", nameKo: "인천", nameEn: "Incheon" },
+  { key: "GYEONGJU", nameKo: "경주", nameEn: "Gyeongju" },
+  { key: "JEONJU", nameKo: "전주", nameEn: "Jeonju" },
+  { key: "GANGNEUNG", nameKo: "강릉", nameEn: "Gangneung" },
+  { key: "SUWON", nameKo: "수원", nameEn: "Suwon" },
+  { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
+  { key: "SOKCHO", nameKo: "속초", nameEn: "Sokcho" },
+];
 
 // 예산 등급에 따른 영어 관사 및 마감 단어 사전
 const BUDGET_TENSE_MAP = {
@@ -116,7 +130,18 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
   const adultCount = draft.adultCount;
   const budgetTier = draft.budgetTier;
 
-  const selectedCityCode = draft.selectedCities[0] || "SEOUL";
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target as Node)) {
+        setIsCityDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleNightsChange = (newNights: number) => {
     const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
@@ -134,12 +159,20 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     }));
   };
 
-  const handleCitiesChange = (cityCode: SupportedCity) => {
-    const cities: SupportedCity[] = [cityCode];
-    const newAllocations = calculateDefaultNightAllocation(cities, draft.totalNights);
+  const toggleCitySelection = (cityCode: SupportedCity) => {
+    let nextCities: SupportedCity[];
+    if (draft.selectedCities.includes(cityCode)) {
+      if (draft.selectedCities.length <= 1) return;
+      nextCities = draft.selectedCities.filter((c) => c !== cityCode);
+    } else {
+      if (draft.selectedCities.length >= 4) return;
+      nextCities = [...draft.selectedCities, cityCode];
+    }
+
+    const newAllocations = calculateDefaultNightAllocation(nextCities, draft.totalNights);
     setDraft((prev) => ({
       ...prev,
-      selectedCities: cities,
+      selectedCities: nextCities,
       cityNightAllocations: newAllocations,
     }));
   };
@@ -245,25 +278,46 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
             <span>to</span>
 
             {/* Cities Selector */}
-            <div className="relative inline-block border-b-2 border-dashed border-[#dedede] hover:border-[#b93829] focus-within:border-[#b93829] bg-[#faf9f7] hover:bg-slate-100/60 px-3 py-1 rounded transition-colors min-h-[48px] leading-[44px]">
-              <select
-                value={selectedCityCode}
-                onChange={(e) => handleCitiesChange(e.target.value as SupportedCity)}
-                className="appearance-none bg-transparent pr-5 font-bold text-[#b93829] text-[17px] cursor-pointer focus:outline-none text-center"
-                aria-label="Destination city"
+            <div className="relative inline-block" ref={cityDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsCityDropdownOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1 border-b-2 border-dashed border-[#dedede] hover:border-[#b93829] focus:border-[#b93829] bg-[#faf9f7] hover:bg-slate-100/60 px-3 py-1 rounded transition-colors min-h-[48px] font-bold text-[#b93829] text-[17px] cursor-pointer"
+                aria-expanded={isCityDropdownOpen}
+                aria-label="Destination cities"
               >
-                <option value="SEOUL">Seoul</option>
-                <option value="BUSAN">Busan</option>
-                <option value="JEJU">Jeju</option>
-                <option value="INCHEON">Incheon</option>
-                <option value="GYEONGJU">Gyeongju</option>
-                <option value="JEONJU">Jeonju</option>
-                <option value="GANGNEUNG">Gangneung</option>
-                <option value="SUWON">Suwon</option>
-                <option value="YEOSU">Yeosu</option>
-                <option value="SOKCHO">Sokcho</option>
-              </select>
-              <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 pointer-events-none select-none">▼</span>
+                <span>{getCitiesSentenceLabel(draft.selectedCities)}</span>
+                <span className="text-[10px] text-slate-400 select-none ml-1">▼</span>
+              </button>
+
+              {isCityDropdownOpen && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-72 bg-white border border-[#dedede] rounded-2xl p-3 shadow-xl z-50 text-left">
+                  <div className="text-xs font-bold text-slate-500 mb-2 px-1 flex items-center justify-between">
+                    <span>도시 다중 선택 (1~4개)</span>
+                    <span className="text-[#b93829]">{draft.selectedCities.length}/4 선택됨</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto">
+                    {ALL_CITY_OPTIONS.map((cityOpt) => {
+                      const isSelected = draft.selectedCities.includes(cityOpt.key);
+                      return (
+                        <button
+                          key={cityOpt.key}
+                          type="button"
+                          onClick={() => toggleCitySelection(cityOpt.key)}
+                          className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                            isSelected
+                              ? "bg-[#fdf2f2] text-[#b93829] border border-[#b93829]"
+                              : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-transparent"
+                          }`}
+                        >
+                          <span>{cityOpt.nameEn}</span>
+                          {isSelected && <span>✓</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <span>{BUDGET_TENSE_MAP[budgetTier].pre}</span>
@@ -348,26 +402,18 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
           {/* Card 3: 📍 여행 목적지 (Destinations) */}
           <div className="bg-[#faf9f7] p-4 rounded-[16px] border border-[#dedede] space-y-3">
-            <span className="text-[14px] font-semibold text-[#666b73] block">📍 여행 목적지 (Destinations)</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[14px] font-semibold text-[#666b73]">📍 여행 목적지 (Destinations)</span>
+              <span className="text-[12px] text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
+            </div>
             <div className="grid grid-cols-3 gap-2">
-              {[
-                { key: "SEOUL", label: "서울" },
-                { key: "BUSAN", label: "부산" },
-                { key: "JEJU", label: "제주" },
-                { key: "INCHEON", label: "인천" },
-                { key: "GYEONGJU", label: "경주" },
-                { key: "JEONJU", label: "전주" },
-                { key: "GANGNEUNG", label: "강릉" },
-                { key: "SUWON", label: "수원" },
-                { key: "YEOSU", label: "여수" },
-                { key: "SOKCHO", label: "속초" },
-              ].map((cityOpt) => {
-                const isSelected = selectedCityCode === cityOpt.key;
+              {ALL_CITY_OPTIONS.map((cityOpt) => {
+                const isSelected = draft.selectedCities.includes(cityOpt.key);
                 return (
                   <button
                     key={cityOpt.key}
                     type="button"
-                    onClick={() => handleCitiesChange(cityOpt.key as SupportedCity)}
+                    onClick={() => toggleCitySelection(cityOpt.key)}
                     className={`min-h-[48px] px-2 py-2.5 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
                       isSelected
                         ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
@@ -375,7 +421,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                     }`}
                   >
                     {isSelected && <span className="text-[#b93829] font-bold text-xs">✓</span>}
-                    <span>{cityOpt.label}</span>
+                    <span>{cityOpt.nameKo}</span>
                   </button>
                 );
               })}

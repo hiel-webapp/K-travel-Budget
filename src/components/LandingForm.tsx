@@ -260,7 +260,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
           )}
         </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 justify-items-center">
+          <div className="hidden sm:grid grid-cols-1 lg:grid-cols-3 gap-5 justify-items-center">
             {/* Step 1 Card: 🗓️ 여행 기간 */}
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs overflow-hidden w-full max-w-[380px] lg:max-w-none">
               <div className="flex items-center justify-between gap-1 whitespace-nowrap">

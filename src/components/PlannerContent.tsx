@@ -1717,9 +1717,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <span className="font-extrabold text-slate-900 text-lg block">
                         {editDraft.totalNights !== null ? `${editDraft.totalNights} Nights` : "기간 선택"}
                       </span>
-                      <span className="text-xs text-slate-500 block">
-                        {editDraft.totalNights !== null ? `${editDraft.totalNights + 1}일간의 한국 여행` : "박수 선택"}
-                      </span>
                     </div>
                     <button
                       type="button"
@@ -1775,9 +1772,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     <div className="text-center">
                       <span className="font-extrabold text-slate-900 text-lg block">
                         {editDraft.adultCount !== null ? `${editDraft.adultCount} ${editDraft.adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
-                      </span>
-                      <span className="text-xs text-slate-500 block">
-                        {editDraft.adultCount !== null ? `${editDraft.adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}
                       </span>
                     </div>
                     <button

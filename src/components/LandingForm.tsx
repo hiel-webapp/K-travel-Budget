@@ -283,9 +283,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                   <span className="font-extrabold text-[#1d1d1f] text-sm lg:text-[16px] leading-tight block truncate">
                     {totalNights !== null ? `${totalNights} Nights` : "기간 선택"}
                   </span>
-                  <span className="text-[10px] lg:text-[11px] text-[#666b73] leading-tight block truncate">
-                    {totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "박수 선택"}
-                  </span>
                 </div>
                 <button
                   type="button"
@@ -340,9 +337,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 <div className="text-center min-w-0 px-0.5 overflow-hidden">
                   <span className="font-extrabold text-[#1d1d1f] text-sm lg:text-[16px] leading-tight block truncate">
                     {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
-                  </span>
-                  <span className="text-[10px] lg:text-[11px] text-[#666b73] leading-tight block truncate">
-                    {adultCount !== null ? `${adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}
                   </span>
                 </div>
                 <button
@@ -456,7 +450,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 <button type="button" onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))} disabled={(totalNights || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">-</button>
                 <div className="text-center">
                   <span className="font-extrabold text-[#1d1d1f] text-[20px] block">{totalNights !== null ? `${totalNights} Nights` : "기간 선택"}</span>
-                  <span className="text-xs text-[#666b73]">{totalNights !== null ? `${totalNights + 1}일간의 한국 여행` : "박수 선택"}</span>
                 </div>
                 <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
               </div>
@@ -495,7 +488,6 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
                 <button type="button" onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))} disabled={(adultCount || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">-</button>
                 <div className="text-center">
                   <span className="font-extrabold text-[#1d1d1f] text-xl block">{adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}</span>
-                  <span className="text-xs text-[#666b73]">{adultCount !== null ? `${adultCount}명의 한국 여행` : "인원 선택 (최대 10명)"}</span>
                 </div>
                 <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
               </div>

@@ -1729,7 +1729,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
 
                   <div>
-                    <span className="text-xs font-semibold text-slate-500 block mb-2">자주 찾는 일정 빠른 선택:</span>
+                    <span className="text-xs font-semibold text-slate-500 block mb-2">일정 빠른 선택:</span>
                     <div className="grid grid-cols-4 gap-2">
                       {[3, 5, 7, 10].map((preset) => (
                         <button
@@ -1785,7 +1785,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
 
                   <div>
-                    <span className="text-xs font-semibold text-slate-500 block mb-2">자주 찾는 인원 빠른 선택:</span>
+                    <span className="text-xs font-semibold text-slate-500 block mb-2">인원 빠른 선택:</span>
                     <div className="grid grid-cols-4 gap-2">
                       {[1, 2, 3, 4].map((preset) => (
                         <button

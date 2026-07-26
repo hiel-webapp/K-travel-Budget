@@ -296,7 +296,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
 
               <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2 whitespace-nowrap">자주 찾는 일정 빠른 선택:</span>
+                <span className="text-xs font-semibold text-[#666b73] block mb-2 whitespace-nowrap">일정 빠른 선택:</span>
                 <div className="grid grid-cols-4 gap-1.5">
                   {[3, 5, 7, 10].map((preset) => (
                     <button
@@ -351,7 +351,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
               </div>
 
               <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2 whitespace-nowrap">자주 찾는 인원 빠른 선택:</span>
+                <span className="text-xs font-semibold text-[#666b73] block mb-2 whitespace-nowrap">인원 빠른 선택:</span>
                 <div className="grid grid-cols-4 gap-1.5">
                   {[1, 2, 3, 4].map((countPreset) => (
                     <button
@@ -456,7 +456,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
               {/* Mobile Quick Select Preset Chips for Step 1 */}
               <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 일정 빠른 선택:</span>
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">일정 빠른 선택:</span>
                 <div className="grid grid-cols-4 gap-2">
                   {[3, 5, 7, 10].map((preset) => (
                     <button
@@ -494,7 +494,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
 
               {/* Mobile Quick Select Preset Chips for Step 2 */}
               <div className="pt-1">
-                <span className="text-xs font-semibold text-[#666b73] block mb-2">자주 찾는 인원 빠른 선택:</span>
+                <span className="text-xs font-semibold text-[#666b73] block mb-2">인원 빠른 선택:</span>
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 2, 3, 4].map((countPreset) => (
                     <button

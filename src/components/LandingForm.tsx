@@ -198,9 +198,9 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
-      <div className="w-full max-w-[440px] lg:max-w-none bg-[#ffffff] border border-[#dedede] rounded-[24px] p-4 sm:p-6 md:p-7 shadow-xs transition-shadow duration-300">
+      <div className="w-full max-w-5xl mx-auto bg-[#ffffff] border border-[#dedede] rounded-[24px] p-4 sm:p-6 md:p-7 shadow-xs transition-shadow duration-300">
 
-        <div className="hidden sm:block mb-6">
+        <div className="hidden md:block mb-6">
           {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
             <div className="flex justify-end mb-4 px-1">
               <button
@@ -215,7 +215,8 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
           )}
         </div>
 
-          <div className="hidden sm:grid grid-cols-1 lg:grid-cols-3 gap-5 justify-items-center">
+        {/* ================= PC / TABLET UI: 3개 카드 가로 3컬럼 레이아웃 (md 이상) ================= */}
+        <div className="hidden md:grid grid-cols-3 gap-5 justify-items-stretch">
             {/* Step 1 Card: 🗓️ 여행 기간 */}
             <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs overflow-hidden w-full max-w-[380px] lg:max-w-none">
               <div className="flex items-center justify-between gap-1 whitespace-nowrap">
@@ -355,8 +356,8 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
             </div>
           </div>
 
-        {/* ================= MOBILE UI: 3단계 진행형 Step Wizard 레이아웃 (sm 미만) ================= */}
-        <div className="block sm:hidden mb-6">
+        {/* ================= MOBILE UI: 3단계 진행형 Step Wizard 레이아웃 (md 미만) ================= */}
+        <div className="block md:hidden mb-6">
           {validationError && (
             <div className="text-xs text-[#ef4444] font-semibold mb-3 p-2.5 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
               ⚠️ {validationError}

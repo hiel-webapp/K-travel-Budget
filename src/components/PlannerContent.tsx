@@ -311,12 +311,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const availableTabs: ("ALL" | SupportedCity)[] = ["ALL"];
-  draft.selectedCities.forEach((city) => {
-    if (!availableTabs.includes(city)) {
-      availableTabs.push(city);
-    }
-  });
+  const availableTabs: (SupportedCity | "ALL")[] = [...draft.selectedCities, "ALL"];
 
   const getFilteredItems = (category: BudgetCategory): BudgetLineItem[] => {
     const items: BudgetLineItem[] = [];
@@ -859,7 +854,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const isActive = selectedCityTab === tab;
               const label =
                 tab === "ALL"
-                  ? dict.planner.allTabs
+                  ? locale === "ko" ? "📊 요약" : "📊 Summary"
                   : locale === "ko"
                     ? CITY_KOREAN_NAMES[tab as SupportedCity] || tab
                     : CITY_ENGLISH_NAMES[tab as SupportedCity] || tab;
@@ -883,102 +878,104 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             })}
           </div>
 
-          {/* Category Tabs / Cards */}
-          <div className="grid grid-cols-5 gap-2" role="tablist" aria-label="Budget categories">
-            {(["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION", "EMERGENCY_FUND"] as BudgetCategory[]).map((cat) => {
-              const isActive = activeCategory === cat;
-              const label = getCategoryLabel(cat, dict);
+          {/* Category Tabs / Cards (Only shown for individual city tabs) */}
+          {selectedCityTab !== "ALL" && (
+            <div className="grid grid-cols-5 gap-2" role="tablist" aria-label="Budget categories">
+              {(["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION", "EMERGENCY_FUND"] as BudgetCategory[]).map((cat) => {
+                const isActive = activeCategory === cat;
+                const label = getCategoryLabel(cat, dict);
 
-              const amount =
-                cat === "CITY_TRANSPORT"
-                  ? getCombinedTransportSubtotal(plan)
-                  : plan.categoryTotals[cat] || 0;
+                const amount =
+                  cat === "CITY_TRANSPORT"
+                    ? getCombinedTransportSubtotal(plan)
+                    : plan.categoryTotals[cat] || 0;
 
-              return (
-                <button
-                  key={cat}
-                  role="tab"
-                  aria-selected={isActive}
-                  id={`cat-tab-${cat}`}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`flex flex-col items-center justify-between p-3 rounded-xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isActive
-                      ? "bg-white border-[#e25c5c] shadow-sm text-[#0f172a]"
-                      : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-300"
-                    }`}
-                >
-                  <div className={`h-1 w-6 rounded-full mb-1.5 ${isActive ? "bg-[#e25c5c]" : "bg-slate-200"}`}></div>
-                  <span className="text-[11px] font-bold tracking-tight block sm:text-xs">
-                    {label}
-                  </span>
-                  <span className="mt-1 text-[11px] sm:text-[13px] font-extrabold text-[#0f172a] block">
-                    {formatKrw(amount)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={cat}
+                    role="tab"
+                    aria-selected={isActive}
+                    id={`cat-tab-${cat}`}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`flex flex-col items-center justify-between p-3 rounded-xl border text-center transition-all duration-155 focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isActive
+                        ? "bg-white border-[#e25c5c] shadow-sm text-[#0f172a]"
+                        : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-300"
+                      }`}
+                  >
+                    <div className={`h-1 w-6 rounded-full mb-1.5 ${isActive ? "bg-[#e25c5c]" : "bg-slate-200"}`}></div>
+                    <span className="text-[11px] font-bold tracking-tight block sm:text-xs">
+                      {label}
+                    </span>
+                    <span className="mt-1 text-[11px] sm:text-[13px] font-extrabold text-[#0f172a] block">
+                      {formatKrw(amount)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Active Category Panel */}
           <div
             className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6"
             role="tabpanel"
-            id={`cat-panel-${activeCategory}`}
-            aria-labelledby={`cat-tab-${activeCategory}`}
+            id={`cat-panel-${selectedCityTab === "ALL" ? "summary" : activeCategory}`}
+            aria-labelledby={`cat-tab-${selectedCityTab === "ALL" ? "summary" : activeCategory}`}
             aria-live="polite"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div>
-                <h3 className="text-lg font-bold text-[#0f172a]">
-                  {activeCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
-                  {activeCategory === "FOOD" && dict.planner.foodTitle}
-                  {activeCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
-                  {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
-                  {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyTitle}
-                </h3>
-                <p className="mt-1 text-xs sm:text-sm text-slate-400">
-                  {activeCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
-                  {activeCategory === "FOOD" && dict.planner.foodDescription}
-                  {activeCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
-                  {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
-                  {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyDescription}
-                </p>
-              </div>
-
-              {(activeCategory === "ACCOMMODATION" || activeCategory === "FOOD" || activeCategory === "ATTRACTION") && (
-                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
-                  {savedPlaceCount > 0 && (
-                    <Link
-                      href={`/${locale}/places?savedOnly=true`}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-[#0f172a] bg-amber-100/70 hover:bg-amber-200/70 px-3 py-2 rounded-xl border border-amber-300/60 transition-colors"
-                    >
-                      <span>★</span>
-                      <span>
-                        {(dict.places?.savedCountBadge || "저장한 후보 {count}개").replace(
-                          "{count}",
-                          String(savedPlaceCount)
-                        )}
-                      </span>
-                    </Link>
-                  )}
-                  <Link
-                    href={`/${locale}/places?${
-                      selectedCityTab !== "ALL" ? `city=${selectedCityTab}&` : ""
-                    }category=${
-                      activeCategory === "ACCOMMODATION"
-                        ? "ACCOMMODATION"
-                        : activeCategory === "FOOD"
-                        ? "RESTAURANT"
-                        : "ATTRACTION"
-                    }`}
-                    className="inline-flex items-center justify-center text-xs font-bold text-[#e25c5c] bg-[#faf5f5] hover:bg-[#fdeeed] px-3 py-2 rounded-xl border border-[#fce8e8] transition-colors"
-                  >
-                    {dict.places?.exploreCandidatePlaces || "실제 후보 장소 탐색 →"}
-                  </Link>
+            {selectedCityTab !== "ALL" && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-lg font-bold text-[#0f172a]">
+                    {activeCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
+                    {activeCategory === "FOOD" && dict.planner.foodTitle}
+                    {activeCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
+                    {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
+                    {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyTitle}
+                  </h3>
+                  <p className="mt-1 text-xs sm:text-sm text-slate-400">
+                    {activeCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
+                    {activeCategory === "FOOD" && dict.planner.foodDescription}
+                    {activeCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
+                    {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
+                    {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyDescription}
+                  </p>
                 </div>
-              )}
-            </div>
 
-            {/* 1. ALL Tab Mode: Side-by-Side Donut Charts & City Summary Cards */}
+                {(activeCategory === "ACCOMMODATION" || activeCategory === "FOOD" || activeCategory === "ATTRACTION") && (
+                  <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
+                    {savedPlaceCount > 0 && (
+                      <Link
+                        href={`/${locale}/places?savedOnly=true`}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-[#0f172a] bg-amber-100/70 hover:bg-amber-200/70 px-3 py-2 rounded-xl border border-amber-300/60 transition-colors"
+                      >
+                        <span>★</span>
+                        <span>
+                          {(dict.places?.savedCountBadge || "저장한 후보 {count}개").replace(
+                            "{count}",
+                            String(savedPlaceCount)
+                          )}
+                        </span>
+                      </Link>
+                    )}
+                    <Link
+                      href={`/${locale}/places?city=${selectedCityTab}&category=${
+                        activeCategory === "ACCOMMODATION"
+                          ? "ACCOMMODATION"
+                          : activeCategory === "FOOD"
+                          ? "RESTAURANT"
+                          : "ATTRACTION"
+                      }`}
+                      className="inline-flex items-center justify-center text-xs font-bold text-[#e25c5c] bg-[#faf5f5] hover:bg-[#fdeeed] px-3 py-2 rounded-xl border border-[#fce8e8] transition-colors"
+                    >
+                      {dict.places?.exploreCandidatePlaces || "실제 후보 장소 탐색 →"}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 1. Summary Tab Mode: Bar Charts & Category Amount Cards */}
             {selectedCityTab === "ALL" && (() => {
               const citySubtotalMap: Record<string, number> = {};
               let sumCitySubtotals = 0;
@@ -988,168 +985,123 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 sumCitySubtotals += sub;
               });
 
-              const safeSum = Math.max(1, sumCitySubtotals);
+              const maxCitySubtotal = Math.max(1, ...Object.values(citySubtotalMap));
 
               const cityColors = [
-                { bg: "bg-[#e25c5c]", hex: "#e25c5c", border: "border-[#fce8e8]", lightBg: "bg-[#faf5f5]" },
-                { bg: "bg-indigo-600", hex: "#4f46e5", border: "border-indigo-100", lightBg: "bg-indigo-50/50" },
-                { bg: "bg-emerald-600", hex: "#059669", border: "border-emerald-100", lightBg: "bg-emerald-50/50" },
-                { bg: "bg-amber-600", hex: "#d97706", border: "border-amber-100", lightBg: "bg-amber-50/50" },
+                { bg: "bg-[#e25c5c]", text: "text-[#e25c5c]", border: "border-[#fce8e8]", lightBg: "bg-[#faf5f5]" },
+                { bg: "bg-indigo-600", text: "text-indigo-600", border: "border-indigo-100", lightBg: "bg-indigo-50/50" },
+                { bg: "bg-emerald-600", text: "text-emerald-600", border: "border-emerald-100", lightBg: "bg-emerald-50/50" },
+                { bg: "bg-amber-600", text: "text-amber-600", border: "border-amber-100", lightBg: "bg-amber-50/50" },
               ];
 
-              // 1) City Donut Chart Data
-              const cityChartData = draft.selectedCities.map((city, idx) => {
-                const amount = citySubtotalMap[city] || 0;
-                const percentage = Math.round((amount / safeSum) * 100);
-                const color = cityColors[idx % cityColors.length];
-                return {
-                  label: locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city),
-                  amount,
-                  percentage,
-                  colorBg: color.bg,
-                  hex: color.hex,
-                };
-              });
-
-              // 2) Category Donut Chart Data
-              const grandTotal = plan.grandTotalKrw || 1;
+              // 1) Category Amounts Data
               const categoryMeta = [
-                { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500", hex: "#3b82f6" },
-                { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500", hex: "#f59e0b" },
-                { cat: "CITY_TRANSPORT", icon: "🚌", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500", hex: "#6366f1" },
-                { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500", hex: "#10b981" },
+                { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
+                { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
+                { cat: "CITY_TRANSPORT", icon: "🚌", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
+                { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
               ];
 
-              const categoryChartData = categoryMeta.map((item) => {
+              const categorySubtotals = categoryMeta.map((item) => {
                 const amount =
                   item.cat === "CITY_TRANSPORT"
                     ? getCombinedTransportSubtotal(plan)
                     : plan.categoryTotals[item.cat as BudgetCategory] || 0;
-                const percentage = Math.round((amount / grandTotal) * 100);
                 return {
-                  label: `${item.icon} ${item.label}`,
+                  label: item.label,
                   amount,
-                  percentage,
                   colorBg: item.colorBg,
-                  hex: item.hex,
                 };
               });
 
-              // Helper to render SVG Donut Chart
-              const renderDonut = (items: typeof cityChartData) => {
-                const R = 34;
-                const C = 2 * Math.PI * R; // ~213.62
-                let accumulatedPercent = 0;
-
-                return (
-                  <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
-                    <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
-                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                        {items.map((item, idx) => {
-                          const strokeDasharray = `${(item.percentage / 100) * C} ${C}`;
-                          const strokeDashoffset = -((accumulatedPercent / 100) * C);
-                          accumulatedPercent += item.percentage;
-
-                          return (
-                            <circle
-                              key={idx}
-                              cx="50"
-                              cy="50"
-                              r={R}
-                              fill="transparent"
-                              stroke={item.hex}
-                              strokeWidth="16"
-                              strokeDasharray={strokeDasharray}
-                              strokeDashoffset={strokeDashoffset}
-                              className="transition-all duration-300 hover:opacity-80"
-                            />
-                          );
-                        })}
-                      </svg>
-                    </div>
-
-                    <div className="flex-1 space-y-1.5 text-xs w-full">
-                      {items.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between gap-2 border-b border-slate-100/80 pb-1 last:border-0">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`} />
-                            <span className="font-extrabold text-slate-800 truncate">{item.label}</span>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0 text-right">
-                            <span className="font-black text-slate-900">{item.percentage}%</span>
-                            <span className="text-[10px] text-slate-400 font-semibold">({formatKrw(item.amount)})</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              };
+              const maxCatSubtotal = Math.max(1, ...categorySubtotals.map((c) => c.amount));
 
               return (
                 <div className="space-y-6 pt-2 border-t border-slate-100">
-                  {/* Two Donut Charts Side-by-Side */}
+                  {/* Two Bar Charts Side-by-Side */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Chart 1: City Budget Allocation */}
-                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
-                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                          <span>🏙️</span>
-                          <span>{locale === "ko" ? "도시별 예산 비중" : "City Budget Ratio"}</span>
-                        </h4>
-                        <span className="text-xs font-extrabold text-slate-700">
-                          {formatKrw(sumCitySubtotals)}
-                        </span>
+                    {/* Chart 1: City Budget Bar Chart (Minimal text: City name only) */}
+                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-4">
+                      <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5 border-b border-slate-200/50 pb-2">
+                        <span>🏙️</span>
+                        <span>{locale === "ko" ? "도시별 예산 비중" : "City Budget Ratio"}</span>
+                      </h4>
+
+                      <div className="h-36 flex items-end justify-around gap-2 px-2 pt-2">
+                        {draft.selectedCities.map((city, idx) => {
+                          const amount = citySubtotalMap[city] || 0;
+                          const heightPct = Math.max(16, Math.round((amount / maxCitySubtotal) * 100));
+                          const color = cityColors[idx % cityColors.length];
+                          const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
+
+                          return (
+                            <div key={city} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                              <div
+                                style={{ height: `${heightPct}%` }}
+                                className={`w-full max-w-[48px] rounded-t-xl ${color.bg} transition-all duration-300 shadow-2xs`}
+                              />
+                              <span className="text-xs font-extrabold text-slate-800 tracking-tight shrink-0">
+                                {cityName}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
-                      {renderDonut(cityChartData)}
                     </div>
 
-                    {/* Chart 2: Category Budget Breakdown */}
-                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
-                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                          <span>📦</span>
-                          <span>{locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}</span>
-                        </h4>
-                        <span className="text-xs font-extrabold text-slate-700">
-                          {formatKrw(plan.grandTotalKrw)}
-                        </span>
+                    {/* Chart 2: Category Budget Bar Chart (Minimal text: Category name only) */}
+                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-4">
+                      <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5 border-b border-slate-200/50 pb-2">
+                        <span>📦</span>
+                        <span>{locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}</span>
+                      </h4>
+
+                      <div className="h-36 flex items-end justify-around gap-2 px-2 pt-2">
+                        {categorySubtotals.map((item, idx) => {
+                          const heightPct = Math.max(16, Math.round((item.amount / maxCatSubtotal) * 100));
+
+                          return (
+                            <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                              <div
+                                style={{ height: `${heightPct}%` }}
+                                className={`w-full max-w-[48px] rounded-t-xl ${item.colorBg} transition-all duration-300 shadow-2xs`}
+                              />
+                              <span className="text-xs font-extrabold text-slate-800 tracking-tight shrink-0">
+                                {item.label}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
-                      {renderDonut(categoryChartData)}
                     </div>
                   </div>
 
-                  {/* City Budget Summary Cards Grid */}
+                  {/* City Details Cards with Amounts */}
                   <div className="space-y-3">
                     <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
                       <span>📌</span>
-                      <span>{locale === "ko" ? "도시별 세부 정보" : "City Details"}</span>
+                      <span>{locale === "ko" ? "도시별 세부 금액 정보" : "City Breakdown Details"}</span>
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {draft.selectedCities.map((city, idx) => {
                         const nights = draft.cityNightAllocations[city] || 0;
                         const subtotal = citySubtotalMap[city] || 0;
-                        const pct = Math.round((subtotal / safeSum) * 100);
                         const color = cityColors[idx % cityColors.length];
 
-                        // Stay & Attraction Basket Names
-                        const stayBasketId =
-                          preferences.accommodationByCity[city] ||
-                          plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId;
-                        const stayName = getBasketLabel(stayBasketId as BudgetBasketId, dict, locale, city);
-
-                        const attrBasketId =
-                          preferences.attractionByCity?.[city] ||
-                          plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId;
-                        const attrName = getBasketLabel(attrBasketId as BudgetBasketId, dict, locale, city);
+                        // Amounts for each category in this city
+                        const lineItems = plan.citySections[city]?.lineItems || [];
+                        const stayAmount = lineItems.find((i) => i.category === "ACCOMMODATION")?.lineTotalKrw || 0;
+                        const foodAmount = lineItems.find((i) => i.category === "FOOD")?.lineTotalKrw || 0;
+                        const transportAmount = lineItems.find((i) => i.category === "CITY_TRANSPORT")?.lineTotalKrw || 0;
+                        const attractionAmount = lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0;
 
                         return (
                           <div
                             key={city}
                             className={`p-4 rounded-2xl border ${color.border} ${color.lightBg} flex flex-col justify-between space-y-4 shadow-2xs transition-all hover:shadow-xs`}
                           >
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                               {/* Header */}
                               <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
                                 <div className="flex items-center gap-1.5">
@@ -1163,31 +1115,34 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 </span>
                               </div>
 
-                              {/* Amount & Ratio */}
-                              <div className="flex items-baseline justify-between pt-1">
-                                <span className="text-xs text-slate-500 font-bold">
-                                  {locale === "ko" ? "도시 예상 예산" : "City Subtotal"}
-                                </span>
-                                <div className="text-right">
-                                  <strong className={`text-lg font-black ${color.bg.replace("bg-", "text-")}`}>
-                                    {formatKrw(subtotal)}
-                                  </strong>
-                                  <span className="text-xs font-bold text-slate-500 ml-1.5">
-                                    ({pct}%)
-                                  </span>
+                              {/* Amount Breakdown */}
+                              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                                  <span className="text-slate-500 font-semibold">🏨 {locale === "ko" ? "숙박" : "Stay"}</span>
+                                  <strong className="text-slate-900 font-extrabold">{formatKrw(stayAmount)}</strong>
+                                </div>
+                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                                  <span className="text-slate-500 font-semibold">🍱 {locale === "ko" ? "음식" : "Food"}</span>
+                                  <strong className="text-slate-900 font-extrabold">{formatKrw(foodAmount)}</strong>
+                                </div>
+                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                                  <span className="text-slate-500 font-semibold">🚌 {locale === "ko" ? "교통" : "Transit"}</span>
+                                  <strong className="text-slate-900 font-extrabold">{formatKrw(transportAmount)}</strong>
+                                </div>
+                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                                  <span className="text-slate-500 font-semibold">🏛️ {locale === "ko" ? "관광" : "Attr"}</span>
+                                  <strong className="text-slate-900 font-extrabold">{formatKrw(attractionAmount)}</strong>
                                 </div>
                               </div>
 
-                              {/* Key Options Breakdown Tags */}
-                              <div className="space-y-1.5 pt-2 text-xs border-t border-slate-200/40">
-                                <div className="flex items-center justify-between text-slate-700">
-                                  <span className="text-slate-500">🏨 {locale === "ko" ? "숙박" : "Stay"}</span>
-                                  <span className="font-bold text-slate-900">{stayName}</span>
-                                </div>
-                                <div className="flex items-center justify-between text-slate-700">
-                                  <span className="text-slate-500">🏛️ {locale === "ko" ? "관광" : "Attractions"}</span>
-                                  <span className="font-bold text-slate-900">{attrName}</span>
-                                </div>
+                              {/* Subtotal */}
+                              <div className="flex items-baseline justify-between pt-1 border-t border-slate-200/40">
+                                <span className="text-xs text-slate-500 font-bold">
+                                  {locale === "ko" ? "도시 예산 소계" : "City Subtotal"}
+                                </span>
+                                <strong className={`text-base font-black ${color.text}`}>
+                                  {formatKrw(subtotal)}
+                                </strong>
                               </div>
                             </div>
 
@@ -1195,7 +1150,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <button
                               type="button"
                               onClick={() => setSelectedCityTab(city)}
-                              className={`w-full py-2 px-3 rounded-xl bg-white border ${color.border} ${color.bg.replace("bg-", "text-")} font-extrabold text-xs transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs flex items-center justify-center gap-1`}
+                              className={`w-full py-2 px-3 rounded-xl bg-white border ${color.border} ${color.text} font-extrabold text-xs transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs flex items-center justify-center gap-1`}
                             >
                               <span>{locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 세부 편집` : `Edit ${city}`}</span>
                               <span>→</span>

@@ -761,11 +761,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   return (
-    <div className="w-full max-w-7xl px-4 pt-2 pb-8 md:px-8 space-y-6">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-8 space-y-6">
       <h1 className="sr-only">{dict.common.title}</h1>
 
       {/* Header Banner Section */}
-      <div className="text-center space-y-2 pt-2 mb-6">
+      <div className="text-center space-y-2 pt-2">
         <span className="text-[#b93829] font-extrabold text-xs tracking-tight uppercase">
           HypeHeritage Planner
         </span>

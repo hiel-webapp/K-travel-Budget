@@ -17,7 +17,7 @@ export default async function PlannerPage({ params }: PageProps) {
   const dict = await getDictionary(locale as Locale);
 
   return (
-    <div className="flex flex-1 items-center justify-center py-12 md:py-24 px-4">
+    <div className="min-h-screen bg-[#faf9f6] py-12">
       <PlannerContent locale={locale as Locale} dict={dict} />
     </div>
   );

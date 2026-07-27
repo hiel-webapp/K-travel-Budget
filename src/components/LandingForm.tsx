@@ -11,6 +11,7 @@ import {
   validateTripDraft,
   getCitiesSentenceLabel,
   CITY_KOREAN_NAMES,
+  sortCitiesByStandardOrder,
 } from "src/lib/trip-domain";
 import {
   saveTripDraft,
@@ -32,12 +33,12 @@ const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[]
   { key: "BUSAN", nameKo: "부산", nameEn: "Busan" },
   { key: "JEJU", nameKo: "제주", nameEn: "Jeju" },
   { key: "INCHEON", nameKo: "인천", nameEn: "Incheon" },
-  { key: "GYEONGJU", nameKo: "경주", nameEn: "Gyeongju" },
-  { key: "JEONJU", nameKo: "전주", nameEn: "Jeonju" },
-  { key: "GANGNEUNG", nameKo: "강릉", nameEn: "Gangneung" },
   { key: "SUWON", nameKo: "수원", nameEn: "Suwon" },
-  { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
+  { key: "JEONJU", nameKo: "전주", nameEn: "Jeonju" },
+  { key: "GYEONGJU", nameKo: "경주", nameEn: "Gyeongju" },
+  { key: "GANGNEUNG", nameKo: "강릉", nameEn: "Gangneung" },
   { key: "SOKCHO", nameKo: "속초", nameEn: "Sokcho" },
+  { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
 ];
 
 export default function LandingForm({ locale, dict }: LandingFormProps) {
@@ -114,6 +115,8 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
       if (draft.selectedCities.length >= 4) return;
       nextCities = [...draft.selectedCities, cityCode];
     }
+
+    nextCities = sortCitiesByStandardOrder(nextCities);
 
     const newAllocations = calculateDefaultNightAllocation(nextCities, draft.totalNights);
     setDraft((prev) => ({

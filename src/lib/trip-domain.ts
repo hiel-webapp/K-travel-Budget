@@ -36,18 +36,24 @@ export const CITY_KOREAN_NAMES: Record<SupportedCity, string> = {
   SOKCHO: "속초",
 };
 
-export const ALL_SUPPORTED_CITIES: SupportedCity[] = [
+export const CITY_ORDER: SupportedCity[] = [
   "SEOUL",
   "BUSAN",
   "JEJU",
   "INCHEON",
-  "GYEONGJU",
-  "JEONJU",
-  "GANGNEUNG",
   "SUWON",
-  "YEOSU",
+  "JEONJU",
+  "GYEONGJU",
+  "GANGNEUNG",
   "SOKCHO",
+  "YEOSU",
 ];
+
+export const ALL_SUPPORTED_CITIES: SupportedCity[] = CITY_ORDER;
+
+export function sortCitiesByStandardOrder(cities: SupportedCity[]): SupportedCity[] {
+  return [...cities].sort((a, b) => CITY_ORDER.indexOf(a) - CITY_ORDER.indexOf(b));
+}
 
 export type BudgetTier = "BUDGET" | "STANDARD" | "PREMIUM";
 

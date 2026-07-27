@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation } from "../lib/trip-domain";
+import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
 
 import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
@@ -66,12 +66,12 @@ const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[]
   { key: "BUSAN", nameKo: "부산", nameEn: "Busan" },
   { key: "JEJU", nameKo: "제주", nameEn: "Jeju" },
   { key: "INCHEON", nameKo: "인천", nameEn: "Incheon" },
-  { key: "GYEONGJU", nameKo: "경주", nameEn: "Gyeongju" },
-  { key: "JEONJU", nameKo: "전주", nameEn: "Jeonju" },
-  { key: "GANGNEUNG", nameKo: "강릉", nameEn: "Gangneung" },
   { key: "SUWON", nameKo: "수원", nameEn: "Suwon" },
-  { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
+  { key: "JEONJU", nameKo: "전주", nameEn: "Jeonju" },
+  { key: "GYEONGJU", nameKo: "경주", nameEn: "Gyeongju" },
+  { key: "GANGNEUNG", nameKo: "강릉", nameEn: "Gangneung" },
   { key: "SOKCHO", nameKo: "속초", nameEn: "Sokcho" },
+  { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
 ];
 
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
@@ -159,6 +159,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       if (editDraft.selectedCities.length >= 4) return;
       nextCities = [...editDraft.selectedCities, cityCode];
     }
+    nextCities = sortCitiesByStandardOrder(nextCities);
     const newAllocations = calculateDefaultNightAllocation(nextCities, editDraft.totalNights);
     setEditDraft({
       ...editDraft,
@@ -311,7 +312,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const availableTabs: (SupportedCity | "ALL")[] = [...draft.selectedCities, "ALL"];
+  const availableTabs: (SupportedCity | "ALL")[] = [...sortCitiesByStandardOrder(draft.selectedCities), "ALL"];
 
   const getFilteredItems = (category: BudgetCategory): BudgetLineItem[] => {
     const items: BudgetLineItem[] = [];
@@ -852,7 +853,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           <div className="flex items-center justify-between border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
             {/* Left: City Tabs (Scrollbar hidden) */}
             <div className="flex items-center space-x-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
-              {draft.selectedCities.map((city) => {
+              {sortCitiesByStandardOrder(draft.selectedCities).map((city) => {
                 const isActive = selectedCityTab === city;
                 const label = locale === "ko"
                   ? CITY_KOREAN_NAMES[city] || city

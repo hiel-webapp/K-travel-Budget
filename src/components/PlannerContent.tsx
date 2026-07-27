@@ -978,7 +978,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               )}
             </div>
 
-            {/* 1. ALL Tab Mode: Visual Budget Distribution & City Summary Cards */}
+            {/* 1. ALL Tab Mode: Side-by-Side Donut Charts & City Summary Cards */}
             {selectedCityTab === "ALL" && (() => {
               const citySubtotalMap: Record<string, number> = {};
               let sumCitySubtotals = 0;
@@ -990,70 +990,140 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               const safeSum = Math.max(1, sumCitySubtotals);
 
-              const colorPalette = [
-                { bg: "bg-[#e25c5c]", text: "text-[#e25c5c]", border: "border-[#fce8e8]", lightBg: "bg-[#faf5f5]" },
-                { bg: "bg-indigo-600", text: "text-indigo-600", border: "border-indigo-100", lightBg: "bg-indigo-50/50" },
-                { bg: "bg-emerald-600", text: "text-emerald-600", border: "border-emerald-100", lightBg: "bg-emerald-50/50" },
-                { bg: "bg-amber-600", text: "text-amber-600", border: "border-amber-100", lightBg: "bg-amber-50/50" },
+              const cityColors = [
+                { bg: "bg-[#e25c5c]", hex: "#e25c5c", border: "border-[#fce8e8]", lightBg: "bg-[#faf5f5]" },
+                { bg: "bg-indigo-600", hex: "#4f46e5", border: "border-indigo-100", lightBg: "bg-indigo-50/50" },
+                { bg: "bg-emerald-600", hex: "#059669", border: "border-emerald-100", lightBg: "bg-emerald-50/50" },
+                { bg: "bg-amber-600", hex: "#d97706", border: "border-amber-100", lightBg: "bg-amber-50/50" },
               ];
+
+              // 1) City Donut Chart Data
+              const cityChartData = draft.selectedCities.map((city, idx) => {
+                const amount = citySubtotalMap[city] || 0;
+                const percentage = Math.round((amount / safeSum) * 100);
+                const color = cityColors[idx % cityColors.length];
+                return {
+                  label: locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city),
+                  amount,
+                  percentage,
+                  colorBg: color.bg,
+                  hex: color.hex,
+                };
+              });
+
+              // 2) Category Donut Chart Data
+              const grandTotal = plan.grandTotalKrw || 1;
+              const categoryMeta = [
+                { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500", hex: "#3b82f6" },
+                { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500", hex: "#f59e0b" },
+                { cat: "CITY_TRANSPORT", icon: "🚌", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500", hex: "#6366f1" },
+                { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500", hex: "#10b981" },
+              ];
+
+              const categoryChartData = categoryMeta.map((item) => {
+                const amount =
+                  item.cat === "CITY_TRANSPORT"
+                    ? getCombinedTransportSubtotal(plan)
+                    : plan.categoryTotals[item.cat as BudgetCategory] || 0;
+                const percentage = Math.round((amount / grandTotal) * 100);
+                return {
+                  label: `${item.icon} ${item.label}`,
+                  amount,
+                  percentage,
+                  colorBg: item.colorBg,
+                  hex: item.hex,
+                };
+              });
+
+              // Helper to render SVG Donut Chart
+              const renderDonut = (items: typeof cityChartData) => {
+                const R = 34;
+                const C = 2 * Math.PI * R; // ~213.62
+                let accumulatedPercent = 0;
+
+                return (
+                  <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
+                    <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
+                      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                        {items.map((item, idx) => {
+                          const strokeDasharray = `${(item.percentage / 100) * C} ${C}`;
+                          const strokeDashoffset = -((accumulatedPercent / 100) * C);
+                          accumulatedPercent += item.percentage;
+
+                          return (
+                            <circle
+                              key={idx}
+                              cx="50"
+                              cy="50"
+                              r={R}
+                              fill="transparent"
+                              stroke={item.hex}
+                              strokeWidth="16"
+                              strokeDasharray={strokeDasharray}
+                              strokeDashoffset={strokeDashoffset}
+                              className="transition-all duration-300 hover:opacity-80"
+                            />
+                          );
+                        })}
+                      </svg>
+                    </div>
+
+                    <div className="flex-1 space-y-1.5 text-xs w-full">
+                      {items.map((item, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-2 border-b border-slate-100/80 pb-1 last:border-0">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`} />
+                            <span className="font-extrabold text-slate-800 truncate">{item.label}</span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0 text-right">
+                            <span className="font-black text-slate-900">{item.percentage}%</span>
+                            <span className="text-[10px] text-slate-400 font-semibold">({formatKrw(item.amount)})</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              };
 
               return (
                 <div className="space-y-6 pt-2 border-t border-slate-100">
-                  {/* (1) Visual Budget Distribution Progress Bar */}
-                  <div className="space-y-3 bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                        <span>📊</span>
-                        <span>{locale === "ko" ? "도시별 예산 배분 비중" : "City Budget Allocation"}</span>
-                      </h4>
-                      <span className="text-xs font-extrabold text-slate-700">
-                        {locale === "ko" ? "도시 합계: " : "Cities Total: "}{formatKrw(sumCitySubtotals)}
-                      </span>
+                  {/* Two Donut Charts Side-by-Side */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Chart 1: City Budget Allocation */}
+                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
+                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                          <span>🏙️</span>
+                          <span>{locale === "ko" ? "도시별 예산 비중" : "City Budget Ratio"}</span>
+                        </h4>
+                        <span className="text-xs font-extrabold text-slate-700">
+                          {formatKrw(sumCitySubtotals)}
+                        </span>
+                      </div>
+                      {renderDonut(cityChartData)}
                     </div>
 
-                    {/* Multi-color Progress Bar */}
-                    <div className="h-3.5 w-full bg-slate-200/80 rounded-full overflow-hidden flex shadow-2xs">
-                      {draft.selectedCities.map((city, idx) => {
-                        const amount = citySubtotalMap[city] || 0;
-                        const pct = Math.round((amount / safeSum) * 100);
-                        if (pct <= 0) return null;
-                        const color = colorPalette[idx % colorPalette.length];
-                        return (
-                          <div
-                            key={city}
-                            style={{ width: `${pct}%` }}
-                            className={`${color.bg} transition-all duration-300 relative group`}
-                            title={`${CITY_KOREAN_NAMES[city] || city}: ${pct}% (${formatKrw(amount)})`}
-                          />
-                        );
-                      })}
-                    </div>
-
-                    {/* Legends */}
-                    <div className="flex flex-wrap items-center gap-4 pt-1 text-xs">
-                      {draft.selectedCities.map((city, idx) => {
-                        const amount = citySubtotalMap[city] || 0;
-                        const pct = Math.round((amount / safeSum) * 100);
-                        const color = colorPalette[idx % colorPalette.length];
-                        return (
-                          <div key={city} className="flex items-center gap-1.5">
-                            <span className={`h-2.5 w-2.5 rounded-full ${color.bg}`}></span>
-                            <span className="font-bold text-slate-800">
-                              {locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}
-                            </span>
-                            <span className="text-slate-500 font-semibold">{pct}%</span>
-                            <span className="text-slate-400 text-[11px]">({formatKrw(amount)})</span>
-                          </div>
-                        );
-                      })}
+                    {/* Chart 2: Category Budget Breakdown */}
+                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
+                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                          <span>📦</span>
+                          <span>{locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}</span>
+                        </h4>
+                        <span className="text-xs font-extrabold text-slate-700">
+                          {formatKrw(plan.grandTotalKrw)}
+                        </span>
+                      </div>
+                      {renderDonut(categoryChartData)}
                     </div>
                   </div>
 
-                  {/* (2) City Budget Summary Cards Grid */}
+                  {/* City Budget Summary Cards Grid */}
                   <div className="space-y-3">
                     <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                      <span>🏙️</span>
-                      <span>{locale === "ko" ? "도시별 핵심 예산 카드" : "City Budget Cards"}</span>
+                      <span>📌</span>
+                      <span>{locale === "ko" ? "도시별 세부 정보" : "City Details"}</span>
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1061,7 +1131,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const nights = draft.cityNightAllocations[city] || 0;
                         const subtotal = citySubtotalMap[city] || 0;
                         const pct = Math.round((subtotal / safeSum) * 100);
-                        const color = colorPalette[idx % colorPalette.length];
+                        const color = cityColors[idx % cityColors.length];
 
                         // Stay & Attraction Basket Names
                         const stayBasketId =
@@ -1099,7 +1169,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   {locale === "ko" ? "도시 예상 예산" : "City Subtotal"}
                                 </span>
                                 <div className="text-right">
-                                  <strong className={`text-lg font-black ${color.text}`}>
+                                  <strong className={`text-lg font-black ${color.bg.replace("bg-", "text-")}`}>
                                     {formatKrw(subtotal)}
                                   </strong>
                                   <span className="text-xs font-bold text-slate-500 ml-1.5">
@@ -1125,45 +1195,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <button
                               type="button"
                               onClick={() => setSelectedCityTab(city)}
-                              className={`w-full py-2 px-3 rounded-xl bg-white border ${color.border} ${color.text} font-extrabold text-xs transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs flex items-center justify-center gap-1`}
+                              className={`w-full py-2 px-3 rounded-xl bg-white border ${color.border} ${color.bg.replace("bg-", "text-")} font-extrabold text-xs transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs flex items-center justify-center gap-1`}
                             >
                               <span>{locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 세부 편집` : `Edit ${city}`}</span>
                               <span>→</span>
                             </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* (3) Category Breakdown Overview Bar */}
-                  <div className="space-y-2 pt-2 border-t border-slate-100">
-                    <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
-                      {locale === "ko" ? "카테고리별 전체 예산 분포" : "Overall Category Distribution"}
-                    </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                      {[
-                        { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay" },
-                        { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food" },
-                        { cat: "CITY_TRANSPORT", icon: "🚌", label: locale === "ko" ? "교통" : "Transport" },
-                        { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions" },
-                      ].map((item) => {
-                        const amount =
-                          item.cat === "CITY_TRANSPORT"
-                            ? getCombinedTransportSubtotal(plan)
-                            : plan.categoryTotals[item.cat as BudgetCategory] || 0;
-                        const grandTotal = plan.grandTotalKrw || 1;
-                        const pct = Math.round((amount / grandTotal) * 100);
-
-                        return (
-                          <div key={item.cat} className="p-2.5 rounded-xl border border-slate-200/70 bg-white space-y-1">
-                            <div className="flex items-center justify-between text-slate-500 font-bold text-[11px]">
-                              <span>{item.icon} {item.label}</span>
-                              <span>{pct}%</span>
-                            </div>
-                            <div className="text-sm font-extrabold text-[#0f172a]">
-                              {formatKrw(amount)}
-                            </div>
                           </div>
                         );
                       })}

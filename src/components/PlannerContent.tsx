@@ -1063,7 +1063,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <span className={`h-2.5 w-2.5 rounded-full ${color.bg} shrink-0`}></span>
                               <span className="font-bold text-slate-800">{cityName}</span>
                               <span className="font-extrabold text-slate-900 ml-0.5">{pct}%</span>
-                              <span className="text-slate-400 text-[11px]">({formatKrw(amount)})</span>
                             </div>
                           );
                         })}
@@ -1104,95 +1103,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`}></span>
                             <span className="font-bold text-slate-800">{item.label}</span>
                             <span className="font-extrabold text-slate-900 ml-0.5">{item.pct}%</span>
-                            <span className="text-slate-400 text-[11px]">({formatKrw(item.amount)})</span>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  </div>
-
-                  {/* City Details Cards with Amounts */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                      <span>📌</span>
-                      <span>{locale === "ko" ? "도시별 세부 금액 정보" : "City Breakdown Details"}</span>
-                    </h4>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {draft.selectedCities.map((city, idx) => {
-                        const nights = draft.cityNightAllocations[city] || 0;
-                        const subtotal = citySubtotalMap[city] || 0;
-                        const color = cityColors[idx % cityColors.length];
-
-                        // Amounts for each category in this city
-                        const lineItems = plan.citySections[city]?.lineItems || [];
-                        const stayAmount = lineItems.find((i) => i.category === "ACCOMMODATION")?.lineTotalKrw || 0;
-                        const foodAmount = lineItems.find((i) => i.category === "FOOD")?.lineTotalKrw || 0;
-                        const transportAmount = lineItems.find((i) => i.category === "CITY_TRANSPORT")?.lineTotalKrw || 0;
-                        const attractionAmount = lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0;
-
-                        return (
-                          <div
-                            key={city}
-                            className={`p-4 rounded-2xl border ${color.border} ${color.lightBg} flex flex-col justify-between space-y-4 shadow-2xs transition-all hover:shadow-xs`}
-                          >
-                            <div className="space-y-3">
-                              {/* Header */}
-                              <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`h-2.5 w-2.5 rounded-full ${color.bg}`}></span>
-                                  <strong className="text-base font-extrabold text-slate-900">
-                                    📍 {locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}
-                                  </strong>
-                                </div>
-                                <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded-full font-bold border border-slate-200/70">
-                                  {nights}{locale === "ko" ? "박 " : "N "}{nights + 1}{locale === "ko" ? "일" : "D"}
-                                </span>
-                              </div>
-
-                              {/* Amount Breakdown */}
-                              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                                  <span className="text-slate-500 font-semibold">🏨 {locale === "ko" ? "숙박" : "Stay"}</span>
-                                  <strong className="text-slate-900 font-extrabold">{formatKrw(stayAmount)}</strong>
-                                </div>
-                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                                  <span className="text-slate-500 font-semibold">🍱 {locale === "ko" ? "음식" : "Food"}</span>
-                                  <strong className="text-slate-900 font-extrabold">{formatKrw(foodAmount)}</strong>
-                                </div>
-                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                                  <span className="text-slate-500 font-semibold">🚌 {locale === "ko" ? "교통" : "Transit"}</span>
-                                  <strong className="text-slate-900 font-extrabold">{formatKrw(transportAmount)}</strong>
-                                </div>
-                                <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                                  <span className="text-slate-500 font-semibold">🏛️ {locale === "ko" ? "관광" : "Attr"}</span>
-                                  <strong className="text-slate-900 font-extrabold">{formatKrw(attractionAmount)}</strong>
-                                </div>
-                              </div>
-
-                              {/* Subtotal */}
-                              <div className="flex items-baseline justify-between pt-1 border-t border-slate-200/40">
-                                <span className="text-xs text-slate-500 font-bold">
-                                  {locale === "ko" ? "도시 예산 소계" : "City Subtotal"}
-                                </span>
-                                <strong className={`text-base font-black ${color.text}`}>
-                                  {formatKrw(subtotal)}
-                                </strong>
-                              </div>
-                            </div>
-
-                            {/* Quick Navigation Button */}
-                            <button
-                              type="button"
-                              onClick={() => setSelectedCityTab(city)}
-                              className={`w-full py-2 px-3 rounded-xl bg-white border ${color.border} ${color.text} font-extrabold text-xs transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs flex items-center justify-center gap-1`}
-                            >
-                              <span>{locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 세부 편집` : `Edit ${city}`}</span>
-                              <span>→</span>
-                            </button>
-                          </div>
-                        );
-                      })}
                     </div>
                   </div>
                 </div>

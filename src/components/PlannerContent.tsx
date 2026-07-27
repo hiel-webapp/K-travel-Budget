@@ -1392,50 +1392,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
             )}
 
-            <div className="space-y-3.5 pt-4 border-t border-slate-100">
-              <h4 className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
-                {locale === "ko" ? "선택된 예산 상세 정보" : "Selected Budget Details"}
-              </h4>
-              {activeItems.map((item) => {
-                const displayName = getBasketLabel(item.basketId, dict, locale);
-                const cityLabel = item.cityCode ? (item.cityCode === "SEOUL" ? "Seoul" : "Busan") : "";
 
-                return (
-                  <div
-                    key={item.id}
-                    className="p-4 rounded-xl border border-slate-100 bg-[#faf9f6]/40 flex flex-col md:flex-row md:items-center justify-between gap-3 text-sm"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <strong className="text-slate-800 font-bold">{displayName}</strong>
-                        {cityLabel && (
-                          <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold uppercase">
-                            {cityLabel}
-                          </span>
-                        )}
-                        <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">
-                          {item.confidence}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-400 space-x-2">
-                        <span>{dict.planner.pricingUnit}: {item.pricingUnit}</span>
-                        <span>•</span>
-                        <span>{dict.planner.updatedAtLabel}: {item.updatedAt}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-baseline justify-between md:text-right gap-4">
-                      <span className="text-xs text-slate-400 italic tabular-nums md:block">
-                        {getCalculationExpression(item, dict, locale)}
-                      </span>
-                      <strong className="text-base font-extrabold text-[#0f172a]">
-                        {formatKrw(item.lineTotalKrw)}
-                      </strong>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
 
             <div className="pt-4 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-400">
               <svg className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -51,67 +51,22 @@ const BUDGET_TENSE_MAP = {
 };
 
 export default function LandingForm({ locale, dict }: LandingFormProps) {
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    const handle = requestAnimationFrame(() => {
-      setIsHydrated(true);
-    });
-    return () => cancelAnimationFrame(handle);
-  }, []);
-
-  if (!isHydrated) {
-    return <StaticLandingForm dict={dict} />;
-  }
-
-  return <HydratedLandingForm locale={locale} dict={dict} />;
-}
-
-/**
- * 1. 서버 렌더링 및 최초 클라이언트 Hydration용 정적 폼 컴포넌트
- */
-function StaticLandingForm({ dict }: { dict: Dictionary }) {
-  return (
-    <div className="w-full flex flex-col items-center opacity-70 pointer-events-none">
-      <div className="w-full max-w-[440px] lg:max-w-none bg-[#ffffff] border border-[#dedede] rounded-[24px] p-4 sm:p-6 md:p-7 shadow-xs">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
-            <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
-          </div>
-          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
-            <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
-          </div>
-          <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4">
-            <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
-          </div>
-        </div>
-
-        <div className="text-center text-[14px] text-[#666b73] font-medium mb-8 py-2 px-4 rounded-full bg-[#faf9f7] max-w-sm mx-auto border border-[#dedede] flex items-center justify-center">
-          💡 여행 정보(기간, 인원, 목적지)를 선택해 주세요.
-        </div>
-
-        <div className="flex flex-col items-center gap-3">
-          <button disabled className="w-full sm:w-auto min-h-[52px] md:min-h-[56px] px-10 rounded-[14px] bg-slate-200 text-slate-400 font-bold text-[17px] md:text-[18px] cursor-not-allowed border border-slate-300">
-            {dict.landing.cta}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * 2. Hydration 완료 후 로컬스토리지 데이터를 Lazy Loading 하여 구동되는 동적 폼 컴포넌트
- */
-function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
 
-  const [initialData] = useState(() => loadActiveDraft());
-  const [draft, setDraft] = useState<TripDraft>(initialData.draft);
-  const [mobileStep, setMobileStep] = useState<1 | 2 | 3>(
-    (initialData.mobileStep as 1 | 2 | 3) || 1
-  );
+  const [draft, setDraft] = useState<TripDraft>(DEFAULT_TRIP_DRAFT);
+  const [mobileStep, setMobileStep] = useState<1 | 2 | 3>(1);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  // Load saved draft safely on client side after hydration
+  useEffect(() => {
+    const saved = loadActiveDraft();
+    if (saved && saved.draft) {
+      setDraft(saved.draft);
+      if (saved.mobileStep) {
+        setMobileStep(saved.mobileStep as 1 | 2 | 3);
+      }
+    }
+  }, []);
 
   const totalNights = draft.totalNights;
   const adultCount = draft.adultCount;
@@ -121,7 +76,7 @@ function HydratedLandingForm({ locale, dict }: { locale: Locale; dict: Dictionar
     adultCount !== null &&
     draft.selectedCities.length >= 1;
 
-  // 실시간 입력 정보 자동 보존 (새로고침 및 메인 이동 시에도 보존)
+  // Save draft state
   useEffect(() => {
     saveActiveDraft(draft, mobileStep);
   }, [draft, mobileStep]);

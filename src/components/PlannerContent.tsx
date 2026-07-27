@@ -761,27 +761,28 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   return (
-    <div className="w-full max-w-7xl px-4 pt-2 pb-8 md:px-8">
+    <div className="w-full max-w-7xl px-4 pt-2 pb-8 md:px-8 space-y-6">
       <h1 className="sr-only">{dict.common.title}</h1>
+
+      {/* Header Banner Section */}
+      <div className="text-center space-y-2 pt-2 mb-6">
+        <span className="text-[#b93829] font-extrabold text-xs tracking-tight uppercase">
+          HypeHeritage Planner
+        </span>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+          {dict.planner.workspaceTitle}
+        </h1>
+        <p className="text-xs md:text-sm text-slate-500 max-w-2xl mx-auto leading-relaxed">
+          {dict.planner.workspaceDescription}
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-start">
         {/* ================= LEFT WORKSPACE (60%) ================= */}
         <div className="lg:col-span-6 space-y-6">
           {/* Main Title Banner */}
-          <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#e25c5c]">
-                HypeHeritage Planner
-              </span>
-              <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-[#0f172a] sm:text-3xl">
-                {dict.planner.workspaceTitle}
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                {dict.planner.workspaceDescription}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100 items-center justify-between">
+          <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
+            <div className="flex flex-wrap gap-2 items-center justify-between">
               <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium">
                 <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
                   {formatTripDuration(draft.totalNights || 5, dict, locale)}

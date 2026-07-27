@@ -848,34 +848,54 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
           </div>
 
-          {/* City Visit Tabs */}
-          <div className="flex items-center space-x-1.5 border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
-            {availableTabs.map((tab) => {
-              const isActive = selectedCityTab === tab;
-              const label =
-                tab === "ALL"
-                  ? locale === "ko" ? "📊 요약" : "📊 Summary"
-                  : locale === "ko"
-                    ? CITY_KOREAN_NAMES[tab as SupportedCity] || tab
-                    : CITY_ENGLISH_NAMES[tab as SupportedCity] || tab;
+          {/* City Visit Tabs & Far-Right Summary Tab */}
+          <div className="flex items-center justify-between border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
+            {/* Left: City Tabs */}
+            <div className="flex items-center space-x-1.5 overflow-x-auto">
+              {draft.selectedCities.map((city) => {
+                const isActive = selectedCityTab === city;
+                const label = locale === "ko"
+                  ? CITY_KOREAN_NAMES[city] || city
+                  : CITY_ENGLISH_NAMES[city] || city;
 
-              return (
-                <button
-                  key={tab}
-                  role="tab"
-                  aria-selected={isActive}
-                  id={`city-tab-${tab}`}
-                  aria-controls={`city-panel-${tab}`}
-                  onClick={() => setSelectedCityTab(tab)}
-                  className={`h-9 px-4 rounded-t-xl text-sm font-bold border-t border-x transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] focus-visible:z-10 ${isActive
-                      ? "bg-white text-[#e25c5c] border-slate-200 border-b-white"
-                      : "bg-[#faf9f6]/40 text-slate-500 border-transparent hover:text-slate-800"
+                return (
+                  <button
+                    key={city}
+                    role="tab"
+                    aria-selected={isActive}
+                    id={`city-tab-${city}`}
+                    aria-controls={`city-panel-${city}`}
+                    onClick={() => setSelectedCityTab(city)}
+                    className={`h-9 px-4 rounded-t-xl text-sm font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer whitespace-nowrap ${
+                      isActive
+                        ? "bg-white text-[#e25c5c] border-slate-200 border-b-white shadow-2xs z-10"
+                        : "bg-[#faf9f6]/60 text-slate-600 border-slate-200/50 border-b-slate-200 hover:text-slate-900 hover:bg-white"
                     }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+                  >
+                    📍 {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right: Distinctive Summary Tab with Divider */}
+            <div className="flex items-center border-l border-slate-200/80 pl-3 ml-2 shrink-0">
+              <button
+                role="tab"
+                aria-selected={selectedCityTab === "ALL"}
+                id="city-tab-ALL"
+                aria-controls="city-panel-ALL"
+                onClick={() => setSelectedCityTab("ALL")}
+                className={`h-9 px-4 rounded-t-xl text-sm font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                  selectedCityTab === "ALL"
+                    ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
+                    : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
+                }`}
+              >
+                <span>📊</span>
+                <span>{locale === "ko" ? "전체 예산 요약" : "Total Summary"}</span>
+              </button>
+            </div>
           </div>
 
           {/* Category Tabs / Cards (Only shown for individual city tabs) */}

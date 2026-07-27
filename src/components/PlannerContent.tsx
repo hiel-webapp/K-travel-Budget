@@ -975,7 +975,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
             )}
 
-            {/* 1. Summary Tab Mode: Bar Charts & Category Amount Cards */}
+            {/* 1. Summary Tab Mode: Stacked Horizontal Progress Bars & City Details */}
             {selectedCityTab === "ALL" && (() => {
               const citySubtotalMap: Record<string, number> = {};
               let sumCitySubtotals = 0;
@@ -985,7 +985,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 sumCitySubtotals += sub;
               });
 
-              const maxCitySubtotal = Math.max(1, ...Object.values(citySubtotalMap));
+              const safeCitySum = Math.max(1, sumCitySubtotals);
 
               const cityColors = [
                 { bg: "bg-[#e25c5c]", text: "text-[#e25c5c]", border: "border-[#fce8e8]", lightBg: "bg-[#faf5f5]" },
@@ -994,7 +994,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 { bg: "bg-amber-600", text: "text-amber-600", border: "border-amber-100", lightBg: "bg-amber-50/50" },
               ];
 
-              // 1) Category Amounts Data
+              // Category Amounts Data
               const categoryMeta = [
                 { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
                 { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
@@ -1002,6 +1002,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
               ];
 
+              const grandTotal = plan.grandTotalKrw || 1;
               const categorySubtotals = categoryMeta.map((item) => {
                 const amount =
                   item.cat === "CITY_TRANSPORT"
@@ -1010,68 +1011,102 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 return {
                   label: item.label,
                   amount,
+                  pct: Math.round((amount / grandTotal) * 100),
                   colorBg: item.colorBg,
                 };
               });
 
-              const maxCatSubtotal = Math.max(1, ...categorySubtotals.map((c) => c.amount));
-
               return (
                 <div className="space-y-6 pt-2 border-t border-slate-100">
-                  {/* Two Bar Charts Side-by-Side */}
+                  {/* Two Stacked Progress Bar Cards Side-by-Side */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Chart 1: City Budget Bar Chart (Minimal text: City name only) */}
-                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-4">
-                      <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5 border-b border-slate-200/50 pb-2">
-                        <span>🏙️</span>
-                        <span>{locale === "ko" ? "도시별 예산 비중" : "City Budget Ratio"}</span>
-                      </h4>
+                    {/* Chart 1: City Budget Allocation Stacked Bar */}
+                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
+                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                          <span>🏙️</span>
+                          <span>{locale === "ko" ? "도시별 예산 배분 비중" : "City Budget Allocation"}</span>
+                        </h4>
+                        <span className="text-xs font-extrabold text-slate-700">
+                          {locale === "ko" ? "도시 합계: " : "Total: "}{formatKrw(sumCitySubtotals)}
+                        </span>
+                      </div>
 
-                      <div className="h-36 flex items-end justify-around gap-2 px-2 pt-2">
+                      {/* Segmented Progress Bar */}
+                      <div className="h-3.5 w-full bg-slate-200/80 rounded-full overflow-hidden flex shadow-2xs">
                         {draft.selectedCities.map((city, idx) => {
                           const amount = citySubtotalMap[city] || 0;
-                          const heightPct = Math.max(16, Math.round((amount / maxCitySubtotal) * 100));
+                          const pct = Math.round((amount / safeCitySum) * 100);
+                          if (pct <= 0) return null;
+                          const color = cityColors[idx % cityColors.length];
+                          return (
+                            <div
+                              key={city}
+                              style={{ width: `${pct}%` }}
+                              className={`${color.bg} transition-all duration-300 relative group`}
+                              title={`${CITY_KOREAN_NAMES[city] || city}: ${pct}% (${formatKrw(amount)})`}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      {/* Legends */}
+                      <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                        {draft.selectedCities.map((city, idx) => {
+                          const amount = citySubtotalMap[city] || 0;
+                          const pct = Math.round((amount / safeCitySum) * 100);
                           const color = cityColors[idx % cityColors.length];
                           const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
 
                           return (
-                            <div key={city} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                              <div
-                                style={{ height: `${heightPct}%` }}
-                                className={`w-full max-w-[48px] rounded-t-xl ${color.bg} transition-all duration-300 shadow-2xs`}
-                              />
-                              <span className="text-xs font-extrabold text-slate-800 tracking-tight shrink-0">
-                                {cityName}
-                              </span>
+                            <div key={city} className="flex items-center gap-1">
+                              <span className={`h-2.5 w-2.5 rounded-full ${color.bg} shrink-0`}></span>
+                              <span className="font-bold text-slate-800">{cityName}</span>
+                              <span className="font-extrabold text-slate-900 ml-0.5">{pct}%</span>
+                              <span className="text-slate-400 text-[11px]">({formatKrw(amount)})</span>
                             </div>
                           );
                         })}
                       </div>
                     </div>
 
-                    {/* Chart 2: Category Budget Bar Chart (Minimal text: Category name only) */}
-                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-4">
-                      <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5 border-b border-slate-200/50 pb-2">
-                        <span>📦</span>
-                        <span>{locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}</span>
-                      </h4>
+                    {/* Chart 2: Category Distribution Stacked Bar */}
+                    <div className="bg-slate-50/60 p-4 rounded-2xl border border-slate-200/60 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
+                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                          <span>📦</span>
+                          <span>{locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}</span>
+                        </h4>
+                        <span className="text-xs font-extrabold text-slate-700">
+                          {locale === "ko" ? "전체 합계: " : "Total: "}{formatKrw(plan.grandTotalKrw)}
+                        </span>
+                      </div>
 
-                      <div className="h-36 flex items-end justify-around gap-2 px-2 pt-2">
+                      {/* Segmented Progress Bar */}
+                      <div className="h-3.5 w-full bg-slate-200/80 rounded-full overflow-hidden flex shadow-2xs">
                         {categorySubtotals.map((item, idx) => {
-                          const heightPct = Math.max(16, Math.round((item.amount / maxCatSubtotal) * 100));
-
+                          if (item.pct <= 0) return null;
                           return (
-                            <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
-                              <div
-                                style={{ height: `${heightPct}%` }}
-                                className={`w-full max-w-[48px] rounded-t-xl ${item.colorBg} transition-all duration-300 shadow-2xs`}
-                              />
-                              <span className="text-xs font-extrabold text-slate-800 tracking-tight shrink-0">
-                                {item.label}
-                              </span>
-                            </div>
+                            <div
+                              key={idx}
+                              style={{ width: `${item.pct}%` }}
+                              className={`${item.colorBg} transition-all duration-300 relative group`}
+                              title={`${item.label}: ${item.pct}% (${formatKrw(item.amount)})`}
+                            />
                           );
                         })}
+                      </div>
+
+                      {/* Legends */}
+                      <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                        {categorySubtotals.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`}></span>
+                            <span className="font-bold text-slate-800">{item.label}</span>
+                            <span className="font-extrabold text-slate-900 ml-0.5">{item.pct}%</span>
+                            <span className="text-slate-400 text-[11px]">({formatKrw(item.amount)})</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

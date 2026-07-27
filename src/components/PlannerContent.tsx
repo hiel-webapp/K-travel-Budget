@@ -1063,7 +1063,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <span className={`h-2.5 w-2.5 rounded-full ${color.bg} shrink-0`}></span>
                               <span className="font-bold text-slate-800">{cityName}</span>
                               <span className="font-extrabold text-slate-900 ml-0.5">{pct}%</span>
-                              <span className="text-slate-400 text-[11px]">({formatKrw(amount)})</span>
                             </div>
                           );
                         })}
@@ -1104,7 +1103,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`}></span>
                             <span className="font-bold text-slate-800">{item.label}</span>
                             <span className="font-extrabold text-slate-900 ml-0.5">{item.pct}%</span>
-                            <span className="text-slate-400 text-[11px]">({formatKrw(item.amount)})</span>
                           </div>
                         ))}
                       </div>

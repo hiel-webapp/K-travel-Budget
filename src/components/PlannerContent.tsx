@@ -6,7 +6,7 @@ import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
 
-import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
+import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import FoodPlannerPanel from "./FoodPlannerPanel";
@@ -323,10 +323,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const isOverBudget = plan.grandTotalKrw > plan.targetBudgetKrw;
   const clampedUsage = Math.min(100, (plan.grandTotalKrw / plan.targetBudgetKrw) * 100);
 
-  const handleStayOverride = (city: SupportedCity, basketId: BudgetBasketId) => {
+  const handleStayOverride = (city: SupportedCity, selection: BudgetBasketId | AccommodationSelection) => {
+    const accSelectionObj: AccommodationSelection =
+      typeof selection === "string" ? { kind: "TIER", basketId: selection } : selection;
+
     const nextAcc = {
       ...preferences.accommodationByCity,
-      [city]: basketId,
+      [city]: accSelectionObj,
     };
 
     const saved = savePlannerPreferences({
@@ -1292,10 +1295,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <div className="space-y-6 pt-2 border-t border-slate-100">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab;
-                  const hasOverride = !!preferences.accommodationByCity[city];
+                  const accOverride = preferences.accommodationByCity[city];
+                  const hasOverride = !!accOverride;
+                  const isPlaceOverride = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && accOverride.kind === "PLACE";
                   const activeBasketId =
-                    preferences.accommodationByCity[city] ||
-                    plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId;
+                    isPlaceOverride
+                      ? (accOverride as { basketId: BudgetBasketId }).basketId
+                      : typeof accOverride === "string"
+                        ? accOverride
+                        : typeof accOverride === "object" && accOverride !== null && "basketId" in accOverride
+                          ? accOverride.basketId
+                          : plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId;
                   const basketOptions: BudgetBasketId[] = ["BUDGET_STAY", "STANDARD_HOTEL", "PREMIUM_HERITAGE"];
 
                   return (
@@ -1320,6 +1330,27 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           {dict.planner.resetToRecommended}
                         </button>
                       </div>
+
+                      {/* PLACE Override Active Banner */}
+                      {isPlaceOverride && (
+                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-xs flex items-center justify-between font-bold text-amber-900 shadow-2xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">🏨</span>
+                            <span>
+                              {locale === "ko"
+                                ? `${(accOverride as any).placeNameKo} (${formatKrw((accOverride as any).nightlyPriceKrw)}/박) · 개별 숙소 지정가가 우선 적용 중입니다.`
+                                : `${(accOverride as any).placeNameEn || (accOverride as any).placeNameKo} (${formatKrw((accOverride as any).nightlyPriceKrw)}/night) · Specific place price is active.`}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleResetStay(city)}
+                            className="text-[11px] underline text-amber-700 hover:text-amber-900 cursor-pointer shrink-0 ml-2"
+                          >
+                            {locale === "ko" ? "티어 평균가로 되돌리기" : "Reset to Tier Average"}
+                          </button>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {basketOptions.map((opt) => {

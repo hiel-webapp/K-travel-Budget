@@ -344,23 +344,42 @@ function validateAccommodation(
   acc: AccommodationOverridesByCity,
   draft: TripDraft
 ): boolean {
-  for (const [cityKey, basketId] of Object.entries(acc)) {
+  for (const [cityKey, val] of Object.entries(acc)) {
     const city = cityKey as SupportedCity;
 
     if (!draft.selectedCities.includes(city)) {
       continue;
     }
 
-    const basket = MOCK_PRICE_CATALOG.find(
-      (b) =>
-        b.category === "ACCOMMODATION" &&
-        b.id === basketId &&
-        b.applicableCity === city &&
-        b.isActive
-    );
+    if (!val) continue;
 
-    if (!basket) {
-      return false;
+    if (typeof val === "object" && val !== null && "kind" in val) {
+      if (val.kind === "PLACE") {
+        if (!val.placeId || typeof val.nightlyPriceKrw !== "number" || val.nightlyPriceKrw < 0) {
+          return false;
+        }
+        continue;
+      }
+      const basket = MOCK_PRICE_CATALOG.find(
+        (b) =>
+          b.category === "ACCOMMODATION" &&
+          b.id === val.basketId &&
+          b.applicableCity === city &&
+          b.isActive
+      );
+      if (!basket) return false;
+      continue;
+    }
+
+    if (typeof val === "string") {
+      const basket = MOCK_PRICE_CATALOG.find(
+        (b) =>
+          b.category === "ACCOMMODATION" &&
+          b.id === val &&
+          b.applicableCity === city &&
+          b.isActive
+      );
+      if (!basket) return false;
     }
   }
   return true;

@@ -143,7 +143,20 @@ export interface BudgetPlan {
   generatedFromCatalogVersion: string;
 }
 
-export type AccommodationOverridesByCity = Partial<Record<SupportedCity, BudgetBasketId>>;
+export type AccommodationSelection =
+  | { kind: "TIER"; basketId: BudgetBasketId }
+  | {
+      kind: "PLACE";
+      placeId: string;
+      basketId: BudgetBasketId;
+      nightlyPriceKrw: number;
+      priceSource: PriceConfidence;
+      placeNameKo: string;
+      placeNameEn: string;
+      snapshotAt: string;
+    };
+
+export type AccommodationOverridesByCity = Partial<Record<SupportedCity, AccommodationSelection | BudgetBasketId>>;
 export type AttractionOverridesByCity = Partial<Record<SupportedCity, BudgetBasketId>>;
 
 export interface BudgetPlanOverrides {
@@ -283,8 +296,18 @@ export interface PlannerPreferencesV1 {
 export interface PlannerPreferencesV2 {
   schemaVersion: 2;
   tripFingerprint: string;
+  accommodationByCity: Partial<Record<SupportedCity, BudgetBasketId>>;
+  foodOverrides: FoodOverrides;
+}
+
+export interface PlannerPreferencesV3 {
+  schemaVersion: 3;
+  tripFingerprint: string;
   accommodationByCity: AccommodationOverridesByCity;
   foodOverrides: FoodOverrides;
+  addOnSelections: FoodAddOnOverrides;
+  attractionByCity?: AttractionOverridesByCity;
+  emergencyFundKrw?: number;
 }
 
 export interface PlannerPreferences {

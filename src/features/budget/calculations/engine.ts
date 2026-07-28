@@ -100,26 +100,59 @@ export function generateInitialBudgetPlan(
       } else {
         let basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
 
+        let accPlaceOverrideItem: BudgetLineItem | null = null;
+
         if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
-          basketId = overrides.accommodation[city]!;
+          const accSelection = overrides.accommodation[city]!;
+          if (typeof accSelection === "object" && accSelection !== null && "kind" in accSelection) {
+            if (accSelection.kind === "PLACE") {
+              const fallbackBasketId = accSelection.basketId || BUDGET_TIER_DEFAULT_BASKETS[budgetTier]["ACCOMMODATION"];
+              const basket = findBasket(catalog, fallbackBasketId, category, city) || catalog.find((b) => b.category === "ACCOMMODATION");
+              if (basket) {
+                const baseItem = calculateLineItem({
+                  basket,
+                  cityCode: city,
+                  route: null,
+                  adultCount,
+                  duration: nights,
+                  cityCount: selectedCities.length,
+                });
+                accPlaceOverrideItem = {
+                  ...baseItem,
+                  unitPriceKrw: accSelection.nightlyPriceKrw,
+                  lineTotalKrw: accSelection.nightlyPriceKrw * nights,
+                  confidence: accSelection.priceSource,
+                  sourceLabel: accSelection.placeNameKo,
+                };
+              }
+            } else {
+              basketId = accSelection.basketId;
+            }
+          } else {
+            basketId = accSelection as BudgetBasketId;
+          }
         } else if (category === "ATTRACTION" && overrides?.attraction?.[city]) {
           basketId = overrides.attraction[city]!;
         }
 
-        const basket = findBasket(catalog, basketId, category, city);
+        if (accPlaceOverrideItem) {
+          item = accPlaceOverrideItem;
+        } else {
+          const basket = findBasket(catalog, basketId, category, city);
 
-        if (!basket) {
-          throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
+          if (!basket) {
+            throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
+          }
+
+          item = calculateLineItem({
+            basket,
+            cityCode: city,
+            route: null,
+            adultCount,
+            duration: nights,
+            cityCount: selectedCities.length,
+          });
         }
-
-        item = calculateLineItem({
-          basket,
-          cityCode: city,
-          route: null,
-          adultCount,
-          duration: nights,
-          cityCount: selectedCities.length,
-        });
       }
 
       cityLineItems.push(item);

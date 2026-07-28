@@ -106,7 +106,7 @@ describe("HypeHeritage 12.1단계: Food UI Read-only 렌더링 및 타입 안전
     );
 
     expect(html).toContain("6,000");
-    expect(html).toContain("기본 예산 미포함");
+    expect(html).toContain("현장 별도 지출");
   });
 
   it("should hide internal slot ID from visible DOM", () => {

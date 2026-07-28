@@ -75,9 +75,22 @@ export default function FoodPlannerPanel({
 
   return (
     <div className="space-y-6">
-      {/* Title Header */}
-      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between text-xs font-bold text-slate-700">
-        <span>{dict.planner.foodMealPlan} ({currentCityLabel})</span>
+      {/* Wish-First 3-Step Guide Banner */}
+      <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/70 space-y-2 text-xs">
+        <div className="flex items-center justify-between font-extrabold text-[#0f172a]">
+          <span className="flex items-center gap-1.5 text-sm">
+            <span>🍱</span>
+            <span>{currentCityLabel} {locale === "ko" ? "식단 및 한식 위시리스트" : "Meal Plan & Wishlist"}</span>
+          </span>
+          <span className="text-[11px] text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+            {locale === "ko" ? "선택 안 해도 예산 100% 자동 완성" : "Auto-completed"}
+          </span>
+        </div>
+        <p className="text-[11px] text-slate-600 leading-relaxed">
+          {locale === "ko"
+            ? "기본 예산 스타일(실속/일반/프리미엄)에 따라 아침/점심/저녁 기본 식사 슬롯이 자동 배치되어 있습니다. 드시고 싶은 한식 메뉴가 있다면 아래 슬롯의 '위시리스트 메뉴'를 펼쳐 바로 교체하세요."
+            : "Meal slots are automatically populated based on your budget tier. Expand 'Wishlist Menu' on any slot to substitute signature Korean dishes."}
+        </p>
       </div>
 
       {/* Day-by-Day Meal Slots */}
@@ -129,11 +142,11 @@ export default function FoodPlannerPanel({
                           </span>
                           {slot.includedInBaseBudget ? (
                             <span className="text-[10px] bg-[#eef7f3] text-[#4d7c67] px-1.5 py-0.5 rounded font-bold">
-                              {dict.planner.includedInBase}
+                              {locale === "ko" ? "총 예산 포함" : "Included in Budget"}
                             </span>
                           ) : (
                             <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-bold border border-amber-100">
-                              {dict.planner.notIncludedInBase}
+                              {locale === "ko" ? "현장 별도 지출" : "Pay On-Site"}
                             </span>
                           )}
                           {hasIssues && (
@@ -152,8 +165,8 @@ export default function FoodPlannerPanel({
 
                       <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-50 pt-2">
                         <span className="font-semibold text-slate-700">{displayName}</span>
-                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 font-bold uppercase scale-90">
-                          {dict.planner.badgeMock}
+                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-extrabold uppercase scale-90">
+                          {isReplaced ? (locale === "ko" ? "공식 검증가" : "Verified Price") : (locale === "ko" ? "추정 평균가" : "Est. Average")}
                         </span>
                       </div>
 

@@ -9,6 +9,7 @@ import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPref
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
+import { getIntercityFareOptions, IntercityFareInfo } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -1285,6 +1286,52 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         )}
                       </div>
                     </div>
+
+                    {/* Intercity Transport Route Timeline */}
+                    {draft.selectedCities.length >= 2 && (
+                      <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                          <div>
+                            <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                              <span>🚅</span>
+                              <span>{locale === "ko" ? "도시 간 이동 여정 타임라인 (Intercity Transport)" : "Intercity Transit Timeline"}</span>
+                            </h4>
+                            <p className="text-xs text-slate-500 font-medium mt-0.5">
+                              {locale === "ko"
+                                ? "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다."
+                                : "Representative transit options and fares between your selected trip cities."}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {draft.selectedCities.slice(0, -1).map((fromCity, idx) => {
+                            const toCity = draft.selectedCities[idx + 1];
+                            const fareOptions = getIntercityFareOptions(fromCity, toCity);
+                            const primaryFare = fareOptions[0];
+
+                            return (
+                              <div
+                                key={`${fromCity}-${toCity}`}
+                                className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                              >
+                                <div className="flex items-center gap-2 font-extrabold text-xs text-slate-800">
+                                  <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-700">{CITY_KOREAN_NAMES[fromCity] || fromCity}</span>
+                                  <span>──▶</span>
+                                  <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-700">{CITY_KOREAN_NAMES[toCity] || toCity}</span>
+                                </div>
+
+                                <div className="flex items-center gap-3 text-xs">
+                                  <span className="text-slate-500 font-medium">{primaryFare.nameKo} ({primaryFare.durationTextKo})</span>
+                                  <strong className="text-[#e25c5c] font-black">{formatKrw(primaryFare.oneWayPriceKrw * (draft.adultCount || 1))}</strong>
+                                  <span className="text-[10px] text-slate-400">({draft.adultCount || 1}명 기준)</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -1461,26 +1508,78 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   );
                 })()}
 
-                {activeCategory === "FOOD" && (() => {
+                {activeCategory === "CITY_TRANSPORT" && (() => {
                   const city = selectedCityTab;
-                  const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
+                  const citySection = plan.citySections[city];
+                  const nights = citySection?.nights || 1;
+                  const days = nights + 1;
+                  const adultCount = draft.adultCount || 1;
+
+                  const basketOptions: BudgetBasketId[] = ["BASIC_CITY_TRANSPORT", "STANDARD_CITY_TRANSPORT", "COMFORT_CITY_TRANSPORT"];
+
                   return (
-                    <div className="space-y-6">
-                      {saveError && (
-                        <div role="alert" className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-100">
-                          {dict.planner.saveFailedNotice}
+                    <div className="space-y-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">
+                            {CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "도시 내 이동 스타일" : "Local Transport Style"}
+                          </h4>
+                          <p className="text-xs text-slate-400">
+                            {locale === "ko"
+                              ? `${CITY_KOREAN_NAMES[city] || city} 체류 기간 동안의 시내 이동 수단을 선택하세요.`
+                              : `Select local transportation method in ${city}.`}
+                          </p>
                         </div>
-                      )}
-                      <FoodPlannerPanel
-                        locale={locale}
-                        dict={dict}
-                        mealPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan : undefined}
-                        onSelectReplacement={handleSelectFoodReplacement}
-                        onClearReplacement={handleClearFoodReplacement}
-                        onSelectAddOn={handleSelectAddOn}
-                        onRemoveAddOn={handleRemoveAddOn}
-                        onChangeAddOnQuantity={handleChangeAddOnQuantity}
-                      />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {basketOptions.map((opt) => {
+                          const name = opt === "BASIC_CITY_TRANSPORT"
+                            ? (locale === "ko" ? "알뜰형 (대중교통 위주)" : "Transit Focus")
+                            : opt === "STANDARD_CITY_TRANSPORT"
+                              ? (locale === "ko" ? "일반형 (버스+택시 혼용)" : "Balanced Mixed")
+                              : (locale === "ko" ? "편의형 (택시/렌터카)" : "Taxi & Rental");
+
+                          const pricePerDay = opt === "BASIC_CITY_TRANSPORT" ? 9000 : opt === "STANDARD_CITY_TRANSPORT" ? 22000 : 45000;
+                          const totalCityTransport = pricePerDay * days * adultCount;
+
+                          let desc = locale === "ko" ? "지하철과 시내버스를 주로 이용하여 알뜰하게 이동합니다." : "Subway and city buses.";
+                          if (opt === "STANDARD_CITY_TRANSPORT") desc = locale === "ko" ? "기본 대중교통에 꼭 필요한 구간 택시를 혼용합니다." : "Public transit mixed with taxis.";
+                          if (opt === "COMFORT_CITY_TRANSPORT") desc = locale === "ko" ? "편안한 도어투도어 이동을 위해 택시나 렌터카를 우선 이용합니다." : "Door-to-door taxis and car rental.";
+
+                          return (
+                            <div
+                              key={opt}
+                              className="p-4 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3 shadow-2xs"
+                            >
+                              <div>
+                                <span className="text-xs font-extrabold text-[#0f172a] block">{name}</span>
+                                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{desc}</p>
+                              </div>
+                              <div className="border-t border-slate-100 pt-2 space-y-1">
+                                <div className="flex justify-between text-xs text-slate-600">
+                                  <span>{locale === "ko" ? "1인 1일 단가:" : "Per Traveler/Day:"}</span>
+                                  <strong className="font-extrabold text-slate-900">{formatKrw(pricePerDay)}</strong>
+                                </div>
+                                <div className="flex justify-between text-xs text-[#e25c5c] font-extrabold pt-1">
+                                  <span>{locale === "ko" ? `${days}일 체류 총액:` : `Total for ${days}d:`}</span>
+                                  <span>{formatKrw(totalCityTransport)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* K-Guide Tip Banner */}
+                      <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 font-medium flex items-start gap-2">
+                        <span className="text-base shrink-0">💡</span>
+                        <p className="leading-relaxed">
+                          {locale === "ko"
+                            ? "K-Guide 팁: T-money 교통카드는 한국의 모든 편의점에서 ₩2,500에 구매할 수 있으며, 서울/수원/부산 등 전국의 지하철과 시내버스에서 공통 사용할 수 있습니다."
+                            : "K-Guide Tip: T-money transit card can be purchased for ₩2,500 at any convenience store and works across subways and buses in Seoul, Suwon, Busan, and more."}
+                        </p>
+                      </div>
                     </div>
                   );
                 })()}

@@ -1439,6 +1439,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   );
                 })()}
 
+                {activeCategory === "FOOD" && (() => {
+                  const city = selectedCityTab;
+                  const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
+                  return (
+                    <div className="space-y-6">
+                      {saveError && (
+                        <div role="alert" className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-100">
+                          {dict.planner.saveFailedNotice}
+                        </div>
+                      )}
+                      <FoodPlannerPanel
+                        locale={locale}
+                        dict={dict}
+                        mealPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan : undefined}
+                        onSelectReplacement={handleSelectFoodReplacement}
+                        onClearReplacement={handleClearFoodReplacement}
+                        onSelectAddOn={handleSelectAddOn}
+                        onRemoveAddOn={handleRemoveAddOn}
+                        onChangeAddOnQuantity={handleChangeAddOnQuantity}
+                      />
+                    </div>
+                  );
+                })()}
+
                 {activeCategory === "ATTRACTION" && (() => {
                   const city = selectedCityTab;
                   const hasOverride = !!preferences.attractionByCity?.[city];

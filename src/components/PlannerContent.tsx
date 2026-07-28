@@ -117,7 +117,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   });
 
   const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | SupportedCity>("ALL");
-  const [activeCategory, setActiveCategory] = useState<BudgetCategory>("ACCOMMODATION");
   const [saveError, setSaveError] = useState<boolean>(false);
 
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
@@ -128,6 +127,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   // 여행 조건 수정 팝오버 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [pendingBudgetTier, setPendingBudgetTier] = useState<BudgetTier | null>(null);
   const [editTab, setEditTab] = useState<"NIGHTS" | "ADULTS" | "CITIES">("NIGHTS");
   const [editDraft, setEditDraft] = useState<TripDraft | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
@@ -311,40 +311,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       setTimeout(() => setToastMessage(null), 3000);
     }
   };
-
-  const availableTabs: (SupportedCity | "ALL")[] = [...sortCitiesByStandardOrder(draft.selectedCities), "ALL"];
-
-  const getFilteredItems = (category: BudgetCategory): BudgetLineItem[] => {
-    const items: BudgetLineItem[] = [];
-    if (category === "EMERGENCY_FUND") {
-      items.push(...plan.tripWideSection.lineItems);
-    }
-    if (category === "CITY_TRANSPORT") {
-      if (selectedCityTab === "ALL") {
-        items.push(...plan.intercitySection.lineItems);
-      }
-    }
-    draft.selectedCities.forEach((city) => {
-      if (selectedCityTab !== "ALL" && selectedCityTab !== city) {
-        return;
-      }
-      const section = plan.citySections[city];
-      if (section) {
-        if (category === "CITY_TRANSPORT") {
-          const transItems = section.lineItems.filter(
-            (i) => i.category === "CITY_TRANSPORT"
-          );
-          items.push(...transItems);
-        } else {
-          const catItems = section.lineItems.filter((i) => i.category === category);
-          items.push(...catItems);
-        }
-      }
-    });
-    return items;
-  };
-
-  const activeItems = getFilteredItems(activeCategory);
 
   const budgetStyleLabel =
     draft.budgetTier === "BUDGET"
@@ -817,10 +783,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="pt-3 border-t border-slate-100 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-600">
-                  {locale === "ko" ? "💎 예산 스타일 1초 비교/전환:" : "💎 Budget Style 1-sec Compare/Switch:"}
-                </span>
-                <span className="text-[11px] text-[#e25c5c] font-semibold">
-                  {locale === "ko" ? "선택 시 전체 예산 즉시 재계산" : "Recalculate budget instantly upon click"}
+                  {locale === "ko" ? "💎 예산 스타일" : "💎 Budget Style"}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -834,7 +797,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     <button
                       key={tierOpt.key}
                       type="button"
-                      onClick={() => handleBudgetTierChange(tierOpt.key as BudgetTier)}
+                      onClick={() => {
+                        if (!isSelected) {
+                          setPendingBudgetTier(tierOpt.key as BudgetTier);
+                        }
+                      }}
                       className={`py-2.5 px-3 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
                         isSelected
                           ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
@@ -1948,6 +1915,48 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   변경사항 적용하기
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Budget Tier Switch Confirmation Modal */}
+      {pendingBudgetTier && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 space-y-4 text-center transform transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-[#fdf2f2] text-[#e25c5c] flex items-center justify-center text-2xl mx-auto font-bold">
+              💡
+            </div>
+            
+            <div className="space-y-1.5">
+              <h3 className="text-base font-extrabold text-[#0f172a]">
+                {locale === "ko" ? "예산 스타일 변경" : "Change Budget Style"}
+              </h3>
+              <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                {locale === "ko"
+                  ? "선택하신 스타일에 맞게 초기화됩니다. 계속 진행하시겠습니까?"
+                  : "Your budget items will be reset to match the selected style. Would you like to proceed?"}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setPendingBudgetTier(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "취소" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleBudgetTierChange(pendingBudgetTier);
+                  setPendingBudgetTier(null);
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-[#e25c5c] hover:bg-[#d14b4b] text-white font-extrabold text-xs shadow-xs transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "확인" : "Confirm"}
+              </button>
             </div>
           </div>
         </div>

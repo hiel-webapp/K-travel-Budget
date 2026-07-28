@@ -117,6 +117,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   });
 
   const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | SupportedCity>("ALL");
+  const [activeCategory, setActiveCategory] = useState<BudgetCategory>("ACCOMMODATION");
   const [saveError, setSaveError] = useState<boolean>(false);
 
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
@@ -758,10 +759,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 <span className="bg-[#faf5f5] text-[#e25c5c] px-2.5 py-1 rounded-lg border border-[#fce8e8]">
                   {budgetStyleLabel}
                 </span>
-                <span className="bg-[#eef2ff] text-[#4f46e5] font-extrabold text-[11px] px-2.5 py-1 rounded-lg border border-[#e0e7ff] flex items-center gap-1">
-                  <span>🏛️</span>
-                  <span>{locale === "ko" ? "공공데이터 검증 (KTO Verified)" : "KTO Official Verified"}</span>
-                </span>
               </div>
 
               <button
@@ -1402,15 +1399,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </h3>
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">
                   {dict.planner.statusDraft}
-                </span>
-              </div>
-              <div className="text-right flex flex-col items-end gap-1">
-                <span className="text-[10px] bg-[#eef2ff] text-[#4f46e5] border border-[#e0e7ff] px-2 py-0.5 rounded-full font-extrabold flex items-center gap-1">
-                  <span>🏛️</span>
-                  <span>{locale === "ko" ? "공공데이터 검증 (KTO Verified)" : "KTO Official Verified"}</span>
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {locale === "ko" ? "한국관광공사 TourAPI 4.0 연동" : "TourAPI 4.0 Verified"}
                 </span>
               </div>
             </div>

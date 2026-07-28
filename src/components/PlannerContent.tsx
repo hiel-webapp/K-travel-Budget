@@ -1116,9 +1116,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               {/* Header */}
                               <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
                                 <div className="flex items-center gap-1.5">
-                                  <span className={`h-2.5 w-2.5 rounded-full ${color.bg}`}></span>
-                                  <strong className="text-base font-extrabold text-slate-900">
-                                    📍 {locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}
+                                  <strong className="text-base font-extrabold text-slate-900 flex items-center gap-1">
+                                    <svg className={`w-4 h-4 ${color.text} fill-current shrink-0`} viewBox="0 0 24 24">
+                                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                    </svg>
+                                    <span>{locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}</span>
                                   </strong>
                                 </div>
                                 <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded-full font-bold border border-slate-200/70">

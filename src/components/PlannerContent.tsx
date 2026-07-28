@@ -1446,15 +1446,42 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId;
                   const basketOptions: BudgetBasketId[] = ["MOSTLY_FREE", "BALANCED", "EXPERIENCE_RICH"];
 
+                  // Representative city attractions catalog
+                  const cityAttractions: Record<string, Array<{ id: string; nameKo: string; nameEn: string; price: number; isFree: boolean; tag: string }>> = {
+                    SEOUL: [
+                      { id: "seoul_1", nameKo: "경복궁 & 한복 대여 체험", nameEn: "Gyeongbokgung & Hanbok Experience", price: 15000, isFree: false, tag: "K-컬처" },
+                      { id: "seoul_2", nameKo: "N서울타워 전망대", nameEn: "N Seoul Tower Observatory", price: 21000, isFree: false, tag: "전망/야경" },
+                      { id: "seoul_3", nameKo: "광화문 광장 & 청계천 산책", nameEn: "Gwanghwamun & Cheonggyecheon Walk", price: 0, isFree: true, tag: "무료/휴식" },
+                      { id: "seoul_4", nameKo: "롯데월드 타워 서울스카이", nameEn: "Lotte World Tower Seoul Sky", price: 29000, isFree: false, tag: "랜드마크" },
+                    ],
+                    BUSAN: [
+                      { id: "busan_1", nameKo: "해운대 블루라인 해변열차", nameEn: "Haeundae Blueline Park Beach Train", price: 16000, isFree: false, tag: "액티비티" },
+                      { id: "busan_2", nameKo: "감천문화마을", nameEn: "Gamcheon Culture Village", price: 0, isFree: true, tag: "문화/포토존" },
+                      { id: "busan_3", nameKo: "부산타워 & 용두산공원", nameEn: "Busan Tower & Yongdusan Park", price: 12000, isFree: false, tag: "전망" },
+                    ],
+                    SUWON: [
+                      { id: "suwon_1", nameKo: "수원화성 성곽길 산책", nameEn: "Suwon Hwaseong Fortress Wall Walk", price: 0, isFree: true, tag: "유네스코 유산" },
+                      { id: "suwon_2", nameKo: "화성행궁 관람", nameEn: "Hwaseong Haenggung Palace", price: 3000, isFree: false, tag: "역사" },
+                    ],
+                    SOKCHO: [
+                      { id: "sokcho_1", nameKo: "설악산 국립공원 케이블카", nameEn: "Seoraksan National Park Cable Car", price: 15000, isFree: false, tag: "자연/액티비티" },
+                      { id: "sokcho_2", nameKo: "속초 아바이마을 갯배 체험", nameEn: "Abai Village Gaetbae Boat", price: 1000, isFree: false, tag: "체험" },
+                    ],
+                  };
+
+                  const currentAttractions = cityAttractions[city] || cityAttractions.SEOUL;
+
                   return (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {CITY_KOREAN_NAMES[city] || city} {dict.planner.selectAttractionTitle}
+                            {CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "관광·액티비티 키오스크" : "Attractions Kiosk"}
                           </h4>
                           <p className="text-xs text-slate-400">
-                            {dict.planner.selectAttractionDescription}
+                            {locale === "ko"
+                              ? "원하는 관광 코스를 1클릭 프리셋으로 고르거나 개별 액티비티를 쇼핑하듯 장바구니에 담으세요."
+                              : "Choose a 1-click recommended course or pick individual activities."}
                           </p>
                         </div>
                         <button
@@ -1469,40 +1496,87 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {basketOptions.map((opt) => {
-                          const isSelected = activeBasketId === opt;
-                          const name = getBasketLabel(opt, dict, locale, city);
-                          const price = getCatalogAttractionPrice(city, opt);
+                      {/* 1-Click Preset Options */}
+                      <div className="space-y-1.5">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                          {locale === "ko" ? "⚡ 1-Click 추천 관광 코스 프리셋" : "⚡ 1-Click Recommended Course Presets"}
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {basketOptions.map((opt) => {
+                            const isSelected = activeBasketId === opt;
+                            const name = getBasketLabel(opt, dict, locale, city);
+                            const price = getCatalogAttractionPrice(city, opt);
 
-                          let desc = dict.planner.balancedDesc;
-                          if (opt === "MOSTLY_FREE") desc = dict.planner.mostlyFreeDesc;
-                          if (opt === "EXPERIENCE_RICH") desc = dict.planner.experienceRichDesc;
+                            let desc = dict.planner.balancedDesc;
+                            if (opt === "MOSTLY_FREE") desc = dict.planner.mostlyFreeDesc;
+                            if (opt === "EXPERIENCE_RICH") desc = dict.planner.experienceRichDesc;
 
-                          return (
-                            <button
-                              key={opt}
-                              onClick={() => handleAttractionOverride(city, opt)}
-                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
-                                  ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
-                                  : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
-                                }`}
+                            return (
+                              <button
+                                key={opt}
+                                onClick={() => handleAttractionOverride(city, opt)}
+                                className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
+                                    ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
+                                    : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
+                                  }`}
+                              >
+                                <div>
+                                  <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
+                                    {name}
+                                  </span>
+                                  <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
+                                    {desc}
+                                  </p>
+                                </div>
+                                <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-50 pt-2">
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase">Per Person</span>
+                                  <span className="text-xs font-extrabold text-slate-800">{formatKrw(price)}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Interactive Attractions Grid Menu */}
+                      <div className="space-y-2 pt-2 border-t border-slate-100">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                          {locale === "ko" ? "🎡 도시 대표 관광지 장바구니 메뉴" : "🎡 Signature Attractions Basket Menu"}
+                        </span>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {currentAttractions.map((attr) => (
+                            <div
+                              key={attr.id}
+                              className="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-2xs hover:border-slate-300 transition-all"
                             >
-                              <div>
-                                <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
-                                  {name}
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-extrabold">
+                                    {attr.tag}
+                                  </span>
+                                  {attr.isFree && (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded-md font-bold">
+                                      {locale === "ko" ? "무료" : "Free"}
+                                    </span>
+                                  )}
+                                </div>
+                                <h5 className="text-xs font-bold text-[#0f172a]">{locale === "ko" ? attr.nameKo : attr.nameEn}</h5>
+                                <span className="text-xs font-black text-[#e25c5c]">
+                                  {attr.isFree ? (locale === "ko" ? "₩0 (무료)" : "₩0 (Free)") : formatKrw(attr.price)}
                                 </span>
-                                <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                                  {desc}
-                                </p>
                               </div>
-                              <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-50 pt-2">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase">Per Person</span>
-                                <span className="text-xs font-extrabold text-slate-800">{formatKrw(price)}</span>
-                              </div>
-                            </button>
-                          );
-                        })}
+
+                              <button
+                                type="button"
+                                onClick={() => handleAttractionOverride(city, attr.price > 80000 ? "EXPERIENCE_RICH" : attr.price > 20000 ? "BALANCED" : "MOSTLY_FREE")}
+                                className="px-3 py-1.5 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-2xs shrink-0"
+                              >
+                                {locale === "ko" ? "+ 담기" : "+ Add"}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   );

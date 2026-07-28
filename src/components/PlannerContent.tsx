@@ -6,7 +6,7 @@ import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
 
-import { BudgetLineItem, BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
+import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import FoodPlannerPanel from "./FoodPlannerPanel";

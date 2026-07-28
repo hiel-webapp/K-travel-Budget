@@ -701,6 +701,40 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
+  const handleEmergencyFundValueChange = (val: number) => {
+    if (!latestPrefsRef.current) return;
+    if (typeof val !== "number" || isNaN(val) || !isFinite(val) || val < 0) {
+      setSaveError(true);
+      return;
+    }
+    const cleanVal = Math.round(val);
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: latestPrefsRef.current.foodOverrides,
+      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
+      emergencyFundKrw: cleanVal,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        emergencyFundKrw: cleanVal,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
   const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
     const cityMatch = MOCK_PRICE_CATALOG.find(
       (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
@@ -1165,12 +1199,88 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               onClick={() => setSelectedCityTab(city)}
                               className={`w-full py-2 px-3 rounded-xl bg-white border ${color.border} ${color.text} font-extrabold text-xs transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs flex items-center justify-center gap-1`}
                             >
-                              <span>{locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 세부 편집` : `Edit ${city}`}</span>
-                              <span>→</span>
+                               <span>{locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 세부 편집` : `Edit ${city}`}</span>
+                               <span>→</span>
                             </button>
                           </div>
                         );
                       })}
+                    </div>
+
+                    {/* Trip-wide Emergency Fund Setting Block */}
+                    <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                        <div>
+                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                            <span>🛡️</span>
+                            <span>{locale === "ko" ? "여행 전체 비상금 설정" : "Trip-wide Emergency Fund"}</span>
+                          </h4>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            {locale === "ko"
+                              ? "환전 수수료, 미처 예상치 못한 택시, 소소한 기념품, 우천 시 대체 지출용 예비비입니다."
+                              : "Reserve for exchange fees, unexpected taxis, souvenirs, and weather contingencies."}
+                          </p>
+                        </div>
+                        <span className="text-base font-extrabold text-[#e25c5c]">
+                          {formatKrw(preferences.emergencyFundKrw || 0)}
+                        </span>
+                      </div>
+
+                      {/* Presets & Manual Input */}
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {[
+                            { pct: 0.05, label: "5%" },
+                            { pct: 0.10, label: locale === "ko" ? "10% (권장)" : "10% (Rec)" },
+                            { pct: 0.15, label: "15%" },
+                          ].map((preset) => {
+                            const baseTotal = Math.max(1, plan.grandTotalKrw - (preferences.emergencyFundKrw || 0));
+                            const calcVal = Math.round((baseTotal * preset.pct) / 1000) * 1000;
+                            const isSelected = (preferences.emergencyFundKrw || 0) === calcVal;
+
+                            return (
+                              <button
+                                key={preset.label}
+                                type="button"
+                                onClick={() => handleEmergencyFundValueChange(calcVal)}
+                                className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                  isSelected
+                                    ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                    : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                }`}
+                              >
+                                <div>{preset.label}</div>
+                                <div className="text-[10px] opacity-80 mt-0.5">{formatKrw(calcVal)}</div>
+                              </button>
+                            );
+                          })}
+
+                          <div className="relative rounded-xl border border-slate-200 bg-white flex items-center px-2.5">
+                            <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="1000"
+                              className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                              placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                              value={preferences.emergencyFundKrw === 0 ? "" : (preferences.emergencyFundKrw ?? "")}
+                              onChange={handleEmergencyFundChange}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Per-person & Per-day breakdown */}
+                        {(preferences.emergencyFundKrw || 0) > 0 && (
+                          <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                            <span>
+                              {locale === "ko" ? "1인당 환산 비용:" : "Per Traveler:"} <strong>{formatKrw(Math.round((preferences.emergencyFundKrw || 0) / (draft.adultCount || 1)))}</strong>
+                            </span>
+                            <span>
+                              {locale === "ko" ? "하루 1인당:" : "Per Day/Person:"} <strong>{formatKrw(Math.round((preferences.emergencyFundKrw || 0) / ((draft.adultCount || 1) * ((draft.totalNights || 1) + 1))))}</strong>
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1347,28 +1457,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             )}
 
             {activeCategory === "EMERGENCY_FUND" && (
-              <div className="space-y-4 pt-2 border-t border-slate-100">
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="emergency-fund-input" className="text-sm font-bold text-slate-700">
-                    {dict.planner.emergencyFundManualInput}
-                  </label>
-                  <div className="relative rounded-xl shadow-sm max-w-xs">
-                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                      <span className="text-slate-500 sm:text-sm">₩</span>
-                    </div>
-                    <input
-                      type="number"
-                      name="emergencyFund"
-                      id="emergency-fund-input"
-                      min="0"
-                      step="1"
-                      className="block w-full rounded-xl border-slate-300 pl-7 pr-3 py-2 text-sm focus:border-[#e25c5c] focus:ring-[#e25c5c] focus-visible:outline-none"
-                      placeholder="0"
-                      value={preferences.emergencyFundKrw === 0 ? "" : (preferences.emergencyFundKrw ?? "")}
-                      onChange={handleEmergencyFundChange}
-                    />
-                  </div>
-                </div>
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-3 my-4">
+                <div className="text-3xl">🛡️</div>
+                <h4 className="text-base font-extrabold text-[#0f172a]">
+                  {locale === "ko" ? "비상금은 여행 전체 공통 항목입니다" : "Emergency Fund is a Trip-Wide Common Item"}
+                </h4>
+                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
+                  {locale === "ko"
+                    ? "비상금은 특정 도시 구분을 두지 않고 전체 여행에 통틀어 1회 설정됩니다. 상단 '요약' 탭에서 편리하게 비율(%) 및 금액을 조정하실 수 있습니다."
+                    : "The emergency fund is managed as a single trip-wide pool. You can adjust the percentage or amount in the 'Summary' tab above."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCityTab("ALL")}
+                  className="px-4 py-2 bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                >
+                  <span>{locale === "ko" ? "요약 탭에서 비상금 설정하기" : "Set Emergency Fund in Summary Tab"}</span>
+                  <span>→</span>
+                </button>
               </div>
             )}
 

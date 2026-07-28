@@ -1068,7 +1068,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
 
                       {/* Legends */}
-                      <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-1 text-xs max-w-[240px] mx-auto">
                         {draft.selectedCities.map((city, idx) => {
                           const amount = citySubtotalMap[city] || 0;
                           const pct = Math.round((amount / safeCitySum) * 100);
@@ -1076,10 +1076,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
 
                           return (
-                            <div key={city} className="flex items-center gap-1">
+                            <div key={city} className="flex items-center gap-1.5 justify-start min-w-0">
                               <span className={`h-2.5 w-2.5 rounded-full ${color.bg} shrink-0`}></span>
-                              <span className="font-bold text-slate-800">{cityName}</span>
-                              <span className="font-extrabold text-slate-900 ml-0.5">{pct}%</span>
+                              <span className="font-bold text-slate-800 truncate">{cityName}</span>
+                              <span className="font-extrabold text-slate-900 ml-auto">{pct}%</span>
                             </div>
                           );
                         })}
@@ -1111,12 +1111,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
 
                       {/* Legends */}
-                      <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-1 text-xs max-w-[240px] mx-auto">
                         {categorySubtotals.map((item, idx) => (
-                          <div key={idx} className="flex items-center gap-1">
+                          <div key={idx} className="flex items-center gap-1.5 justify-start min-w-0">
                             <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`}></span>
-                            <span className="font-bold text-slate-800">{item.label}</span>
-                            <span className="font-extrabold text-slate-900 ml-0.5">{item.pct}%</span>
+                            <span className="font-bold text-slate-800 truncate">{item.label}</span>
+                            <span className="font-extrabold text-slate-900 ml-auto">{item.pct}%</span>
                           </div>
                         ))}
                       </div>

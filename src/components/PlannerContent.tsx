@@ -1047,9 +1047,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <span>🏙️</span>
                           <span>{locale === "ko" ? `도시별 합계: ${formatKrw(sumCitySubtotals)}` : `City Total: ${formatKrw(sumCitySubtotals)}`}</span>
                         </h4>
-                        <span className="text-xs font-extrabold text-slate-700">
-                          {locale === "ko" ? "도시별 예산 배분 비중" : "City Budget Allocation"}
-                        </span>
                       </div>
 
                       {/* Segmented Progress Bar */}
@@ -1096,9 +1093,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <span>📦</span>
                           <span>{locale === "ko" ? `항목별 합계: ${formatKrw(plan.grandTotalKrw)}` : `Category Total: ${formatKrw(plan.grandTotalKrw)}`}</span>
                         </h4>
-                        <span className="text-xs font-extrabold text-slate-700">
-                          {locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}
-                        </span>
                       </div>
 
                       {/* Segmented Progress Bar */}

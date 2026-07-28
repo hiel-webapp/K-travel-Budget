@@ -900,11 +900,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
           </div>
 
-          {/* Category Tabs / Cards (Only shown for individual city tabs) */}
+          {/* Category Tabs / Cards (Only shown for individual city tabs: 4 categories) */}
           {selectedCityTab !== "ALL" && (
-            <div className="grid grid-cols-5 gap-2" role="tablist" aria-label="Budget categories">
-              {(["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION", "EMERGENCY_FUND"] as BudgetCategory[]).map((cat) => {
-                const isActive = activeCategory === cat;
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="Budget categories">
+              {(["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION"] as BudgetCategory[]).map((cat) => {
+                const isActive = (activeCategory === "EMERGENCY_FUND" ? "ACCOMMODATION" : activeCategory) === cat;
                 const label = getCategoryLabel(cat, dict);
 
                 const amount =
@@ -945,57 +945,58 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             aria-labelledby={`cat-tab-${selectedCityTab === "ALL" ? "summary" : activeCategory}`}
             aria-live="polite"
           >
-            {selectedCityTab !== "ALL" && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-lg font-bold text-[#0f172a]">
-                    {activeCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
-                    {activeCategory === "FOOD" && dict.planner.foodTitle}
-                    {activeCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
-                    {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
-                    {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyTitle}
-                  </h3>
-                  <p className="mt-1 text-xs sm:text-sm text-slate-400">
-                    {activeCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
-                    {activeCategory === "FOOD" && dict.planner.foodDescription}
-                    {activeCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
-                    {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
-                    {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyDescription}
-                  </p>
-                </div>
-
-                {(activeCategory === "ACCOMMODATION" || activeCategory === "FOOD" || activeCategory === "ATTRACTION") && (
-                  <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
-                    {savedPlaceCount > 0 && (
-                      <Link
-                        href={`/${locale}/places?savedOnly=true`}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-[#0f172a] bg-amber-100/70 hover:bg-amber-200/70 px-3 py-2 rounded-xl border border-amber-300/60 transition-colors"
-                      >
-                        <span>★</span>
-                        <span>
-                          {(dict.places?.savedCountBadge || "저장한 후보 {count}개").replace(
-                            "{count}",
-                            String(savedPlaceCount)
-                          )}
-                        </span>
-                      </Link>
-                    )}
-                    <Link
-                      href={`/${locale}/places?city=${selectedCityTab}&category=${
-                        activeCategory === "ACCOMMODATION"
-                          ? "ACCOMMODATION"
-                          : activeCategory === "FOOD"
-                          ? "RESTAURANT"
-                          : "ATTRACTION"
-                      }`}
-                      className="inline-flex items-center justify-center text-xs font-bold text-[#e25c5c] bg-[#faf5f5] hover:bg-[#fdeeed] px-3 py-2 rounded-xl border border-[#fce8e8] transition-colors"
-                    >
-                      {dict.places?.exploreCandidatePlaces || "실제 후보 장소 탐색 →"}
-                    </Link>
+            {selectedCityTab !== "ALL" && (() => {
+              const currentCategory = activeCategory === "EMERGENCY_FUND" ? "ACCOMMODATION" : activeCategory;
+              return (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-lg font-bold text-[#0f172a]">
+                      {currentCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
+                      {currentCategory === "FOOD" && dict.planner.foodTitle}
+                      {currentCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
+                      {currentCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
+                    </h3>
+                    <p className="mt-1 text-xs sm:text-sm text-slate-400">
+                      {currentCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
+                      {currentCategory === "FOOD" && dict.planner.foodDescription}
+                      {currentCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
+                      {currentCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
+                    </p>
                   </div>
-                )}
-              </div>
-            )}
+
+                  {(currentCategory === "ACCOMMODATION" || currentCategory === "FOOD" || currentCategory === "ATTRACTION") && (
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
+                      {savedPlaceCount > 0 && (
+                        <Link
+                          href={`/${locale}/places?savedOnly=true`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-[#0f172a] bg-amber-100/70 hover:bg-amber-200/70 px-3 py-2 rounded-xl border border-amber-300/60 transition-colors"
+                        >
+                          <span>★</span>
+                          <span>
+                            {(dict.places?.savedCountBadge || "저장한 후보 {count}개").replace(
+                              "{count}",
+                              String(savedPlaceCount)
+                            )}
+                          </span>
+                        </Link>
+                      )}
+                      <Link
+                        href={`/${locale}/places?city=${selectedCityTab}&category=${
+                          currentCategory === "ACCOMMODATION"
+                            ? "ACCOMMODATION"
+                            : currentCategory === "FOOD"
+                            ? "RESTAURANT"
+                            : "ATTRACTION"
+                        }`}
+                        className="inline-flex items-center justify-center text-xs font-bold text-[#e25c5c] bg-[#faf5f5] hover:bg-[#fdeeed] px-3 py-2 rounded-xl border border-[#fce8e8] transition-colors"
+                      >
+                        {dict.places?.exploreCandidatePlaces || "실제 후보 장소 탐색 →"}
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* 1. Summary Tab Mode: Stacked Horizontal Progress Bars & City Details */}
             {selectedCityTab === "ALL" && (() => {
@@ -1657,28 +1658,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </div>
                   );
                 })()}
-              </div>
-            )}
-
-            {activeCategory === "EMERGENCY_FUND" && (
-              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-3 my-4">
-                <div className="text-3xl">🛡️</div>
-                <h4 className="text-base font-extrabold text-[#0f172a]">
-                  {locale === "ko" ? "비상금은 여행 전체 공통 항목입니다" : "Emergency Fund is a Trip-Wide Common Item"}
-                </h4>
-                <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed font-medium">
-                  {locale === "ko"
-                    ? "비상금은 특정 도시 구분을 두지 않고 전체 여행에 통틀어 1회 설정됩니다. 상단 '요약' 탭에서 편리하게 비율(%) 및 금액을 조정하실 수 있습니다."
-                    : "The emergency fund is managed as a single trip-wide pool. You can adjust the percentage or amount in the 'Summary' tab above."}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCityTab("ALL")}
-                  className="px-4 py-2 bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-extrabold rounded-xl transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
-                >
-                  <span>{locale === "ko" ? "요약 탭에서 비상금 설정하기" : "Set Emergency Fund in Summary Tab"}</span>
-                  <span>→</span>
-                </button>
               </div>
             )}
 

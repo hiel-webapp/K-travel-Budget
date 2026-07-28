@@ -1045,10 +1045,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
                         <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
                           <span>🏙️</span>
-                          <span>{locale === "ko" ? "도시별 예산 배분 비중" : "City Budget Allocation"}</span>
+                          <span>{locale === "ko" ? `도시별 합계: ${formatKrw(sumCitySubtotals)}` : `City Total: ${formatKrw(sumCitySubtotals)}`}</span>
                         </h4>
                         <span className="text-xs font-extrabold text-slate-700">
-                          {locale === "ko" ? "도시 합계: " : "Total: "}{formatKrw(sumCitySubtotals)}
+                          {locale === "ko" ? "도시별 예산 배분 비중" : "City Budget Allocation"}
                         </span>
                       </div>
 
@@ -1094,10 +1094,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
                         <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
                           <span>📦</span>
-                          <span>{locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}</span>
+                          <span>{locale === "ko" ? `항목별 합계: ${formatKrw(plan.grandTotalKrw)}` : `Category Total: ${formatKrw(plan.grandTotalKrw)}`}</span>
                         </h4>
                         <span className="text-xs font-extrabold text-slate-700">
-                          {locale === "ko" ? "전체 합계: " : "Total: "}{formatKrw(plan.grandTotalKrw)}
+                          {locale === "ko" ? "항목별 예산 분포" : "Category Distribution"}
                         </span>
                       </div>
 

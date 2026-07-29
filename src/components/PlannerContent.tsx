@@ -1161,7 +1161,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
 
                       {/* Legends */}
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-1 text-xs max-w-[240px] mx-auto">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-1 text-xs max-w-[180px] mx-auto">
                         {draft.selectedCities.map((city, idx) => {
                           const amount = citySubtotalMap[city] || 0;
                           const pct = Math.round((amount / safeCitySum) * 100);
@@ -1204,7 +1204,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
 
                       {/* Legends */}
-                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-1 text-xs max-w-[240px] mx-auto">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-1 text-xs max-w-[180px] mx-auto">
                         {categorySubtotals.map((item, idx) => (
                           <div key={idx} className="flex items-center gap-1.5 justify-start min-w-0">
                             <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`}></span>

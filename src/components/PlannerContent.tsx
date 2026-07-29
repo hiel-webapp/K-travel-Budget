@@ -1239,7 +1239,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         return (
                           <div
                             key={city}
-                            className={`p-4 rounded-2xl border ${color.border} ${color.lightBg} flex flex-col justify-between space-y-4 shadow-2xs transition-all hover:shadow-xs`}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedCityTab(city)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setSelectedCityTab(city);
+                              }
+                            }}
+                            className={`group p-4 rounded-2xl border ${color.border} ${color.lightBg} flex flex-col justify-between space-y-3 shadow-2xs transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer text-left focus:outline-hidden focus:ring-2 focus:ring-slate-400`}
                           >
                             <div className="space-y-3">
                               {/* Header */}
@@ -1252,9 +1261,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     <span>{locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}</span>
                                   </strong>
                                 </div>
-                                <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded-full font-bold border border-slate-200/70">
-                                  {nights}{locale === "ko" ? "박 " : "N "}{nights + 1}{locale === "ko" ? "일" : "D"}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded-full font-bold border border-slate-200/70">
+                                    {nights}{locale === "ko" ? "박 " : "N "}{nights + 1}{locale === "ko" ? "일" : "D"}
+                                  </span>
+                                  <span className={`text-xs font-black ${color.text} group-hover:translate-x-0.5 transition-transform`} aria-hidden="true">
+                                    →
+                                  </span>
+                                </div>
                               </div>
 
                               {/* Amount Breakdown */}
@@ -1287,16 +1301,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 </strong>
                               </div>
                             </div>
-
-                            {/* Quick Navigation Button */}
-                            <button
-                              type="button"
-                              onClick={() => setSelectedCityTab(city)}
-                              className={`w-full py-2 px-3 rounded-xl bg-white border ${color.border} ${color.text} font-extrabold text-xs transition-colors hover:bg-slate-50 cursor-pointer shadow-2xs flex items-center justify-center gap-1`}
-                            >
-                               <span>{locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 세부 편집` : `Edit ${city}`}</span>
-                               <span>→</span>
-                            </button>
                           </div>
                         );
                       })}

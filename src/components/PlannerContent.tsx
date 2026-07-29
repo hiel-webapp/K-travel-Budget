@@ -1161,7 +1161,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
 
                       {/* Legends */}
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-1 text-xs max-w-[180px] mx-auto">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 pt-1 text-xs w-max mx-auto">
                         {draft.selectedCities.map((city, idx) => {
                           const amount = citySubtotalMap[city] || 0;
                           const pct = Math.round((amount / safeCitySum) * 100);
@@ -1172,7 +1172,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <div key={city} className="flex items-center gap-1.5 justify-start min-w-0">
                               <span className={`h-2.5 w-2.5 rounded-full ${color.bg} shrink-0`}></span>
                               <span className="font-bold text-slate-800 truncate">{cityName}</span>
-                              <span className="font-extrabold text-slate-900 ml-auto">{pct}%</span>
+                              <span className="font-extrabold text-slate-900 ml-1.5 shrink-0">{pct}%</span>
                             </div>
                           );
                         })}
@@ -1204,12 +1204,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
 
                       {/* Legends */}
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-1 text-xs max-w-[180px] mx-auto">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-2 pt-1 text-xs w-max mx-auto">
                         {categorySubtotals.map((item, idx) => (
                           <div key={idx} className="flex items-center gap-1.5 justify-start min-w-0">
                             <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`}></span>
                             <span className="font-bold text-slate-800 truncate">{item.label}</span>
-                            <span className="font-extrabold text-slate-900 ml-auto">{item.pct}%</span>
+                            <span className="font-extrabold text-slate-900 ml-1.5 shrink-0">{item.pct}%</span>
                           </div>
                         ))}
                       </div>

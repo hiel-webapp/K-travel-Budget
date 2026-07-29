@@ -101,7 +101,7 @@ describe("HypeHeritage 13단계: Attraction(관광) 오버라이드 및 스키�
 
       const res = parsePlannerPreferences(JSON.stringify(legacyV1), defaultTrip);
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(4);
+      expect(res.preferences.schemaVersion).toBe(5);
       expect(res.preferences.accommodationByCity).toEqual({ SEOUL: "BUDGET_STAY" });
       expect(res.preferences.foodOverrides).toEqual({});
       expect(res.preferences.addOnSelections).toEqual({});
@@ -123,7 +123,7 @@ describe("HypeHeritage 13단계: Attraction(관광) 오버라이드 및 스키�
 
       const res = parsePlannerPreferences(JSON.stringify(legacyV2), defaultTrip);
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(4);
+      expect(res.preferences.schemaVersion).toBe(5);
       expect(res.preferences.foodOverrides).toEqual({ SEOUL_0_DINNER: "K_BBQ" });
       expect(res.preferences.addOnSelections).toEqual({});
       expect(res.preferences.attractionByCity).toEqual({});
@@ -147,7 +147,7 @@ describe("HypeHeritage 13단계: Attraction(관광) 오버라이드 및 스키�
 
       const res = parsePlannerPreferences(JSON.stringify(legacyV3), defaultTrip);
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(4);
+      expect(res.preferences.schemaVersion).toBe(5);
       expect(res.preferences.addOnSelections).toEqual({
         SEOUL_0_DINNER: [{ addOnItemId: "RICE", quantity: 2 }],
       });
@@ -171,7 +171,7 @@ describe("HypeHeritage 13단계: Attraction(관광) 오버라이드 및 스키�
 
       const res = parsePlannerPreferences(JSON.stringify(envelopeV4), defaultTrip);
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(4);
+      expect(res.preferences.schemaVersion).toBe(5);
       expect(res.preferences.attractionByCity).toEqual({ SEOUL: "MOSTLY_FREE" });
     });
   });

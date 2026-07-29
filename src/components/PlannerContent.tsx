@@ -9,6 +9,7 @@ import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPref
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
+import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset } from "../features/budget/catalog/attraction-spots";
 import { getIntercityFareOptions, IntercityFareInfo } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
@@ -127,6 +128,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
+  const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
 
   // 여행 조건 수정 팝오버 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -455,6 +457,90 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           preferences: {
             ...prev.preferences,
             attractionByCity: nextAttr,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleToggleCourse = (city: SupportedCity, courseId: string) => {
+    const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+    const isSelected = currentCitySel.selectedCourseIds.includes(courseId);
+    const nextCourseIds = isSelected
+      ? currentCitySel.selectedCourseIds.filter((id) => id !== courseId)
+      : [...currentCitySel.selectedCourseIds, courseId];
+
+    const nextAttractionSelections = {
+      ...preferences.attractionSelections,
+      [city]: {
+        ...currentCitySel,
+        selectedCourseIds: nextCourseIds,
+      },
+    };
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
+      attractionSelections: nextAttractionSelections,
+      emergencyFundKrw: preferences.emergencyFundKrw,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            attractionSelections: nextAttractionSelections,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleToggleSpot = (city: SupportedCity, spotId: string) => {
+    const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+    const isSelected = currentCitySel.individualSpotIds.includes(spotId);
+    const nextSpotIds = isSelected
+      ? currentCitySel.individualSpotIds.filter((id) => id !== spotId)
+      : [...currentCitySel.individualSpotIds, spotId];
+
+    const nextAttractionSelections = {
+      ...preferences.attractionSelections,
+      [city]: {
+        ...currentCitySel,
+        individualSpotIds: nextSpotIds,
+      },
+    };
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
+      attractionSelections: nextAttractionSelections,
+      emergencyFundKrw: preferences.emergencyFundKrw,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            attractionSelections: nextAttractionSelections,
           },
         };
       });
@@ -953,7 +1039,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             aria-labelledby={`cat-tab-${selectedCityTab === "ALL" ? "summary" : activeCategory}`}
             aria-live="polite"
           >
-            {selectedCityTab !== "ALL" && (() => {
+            {selectedCityTab !== "ALL" && activeCategory !== "ATTRACTION" && (() => {
               const currentCategory = activeCategory === "EMERGENCY_FUND" ? "ACCOMMODATION" : activeCategory;
               return (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -962,17 +1048,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {currentCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
                       {currentCategory === "FOOD" && dict.planner.foodTitle}
                       {currentCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
-                      {currentCategory === "ATTRACTION" && dict.planner.attractionOverrideTitle}
                     </h3>
                     <p className="mt-1 text-xs sm:text-sm text-slate-400">
                       {currentCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
                       {currentCategory === "FOOD" && dict.planner.foodDescription}
                       {currentCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
-                      {currentCategory === "ATTRACTION" && dict.planner.attractionOverrideDesc}
                     </p>
                   </div>
 
-                  {(currentCategory === "ACCOMMODATION" || currentCategory === "FOOD" || currentCategory === "ATTRACTION") && (
+                  {(currentCategory === "ACCOMMODATION" || currentCategory === "FOOD") && (
                     <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
                       {savedPlaceCount > 0 && (
                         <Link
@@ -992,9 +1076,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         href={`/${locale}/places?city=${selectedCityTab}&category=${
                           currentCategory === "ACCOMMODATION"
                             ? "ACCOMMODATION"
-                            : currentCategory === "FOOD"
-                            ? "RESTAURANT"
-                            : "ATTRACTION"
+                            : "RESTAURANT"
                         }`}
                         className="inline-flex items-center justify-center text-xs font-bold text-[#e25c5c] bg-[#faf5f5] hover:bg-[#fdeeed] px-3 py-2 rounded-xl border border-[#fce8e8] transition-colors"
                       >
@@ -1473,97 +1555,167 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                 {activeCategory === "ATTRACTION" && (() => {
                   const city = selectedCityTab;
-                  const hasOverride = !!preferences.attractionByCity?.[city];
+                  const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+                  const selectedCourseIds = citySel.selectedCourseIds || [];
+                  const individualSpotIds = citySel.individualSpotIds || [];
+
+                  const hasOverride =
+                    !!preferences.attractionByCity?.[city] ||
+                    selectedCourseIds.length > 0 ||
+                    individualSpotIds.length > 0;
+
                   const activeBasketId =
                     preferences.attractionByCity?.[city] ||
-                    plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId;
-                  const basketOptions: BudgetBasketId[] = ["MOSTLY_FREE", "BALANCED", "EXPERIENCE_RICH"];
+                    plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId ||
+                    "BALANCED";
 
-                  // Representative city attractions catalog
-                  const cityAttractions: Record<string, Array<{ id: string; nameKo: string; nameEn: string; price: number; isFree: boolean; tag: string }>> = {
-                    SEOUL: [
-                      { id: "seoul_1", nameKo: "경복궁 & 한복 대여 체험", nameEn: "Gyeongbokgung & Hanbok Experience", price: 15000, isFree: false, tag: "K-컬처" },
-                      { id: "seoul_2", nameKo: "N서울타워 전망대", nameEn: "N Seoul Tower Observatory", price: 21000, isFree: false, tag: "전망/야경" },
-                      { id: "seoul_3", nameKo: "광화문 광장 & 청계천 산책", nameEn: "Gwanghwamun & Cheonggyecheon Walk", price: 0, isFree: true, tag: "무료/휴식" },
-                      { id: "seoul_4", nameKo: "롯데월드 타워 서울스카이", nameEn: "Lotte World Tower Seoul Sky", price: 29000, isFree: false, tag: "랜드마크" },
-                    ],
-                    BUSAN: [
-                      { id: "busan_1", nameKo: "해운대 블루라인 해변열차", nameEn: "Haeundae Blueline Park Beach Train", price: 16000, isFree: false, tag: "액티비티" },
-                      { id: "busan_2", nameKo: "감천문화마을", nameEn: "Gamcheon Culture Village", price: 0, isFree: true, tag: "문화/포토존" },
-                      { id: "busan_3", nameKo: "부산타워 & 용두산공원", nameEn: "Busan Tower & Yongdusan Park", price: 12000, isFree: false, tag: "전망" },
-                    ],
-                    SUWON: [
-                      { id: "suwon_1", nameKo: "수원화성 성곽길 산책", nameEn: "Suwon Hwaseong Fortress Wall Walk", price: 0, isFree: true, tag: "유네스코 유산" },
-                      { id: "suwon_2", nameKo: "화성행궁 관람", nameEn: "Hwaseong Haenggung Palace", price: 3000, isFree: false, tag: "역사" },
-                    ],
-                    SOKCHO: [
-                      { id: "sokcho_1", nameKo: "설악산 국립공원 케이블카", nameEn: "Seoraksan National Park Cable Car", price: 15000, isFree: false, tag: "자연/액티비티" },
-                      { id: "sokcho_2", nameKo: "속초 아바이마을 갯배 체험", nameEn: "Abai Village Gaetbae Boat", price: 1000, isFree: false, tag: "체험" },
-                    ],
-                  };
+                  const coursesForCity = TOUR_COURSE_PRESETS.filter((c) => c.cityCode === city);
+                  const spotsForCity = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
 
-                  const currentAttractions = cityAttractions[city] || cityAttractions.SEOUL;
+                  const isShowMore = !!showMoreAttractionsByCity[city];
+                  const displayedSpots = isShowMore ? spotsForCity : spotsForCity.slice(0, 6);
+
+                  // 수집된 중복 제거 유료 Spot 계산
+                  const selectedSpotSet = new Set<string>();
+                  selectedCourseIds.forEach((cid) => {
+                    const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                    if (course) course.spotIds.forEach((sid) => selectedSpotSet.add(sid));
+                  });
+                  individualSpotIds.forEach((sid) => selectedSpotSet.add(sid));
+
+                  const adultCount = draft.adultCount || 1;
+                  let selectedSpotsPricePerPerson = 0;
+                  const selectedSpotDetails: AttractionSpot[] = [];
+
+                  selectedSpotSet.forEach((sid) => {
+                    const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
+                    if (spot) {
+                      selectedSpotDetails.push(spot);
+                      if (spot.priceStatus === "PAID") {
+                        selectedSpotsPricePerPerson += spot.price;
+                      }
+                    }
+                  });
+
+                  // 완충비 단가 (Basket 기준)
+                  const bufferUnitPrice =
+                    activeBasketId === "MOSTLY_FREE" ? 10000 : activeBasketId === "EXPERIENCE_RICH" ? 120000 : 50000;
+                  const bufferTotal = bufferUnitPrice * adultCount;
+                  const spotsTotal = selectedSpotsPricePerPerson * adultCount;
+                  const totalAttractionBudget = spotsTotal + bufferTotal;
 
                   return (
-                    <div className="space-y-5">
-                      <div className="flex items-center justify-between">
+                    <div className="space-y-6">
+                      {/* Header & Reset */}
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "관광·액티비티 키오스크" : "Attractions Kiosk"}
+                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                            <span>🏛️</span>
+                            <span>{CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "관광·액티비티 키오스크" : "Attractions Kiosk"}</span>
                           </h4>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-slate-400 mt-0.5">
                             {locale === "ko"
-                              ? "원하는 관광 코스를 1클릭 프리셋으로 고르거나 개별 액티비티를 쇼핑하듯 장바구니에 담으세요."
-                              : "Choose a 1-click recommended course or pick individual activities."}
+                              ? "원하는 관광 코스를 복수로 고르거나 개별 액티비티를 쇼핑하듯 예산에 담으세요."
+                              : "Pick recommended course presets or add individual attractions."}
                           </p>
                         </div>
                         <button
-                          onClick={() => handleResetAttraction(city)}
+                          type="button"
+                          onClick={() => {
+                            handleResetAttraction(city);
+                            // 또한 스팟/코스 선택 초기화
+                            const nextSelections = {
+                              ...preferences.attractionSelections,
+                              [city]: { selectedCourseIds: [], individualSpotIds: [] },
+                            };
+                            savePlannerPreferences({
+                              accommodationByCity: preferences.accommodationByCity,
+                              foodOverrides: preferences.foodOverrides,
+                              foodAddOnOverrides: preferences.addOnSelections,
+                              attractionByCity: preferences.attractionByCity,
+                              attractionSelections: nextSelections,
+                              emergencyFundKrw: preferences.emergencyFundKrw,
+                              draft,
+                            });
+                            setState((prev) => {
+                              if (prev.status !== "ready") return prev;
+                              return {
+                                ...prev,
+                                preferences: { ...prev.preferences, attractionSelections: nextSelections },
+                              };
+                            });
+                          }}
                           disabled={!hasOverride}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${hasOverride
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
+                            hasOverride
                               ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
-                              : "text-slate-355 border-slate-100 bg-slate-50 cursor-not-allowed"
-                            }`}
+                              : "text-slate-300 border-slate-100 bg-slate-50 cursor-not-allowed"
+                          }`}
                         >
-                          {dict.planner.resetToRecommendedAttraction}
+                          {dict.planner.resetToRecommendedAttraction || "추천 관광으로 초기화"}
                         </button>
                       </div>
 
-                      {/* 1-Click Preset Options */}
-                      <div className="space-y-1.5">
-                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                          {locale === "ko" ? "⚡ 1-Click 추천 관광 코스 프리셋" : "⚡ 1-Click Recommended Course Presets"}
-                        </span>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {basketOptions.map((opt) => {
-                            const isSelected = activeBasketId === opt;
-                            const name = getBasketLabel(opt, dict, locale, city);
-                            const price = getCatalogAttractionPrice(city, opt);
+                      {/* 1. Recommended Tour Course Presets Section */}
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {dict.planner.recommendedCoursesTitle || "⚡ 추천 관광 코스 프리셋 (복수 선택 가능)"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {locale === "ko" ? "중복 관광지 비용은 1회만 자동 계산" : "Deduplicated spot pricing"}
+                          </span>
+                        </div>
 
-                            let desc = dict.planner.balancedDesc;
-                            if (opt === "MOSTLY_FREE") desc = dict.planner.mostlyFreeDesc;
-                            if (opt === "EXPERIENCE_RICH") desc = dict.planner.experienceRichDesc;
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {coursesForCity.map((course) => {
+                            const isSelected = selectedCourseIds.includes(course.id);
+                            // 코스 내 유료 관광지 1인 합산가 계산
+                            let coursePricePerPerson = 0;
+                            course.spotIds.forEach((sid) => {
+                              const s = ATTRACTION_SPOTS_CATALOG.find((spot) => spot.id === sid);
+                              if (s && s.priceStatus === "PAID") {
+                                coursePricePerPerson += s.price;
+                              }
+                            });
 
                             return (
                               <button
-                                key={opt}
-                                onClick={() => handleAttractionOverride(city, opt)}
-                                className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
-                                    ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
-                                    : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
-                                  }`}
+                                key={course.id}
+                                type="button"
+                                onClick={() => handleToggleCourse(city, course.id)}
+                                className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${
+                                  isSelected
+                                    ? "bg-rose-50/40 border-2 border-[#e25c5c] shadow-xs"
+                                    : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+                                }`}
                               >
-                                <div>
-                                  <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
-                                    {name}
-                                  </span>
-                                  <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                                    {desc}
+                                <div className="space-y-1.5 w-full">
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-extrabold">
+                                      {course.courseType === "AREA_ROUTE" ? (locale === "ko" ? "권역 동선 코스" : "Route Course") : (locale === "ko" ? "도시 대표 코스" : "City Highlights")}
+                                    </span>
+                                    {isSelected && (
+                                      <span className="text-[10px] bg-[#e25c5c] text-white px-2 py-0.5 rounded-md font-extrabold flex items-center gap-0.5">
+                                        ✓ {locale === "ko" ? "선택됨" : "Selected"}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h5 className={`text-xs font-extrabold ${isSelected ? "text-[#e25c5c]" : "text-[#0f172a]"}`}>
+                                    {locale === "ko" ? course.nameKo : course.nameEn}
+                                  </h5>
+                                  <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">
+                                    {locale === "ko" ? course.descKo : course.descEn}
                                   </p>
                                 </div>
-                                <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-50 pt-2">
-                                  <span className="text-[9px] font-bold text-slate-400 uppercase">Per Person</span>
-                                  <span className="text-xs font-extrabold text-slate-800">{formatKrw(price)}</span>
+
+                                <div className="mt-3 border-t border-slate-100/80 pt-2 flex items-center justify-between text-xs w-full">
+                                  <span className="text-[10px] font-bold text-slate-400">
+                                    ⏱️ {course.estimatedHours}{locale === "ko" ? "시간 소요" : "hrs"} · {course.spotIds.length}{locale === "ko" ? "개 장소" : " places"}
+                                  </span>
+                                  <span className="font-extrabold text-[#e25c5c]">
+                                    {coursePricePerPerson > 0 ? `+${formatKrw(coursePricePerPerson)} /인` : (locale === "ko" ? "입장료 무료 코스" : "Free entry")}
+                                  </span>
                                 </div>
                               </button>
                             );
@@ -1571,45 +1723,179 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
                       </div>
 
-                      {/* Interactive Attractions Grid Menu */}
-                      <div className="space-y-2 pt-2 border-t border-slate-100">
-                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                          {locale === "ko" ? "🎡 도시 대표 관광지 장바구니 메뉴" : "🎡 Signature Attractions Basket Menu"}
-                        </span>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {currentAttractions.map((attr) => (
-                            <div
-                              key={attr.id}
-                              className="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between shadow-2xs hover:border-slate-300 transition-all"
-                            >
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-extrabold">
-                                    {attr.tag}
-                                  </span>
-                                  {attr.isFree && (
-                                    <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-200 px-1.5 py-0.5 rounded-md font-bold">
-                                      {locale === "ko" ? "무료" : "Free"}
-                                    </span>
-                                  )}
-                                </div>
-                                <h5 className="text-xs font-bold text-[#0f172a]">{locale === "ko" ? attr.nameKo : attr.nameEn}</h5>
-                                <span className="text-xs font-black text-[#e25c5c]">
-                                  {attr.isFree ? (locale === "ko" ? "₩0 (무료)" : "₩0 (Free)") : formatKrw(attr.price)}
-                                </span>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={() => handleAttractionOverride(city, attr.price > 80000 ? "EXPERIENCE_RICH" : attr.price > 20000 ? "BALANCED" : "MOSTLY_FREE")}
-                                className="px-3 py-1.5 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs transition-colors cursor-pointer shadow-2xs shrink-0"
-                              >
-                                {locale === "ko" ? "+ 담기" : "+ Add"}
-                              </button>
-                            </div>
-                          ))}
+                      {/* 2. Signature City Attractions Section (3x2 Desktop, 2x3 Mobile Grid) */}
+                      <div className="space-y-3 pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {dict.planner.cityAttractionsTitle || "🎡 도시 대표 관광지"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {locale === "ko" ? `전체 ${spotsForCity.length}개 항목 중` : `Showing ${displayedSpots.length} of ${spotsForCity.length}`}
+                          </span>
                         </div>
+
+                        {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {displayedSpots.map((spot) => {
+                            const isSpotSelected = individualSpotIds.includes(spot.id);
+                            const isIncludedInCourse = selectedCourseIds.some((cid) => {
+                              const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                              return course?.spotIds.includes(spot.id);
+                            });
+                            const isAdded = isSpotSelected || isIncludedInCourse;
+
+                            return (
+                              <div
+                                key={spot.id}
+                                className={`p-3.5 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all ${
+                                  isAdded ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200 hover:border-slate-300"
+                                }`}
+                              >
+                                <div className="space-y-2">
+                                  {/* Visual Badge Header */}
+                                  <div className={`h-12 w-full rounded-xl bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
+                                    <span className="text-2xl">{spot.emoji}</span>
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-[9px] bg-white/90 text-slate-700 font-bold px-1.5 py-0.5 rounded">
+                                        {spot.tag}
+                                      </span>
+                                      {spot.priceStatus === "FREE" && (
+                                        <span className="text-[9px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.5 rounded">
+                                          {dict.planner.freeBadge || "무료"}
+                                        </span>
+                                      )}
+                                      {spot.priceStatus === "PARTIALLY_PAID" && (
+                                        <span className="text-[9px] bg-amber-500 text-white font-extrabold px-1.5 py-0.5 rounded">
+                                          {dict.planner.partiallyPaidBadge || "일부 유료"}
+                                        </span>
+                                      )}
+                                      {spot.priceStatus === "UNCONFIRMED" && (
+                                        <span className="text-[9px] bg-slate-500 text-white font-extrabold px-1.5 py-0.5 rounded">
+                                          {dict.planner.unconfirmedBadge || "확인 필요"}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
+                                      {locale === "ko" ? spot.nameKo : spot.nameEn}
+                                    </h5>
+                                    <p className="text-[10px] text-slate-400 leading-snug line-clamp-2 mt-0.5">
+                                      {locale === "ko" ? spot.descKo : spot.descEn}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+                                  <span className="text-xs font-black text-[#e25c5c]">
+                                    {spot.priceStatus === "FREE"
+                                      ? (locale === "ko" ? "₩0 (무료)" : "₩0 (Free)")
+                                      : spot.priceStatus === "PAID"
+                                      ? formatKrw(spot.price)
+                                      : (locale === "ko" ? "가격 확인 필요" : "Check Price")}
+                                  </span>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleSpot(city, spot.id)}
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-colors cursor-pointer shrink-0 ${
+                                      isSpotSelected
+                                        ? "bg-rose-100 text-[#e25c5c] hover:bg-rose-200"
+                                        : isIncludedInCourse
+                                        ? "bg-slate-100 text-slate-500 cursor-default"
+                                        : "bg-[#0f172a] text-white hover:bg-slate-800"
+                                    }`}
+                                  >
+                                    {isSpotSelected
+                                      ? (dict.planner.inBudget || "✓ 담김")
+                                      : isIncludedInCourse
+                                      ? (locale === "ko" ? "코스 포함" : "In Course")
+                                      : (dict.planner.addToBudget || "+ 예산에 담기")}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Show More / Show Less Toggle Button */}
+                        {spotsForCity.length > 6 && (
+                          <div className="text-center pt-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowMoreAttractionsByCity((prev) => ({
+                                  ...prev,
+                                  [city]: !prev[city],
+                                }))
+                              }
+                              className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                            >
+                              {isShowMore ? (dict.planner.showLess || "접기 ▲") : (dict.planner.showMore || "더보기 ▼")}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 3. My Attraction Budget Summary Panel */}
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                          <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1">
+                            {dict.planner.myAttractionSummaryTitle || "📋 내 여행 관광 예산 요약"}
+                          </span>
+                          <span className="text-xs font-black text-[#e25c5c]">
+                            {formatKrw(totalAttractionBudget)}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1.5 text-xs text-slate-600">
+                          {/* Course breakdown */}
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold text-slate-700">
+                              {dict.planner.selectedCoursesLabel || "선택 코스"} ({selectedCourseIds.length}{locale === "ko" ? "개" : ""}):
+                            </span>
+                            <span className="font-medium text-right text-slate-800">
+                              {selectedCourseIds.length === 0
+                                ? (locale === "ko" ? "선택 없음" : "None selected")
+                                : selectedCourseIds
+                                    .map((cid) => {
+                                      const c = TOUR_COURSE_PRESETS.find((course) => course.id === cid);
+                                      return locale === "ko" ? c?.nameKo : c?.nameEn;
+                                    })
+                                    .join(", ")}
+                            </span>
+                          </div>
+
+                          {/* Spot breakdown */}
+                          <div className="flex justify-between items-start">
+                            <span className="font-bold text-slate-700">
+                              {dict.planner.individualSpotsLabel || "담은 유료 관광지"} ({selectedSpotDetails.filter(s => s.priceStatus === "PAID").length}{locale === "ko" ? "개" : ""}):
+                            </span>
+                            <span className="font-extrabold text-[#e25c5c]">
+                              {formatKrw(spotsTotal)} ({adultCount}{locale === "ko" ? "인 기준" : " travelers"})
+                            </span>
+                          </div>
+
+                          {/* Buffer budget (Basket) */}
+                          <div className="flex justify-between items-center pt-1 border-t border-slate-200/40">
+                            <span className="font-bold text-slate-700 flex items-center gap-1">
+                              <span>🛡️</span>
+                              <span>{dict.planner.bufferBudgetLabel || "미정 활동 완충 예산"} ({activeBasketId}):</span>
+                            </span>
+                            <span className="font-extrabold text-slate-800">
+                              {formatKrw(bufferTotal)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Notice for unconfirmed/partially paid spots */}
+                        {selectedSpotDetails.some((s) => s.priceStatus === "UNCONFIRMED" || s.priceStatus === "PARTIALLY_PAID") && (
+                          <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/60 text-[11px] text-amber-900 font-medium flex items-center gap-1.5">
+                            <span>⚠️</span>
+                            <span>{dict.planner.priceUnconfirmedWarning || "일부 유료 또는 가격 미확인 항목은 자동 예산 합산에서 제외되어 있습니다."}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

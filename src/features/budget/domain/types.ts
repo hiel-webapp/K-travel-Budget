@@ -159,11 +159,18 @@ export type AccommodationSelection =
 export type AccommodationOverridesByCity = Partial<Record<SupportedCity, AccommodationSelection | BudgetBasketId>>;
 export type AttractionOverridesByCity = Partial<Record<SupportedCity, BudgetBasketId>>;
 
+export interface AttractionSelections {
+  selectedCourseIds: string[];
+  individualSpotIds: string[];
+}
+export type AttractionSelectionsByCity = Partial<Record<SupportedCity, AttractionSelections>>;
+
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
   food?: FoodOverrides;
   foodAddOns?: FoodAddOnOverrides;
   attraction?: AttractionOverridesByCity;
+  attractionSelections?: AttractionSelectionsByCity;
   emergencyFundKrw?: number;
 }
 
@@ -300,13 +307,24 @@ export interface PlannerPreferencesV2 {
   foodOverrides: FoodOverrides;
 }
 
-export interface PlannerPreferencesV3 {
-  schemaVersion: 3;
+export interface PlannerPreferencesV4 {
+  schemaVersion: 4;
   tripFingerprint: string;
   accommodationByCity: AccommodationOverridesByCity;
   foodOverrides: FoodOverrides;
   addOnSelections: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;
+  emergencyFundKrw?: number;
+}
+
+export interface PlannerPreferencesV5 {
+  schemaVersion: 5;
+  tripFingerprint: string;
+  accommodationByCity: AccommodationOverridesByCity;
+  foodOverrides: FoodOverrides;
+  addOnSelections: FoodAddOnOverrides;
+  attractionByCity?: AttractionOverridesByCity;
+  attractionSelections?: AttractionSelectionsByCity;
   emergencyFundKrw?: number;
 }
 
@@ -317,6 +335,7 @@ export interface PlannerPreferences {
   foodOverrides: FoodOverrides;
   addOnSelections: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;
+  attractionSelections?: AttractionSelectionsByCity;
   emergencyFundKrw?: number;
 }
 

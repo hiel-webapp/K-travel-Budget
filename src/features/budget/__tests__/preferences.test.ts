@@ -252,7 +252,7 @@ describe("Planner Preferences & Storage Domain", () => {
 
       // 마이그레이션 확인
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(4);
+      expect(res.preferences.schemaVersion).toBe(5);
       expect(res.preferences.accommodationByCity.SEOUL).toBe("BUDGET_STAY");
       expect(res.preferences.foodOverrides).toEqual({});
       expect(res.preferences.addOnSelections).toEqual({});
@@ -307,14 +307,14 @@ describe("Planner Preferences & Storage Domain", () => {
       expect(raw).not.toBeNull();
 
       const envelope = JSON.parse(raw!);
-      expect(envelope.schemaVersion).toBe(4);
-      expect(envelope.preferences.schemaVersion).toBe(4);
+      expect(envelope.schemaVersion).toBe(5);
+      expect(envelope.preferences.schemaVersion).toBe(5);
       expect(envelope.preferences.foodOverrides).toEqual(food);
       expect(envelope.preferences.accommodationByCity).toEqual(acc);
       expect(envelope.preferences.tripFingerprint).toBe(generateTripFingerprint(defaultTrip));
     });
 
-    it("should migrate V2 envelope to V3 envelope successfully", () => {
+    it("should migrate V2 envelope to V5 envelope successfully", () => {
       const v2Envelope = {
         schemaVersion: 2,
         savedAt: new Date().toISOString(),
@@ -331,7 +331,7 @@ describe("Planner Preferences & Storage Domain", () => {
       const res = parsePlannerPreferences(JSON.stringify(v2Envelope), defaultTrip);
 
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(4);
+      expect(res.preferences.schemaVersion).toBe(5);
       expect(res.preferences.accommodationByCity.SEOUL).toBe("BUDGET_STAY");
       expect(res.preferences.foodOverrides.SEOUL_0_DINNER).toBe("K_BBQ");
       expect(res.preferences.addOnSelections).toEqual({});
@@ -356,7 +356,7 @@ describe("Planner Preferences & Storage Domain", () => {
       expect(res.status).toBe("invalid");
     });
 
-    it("should save envelope as V3 formatting and restore successfully", () => {
+    it("should save envelope as V5 formatting and restore successfully", () => {
       const acc = { SEOUL: "BUDGET_STAY" as BudgetBasketId };
       const food = { SEOUL_0_DINNER: "K_BBQ" };
       const addons = { SEOUL_0_DINNER: [{ addOnItemId: "RICE", quantity: 2 }] };
@@ -372,15 +372,15 @@ describe("Planner Preferences & Storage Domain", () => {
       expect(raw).not.toBeNull();
 
       const envelope = JSON.parse(raw!);
-      expect(envelope.schemaVersion).toBe(4);
-      expect(envelope.preferences.schemaVersion).toBe(4);
+      expect(envelope.schemaVersion).toBe(5);
+      expect(envelope.preferences.schemaVersion).toBe(5);
       expect(envelope.preferences.foodOverrides).toEqual(food);
       expect(envelope.preferences.accommodationByCity).toEqual(acc);
       expect(envelope.preferences.addOnSelections).toEqual(addons);
 
       const res = loadPlannerPreferencesEx(defaultTrip);
       expect(res.status).toBe("valid");
-      expect(res.preferences.schemaVersion).toBe(4);
+      expect(res.preferences.schemaVersion).toBe(5);
       expect(res.preferences.addOnSelections).toEqual(addons);
     });
 

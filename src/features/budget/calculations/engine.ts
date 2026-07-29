@@ -20,6 +20,7 @@ import {
   MOCK_MEAL_SLOT_PRICES,
 } from "../catalog/mock-catalog";
 import { applyFoodReplacements, applyFoodAddOns } from "./food-engine";
+import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
 
 /**
  * TripDraft 입력을 기준으로 초기 BudgetPlan을 생성하는 순수 계산 엔진
@@ -101,6 +102,7 @@ export function generateInitialBudgetPlan(
         let basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
 
         let accPlaceOverrideItem: BudgetLineItem | null = null;
+        let attractionOverrideItem: BudgetLineItem | null = null;
 
         if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
           const accSelection = overrides.accommodation[city]!;
@@ -131,12 +133,63 @@ export function generateInitialBudgetPlan(
           } else {
             basketId = accSelection as BudgetBasketId;
           }
-        } else if (category === "ATTRACTION" && overrides?.attraction?.[city]) {
-          basketId = overrides.attraction[city]!;
+        } else if (category === "ATTRACTION") {
+          if (overrides?.attraction?.[city]) {
+            basketId = overrides.attraction[city]!;
+          }
+
+          const cityAttractionSel = overrides?.attractionSelections?.[city];
+          if (cityAttractionSel && (cityAttractionSel.selectedCourseIds?.length > 0 || cityAttractionSel.individualSpotIds?.length > 0)) {
+            const basket = findBasket(catalog, basketId, category, city);
+            if (basket) {
+              const baseItem = calculateLineItem({
+                basket,
+                cityCode: city,
+                route: null,
+                adultCount,
+                duration: nights,
+                cityCount: selectedCities.length,
+              });
+
+              // 수집 및 중복 제거
+              const spotIdSet = new Set<string>();
+
+              (cityAttractionSel.selectedCourseIds || []).forEach((courseId) => {
+                const course = TOUR_COURSE_PRESETS.find((c) => c.id === courseId && c.cityCode === city);
+                if (course) {
+                  course.spotIds.forEach((sid) => spotIdSet.add(sid));
+                }
+              });
+
+              (cityAttractionSel.individualSpotIds || []).forEach((sid) => spotIdSet.add(sid));
+
+              let spotsPricePerPerson = 0;
+              spotIdSet.forEach((sid) => {
+                const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid && s.cityCode === city);
+                if (spot && spot.priceStatus === "PAID") {
+                  spotsPricePerPerson += spot.price;
+                }
+              });
+
+              const spotsTotal = spotsPricePerPerson * adultCount;
+              const bufferTotal = baseItem.lineTotalKrw;
+              const finalLineTotal = spotsTotal + bufferTotal;
+
+              attractionOverrideItem = {
+                ...baseItem,
+                unitPriceKrw: spotsPricePerPerson + baseItem.unitPriceKrw,
+                lineTotalKrw: finalLineTotal,
+                priceMinKrw: finalLineTotal,
+                priceMaxKrw: finalLineTotal,
+              };
+            }
+          }
         }
 
         if (accPlaceOverrideItem) {
           item = accPlaceOverrideItem;
+        } else if (attractionOverrideItem) {
+          item = attractionOverrideItem;
         } else {
           const basket = findBasket(catalog, basketId, category, city);
 

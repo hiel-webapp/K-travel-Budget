@@ -126,6 +126,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [saveTitle, setSaveTitle] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
+  const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
 
   // 여행 조건 수정 팝오버 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -667,11 +668,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     if (!latestPrefsRef.current) return;
 
     const valStr = e.target.value;
-    const val = valStr === "" ? 0 : Number(valStr);
+    setEmergencyManualInput(valStr);
+
+    const raw = valStr === "" ? 0 : Number(valStr);
 
     const isValValid = (v: unknown): v is number => {
       return typeof v === "number" && !isNaN(v) && isFinite(v) && v >= 0 && Number.isInteger(v);
     };
+
+    // 1만원 단위로 스냅
+    const val = isValValid(raw) ? Math.round(raw / 10000) * 10000 : raw;
 
     if (!isValValid(val)) {
       setSaveError(true);
@@ -712,6 +718,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return;
     }
     const cleanVal = Math.round(val);
+    // 프리셋(%) 버튼 클릭 시 직접 입력 칸 초기화
+    setEmergencyManualInput("");
     const saved = savePlannerPreferences({
       accommodationByCity: latestPrefsRef.current.accommodationByCity,
       foodOverrides: latestPrefsRef.current.foodOverrides,
@@ -1265,10 +1273,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <input
                               type="number"
                               min="0"
-                              step="1000"
+                              step="10000"
                               className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
                               placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                              value={preferences.emergencyFundKrw === 0 ? "" : (preferences.emergencyFundKrw ?? "")}
+                              value={emergencyManualInput}
                               onChange={handleEmergencyFundChange}
                             />
                           </div>

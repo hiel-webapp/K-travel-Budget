@@ -2608,7 +2608,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <button
                 type="button"
                 onClick={() => setEditTab("ADULTS")}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
                   editTab === "ADULTS"
                     ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
@@ -2620,7 +2620,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <button
                 type="button"
                 onClick={() => setEditTab("CITIES")}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
                   editTab === "CITIES"
                     ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
@@ -2632,13 +2632,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <button
                 type="button"
                 onClick={() => setEditTab("NIGHTS")}
-                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
                   editTab === "NIGHTS"
                     ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                🗓️ 3단계: 기간 & 도시별 박수 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
+                🗓️ 3단계: 기간 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
               </button>
             </div>
 

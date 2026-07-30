@@ -386,12 +386,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const budgetStyleLabel =
-    draft.budgetTier === "BUDGET"
-      ? (locale === "ko" ? "실속형" : "Budget")
-      : draft.budgetTier === "PREMIUM"
-        ? (locale === "ko" ? "프리미엄" : "Premium")
-        : (locale === "ko" ? "일반형" : "Standard");
 
   const isOverBudget = plan.grandTotalKrw > plan.targetBudgetKrw;
   const clampedUsage = Math.min(100, (plan.grandTotalKrw / plan.targetBudgetKrw) * 100);
@@ -2459,13 +2453,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
 
                 <div className="py-4 border-b border-slate-100 space-y-3.5">
-                  <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-500">
-                    <div>
-                      <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
-                        {dict.planner.budgetStyle}
-                      </span>
-                      <span className="mt-0.5 block text-slate-700 text-sm">{budgetStyleLabel}</span>
-                    </div>
+                  <div className="text-xs font-bold text-slate-500">
                     <div>
                       <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
                         {dict.planner.targetBudget}

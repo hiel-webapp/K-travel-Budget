@@ -1608,7 +1608,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                 }`}
                               >
-                                <div className="font-extrabold text-slate-900">{preset.label}</div>
+                                <div>{preset.label}</div>
                                 <div className="text-[10px] opacity-80 mt-0.5">
                                   {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({totalNights}{locale === "ko" ? "박 기준" : "N"})</span>
                                 </div>

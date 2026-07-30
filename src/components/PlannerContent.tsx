@@ -1635,38 +1635,37 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
 
                         {/* Per-person & Formula breakdown info */}
-                        <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                          <span>
-                            {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
-                            <strong className="text-slate-800 font-bold">
-                              {formatKrw(
-                                Math.round(
-                                  (Object.values(plan.citySections).reduce(
-                                    (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
-                                    0
-                                  ) || 0) / ((draft.adultCount || 1) * (draft.totalNights || 1))
-                                )
-                              )}
-                              {" × "}
-                              {draft.adultCount || 1}{locale === "ko" ? "명" : " travelers"}
-                              {" × "}
-                              {draft.totalNights || 1}{locale === "ko" ? "박" : " nights"}
-                            </strong>
-                          </span>
-                          <span>
-                            {locale === "ko" ? "1인당 전체 활동 예산:" : "Per Traveler:"}{" "}
-                            <strong className="text-[#e25c5c] font-extrabold">
-                              {formatKrw(
-                                Math.round(
-                                  (Object.values(plan.citySections).reduce(
-                                    (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
-                                    0
-                                  ) || 0) / (draft.adultCount || 1)
-                                )
-                              )}
-                            </strong>
-                          </span>
-                        </div>
+                        {(() => {
+                          const firstCity = draft.selectedCities[0];
+                          const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                          const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
+                            ? preferences.attractionCustomDailyKrw
+                            : (currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
+                          const totalNights = draft.totalNights || 1;
+                          const adultCount = draft.adultCount || 1;
+                          const perPersonBudget = currentDailyRate * totalNights;
+
+                          return (
+                            <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                              <span>
+                                {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                                <strong className="text-slate-800 font-bold">
+                                  {formatKrw(currentDailyRate)}
+                                  {" × "}
+                                  {adultCount}{locale === "ko" ? "명" : " travelers"}
+                                  {" × "}
+                                  {totalNights}{locale === "ko" ? "박" : " nights"}
+                                </strong>
+                              </span>
+                              <span>
+                                {locale === "ko" ? "1인당 전체 활동 예산:" : "Per Traveler:"}{" "}
+                                <strong className="text-[#e25c5c] font-extrabold">
+                                  {formatKrw(perPersonBudget)}
+                                </strong>
+                              </span>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 

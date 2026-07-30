@@ -457,6 +457,7 @@ export interface SavePlannerPreferencesInput {
   attractionByCity?: AttractionOverridesByCity;
   attractionSelections?: AttractionSelectionsByCity;
   emergencyFundKrw?: number;
+  emergencyFundPct?: number;
   draft: TripDraft;
 }
 
@@ -489,6 +490,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       attractionByCity,
       attractionSelections,
       emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : undefined,
+      emergencyFundPct: typeof input.emergencyFundPct === "number" ? input.emergencyFundPct : undefined,
     };
 
     const envelope: PlannerPreferencesEnvelope = {

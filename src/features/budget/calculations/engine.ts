@@ -453,10 +453,10 @@ export function calculateLineItem({
     }
     case "PER_PERSON_FIXED": {
       quantity = adultCount;
-      durationCount = 1;
-      lineTotalKrw = unitPrice * adultCount;
-      priceMinKrw = basket.priceMinKrw * adultCount;
-      priceMaxKrw = basket.priceMaxKrw * adultCount;
+      durationCount = duration;
+      lineTotalKrw = unitPrice * adultCount * duration;
+      priceMinKrw = basket.priceMinKrw * adultCount * duration;
+      priceMaxKrw = basket.priceMaxKrw * adultCount * duration;
       break;
     }
     case "FIXED_AMOUNT": {

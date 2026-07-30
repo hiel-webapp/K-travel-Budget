@@ -337,6 +337,7 @@ export interface PlannerPreferences {
   attractionByCity?: AttractionOverridesByCity;
   attractionSelections?: AttractionSelectionsByCity;
   emergencyFundKrw?: number;
+  emergencyFundPct?: number;
 }
 
 export interface PlannerPreferencesEnvelope {

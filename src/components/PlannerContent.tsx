@@ -1079,18 +1079,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         <div className="lg:col-span-6 space-y-6">
           {/* Main Title Banner */}
           <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
-            {/* Interactive Budget Tier Selector Switch */}
-            <div className="space-y-2">
+            {/* Interactive AI Target Budget Selector Switch */}
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">
-                  {locale === "ko" ? "💎 예산 스타일" : "💎 Budget Style"}
+                <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                  <span>🤖</span>
+                  <span>{locale === "ko" ? "AI 1인당 목표 예산 맞춤 설정" : "AI Per-Person Target Budget"}</span>
+                </span>
+                <span className="text-xs font-extrabold text-[#e25c5c]">
+                  1인당 {formatKrw(Math.round(plan.targetBudgetKrw / (draft.adultCount || 1)))}
                 </span>
               </div>
+
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { key: "BUDGET", label: locale === "ko" ? "💡 실속형" : "💡 Budget" },
-                  { key: "STANDARD", label: locale === "ko" ? "⭐️ 일반형" : "⭐️ Standard" },
-                  { key: "PREMIUM", label: locale === "ko" ? "👑 프리미엄" : "👑 Premium" },
+                  { key: "BUDGET", label: locale === "ko" ? "💡 1인 80만원대" : "💡 ~800k/person" },
+                  { key: "STANDARD", label: locale === "ko" ? "⭐️ 1인 150만원대" : "⭐️ ~1.5m/person" },
+                  { key: "PREMIUM", label: locale === "ko" ? "👑 1인 250만원대" : "👑 ~2.5m/person" },
                 ].map((tierOpt) => {
                   const isSelected = (draft.budgetTier || "STANDARD") === tierOpt.key;
                   return (
@@ -1102,7 +1107,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           setPendingBudgetTier(tierOpt.key as BudgetTier);
                         }
                       }}
-                      className={`py-2.5 px-3 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
+                      className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
                         isSelected
                           ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                           : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
@@ -1113,6 +1118,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   );
                 })}
               </div>
+
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
+                {locale === "ko"
+                  ? "💡 선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
+                  : "💡 AI matches optimal accommodation, food, and activities based on your per-person target budget."}
+              </p>
             </div>
           </div>
 
@@ -2314,9 +2325,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       return draft.selectedCities.length > 1 ? `${cityName}(${n}박)` : cityName;
                     })
                     .join(" · ")}
-                </span>
-                <span className="bg-[#faf5f5] text-[#e25c5c] px-2.5 py-1 rounded-lg border border-[#fce8e8] font-extrabold">
-                  {budgetStyleLabel}
                 </span>
               </div>
             </div>

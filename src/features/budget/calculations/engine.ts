@@ -138,8 +138,34 @@ export function generateInitialBudgetPlan(
             basketId = overrides.attraction[city]!;
           }
 
+          const customDaily = overrides?.attractionCustomDailyKrw;
           const cityAttractionSel = overrides?.attractionSelections?.[city];
-          if (cityAttractionSel && (cityAttractionSel.selectedCourseIds?.length > 0 || cityAttractionSel.individualSpotIds?.length > 0)) {
+
+          if (typeof customDaily === "number" && !isNaN(customDaily) && customDaily >= 0) {
+            const basket = findBasket(catalog, basketId, category, city) || catalog.find((b) => b.category === "ATTRACTION");
+            if (basket) {
+              const lineTotalKrw = customDaily * adultCount * nights;
+              attractionOverrideItem = {
+                id: `${city}_ATTRACTION_CUSTOM`.toUpperCase(),
+                basketId: basket.id,
+                category: "ATTRACTION",
+                scope: "CITY",
+                cityCode: city,
+                route: null,
+                unitPriceKrw: customDaily,
+                pricingUnit: "PER_PERSON",
+                quantity: adultCount,
+                participantCount: adultCount,
+                durationCount: nights,
+                lineTotalKrw,
+                priceMinKrw: lineTotalKrw,
+                priceMaxKrw: lineTotalKrw,
+                confidence: basket.confidence,
+                updatedAt: basket.updatedAt,
+                sourceLabel: basket.sourceLabel,
+              };
+            }
+          } else if (cityAttractionSel && (cityAttractionSel.selectedCourseIds?.length > 0 || cityAttractionSel.individualSpotIds?.length > 0)) {
             const basket = findBasket(catalog, basketId, category, city);
             if (basket) {
               const baseItem = calculateLineItem({

@@ -301,6 +301,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     foodAddOns: preferences.addOnSelections,
     attraction: preferences.attractionByCity,
     attractionSelections: preferences.attractionSelections,
+    attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
     emergencyFundKrw: 0,
   });
 
@@ -314,6 +315,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     foodAddOns: preferences.addOnSelections,
     attraction: preferences.attractionByCity,
     attractionSelections: preferences.attractionSelections,
+    attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
     emergencyFundKrw: computedEmergencyKrw,
   });
 
@@ -365,6 +367,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: preferences.attractionByCity,
       attractionSelections: preferences.attractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
       draft,
@@ -412,6 +415,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: preferences.attractionByCity,
       attractionSelections: preferences.attractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
       draft,
@@ -446,6 +450,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: nextAttr,
       attractionSelections: preferences.attractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
       draft,
@@ -480,6 +485,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: nextAttr,
       attractionSelections: preferences.attractionSelections,
+      attractionCustomDailyKrw: undefined,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
       draft,
@@ -494,6 +500,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           preferences: {
             ...prev.preferences,
             attractionByCity: nextAttr,
+            attractionCustomDailyKrw: undefined,
           },
         };
       });
@@ -515,6 +522,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: nextAttr,
       attractionSelections: nextAttrSel,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
       draft,
@@ -559,6 +567,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: preferences.attractionByCity,
       attractionSelections: nextAttractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
       draft,
@@ -602,6 +611,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: preferences.attractionByCity,
       attractionSelections: nextAttractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
       draft,
@@ -898,14 +908,58 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return typeof v === "number" && !isNaN(v) && isFinite(v) && v >= 0 && Number.isInteger(v);
     };
 
-    if (!isValValid(raw)) return;
+    if (!isValValid(raw) || raw === 0) {
+      if (!latestPrefsRef.current) return;
+      const saved = savePlannerPreferences({
+        accommodationByCity: latestPrefsRef.current.accommodationByCity,
+        foodOverrides: latestPrefsRef.current.foodOverrides,
+        foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+        attractionByCity: latestPrefsRef.current.attractionByCity,
+        attractionSelections: latestPrefsRef.current.attractionSelections,
+        attractionCustomDailyKrw: undefined,
+        emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
+        emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
+        draft,
+      });
+      if (saved) {
+        latestPrefsRef.current = {
+          ...latestPrefsRef.current,
+          attractionCustomDailyKrw: undefined,
+        };
+        setState((prev) => (prev.status === "ready" ? { ...prev, preferences: latestPrefsRef.current! } : prev));
+      }
+      return;
+    }
 
-    let basketId: BudgetBasketId = "BALANCED";
-    if (raw < 20000) basketId = "MOSTLY_FREE";
-    else if (raw < 40000) basketId = "BALANCED";
-    else basketId = "EXPERIENCE_RICH";
+    if (!latestPrefsRef.current) return;
+    const saved = savePlannerPreferences({
+      accommodationByCity: latestPrefsRef.current.accommodationByCity,
+      foodOverrides: latestPrefsRef.current.foodOverrides,
+      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+      attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
+      attractionCustomDailyKrw: raw,
+      emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
+      emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
+      draft,
+    });
 
-    handleSetAllCitiesAttractionBasket(basketId);
+    if (saved) {
+      setSaveError(false);
+      latestPrefsRef.current = {
+        ...latestPrefsRef.current,
+        attractionCustomDailyKrw: raw,
+      };
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: latestPrefsRef.current!,
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
   };
 
   const handleEmergencyFundPctChange = (pct: number) => {
@@ -1535,10 +1589,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           ].map((preset) => {
                             const firstCity = draft.selectedCities[0];
                             const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
-                            const isSelected = currentBasket === preset.id && activityManualInput === "";
+                            const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
                             const totalNights = draft.totalNights || 1;
                             const adultCount = draft.adultCount || 1;
-                            const calcVal = preset.dailyPrice * adultCount * draft.selectedCities.length;
+                            const calcVal = preset.dailyPrice * adultCount * totalNights;
 
                             return (
                               <button
@@ -1562,7 +1616,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             );
                           })}
 
-                          <div className="relative rounded-xl border border-slate-200 bg-white flex items-center px-2.5">
+                          <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                            preferences.attractionCustomDailyKrw || activityManualInput !== ""
+                              ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
+                              : "bg-white border-slate-200"
+                          }`}>
                             <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
                             <input
                               type="number"

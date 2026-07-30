@@ -171,6 +171,7 @@ export interface BudgetPlanOverrides {
   foodAddOns?: FoodAddOnOverrides;
   attraction?: AttractionOverridesByCity;
   attractionSelections?: AttractionSelectionsByCity;
+  attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
 }
 
@@ -336,6 +337,7 @@ export interface PlannerPreferences {
   addOnSelections: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;
   attractionSelections?: AttractionSelectionsByCity;
+  attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
   emergencyFundPct?: number;
 }

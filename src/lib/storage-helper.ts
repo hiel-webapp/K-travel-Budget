@@ -368,6 +368,7 @@ export function parsePlannerPreferences(
         ...prefs,
         attractionByCity: prefs.attractionByCity || {},
         attractionSelections: prefs.attractionSelections || {},
+        attractionCustomDailyKrw: isEmergencyValValid(prefs.attractionCustomDailyKrw) ? prefs.attractionCustomDailyKrw : undefined,
         emergencyFundPct: prefs.emergencyFundPct !== undefined
           ? prefs.emergencyFundPct
           : (prefs.emergencyFundKrw === undefined || prefs.emergencyFundKrw === 0 ? 0.10 : undefined),
@@ -462,6 +463,7 @@ export interface SavePlannerPreferencesInput {
   foodAddOnOverrides?: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;
   attractionSelections?: AttractionSelectionsByCity;
+  attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
   emergencyFundPct?: number;
   draft: TripDraft;
@@ -495,6 +497,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       addOnSelections: foodAddOnOverrides,
       attractionByCity,
       attractionSelections,
+      attractionCustomDailyKrw: isValValid(input.attractionCustomDailyKrw) ? input.attractionCustomDailyKrw : undefined,
       emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : undefined,
       emergencyFundPct: typeof input.emergencyFundPct === "number" ? input.emergencyFundPct : undefined,
     };

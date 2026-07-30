@@ -127,6 +127,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [saveTitle, setSaveTitle] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
+  type ShoppingOption = "NONE" | "BEAUTY" | "FASHION" | "SOUVENIR" | "CUSTOM";
+  const [shoppingOption, setShoppingOption] = useState<ShoppingOption>("NONE");
+  const [shoppingCustomInput, setShoppingCustomInput] = useState<string>("");
+
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
   const [activityManualInput, setActivityManualInput] = useState<string>("");
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
@@ -1124,6 +1128,82 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   ? "💡 선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
                   : "💡 AI matches optimal accommodation, food, and activities based on your per-person target budget."}
               </p>
+
+              {/* Optional Shopping & Souvenirs Selector Card */}
+              {(() => {
+                const adultCount = draft.adultCount || 1;
+                const shoppingAmountKrw = (() => {
+                  if (shoppingOption === "NONE") return 0;
+                  if (shoppingOption === "BEAUTY") return 150000 * adultCount;
+                  if (shoppingOption === "FASHION") return 300000 * adultCount;
+                  if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
+                  if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
+                  return 0;
+                })();
+
+                return (
+                  <div className="pt-3 border-t border-slate-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                        <span>🛍️</span>
+                        <span>{locale === "ko" ? "선택형 쇼핑 & 기념품 예산 설정" : "Optional Shopping & Souvenirs"}</span>
+                      </span>
+                      <span className="text-xs font-extrabold text-[#e25c5c]">
+                        {shoppingAmountKrw > 0 ? formatKrw(shoppingAmountKrw) : (locale === "ko" ? "계획 없음 (₩0)" : "No Shopping")}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[
+                        { id: "NONE", label: locale === "ko" ? "🚫 쇼핑 없음 (₩0)" : "🚫 No Shopping" },
+                        { id: "BEAUTY", label: locale === "ko" ? "💄 K-뷰티 (15만원/인)" : "💄 K-Beauty (150k)" },
+                        { id: "FASHION", label: locale === "ko" ? "👗 K-패션 (30만원/인)" : "👗 K-Fashion (300k)" },
+                        { id: "SOUVENIR", label: locale === "ko" ? "🎁 기념품 (10만원/인)" : "🎁 Souvenirs (100k)" },
+                      ].map((opt) => {
+                        const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => {
+                              setShoppingOption(opt.id as ShoppingOption);
+                              setShoppingCustomInput("");
+                            }}
+                            className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                              isSelected
+                                ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                            }`}
+                          >
+                            <div>{opt.label}</div>
+                          </button>
+                        );
+                      })}
+
+                      {/* Custom input */}
+                      <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                        shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
+                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
+                          : "bg-white border-slate-200"
+                      }`}>
+                        <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="10000"
+                          className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                          placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                          value={shoppingCustomInput}
+                          onChange={(e) => {
+                            setShoppingCustomInput(e.target.value);
+                            setShoppingOption("CUSTOM");
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -2252,6 +2332,33 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         })}
                       </div>
 
+                      {/* Shopping Selector Card */}
+                      <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">🛍️ {locale === "ko" ? "쇼핑 예산 옵션" : "Shopping Budget"}</h4>
+                        </div>
+                        <select
+                          value={shoppingOption}
+                          onChange={(e) => setShoppingOption(e.target.value as ShoppingOption)}
+                          className="w-full text-sm p-2 rounded-lg border border-slate-200 font-medium text-slate-700"
+                        >
+                          <option value="NONE">{locale === "ko" ? "쇼핑 안함" : "No Shopping"}</option>
+                          <option value="BEAUTY">{locale === "ko" ? "K-뷰티 (화장품)" : "K-Beauty"}</option>
+                          <option value="FASHION">{locale === "ko" ? "K-패션 (의류)" : "K-Fashion"}</option>
+                          <option value="SOUVENIR">{locale === "ko" ? "기념품 및 굿즈" : "Souvenirs"}</option>
+                          <option value="CUSTOM">{locale === "ko" ? "직접 입력" : "Custom Amount"}</option>
+                        </select>
+                        {shoppingOption === "CUSTOM" && (
+                          <input
+                            type="number"
+                            value={shoppingCustomInput}
+                            onChange={(e) => setShoppingCustomInput(e.target.value)}
+                            placeholder={locale === "ko" ? "예산 입력 (원)" : "Enter amount (KRW)"}
+                            className="w-full text-sm p-2 rounded-lg border border-slate-200"
+                          />
+                        )}
+                      </div>
+
                       {/* K-Guide Tip Banner */}
                       <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 font-medium flex items-start gap-2">
                         <span className="text-base shrink-0">💡</span>
@@ -2285,201 +2392,244 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         </div>
 
         {/* ================= RIGHT STICKY SMART RECEIPT (40%) ================= */}
-        <div className="lg:col-span-4 lg:sticky lg:top-[76px] space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#e25c5c] to-[#e25c5c]/60"></div>
+        {(() => {
+          const adultCount = draft.adultCount || 1;
+          const shoppingAmountKrw = (() => {
+            if (shoppingOption === "NONE") return 0;
+            if (shoppingOption === "BEAUTY") return 150000 * adultCount;
+            if (shoppingOption === "FASHION") return 300000 * adultCount;
+            if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
+            if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
+            return 0;
+          })();
 
-            <div className="pb-4 border-b border-slate-100 mt-2 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-extrabold tracking-tight text-[#0f172a]">
-                  {dict.planner.receiptTitle}
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditDraft(draft);
-                    setEditTab("ADULTS");
-                    setEditError(null);
-                    setIsEditModalOpen(true);
-                  }}
-                  className="text-xs font-bold text-[#e25c5c] hover:underline hover:text-[#d14b4b] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1 flex items-center gap-1 transition-colors"
-                >
-                  <span>{dict.planner.editTripDetails}</span>
-                  <span>→</span>
-                </button>
-              </div>
+          const finalGrandTotalKrw = plan.grandTotalKrw + shoppingAmountKrw;
+          const finalPerTravelerTotalKrw = Math.round(finalGrandTotalKrw / adultCount);
 
-              {/* Trip Details Badges inside Receipt Header (Replaces '초안') */}
-              <div className="flex flex-wrap gap-1.5 text-xs text-slate-600 font-medium items-center">
-                <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
-                  {formatTripDuration(draft.totalNights || 5, dict, locale)}
-                </span>
-                <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
-                  {formatTravelerCount(draft.adultCount || 2, dict, locale)}
-                </span>
-                <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
-                  {Object.entries(draft.cityNightAllocations || {})
-                    .filter(([_, n]) => (n || 0) > 0)
-                    .map(([city, n]) => {
-                      const cityName = CITY_KOREAN_NAMES[city as SupportedCity] || city;
-                      return draft.selectedCities.length > 1 ? `${cityName}(${n}박)` : cityName;
-                    })
-                    .join(" · ")}
-                </span>
-              </div>
-            </div>
+          const targetBudget = plan.targetBudgetKrw || 1;
+          const isOverBudget = finalGrandTotalKrw > targetBudget;
+          const targetBudgetUsagePercent = Math.round((finalGrandTotalKrw / targetBudget) * 100);
+          const clampedUsage = Math.min(100, Math.max(0, targetBudgetUsagePercent));
+          const remainingBudgetKrw = Math.max(0, targetBudget - finalGrandTotalKrw);
+          const overBudgetAmountKrw = Math.max(0, finalGrandTotalKrw - targetBudget);
 
-            <div className="py-4 border-b border-slate-100 space-y-3.5">
-              <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-500">
-                <div>
-                  <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
-                    {dict.planner.budgetStyle}
-                  </span>
-                  <span className="mt-0.5 block text-slate-700 text-sm">{budgetStyleLabel}</span>
-                </div>
-                <div>
-                  <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
-                    {dict.planner.targetBudget}
-                  </span>
-                  <span className="mt-0.5 block text-slate-700 text-sm">{formatKrw(plan.targetBudgetKrw)}</span>
-                </div>
-              </div>
+          return (
+            <div className="lg:col-span-4 lg:sticky lg:top-[76px] space-y-6">
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#e25c5c] to-[#e25c5c]/60"></div>
 
-              <div className="space-y-1.5">
-                <div className="flex items-baseline justify-between text-xs">
-                  <span className="font-bold text-slate-400 uppercase tracking-wider">
-                    {dict.planner.budgetUsage}
-                  </span>
-                  <span className={`tabular-nums font-extrabold ${isOverBudget ? "text-red-500" : "text-[#4d7c67]"}`}>
-                    {formatPercentage(plan.targetBudgetUsagePercent)}
-                  </span>
+                <div className="pb-4 border-b border-slate-100 mt-2 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-extrabold tracking-tight text-[#0f172a]">
+                      {dict.planner.receiptTitle}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditDraft(draft);
+                        setEditTab("ADULTS");
+                        setEditError(null);
+                        setIsEditModalOpen(true);
+                      }}
+                      className="text-xs font-bold text-[#e25c5c] hover:underline hover:text-[#d14b4b] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1 flex items-center gap-1 transition-colors"
+                    >
+                      <span>{dict.planner.editTripDetails}</span>
+                      <span>→</span>
+                    </button>
+                  </div>
+
+                  {/* Trip Details Badges inside Receipt Header (Replaces '초안') */}
+                  <div className="flex flex-wrap gap-1.5 text-xs text-slate-600 font-medium items-center">
+                    <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
+                      {formatTripDuration(draft.totalNights || 5, dict, locale)}
+                    </span>
+                    <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
+                      {formatTravelerCount(draft.adultCount || 2, dict, locale)}
+                    </span>
+                    <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
+                      {Object.entries(draft.cityNightAllocations || {})
+                        .filter(([_, n]) => (n || 0) > 0)
+                        .map(([city, n]) => {
+                          const cityName = CITY_KOREAN_NAMES[city as SupportedCity] || city;
+                          return draft.selectedCities.length > 1 ? `${cityName}(${n}박)` : cityName;
+                        })
+                        .join(" · ")}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={plan.targetBudgetUsagePercent} aria-valuemin={0} aria-valuemax={100}>
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${isOverBudget ? "bg-red-500" : "bg-[#4d7c67]"
-                      }`}
-                    style={{ width: `${clampedUsage}%` }}
-                  ></div>
-                </div>
-
-                <div className="text-xs flex items-center justify-between font-bold">
-                  {isOverBudget ? (
-                    <>
-                      <span className="text-red-500">{dict.planner.overBudget}</span>
-                      <span className="text-red-500 tabular-nums">+{formatKrw(plan.overBudgetAmountKrw)}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-slate-400">{dict.planner.remainingBudget}</span>
-                      <span className="text-[#4d7c67] tabular-nums">{formatKrw(plan.remainingBudgetKrw)}</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="py-4 space-y-5 max-h-[360px] overflow-y-auto pr-1">
-
-              {plan.tripWideSection.lineItems.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    {dict.planner.tripWideExpenses}
-                  </h4>
-                  {plan.tripWideSection.lineItems.map((item) => (
-                    <div key={item.id} className="flex justify-between items-start text-xs">
-                      <div>
-                        <span className="text-slate-800 font-bold block">{getBasketLabel(item.basketId, dict, locale)}</span>
-                        <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
-                      </div>
-                      <span className="font-sans tabular-nums font-bold text-[#0f172a]">{formatKrw(item.lineTotalKrw)}</span>
+                <div className="py-4 border-b border-slate-100 space-y-3.5">
+                  <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-500">
+                    <div>
+                      <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
+                        {dict.planner.budgetStyle}
+                      </span>
+                      <span className="mt-0.5 block text-slate-700 text-sm">{budgetStyleLabel}</span>
                     </div>
-                  ))}
+                    <div>
+                      <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
+                        {dict.planner.targetBudget}
+                      </span>
+                      <span className="mt-0.5 block text-slate-700 text-sm">{formatKrw(plan.targetBudgetKrw)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-baseline justify-between text-xs">
+                      <span className="font-bold text-slate-400 uppercase tracking-wider">
+                        {dict.planner.budgetUsage}
+                      </span>
+                      <span className={`tabular-nums font-extrabold ${isOverBudget ? "text-red-500" : "text-[#4d7c67]"}`}>
+                        {formatPercentage(targetBudgetUsagePercent)}
+                      </span>
+                    </div>
+
+                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden" role="progressbar" aria-valuenow={targetBudgetUsagePercent} aria-valuemin={0} aria-valuemax={100}>
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${isOverBudget ? "bg-red-500" : "bg-[#4d7c67]"
+                          }`}
+                        style={{ width: `${clampedUsage}%` }}
+                      ></div>
+                    </div>
+
+                    <div className="text-xs flex items-center justify-between font-bold">
+                      {isOverBudget ? (
+                        <>
+                          <span className="text-red-500">{dict.planner.overBudget}</span>
+                          <span className="text-red-500 tabular-nums">+{formatKrw(overBudgetAmountKrw)}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-slate-400">{dict.planner.remainingBudget}</span>
+                          <span className="text-[#4d7c67] tabular-nums">{formatKrw(remainingBudgetKrw)}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
 
-              {draft.selectedCities.map((city) => {
-                const section = plan.citySections[city];
-                if (!section || section.lineItems.length === 0) return null;
+                <div className="py-4 space-y-5 max-h-[360px] overflow-y-auto pr-1">
 
-                const label = CITY_KOREAN_NAMES[city] || city;
-                const cityNights = section.nights;
-
-                return (
-                  <div key={city} className="space-y-2 pt-2 border-t border-slate-100">
-                    <div className="flex justify-between items-baseline">
-                      <h4 className="text-sm font-extrabold text-[#0f172a]">
-                        {label} <span className="text-[11px] font-bold text-slate-400">({cityNights}박)</span>
+                  {plan.tripWideSection.lineItems.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        {dict.planner.tripWideExpenses}
                       </h4>
-                      <span className="text-xs font-extrabold text-slate-800">{formatKrw(section.subtotalKrw)}</span>
+                      {plan.tripWideSection.lineItems.map((item) => (
+                        <div key={item.id} className="flex justify-between items-start text-xs">
+                          <div>
+                            <span className="text-slate-800 font-bold block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                            <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
+                          </div>
+                          <span className="font-sans tabular-nums font-bold text-[#0f172a]">{formatKrw(item.lineTotalKrw)}</span>
+                        </div>
+                      ))}
                     </div>
+                  )}
 
-                    <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
-                      {section.lineItems.map((item) => (
-                        <div key={item.id} className="space-y-1">
-                          <div className="flex justify-between items-start text-xs">
+                  {draft.selectedCities.map((city) => {
+                    const section = plan.citySections[city];
+                    if (!section || section.lineItems.length === 0) return null;
+
+                    const label = CITY_KOREAN_NAMES[city] || city;
+                    const cityNights = section.nights;
+
+                    return (
+                      <div key={city} className="space-y-2 pt-2 border-t border-slate-100">
+                        <div className="flex justify-between items-baseline">
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">
+                            {label} <span className="text-[11px] font-bold text-slate-400">({cityNights}박)</span>
+                          </h4>
+                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(section.subtotalKrw)}</span>
+                        </div>
+
+                        <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
+                          {section.lineItems.map((item) => (
+                            <div key={item.id} className="space-y-1">
+                              <div className="flex justify-between items-start text-xs">
+                                <div>
+                                  <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}</span>
+                                  <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
+                                </div>
+                                <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
+                              </div>
+                              {item.category === "FOOD" && isCalculatedMealPlan(item.mealPlan) && (
+                                <FoodReceiptDetails
+                                  mealPlan={item.mealPlan}
+                                  locale={locale}
+                                  dict={dict}
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {plan.intercitySection.lineItems.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <div className="flex justify-between items-baseline">
+                        <h4 className="text-sm font-extrabold text-[#0f172a]">
+                          {dict.planner.intercityTransportation}
+                        </h4>
+                        <span className="text-xs font-extrabold text-slate-800">{formatKrw(plan.intercitySection.subtotalKrw)}</span>
+                      </div>
+
+                      <div className="space-y-2 pl-1.5 border-l border-slate-100">
+                        {plan.intercitySection.lineItems.map((item) => (
+                          <div key={item.id} className="flex justify-between items-start text-xs">
                             <div>
-                              <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}</span>
+                              <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
                               <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
                             </div>
                             <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
                           </div>
-                          {item.category === "FOOD" && isCalculatedMealPlan(item.mealPlan) && (
-                            <FoodReceiptDetails
-                              mealPlan={item.mealPlan}
-                              locale={locale}
-                              dict={dict}
-                            />
-                          )}
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Optional Shopping Subtotal Line in Receipt */}
+                  {shoppingAmountKrw > 0 && (
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                      <div className="flex justify-between items-baseline">
+                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1">
+                          <span>🛍️</span>
+                          <span>{locale === "ko" ? "선택형 쇼핑 & 기념품 예산" : "Optional Shopping & Souvenirs"}</span>
+                        </h4>
+                        <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(shoppingAmountKrw)}</span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 italic pl-1.5">
+                        {shoppingOption === "BEAUTY" && (locale === "ko" ? "💄 K-뷰티 & 올리브영 화장품 쇼핑 예산" : "K-Beauty Cosmetics Shopping")}
+                        {shoppingOption === "FASHION" && (locale === "ko" ? "👗 K-패션 & 의류/브랜드 쇼핑 예산" : "K-Fashion & Apparel Shopping")}
+                        {shoppingOption === "SOUVENIR" && (locale === "ko" ? "🎁 K-굿즈, 식료품 & 전통 기념품 예산" : "K-Goods & Souvenirs Shopping")}
+                        {shoppingOption === "CUSTOM" && (locale === "ko" ? "✏️ 사용자 직접 입력 쇼핑 예산" : "Custom Shopping Budget")}
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+
+                <div className="pt-4 border-t border-dashed border-slate-200 space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-sm font-bold text-slate-500">{dict.planner.estimatedTotal}</span>
+                      <span className="text-2xl font-extrabold tracking-tight text-[#0f172a]">
+                        {formatKrw(finalGrandTotalKrw)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-400">
+                      <span>{dict.planner.perTraveler}</span>
+                      <span className="font-sans tabular-nums font-bold text-slate-600">{formatKrw(finalPerTravelerTotalKrw)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-400">
+                      <span>{dict.planner.dailyAverage}</span>
+                      <span className="font-sans tabular-nums font-bold text-slate-600">
+                        {formatKrw(Math.round(finalGrandTotalKrw / (adultCount * ((draft.totalNights || 1) + 1))))}
+                      </span>
                     </div>
                   </div>
-                );
-              })}
-
-              {plan.intercitySection.lineItems.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-slate-100">
-                  <div className="flex justify-between items-baseline">
-                    <h4 className="text-sm font-extrabold text-[#0f172a]">
-                      {dict.planner.intercityTransportation}
-                    </h4>
-                    <span className="text-xs font-extrabold text-slate-800">{formatKrw(plan.intercitySection.subtotalKrw)}</span>
-                  </div>
-
-                  <div className="space-y-2 pl-1.5 border-l border-slate-100">
-                    {plan.intercitySection.lineItems.map((item) => (
-                      <div key={item.id} className="flex justify-between items-start text-xs">
-                        <div>
-                          <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
-                          <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
-                        </div>
-                        <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
-
-            <div className="pt-4 border-t border-dashed border-slate-200 space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-sm font-bold text-slate-500">{dict.planner.estimatedTotal}</span>
-                  <span className="text-2xl font-extrabold tracking-tight text-[#0f172a]">
-                    {formatKrw(plan.grandTotalKrw)}
-                  </span>
-                </div>
-                <div className="flex justify-between text-xs text-slate-400">
-                  <span>{dict.planner.perTraveler}</span>
-                  <span className="font-sans tabular-nums font-bold text-slate-600">{formatKrw(plan.perTravelerTotalKrw)}</span>
-                </div>
-                <div className="flex justify-between text-xs text-slate-400">
-                  <span>{dict.planner.dailyAverage}</span>
-                  <span className="font-sans tabular-nums font-bold text-slate-600">{formatKrw(plan.dailyAverageKrw)}</span>
-                </div>
-              </div>
 
               <div className="text-[10px] text-slate-400 leading-relaxed bg-[#faf9f6] p-2.5 rounded-lg border border-slate-100">
                 {dict.planner.mockDisclaimer}
@@ -2524,10 +2674,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </span>
               </div>
             </div>
-
           </div>
         </div>
-      </div>
+      );
+    })()}
+    </div>
 
       {/* Toast Alert Feedback */}
       {toastMessage && (

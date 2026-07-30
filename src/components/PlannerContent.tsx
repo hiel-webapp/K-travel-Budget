@@ -2885,12 +2885,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </button>
 
                   {/* Center: Deficit warning text in middle space between Reset and Apply buttons */}
-                  <div className="flex-1 text-center px-2">
+                  <div className="flex-1 text-center px-2 min-w-0">
                     {!isComplete && (
-                      <span className="text-[11px] sm:text-xs font-bold text-[#ef4444] animate-pulse leading-snug inline-block">
+                      <span className="text-[11px] sm:text-xs font-bold text-[#ef4444] animate-pulse leading-snug inline-block whitespace-nowrap overflow-hidden text-ellipsis">
                         ⚠️ {locale === "ko"
-                          ? `전체 여행 기간(${targetNights}박)에 맞춰 도시별 박수를 모두 배분해 주세요. (${deficitNights}박 미달)`
-                          : `Please allocate all ${targetNights} nights among cities. (${deficitNights} night(s) remaining)`}
+                          ? `도시별 박수를 총 ${targetNights}박에 맞춰주세요 (${deficitNights}박 미달)`
+                          : `Match city nights to total ${targetNights}N (${deficitNights}N short)`}
                       </span>
                     )}
                   </div>

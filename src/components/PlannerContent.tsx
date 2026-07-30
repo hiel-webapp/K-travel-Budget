@@ -152,6 +152,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     if (!editDraft) return;
     const currentAlloc = editDraft.cityNightAllocations || {};
     const currentCityNights = currentAlloc[city] || 1;
+    const allocatedSum = editDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
+    const targetNights = editDraft.totalNights || 5;
+
+    if (delta > 0 && allocatedSum >= targetNights) return;
+
     const nextCityNights = Math.max(1, currentCityNights + delta);
 
     const nextAlloc = {
@@ -159,11 +164,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       [city]: nextCityNights,
     };
 
-    const newTotalNights = Object.values(nextAlloc).reduce((sum, n) => sum + (n || 0), 0);
-
     setEditDraft({
       ...editDraft,
-      totalNights: newTotalNights,
       cityNightAllocations: nextAlloc,
     });
   };
@@ -215,6 +217,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       if (firstError === "invalid_adults") errMsg = "여행 인원은 1명~10명 사이로 설정해 주세요.";
       if (firstError === "invalid_cities_count" || firstError === "invalid_city") errMsg = "여행 목적지는 최소 1곳 이상 선택해 주세요.";
       setEditError(errMsg);
+      return;
+    }
+
+    const currentAlloc = editDraft.cityNightAllocations || {};
+    const allocatedSum = editDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
+    const targetNights = editDraft.totalNights || 5;
+
+    if (allocatedSum !== targetNights) {
+      setEditError(`전체 여행 기간(${targetNights}박)에 맞추어 도시별 박수를 모두 배분해 주세요. (현재 ${allocatedSum}박 배분됨)`);
       return;
     }
 
@@ -2640,116 +2651,141 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               )}
 
               {/* Tab 3: 🗓️ 여행 기간 & 도시별 박수 상세 설정 */}
-              {editTab === "NIGHTS" && (
-                <div className="space-y-5">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                      <span>전체 여행 기간 설정 (1박 ~ 14박)</span>
-                      <span className="text-[#e25c5c] font-black">
-                        {editDraft.totalNights !== null ? `${editDraft.totalNights}박 ${editDraft.totalNights + 1}일` : "미선택"}
-                      </span>
-                    </div>
+              {editTab === "NIGHTS" && (() => {
+                const targetNights = editDraft.totalNights || 5;
+                const currentAlloc = editDraft.cityNightAllocations || {};
+                const allocatedSum = editDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
+                const isComplete = allocatedSum === targetNights;
+                const deficitNights = targetNights - allocatedSum;
 
-                    <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2 bg-[#faf9f7] p-3 rounded-xl border border-slate-200">
-                      <button
-                        type="button"
-                        onClick={() => handleModalNightsChange(Math.max(1, (editDraft.totalNights || 5) - 1))}
-                        disabled={(editDraft.totalNights || 1) <= 1}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
-                      >
-                        -
-                      </button>
-                      <div className="text-center">
-                        <span className="font-extrabold text-slate-900 text-lg block">
-                          {editDraft.totalNights !== null ? `${editDraft.totalNights} Nights` : "기간 선택"}
+                return (
+                  <div className="space-y-5">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span>전체 여행 기간 설정 (1박 ~ 14박)</span>
+                        <span className="text-[#e25c5c] font-black">
+                          {editDraft.totalNights !== null ? `${editDraft.totalNights}박 ${editDraft.totalNights + 1}일` : "미선택"}
                         </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleModalNightsChange(Math.min(14, (editDraft.totalNights || 0) + 1))}
-                        disabled={(editDraft.totalNights || 0) >= 14}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
-                      >
-                        +
-                      </button>
-                    </div>
 
-                    <div>
-                      <span className="text-xs font-semibold text-slate-500 block mb-1.5">일정 빠른 선택:</span>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[3, 5, 7, 10].map((preset) => (
-                          <button
-                            key={preset}
-                            type="button"
-                            onClick={() => handleModalNightsChange(preset)}
-                            className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                              editDraft.totalNights === preset
-                                ? "bg-[#e25c5c] border-[#e25c5c] text-white font-extrabold"
-                                : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
-                            }`}
-                          >
-                            {preset}박
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 도시별 박수 배분 리스트 */}
-                  {editDraft.selectedCities.length > 0 && (
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1">
-                          <span>⛺</span>
-                          <span>도시별 박수 상세 배분</span>
-                        </span>
+                      <div className="grid grid-cols-[40px_1fr_40px] items-center gap-2 bg-[#faf9f7] p-3 rounded-xl border border-slate-200">
                         <button
                           type="button"
-                          onClick={handleModalResetEqualAllocation}
-                          className="text-[11px] font-bold text-[#e25c5c] hover:underline cursor-pointer"
+                          onClick={() => handleModalNightsChange(Math.max(1, (editDraft.totalNights || 5) - 1))}
+                          disabled={(editDraft.totalNights || 1) <= 1}
+                          className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
                         >
-                          🔄 균등 배분 재정렬
+                          -
+                        </button>
+                        <div className="text-center">
+                          <span className="font-extrabold text-slate-900 text-lg block">
+                            {editDraft.totalNights !== null ? `${editDraft.totalNights} Nights` : "기간 선택"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleModalNightsChange(Math.min(14, (editDraft.totalNights || 0) + 1))}
+                          disabled={(editDraft.totalNights || 0) >= 14}
+                          className="w-10 h-10 flex items-center justify-center rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-lg border border-slate-200 transition-colors cursor-pointer"
+                        >
+                          +
                         </button>
                       </div>
 
-                      <div className="space-y-2">
-                        {editDraft.selectedCities.map((city) => {
-                          const cityName = ALL_CITY_OPTIONS.find((c) => c.key === city)?.nameKo || city;
-                          const nights = editDraft.cityNightAllocations?.[city] || 1;
-                          return (
-                            <div key={city} className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
-                              <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
-                                <span>📍</span>
-                                <span>{cityName}</span>
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => handleModalCityNightChange(city, -1)}
-                                  disabled={nights <= 1}
-                                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-sm transition-colors cursor-pointer"
-                                >
-                                  -
-                                </button>
-                                <span className="text-xs font-black text-[#e25c5c] min-w-[32px] text-center">
-                                  {nights}박
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleModalCityNightChange(city, 1)}
-                                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-[#e25c5c] hover:text-white text-slate-800 font-bold text-sm transition-colors cursor-pointer"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div>
+                        <span className="text-xs font-semibold text-slate-500 block mb-1.5">일정 빠른 선택:</span>
+                        <div className="grid grid-cols-4 gap-2">
+                          {[3, 5, 7, 10].map((preset) => (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => handleModalNightsChange(preset)}
+                              className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
+                                editDraft.totalNights === preset
+                                  ? "bg-[#e25c5c] border-[#e25c5c] text-white font-extrabold"
+                                  : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
+                              }`}
+                            >
+                              {preset}박
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              )}
+
+                    {/* 도시별 박수 배분 리스트 */}
+                    {editDraft.selectedCities.length > 0 && (
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1">
+                            <span>⛺</span>
+                            <span>도시별 박수 상세 배분</span>
+                            <span className={`ml-1 text-[11px] font-extrabold ${isComplete ? "text-emerald-600" : "text-[#e25c5c]"}`}>
+                              ({isComplete ? `총 ${targetNights}박 중 ${targetNights}박 배분 완료` : `총 ${targetNights}박 중 ${allocatedSum}박 배분 - ${deficitNights}박 미달`})
+                            </span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleModalResetEqualAllocation}
+                            className="text-[11px] font-bold text-[#e25c5c] hover:underline cursor-pointer"
+                          >
+                            🔄 균등 배분 재정렬
+                          </button>
+                        </div>
+
+                        <div className="space-y-2">
+                          {editDraft.selectedCities.map((city) => {
+                            const cityName = ALL_CITY_OPTIONS.find((c) => c.key === city)?.nameKo || city;
+                            const nights = currentAlloc[city] || 1;
+                            const canAdd = allocatedSum < targetNights;
+
+                            return (
+                              <div key={city} className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
+                                <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                                  <span>📍</span>
+                                  <span>{cityName}</span>
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleModalCityNightChange(city, -1)}
+                                    disabled={nights <= 1}
+                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-sm transition-colors cursor-pointer"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="text-xs font-black text-[#e25c5c] min-w-[32px] text-center">
+                                    {nights}박
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleModalCityNightChange(city, 1)}
+                                    disabled={!canAdd}
+                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-sm transition-colors cursor-pointer"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {!isComplete && (
+                          <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold flex items-center gap-1.5">
+                            <span>⚠️</span>
+                            <span>
+                              {locale === "ko"
+                                ? `전체 여행 기간(${targetNights}박)에 맞춰 도시별 박수를 모두 배분해 주세요. (${deficitNights}박 미달)`
+                                : `Please allocate all ${targetNights} nights among cities. (${deficitNights} night(s) remaining)`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Tab 2: 👥 여행 인원 선택 */}
               {editTab === "ADULTS" && (
@@ -2857,13 +2893,27 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 >
                   취소
                 </button>
-                <button
-                  type="button"
-                  onClick={handleApplyTripDetailsEdit}
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#e25c5c] hover:bg-[#d14b4b] rounded-xl shadow-xs transition-colors cursor-pointer"
-                >
-                  변경사항 적용하기
-                </button>
+                {(() => {
+                  const targetNights = editDraft.totalNights || 5;
+                  const currentAlloc = editDraft.cityNightAllocations || {};
+                  const allocatedSum = editDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
+                  const isComplete = allocatedSum === targetNights;
+
+                  return (
+                    <button
+                      type="button"
+                      onClick={handleApplyTripDetailsEdit}
+                      disabled={!isComplete}
+                      className={`px-5 py-2 text-xs font-bold rounded-xl transition-colors ${
+                        isComplete
+                          ? "text-white bg-[#e25c5c] hover:bg-[#d14b4b] shadow-xs cursor-pointer"
+                          : "text-slate-400 bg-slate-200 cursor-not-allowed opacity-60"
+                      }`}
+                    >
+                      {locale === "ko" ? "변경사항 적용하기" : "Apply Changes"}
+                    </button>
+                  );
+                })()}
               </div>
             </div>
           </div>

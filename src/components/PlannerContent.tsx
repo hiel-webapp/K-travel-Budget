@@ -1079,39 +1079,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         <div className="lg:col-span-6 space-y-6">
           {/* Main Title Banner */}
           <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
-            <div className="flex flex-wrap gap-2 items-center justify-between">
-              <div className="flex flex-wrap gap-2 text-xs text-slate-600 font-medium">
-                <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
-                  {formatTripDuration(draft.totalNights || 5, dict, locale)}
-                </span>
-                <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
-                  {formatTravelerCount(draft.adultCount || 2, dict, locale)}
-                </span>
-                <span className="bg-slate-100 px-2.5 py-1 rounded-lg">
-                  {formatCityAllocationSummary(draft.cityNightAllocations, dict, locale)}
-                </span>
-                <span className="bg-[#faf5f5] text-[#e25c5c] px-2.5 py-1 rounded-lg border border-[#fce8e8]">
-                  {budgetStyleLabel}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEditDraft(draft);
-                  setEditTab("NIGHTS");
-                  setEditError(null);
-                  setIsEditModalOpen(true);
-                }}
-                className="text-xs font-bold text-[#e25c5c] hover:underline hover:text-[#d14b4b] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1 flex items-center gap-1 transition-colors"
-              >
-                <span>{dict.planner.editTripDetails}</span>
-                <span>→</span>
-              </button>
-            </div>
-
             {/* Interactive Budget Tier Selector Switch */}
-            <div className="pt-3 border-t border-slate-100 space-y-2">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-600">
                   {locale === "ko" ? "💎 예산 스타일" : "💎 Budget Style"}
@@ -2309,13 +2278,45 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           <div className="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#e25c5c] to-[#e25c5c]/60"></div>
 
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mt-2">
-              <div>
+            <div className="pb-4 border-b border-slate-100 mt-2 space-y-2.5">
+              <div className="flex items-center justify-between">
                 <h3 className="text-lg font-extrabold tracking-tight text-[#0f172a]">
                   {dict.planner.receiptTitle}
                 </h3>
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block">
-                  {dict.planner.statusDraft}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditDraft(draft);
+                    setEditTab("ADULTS");
+                    setEditError(null);
+                    setIsEditModalOpen(true);
+                  }}
+                  className="text-xs font-bold text-[#e25c5c] hover:underline hover:text-[#d14b4b] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1 flex items-center gap-1 transition-colors"
+                >
+                  <span>{dict.planner.editTripDetails}</span>
+                  <span>→</span>
+                </button>
+              </div>
+
+              {/* Trip Details Badges inside Receipt Header (Replaces '초안') */}
+              <div className="flex flex-wrap gap-1.5 text-xs text-slate-600 font-medium items-center">
+                <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
+                  {formatTripDuration(draft.totalNights || 5, dict, locale)}
+                </span>
+                <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
+                  {formatTravelerCount(draft.adultCount || 2, dict, locale)}
+                </span>
+                <span className="bg-slate-100 px-2.5 py-1 rounded-lg text-slate-700 font-bold">
+                  {Object.entries(draft.cityNightAllocations || {})
+                    .filter(([_, n]) => (n || 0) > 0)
+                    .map(([city, n]) => {
+                      const cityName = CITY_KOREAN_NAMES[city as SupportedCity] || city;
+                      return draft.selectedCities.length > 1 ? `${cityName}(${n}박)` : cityName;
+                    })
+                    .join(" · ")}
+                </span>
+                <span className="bg-[#faf5f5] text-[#e25c5c] px-2.5 py-1 rounded-lg border border-[#fce8e8] font-extrabold">
+                  {budgetStyleLabel}
                 </span>
               </div>
             </div>

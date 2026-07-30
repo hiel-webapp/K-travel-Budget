@@ -1438,7 +1438,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {[
                             { pct: 0.05, label: "5%" },
-                            { pct: 0.10, label: locale === "ko" ? "10% (권장)" : "10% (Rec)" },
+                            { pct: 0.10, label: locale === "ko" ? "10% (추천)" : "10% (Rec)" },
                             { pct: 0.15, label: "15%" },
                           ].map((preset) => {
                             const calcVal = Math.round((basePlanForEmergency.grandTotalKrw * preset.pct) / 1000) * 1000;

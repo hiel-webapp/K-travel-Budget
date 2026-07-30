@@ -109,7 +109,7 @@ export const en: Dictionary = {
     myAttractionSummaryTitle: "📋 My Attraction Budget Breakdown",
     selectedCoursesLabel: "Selected Courses",
     individualSpotsLabel: "Individually Added Places",
-    bufferBudgetLabel: "Unplanned Activity Reserve Budget",
+    bufferBudgetLabel: "Activity Pocket Money & Reserve",
     priceUnconfirmedWarning: "Items with partially paid or unconfirmed pricing are excluded from auto calculation.",
     unconfirmedBadge: "Needs Check",
     partiallyPaidBadge: "Partial Pay",

@@ -445,6 +445,39 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
+  const handleSetAllCitiesAttractionBasket = (basketId: BudgetBasketId) => {
+    const nextAttr: Record<string, BudgetBasketId> = {};
+    draft.selectedCities.forEach((city) => {
+      nextAttr[city] = basketId;
+    });
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: nextAttr,
+      attractionSelections: preferences.attractionSelections,
+      emergencyFundKrw: preferences.emergencyFundKrw,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            attractionByCity: nextAttr,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
   const handleResetAttraction = (cityTarget: SupportedCity) => {
     const nextAttr = { ...preferences.attractionByCity };
     delete nextAttr[cityTarget];
@@ -1409,6 +1442,112 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
                     </div>
 
+                    {/* Trip-wide Activity Pocket Money & Reserve Setting Block */}
+                    <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                        <div>
+                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                            <span>🎟️</span>
+                            <span>{locale === "ko" ? "현지 활동 용돈 & 자유 예비비 설정" : "Activity Pocket Money & Reserve"}</span>
+                          </h4>
+                          <p className="text-xs text-slate-500 font-medium mt-0.5">
+                            {locale === "ko"
+                              ? "선택한 관광지 외에 박물관/전시회 입장료, 카페/디저트, 소소한 기념품 등 현지 자유 지출용 용돈입니다."
+                              : "Reserve for museum fees, snacks, souvenirs, and daily local activities beyond main attractions."}
+                          </p>
+                        </div>
+                        <span className="text-base font-extrabold text-[#e25c5c]">
+                          {formatKrw(
+                            Object.values(plan.citySections).reduce(
+                              (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
+                              0
+                            )
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Presets */}
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          {[
+                            {
+                              id: "MOSTLY_FREE" as BudgetBasketId,
+                              label: locale === "ko" ? "알뜰형 (1만/일)" : "Budget (10k/day)",
+                              desc: locale === "ko" ? "무료 산책 & 간식 위주" : "Free walks & light snacks",
+                              pricePerDay: 10000,
+                            },
+                            {
+                              id: "BALANCED" as BudgetBasketId,
+                              label: locale === "ko" ? "일반형 (3만~5만/일) ⭐ 추천" : "Standard (30k-50k/day) ⭐ Rec",
+                              desc: locale === "ko" ? "입장료, 카페, 기념품" : "Museums, cafes & souvenirs",
+                              pricePerDay: 50000,
+                            },
+                            {
+                              id: "EXPERIENCE_RICH" as BudgetBasketId,
+                              label: locale === "ko" ? "풍족형 (12만/일)" : "Premium (120k/day)",
+                              desc: locale === "ko" ? "유료 체험, 원데이클래스" : "Paid experiences & classes",
+                              pricePerDay: 120000,
+                            },
+                          ].map((preset) => {
+                            const firstCity = draft.selectedCities[0];
+                            const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                            const isSelected = currentBasket === preset.id;
+                            const calcTotal = preset.pricePerDay * (draft.adultCount || 1) * (draft.totalNights || 1);
+
+                            return (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() => handleSetAllCitiesAttractionBasket(preset.id)}
+                                className={`p-3.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                                  isSelected
+                                    ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                    : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                }`}
+                              >
+                                <div className="font-extrabold text-slate-900">{preset.label}</div>
+                                <div className="text-[10px] text-slate-500 mt-0.5">{preset.desc}</div>
+                                <div className="text-[11px] text-[#e25c5c] font-black mt-2 flex items-baseline justify-between">
+                                  <span>{formatKrw(calcTotal)}</span>
+                                  <span className="text-[9px] text-slate-400 font-medium">({draft.totalNights || 1}박 기준)</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {/* Per-person & Per-day breakdown info */}
+                        <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                          <span>
+                            {locale === "ko" ? "1인당 전체 활동 예산:" : "Per Traveler:"}{" "}
+                            <strong>
+                              {formatKrw(
+                                Math.round(
+                                  (Object.values(plan.citySections).reduce(
+                                    (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
+                                    0
+                                  ) || 0) / (draft.adultCount || 1)
+                                )
+                              )}
+                            </strong>
+                          </span>
+                          <span>
+                            {locale === "ko" ? "하루 1인당 평균:" : "Per Day/Person:"}{" "}
+                            <strong>
+                              {formatKrw(
+                                Math.round(
+                                  (Object.values(plan.citySections).reduce(
+                                    (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
+                                    0
+                                  ) || 0) / ((draft.adultCount || 1) * ((draft.totalNights || 1) + 1))
+                                )
+                              )}
+                            </strong>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Intercity Transport Route Timeline */}
                     {draft.selectedCities.length >= 2 && (
                       <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
@@ -1888,8 +2027,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           {/* Buffer budget (Basket) */}
                           <div className="flex justify-between items-center pt-1 border-t border-slate-200/40">
                             <span className="font-bold text-slate-700 flex items-center gap-1">
-                              <span>🛡️</span>
-                              <span>{dict.planner.bufferBudgetLabel || "미정 활동 완충 예산"} ({activeBasketId}):</span>
+                              <span>🎟️</span>
+                              <span>{dict.planner.bufferBudgetLabel || "현지 활동 용돈 & 자유 예비비"}:</span>
                             </span>
                             <span className="font-extrabold text-slate-800">
                               {formatKrw(bufferTotal)}

@@ -107,7 +107,7 @@ export const ko = {
     myAttractionSummaryTitle: "📋 내 여행 관광 예산 요약",
     selectedCoursesLabel: "선택 코스",
     individualSpotsLabel: "개별 추가 관광지",
-    bufferBudgetLabel: "미정 활동 완충 예산",
+    bufferBudgetLabel: "현지 활동 용돈 & 자유 예비비",
     priceUnconfirmedWarning: "일부 유료 또는 가격 미확인 항목은 자동 예산 합산에서 제외되어 있습니다.",
     unconfirmedBadge: "확인 필요",
     partiallyPaidBadge: "일부 유료",

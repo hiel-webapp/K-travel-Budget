@@ -159,13 +159,14 @@ export function parsePlannerPreferences(
   preferences: PlannerPreferences;
 } {
   const defaultPrefs: PlannerPreferences = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     tripFingerprint: generateTripFingerprint(draft),
     accommodationByCity: {},
     foodOverrides: {},
     addOnSelections: {},
     attractionByCity: {},
-    emergencyFundKrw: 0,
+    attractionSelections: {},
+    emergencyFundPct: 0.10,
   };
 
   const isEmergencyValValid = (val: unknown): val is number => {
@@ -367,7 +368,12 @@ export function parsePlannerPreferences(
         ...prefs,
         attractionByCity: prefs.attractionByCity || {},
         attractionSelections: prefs.attractionSelections || {},
-        emergencyFundKrw: isEmergencyValValid(prefs.emergencyFundKrw) ? prefs.emergencyFundKrw : 0,
+        emergencyFundPct: prefs.emergencyFundPct !== undefined
+          ? prefs.emergencyFundPct
+          : (prefs.emergencyFundKrw === undefined || prefs.emergencyFundKrw === 0 ? 0.10 : undefined),
+        emergencyFundKrw: (isEmergencyValValid(prefs.emergencyFundKrw) && prefs.emergencyFundKrw > 0)
+          ? prefs.emergencyFundKrw
+          : undefined,
       };
 
       return { status: "valid", preferences: returnPrefs };
@@ -523,6 +529,7 @@ export function loadPlannerPreferencesEx(
     addOnSelections: {},
     attractionByCity: {},
     attractionSelections: {},
+    emergencyFundPct: 0.10,
   };
 
   if (!isClient()) {

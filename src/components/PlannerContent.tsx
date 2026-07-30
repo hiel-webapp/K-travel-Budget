@@ -293,7 +293,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const activeEmergencyPct = preferences.emergencyFundPct !== undefined
     ? preferences.emergencyFundPct
-    : (preferences.emergencyFundKrw === undefined ? 0.10 : undefined);
+    : (preferences.emergencyFundKrw === undefined || preferences.emergencyFundKrw === 0 ? 0.10 : undefined);
 
   const basePlanForEmergency = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,

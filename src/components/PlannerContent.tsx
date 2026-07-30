@@ -128,6 +128,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
+  const [activityManualInput, setActivityManualInput] = useState<string>("");
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
 
   // 여행 조건 수정 팝오버 모달 상태
@@ -856,6 +857,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
+  const handleActivityManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valStr = e.target.value;
+    setActivityManualInput(valStr);
+
+    const raw = valStr === "" ? 0 : Number(valStr);
+    const isValValid = (v: unknown): v is number => {
+      return typeof v === "number" && !isNaN(v) && isFinite(v) && v >= 0 && Number.isInteger(v);
+    };
+
+    if (!isValValid(raw)) return;
+
+    let basketId: BudgetBasketId = "BALANCED";
+    if (raw < 20000) basketId = "MOSTLY_FREE";
+    else if (raw < 40000) basketId = "BALANCED";
+    else basketId = "EXPERIENCE_RICH";
+
+    handleSetAllCitiesAttractionBasket(basketId);
+  };
+
   const handleEmergencyFundValueChange = (val: number) => {
     if (!latestPrefsRef.current) return;
     if (typeof val !== "number" || isNaN(val) || !isFinite(val) || val < 0) {
@@ -1466,54 +1486,67 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </span>
                       </div>
 
-                      {/* Presets */}
+                      {/* Presets & Manual Input */}
                       <div className="space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {[
                             {
                               id: "MOSTLY_FREE" as BudgetBasketId,
-                              label: locale === "ko" ? "알뜰형 (1만/일)" : "Budget (10k/day)",
-                              desc: locale === "ko" ? "무료 산책 & 간식 위주" : "Free walks & light snacks",
-                              pricePerDay: 10000,
+                              label: locale === "ko" ? "1만/일" : "10k/day",
+                              dailyPrice: 10000,
                             },
                             {
                               id: "BALANCED" as BudgetBasketId,
-                              label: locale === "ko" ? "일반형 (3만~5만/일) ⭐ 추천" : "Standard (30k-50k/day) ⭐ Rec",
-                              desc: locale === "ko" ? "입장료, 카페, 기념품" : "Museums, cafes & souvenirs",
-                              pricePerDay: 50000,
+                              label: locale === "ko" ? "3만/일 (추천)" : "30k/day (Rec)",
+                              dailyPrice: 30000,
                             },
                             {
                               id: "EXPERIENCE_RICH" as BudgetBasketId,
-                              label: locale === "ko" ? "풍족형 (12만/일)" : "Premium (120k/day)",
-                              desc: locale === "ko" ? "유료 체험, 원데이클래스" : "Paid experiences & classes",
-                              pricePerDay: 120000,
+                              label: locale === "ko" ? "5만/일" : "50k/day",
+                              dailyPrice: 50000,
                             },
                           ].map((preset) => {
                             const firstCity = draft.selectedCities[0];
                             const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
-                            const isSelected = currentBasket === preset.id;
-                            const calcTotal = preset.pricePerDay * (draft.adultCount || 1) * (draft.totalNights || 1);
+                            const isSelected = currentBasket === preset.id && activityManualInput === "";
+                            const totalNights = draft.totalNights || 1;
+                            const adultCount = draft.adultCount || 1;
+                            const calcVal = preset.dailyPrice * adultCount * draft.selectedCities.length;
 
                             return (
                               <button
                                 key={preset.id}
                                 type="button"
-                                onClick={() => handleSetAllCitiesAttractionBasket(preset.id)}
-                                className={`p-3.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                                onClick={() => {
+                                  setActivityManualInput("");
+                                  handleSetAllCitiesAttractionBasket(preset.id);
+                                }}
+                                className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                                   isSelected
                                     ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                     : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                 }`}
                               >
                                 <div className="font-extrabold text-slate-900">{preset.label}</div>
-                                <div className="text-[10px] text-slate-500 mt-0.5">{preset.desc}</div>
-                                <div className="text-[11px] text-[#e25c5c] font-black mt-2 flex items-baseline justify-between">
-                                  <span>{formatKrw(calcTotal)}</span>
-                                  <span className="text-[9px] text-slate-400 font-medium">({draft.totalNights || 1}박 기준)</span>
+                                <div className="text-[10px] opacity-80 mt-0.5">
+                                  {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({totalNights}{locale === "ko" ? "박 기준" : "N"})</span>
                                 </div>
                               </button>
                             );
                           })}
+
+                          <div className="relative rounded-xl border border-slate-200 bg-white flex items-center px-2.5">
+                            <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="10000"
+                              className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                              placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                              value={activityManualInput}
+                              onChange={handleActivityManualInputChange}
+                            />
+                          </div>
                         </div>
 
                         {/* Per-person & Per-day breakdown info */}

@@ -195,6 +195,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         foodOverrides: state.preferences.foodOverrides,
         foodAddOnOverrides: state.preferences.addOnSelections,
         attractionByCity: state.preferences.attractionByCity,
+        attractionSelections: state.preferences.attractionSelections,
+        emergencyFundKrw: state.preferences.emergencyFundKrw,
         draft: editDraft,
       });
     }
@@ -291,6 +293,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
     attraction: preferences.attractionByCity,
+    attractionSelections: preferences.attractionSelections,
     emergencyFundKrw: preferences.emergencyFundKrw,
   });
 
@@ -341,6 +344,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: preferences.foodOverrides,
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: preferences.attractionByCity,
+      attractionSelections: preferences.attractionSelections,
+      emergencyFundKrw: preferences.emergencyFundKrw,
       draft,
     });
 
@@ -385,6 +390,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: preferences.foodOverrides,
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: preferences.attractionByCity,
+      attractionSelections: preferences.attractionSelections,
+      emergencyFundKrw: preferences.emergencyFundKrw,
       draft,
     });
 
@@ -416,6 +423,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: preferences.foodOverrides,
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: nextAttr,
+      attractionSelections: preferences.attractionSelections,
+      emergencyFundKrw: preferences.emergencyFundKrw,
       draft,
     });
 
@@ -440,11 +449,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const nextAttr = { ...preferences.attractionByCity };
     delete nextAttr[cityTarget];
 
+    const nextAttrSel = { ...preferences.attractionSelections };
+    delete nextAttrSel[cityTarget];
+
     const saved = savePlannerPreferences({
       accommodationByCity: preferences.accommodationByCity,
       foodOverrides: preferences.foodOverrides,
       foodAddOnOverrides: preferences.addOnSelections,
       attractionByCity: nextAttr,
+      attractionSelections: nextAttrSel,
+      emergencyFundKrw: preferences.emergencyFundKrw,
       draft,
     });
 
@@ -457,6 +471,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           preferences: {
             ...prev.preferences,
             attractionByCity: nextAttr,
+            attractionSelections: nextAttrSel,
           },
         };
       });
@@ -577,6 +592,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: nextFood,
       foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
       attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
+      emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       draft,
     });
 
@@ -610,6 +627,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: nextFood,
       foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
       attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
+      emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       draft,
     });
 
@@ -649,6 +668,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: nextAddOns,
       attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
+      emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       draft,
     });
 
@@ -690,6 +711,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: nextAddOns,
       attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
+      emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       draft,
     });
 
@@ -729,6 +752,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: nextAddOns,
       attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
+      emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       draft,
     });
 
@@ -775,6 +800,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
       attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
       emergencyFundKrw: val,
       draft,
     });
@@ -811,6 +837,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodOverrides: latestPrefsRef.current.foodOverrides,
       foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
       attractionByCity: latestPrefsRef.current.attractionByCity,
+      attractionSelections: latestPrefsRef.current.attractionSelections,
       emergencyFundKrw: cleanVal,
       draft,
     });
@@ -1625,30 +1652,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
                         <button
                           type="button"
-                          onClick={() => {
-                            handleResetAttraction(city);
-                            // 또한 스팟/코스 선택 초기화
-                            const nextSelections = {
-                              ...preferences.attractionSelections,
-                              [city]: { selectedCourseIds: [], individualSpotIds: [] },
-                            };
-                            savePlannerPreferences({
-                              accommodationByCity: preferences.accommodationByCity,
-                              foodOverrides: preferences.foodOverrides,
-                              foodAddOnOverrides: preferences.addOnSelections,
-                              attractionByCity: preferences.attractionByCity,
-                              attractionSelections: nextSelections,
-                              emergencyFundKrw: preferences.emergencyFundKrw,
-                              draft,
-                            });
-                            setState((prev) => {
-                              if (prev.status !== "ready") return prev;
-                              return {
-                                ...prev,
-                                preferences: { ...prev.preferences, attractionSelections: nextSelections },
-                              };
-                            });
-                          }}
+                          onClick={() => handleResetAttraction(city)}
                           disabled={!hasOverride}
                           className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
                             hasOverride

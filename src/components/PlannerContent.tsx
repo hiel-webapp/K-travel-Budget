@@ -2283,8 +2283,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </h4>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
                         {locale === "ko"
-                          ? "환전 수수료, 미처 예상치 못한 택시, 소소한 기념품, 우천 시 대체 지출용 예비비입니다."
-                          : "Reserve for exchange fees, unexpected taxis, souvenirs, and weather contingencies."}
+                          ? "여행 중 발생할 수 있는 돌발 상황이나 비상 상황을 대비한 예산입니다."
+                          : "Budget for unexpected emergencies or unforeseen contingencies during your trip."}
                       </p>
                     </div>
                     <span className="text-base font-extrabold text-[#e25c5c]">
@@ -2337,16 +2337,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </div>
                     </div>
 
-                    {(preferences.emergencyFundKrw || 0) > 0 && (
-                      <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                        <span>
-                          {locale === "ko" ? "1인당 환산 비용:" : "Per Traveler:"} <strong>{formatKrw(Math.round((preferences.emergencyFundKrw || 0) / (draft.adultCount || 1)))}</strong>
-                        </span>
-                        <span>
-                          {locale === "ko" ? "하루 1인당:" : "Per Day/Person:"} <strong>{formatKrw(Math.round((preferences.emergencyFundKrw || 0) / ((draft.adultCount || 1) * ((draft.totalNights || 1) + 1))))}</strong>
-                        </span>
-                      </div>
-                    )}
+                    <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                      <span>
+                        {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                        <strong className="text-slate-800 font-bold">
+                          {emergencyManualInput !== ""
+                            ? (locale === "ko" ? "사용자 설정 긴급 비상금" : "Custom Emergency Fund")
+                            : `${locale === "ko" ? "기본 여행 예산" : "Base Trip Budget"} (${formatKrw(basePlanForEmergency.grandTotalKrw)}) × ${locale === "ko" ? "비상금 비율" : "Rate"} (${Math.round((activeEmergencyPct || 0.10) * 100)}%)`}
+                        </strong>
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -2363,9 +2363,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   })();
 
                   const presets = [
-                    { id: "SOUVENIR", title: locale === "ko" ? "🎁 가벼운 쇼핑" : "🎁 Light Shopping", perPerson: 100000 },
-                    { id: "BEAUTY", title: locale === "ko" ? "💄 일반 쇼핑" : "💄 Standard Shopping", perPerson: 150000 },
-                    { id: "FASHION", title: locale === "ko" ? "🛍️ 풍족한 쇼핑" : "🛍️ Premium Shopping", perPerson: 300000 },
+                    { id: "SOUVENIR", title: locale === "ko" ? "가벼운 쇼핑" : "Light Shopping", perPerson: 100000 },
+                    { id: "BEAUTY", title: locale === "ko" ? "일반 쇼핑" : "Standard Shopping", perPerson: 150000 },
+                    { id: "FASHION", title: locale === "ko" ? "풍족한 쇼핑" : "Premium Shopping", perPerson: 300000 },
                   ];
 
                   return (
@@ -2378,8 +2378,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </h4>
                           <p className="text-xs text-slate-500 font-medium mt-0.5">
                             {locale === "ko"
-                              ? "선택하신 금액은 여행 중 자율 쇼핑 예산으로 합산되며, 품목 제한 없이 자유롭게 사용하실 수 있습니다."
-                              : "The selected amount is added for shopping without item restrictions."}
+                              ? "뷰티, 패션, 특산품 등 한국 여행 중, 쇼핑을 위한 예산입니다."
+                              : "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea."}
                           </p>
                         </div>
                         <span className="text-base font-extrabold text-[#e25c5c]">
@@ -2450,8 +2450,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </h4>
                       <p className="text-xs text-slate-500 font-medium mt-0.5">
                         {locale === "ko"
-                          ? "선택한 관광지 외에 박물관/전시회 입장료, 카페/디저트, 소소한 기념품 등 현지 자유 지출용 용돈입니다."
-                          : "Reserve for museum fees, snacks, souvenirs, and daily local activities beyond main attractions."}
+                          ? "여행 중 자유롭게 사용할 일일 용돈입니다."
+                          : "Daily pocket money for personal activities during your trip."}
                       </p>
                     </div>
                     <span className="text-base font-extrabold text-[#e25c5c]">

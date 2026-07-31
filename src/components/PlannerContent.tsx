@@ -1342,24 +1342,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </span>
                 </div>
 
-                <div className="flex items-center bg-white rounded-lg border border-slate-200 p-0.5 shadow-2xs shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     disabled={currentNights <= 0}
                     onClick={() => handleDirectCityNightChange(selectedCityTab, -1)}
-                    className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                    className="w-6 h-6 rounded-md bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200/80 transition-colors cursor-pointer"
                     title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
                   >
                     -
                   </button>
-                  <span className="px-2 text-xs font-black text-slate-900 min-w-[45px] text-center whitespace-nowrap">
+                  <span className="px-1.5 text-xs font-black text-slate-900 min-w-[38px] text-center whitespace-nowrap">
                     {currentNights === 0 ? (locale === "ko" ? "당일" : "Day") : `${currentNights}${locale === "ko" ? "박" : "N"}`}
                   </span>
                   <button
                     type="button"
                     disabled={!canIncrease}
                     onClick={() => handleDirectCityNightChange(selectedCityTab, 1)}
-                    className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                    className="w-6 h-6 rounded-md bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200/80 transition-colors cursor-pointer"
                     title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
                   >
                     +
@@ -1548,28 +1548,28 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const canDecrease = cityNights > 0;
 
                         return (
-                          <div key={city} className="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-2xs gap-2 min-w-0">
+                          <div key={city} className="bg-white/80 px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-2 min-w-0 shadow-2xs">
                             <div className="flex items-center gap-1.5 min-w-0 shrink-0">
                               <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">📍 {cityName}</span>
                             </div>
-                            <div className="flex items-center bg-slate-50 rounded-lg border border-slate-200 p-0.5 shrink-0">
+                            <div className="flex items-center gap-1 shrink-0">
                               <button
                                 type="button"
                                 disabled={!canDecrease}
                                 onClick={() => handleDirectCityNightChange(city, -1)}
-                                className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                                className="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
                                 title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
                               >
                                 -
                               </button>
-                              <span className="px-2 text-xs font-black text-[#e25c5c] min-w-[45px] text-center whitespace-nowrap">
+                              <span className="px-1.5 text-xs font-black text-[#e25c5c] min-w-[38px] text-center whitespace-nowrap">
                                 {cityNights === 0 ? (locale === "ko" ? "당일" : "Day") : `${cityNights}${locale === "ko" ? "박" : "N"}`}
                               </span>
                               <button
                                 type="button"
                                 disabled={!canIncrease}
                                 onClick={() => handleDirectCityNightChange(city, 1)}
-                                className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                                className="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
                                 title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
                               >
                                 +

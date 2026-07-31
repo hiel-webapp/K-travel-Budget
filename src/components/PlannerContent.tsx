@@ -1769,6 +1769,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         return 0;
                       })();
 
+                      const presets = [
+                        { id: "SOUVENIR", title: locale === "ko" ? "🎁 가벼운 쇼핑" : "🎁 Light Shopping", perPerson: 100000 },
+                        { id: "BEAUTY", title: locale === "ko" ? "💄 일반 쇼핑" : "💄 Standard Shopping", perPerson: 150000 },
+                        { id: "FASHION", title: locale === "ko" ? "🛍️ 풍족한 쇼핑" : "🛍️ Premium Shopping", perPerson: 300000 },
+                      ];
+
                       return (
                         <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                           <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
@@ -1784,39 +1790,41 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               </p>
                             </div>
                             <span className="text-base font-extrabold text-[#e25c5c]">
-                              {shoppingAmountKrw > 0 ? formatKrw(shoppingAmountKrw) : (locale === "ko" ? "계획 없음 (₩0)" : "No Shopping")}
+                              {formatKrw(shoppingAmountKrw)}
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                            {[
-                              { id: "NONE", label: locale === "ko" ? "🚫 쇼핑 없음 (₩0)" : "🚫 No Shopping" },
-                              { id: "SOUVENIR", label: locale === "ko" ? "🎁 가벼운 쇼핑 (10만원/인)" : "🎁 Light Shopping (100k)" },
-                              { id: "BEAUTY", label: locale === "ko" ? "💄 일반 쇼핑 (15만원/인)" : "💄 Standard Shopping (150k)" },
-                              { id: "FASHION", label: locale === "ko" ? "🛍️ 풍족한 쇼핑 (30만원/인)" : "🛍️ Premium Shopping (300k)" },
-                            ].map((opt) => {
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {presets.map((opt) => {
+                              const calcVal = opt.perPerson * adultCount;
                               const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
                               return (
                                 <button
                                   key={opt.id}
                                   type="button"
                                   onClick={() => {
-                                    setShoppingOption(opt.id as ShoppingOption);
-                                    setShoppingCustomInput("");
+                                    if (isSelected) {
+                                      setShoppingOption("NONE");
+                                      setShoppingCustomInput("");
+                                    } else {
+                                      setShoppingOption(opt.id as ShoppingOption);
+                                      setShoppingCustomInput("");
+                                    }
                                   }}
-                                  className={`py-2.5 px-3 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                  className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                                     isSelected
                                       ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                       : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                   }`}
                                 >
-                                  <div>{opt.label}</div>
+                                  <div>{opt.title}</div>
+                                  <div className="text-[10px] opacity-80 mt-0.5">{formatKrw(calcVal)}</div>
                                 </button>
                               );
                             })}
 
                             {/* Custom input */}
-                            <div className={`relative rounded-xl border flex items-center px-3 transition-all ${
+                            <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
                               shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
                                 ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
                                 : "bg-white border-slate-200"

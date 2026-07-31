@@ -128,7 +128,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
   type ShoppingOption = "NONE" | "BEAUTY" | "FASHION" | "SOUVENIR" | "CUSTOM";
-  const [shoppingOption, setShoppingOption] = useState<ShoppingOption>("NONE");
+  const [shoppingOption, setShoppingOption] = useState<ShoppingOption>("BEAUTY");
   const [shoppingCustomInput, setShoppingCustomInput] = useState<string>("");
 
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
@@ -2306,7 +2306,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <button
                             key={preset.label}
                             type="button"
-                            onClick={() => handleEmergencyFundPctChange(preset.pct)}
+                            onClick={() => {
+                              if (isSelected) {
+                                handleEmergencyFundPctChange(0);
+                                setEmergencyManualInput("0");
+                              } else {
+                                handleEmergencyFundPctChange(preset.pct);
+                                setEmergencyManualInput("");
+                              }
+                            }}
                             className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                               isSelected
                                 ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
@@ -2320,7 +2328,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       })}
 
                       <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                        emergencyManualInput !== ""
+                        emergencyManualInput !== "" && emergencyManualInput !== "0"
                           ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
                           : "bg-white border-slate-200"
                       }`}>
@@ -2331,7 +2339,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           step="10000"
                           className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
                           placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                          value={emergencyManualInput}
+                          value={emergencyManualInput === "0" ? "" : emergencyManualInput}
                           onChange={handleEmergencyFundChange}
                         />
                       </div>
@@ -2341,8 +2349,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <span>
                         {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
                         <strong className="text-slate-800 font-bold">
-                          {emergencyManualInput !== ""
+                          {emergencyManualInput !== "" && emergencyManualInput !== "0"
                             ? (locale === "ko" ? "사용자 설정 긴급 비상금" : "Custom Emergency Fund")
+                            : (activeEmergencyPct || 0) === 0
+                            ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
                             : `${locale === "ko" ? "기본 여행 예산" : "Base Trip Budget"} (${formatKrw(basePlanForEmergency.grandTotalKrw)}) × ${locale === "ko" ? "비상금 비율" : "Rate"} (${Math.round((activeEmergencyPct || 0.10) * 100)}%)`}
                         </strong>
                       </span>
@@ -2410,8 +2420,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   : "bg-white border-slate-200 text-[#0f172a] font-semibold hover:bg-slate-100"
                               }`}
                             >
-                              <div>{opt.title}</div>
-                              <div className="text-[10px] opacity-80 mt-0.5">{formatKrw(calcVal)}</div>
+                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{opt.title}</div>
+                              <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
                             </button>
                           );
                         })}
@@ -2514,8 +2524,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             key={preset.id}
                             type="button"
                             onClick={() => {
-                              setActivityManualInput("");
-                              handleSetAllCitiesAttractionBasket(preset.id);
+                              if (isSelected) {
+                                setActivityManualInput("0");
+                                handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
+                              } else {
+                                setActivityManualInput("");
+                                handleSetAllCitiesAttractionBasket(preset.id);
+                              }
                             }}
                             className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                               isSelected
@@ -2523,8 +2538,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                             }`}
                           >
-                            <div>{preset.label}</div>
-                            <div className="text-[10px] opacity-80 mt-0.5">
+                            <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
+                            <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>
                               {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({totalNights}{locale === "ko" ? "박 기준" : "N"})</span>
                             </div>
                           </button>

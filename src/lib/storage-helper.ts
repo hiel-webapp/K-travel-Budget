@@ -442,6 +442,10 @@ function validateAttraction(
       continue;
     }
 
+    if ((basketId as string) === "NONE") {
+      continue;
+    }
+
     const basket = MOCK_PRICE_CATALOG.find(
       (b) =>
         b.category === "ATTRACTION" &&

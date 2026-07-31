@@ -2569,7 +2569,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
                       const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
                         ? preferences.attractionCustomDailyKrw
-                        : (currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
+                        : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
                       const totalNights = draft.totalNights || 1;
                       const adultCount = draft.adultCount || 1;
                       const perPersonBudget = currentDailyRate * totalNights;
@@ -2579,11 +2579,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <span>
                             {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
                             <strong className="text-slate-800 font-bold">
-                              {formatKrw(currentDailyRate)}
-                              {" × "}
-                              {adultCount}{locale === "ko" ? "명" : " travelers"}
-                              {" × "}
-                              {totalNights}{locale === "ko" ? "박" : " nights"}
+                              {currentDailyRate === 0
+                                ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                                : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
                             </strong>
                           </span>
                           <span>

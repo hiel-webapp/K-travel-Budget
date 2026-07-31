@@ -220,17 +220,40 @@ export function generateInitialBudgetPlan(
           const basket = findBasket(catalog, basketId, category, city);
 
           if (!basket) {
-            throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
+            if (category === "ATTRACTION" && (basketId as string) === "NONE") {
+              const fallbackBasket = catalog.find((b) => b.category === "ATTRACTION");
+              item = {
+                id: `${city}_ATTRACTION_NONE`.toUpperCase(),
+                basketId: "NONE" as BudgetBasketId,
+                category: "ATTRACTION",
+                scope: "CITY",
+                cityCode: city,
+                route: null,
+                unitPriceKrw: 0,
+                pricingUnit: "PER_PERSON",
+                quantity: adultCount,
+                participantCount: adultCount,
+                durationCount: nights,
+                lineTotalKrw: 0,
+                priceMinKrw: 0,
+                priceMaxKrw: 0,
+                confidence: fallbackBasket ? fallbackBasket.confidence : "MOCK",
+                updatedAt: fallbackBasket?.updatedAt || "2026-01-01",
+                sourceLabel: "자율 용돈 미설정",
+              };
+            } else {
+              throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
+            }
+          } else {
+            item = calculateLineItem({
+              basket,
+              cityCode: city,
+              route: null,
+              adultCount,
+              duration: category === "ACCOMMODATION" ? nights : Math.max(1, nights),
+              cityCount: selectedCities.length,
+            });
           }
-
-          item = calculateLineItem({
-            basket,
-            cityCode: city,
-            route: null,
-            adultCount,
-            duration: category === "ACCOMMODATION" ? nights : Math.max(1, nights),
-            cityCount: selectedCities.length,
-          });
         }
       }
 

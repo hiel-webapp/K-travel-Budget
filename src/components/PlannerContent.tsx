@@ -263,27 +263,45 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleDirectCityNightChange = (city: SupportedCity, delta: number) => {
     if (state.status !== "ready") return;
     const currentDraft = state.draft;
+    const maxTotalNights = currentDraft.totalNights || 5;
     const currentAlloc = currentDraft.cityNightAllocations || {};
     const currentCityNights = currentAlloc[city] || 1;
+    const selectedCities = currentDraft.selectedCities;
+    const allocatedSum = selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
 
-    const nextCityNights = currentCityNights + delta;
-    if (nextCityNights < 1) return;
+    const nextAlloc = { ...currentAlloc };
 
-    const nextAlloc = {
-      ...currentAlloc,
-      [city]: nextCityNights,
-    };
+    if (delta > 0) {
+      // 1박 늘리기: 전체 박수가 MAX 상한선(maxTotalNights)을 초과하지 않도록 보장
+      if (allocatedSum < maxTotalNights) {
+        nextAlloc[city] = currentCityNights + 1;
+      } else {
+        // 이미 MAX 박수에 도달한 경우: 2박 이상 할당된 다른 도시 중 가장 박수가 많은 도시에서 1박 이동 (Smart Swap)
+        const eligibleOtherCities = selectedCities
+          .filter((c) => c !== city && (currentAlloc[c] || 0) > 1)
+          .sort((a, b) => (currentAlloc[b] || 0) - (currentAlloc[a] || 0));
 
-    const nextTotalNights = currentDraft.selectedCities.reduce(
-      (sum, c) => sum + (nextAlloc[c] || 1),
-      0
-    );
+        if (eligibleOtherCities.length === 0) return;
 
-    if (nextTotalNights < 1 || nextTotalNights > 14) return;
+        const donorCity = eligibleOtherCities[0];
+        nextAlloc[donorCity] = (currentAlloc[donorCity] || 1) - 1;
+        nextAlloc[city] = currentCityNights + 1;
+      }
+    } else if (delta < 0) {
+      // 1박 줄이기: 최소 1박 유지 및 차감된 1박을 다른 도시로 이동하여 총 박수 고정
+      if (currentCityNights <= 1) return;
+
+      const eligibleOtherCities = selectedCities.filter((c) => c !== city);
+      if (eligibleOtherCities.length === 0) return;
+
+      const recipientCity = eligibleOtherCities.sort((a, b) => (currentAlloc[a] || 0) - (currentAlloc[b] || 0))[0];
+
+      nextAlloc[city] = currentCityNights - 1;
+      nextAlloc[recipientCity] = (currentAlloc[recipientCity] || 1) + 1;
+    }
 
     const nextDraft: TripDraft = {
       ...currentDraft,
-      totalNights: nextTotalNights,
       cityNightAllocations: nextAlloc,
     };
 
@@ -302,19 +320,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       draft: nextDraft,
     });
 
-    setState((prev) => {
-      if (prev.status !== "ready") return prev;
-      return {
-        ...prev,
-        draft: nextDraft,
-      };
-    });
+    setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
 
     const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
     setToastMessage(
       locale === "ko"
-        ? `${cityName} 체류 기간이 ${nextCityNights}박으로 변경되어 예산이 실시간 재계산되었습니다.`
-        : `${cityName} stay updated to ${nextCityNights} night(s).`
+        ? `${cityName} 체류 기간이 ${nextAlloc[city]}박으로 변경되었습니다. (총 ${maxTotalNights}박 유지)`
+        : `${cityName} stay updated to ${nextAlloc[city]} night(s).`
     );
     setTimeout(() => setToastMessage(null), 2500);
   };
@@ -1497,6 +1509,67 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               return (
                 <div className="space-y-6 pt-2 border-t border-slate-100">
+                  {/* Dedicated Header Card: City Night Allocation Bar */}
+                  <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 rounded-2xl space-y-3 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-[#fce8e8] pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">🗓️</span>
+                        <h4 className="text-sm font-extrabold text-[#0f172a]">
+                          {locale === "ko" ? "도시별 체류 박수 상세 배분" : "City Night Allocation"}
+                        </h4>
+                        <span className="text-xs text-slate-500 font-medium">
+                          ({locale === "ko" ? `전체 ${draft.totalNights}박 고정` : `Total ${draft.totalNights} nights fixed`})
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-extrabold text-[#e25c5c] bg-white px-2.5 py-1 rounded-full border border-[#fce8e8] shadow-2xs">
+                        {locale === "ko" ? `총 ${draft.totalNights}박 중 ${draft.totalNights}박 배분 완료` : `${draft.totalNights} / ${draft.totalNights} Nights`}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                      {draft.selectedCities.map((city) => {
+                        const cityNights = draft.cityNightAllocations[city] || 1;
+                        const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
+                        const otherCitiesWithExtraNights = draft.selectedCities.filter(
+                          (c) => c !== city && (draft.cityNightAllocations[c] || 0) > 1
+                        );
+                        const canIncrease = otherCitiesWithExtraNights.length > 0;
+                        const canDecrease = cityNights > 1;
+
+                        return (
+                          <div key={city} className="bg-white p-2.5 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-2xs">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-xs font-extrabold text-slate-900 truncate">📍 {cityName}</span>
+                            </div>
+                            <div className="flex items-center bg-slate-50 rounded-lg border border-slate-200 p-0.5">
+                              <button
+                                type="button"
+                                disabled={!canDecrease}
+                                onClick={() => handleDirectCityNightChange(city, -1)}
+                                className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                                title={locale === "ko" ? "1박 줄이고 다른 도시에 배분" : "Reduce 1 night"}
+                              >
+                                -
+                              </button>
+                              <span className="px-2 text-xs font-black text-[#e25c5c] min-w-[45px] text-center">
+                                {cityNights}{locale === "ko" ? "박" : "N"}
+                              </span>
+                              <button
+                                type="button"
+                                disabled={!canIncrease}
+                                onClick={() => handleDirectCityNightChange(city, 1)}
+                                className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                                title={locale === "ko" ? "다른 도시에서 1박 가져오기" : "Add 1 night from other city"}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Two Stacked Progress Bar Cards Side-by-Side */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Chart 1: City Budget Allocation Stacked Bar */}
@@ -1627,30 +1700,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     <span>{locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}</span>
                                   </strong>
                                 </div>
-                                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                                  <div className="flex items-center bg-white rounded-lg border border-slate-200 p-0.5 shadow-2xs">
-                                    <button
-                                      type="button"
-                                      disabled={nights <= 1}
-                                      onClick={() => handleDirectCityNightChange(city, -1)}
-                                      className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
-                                      title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
-                                    >
-                                      -
-                                    </button>
-                                    <span className="px-2 text-xs font-black text-slate-900 min-w-[50px] text-center">
-                                      {nights}{locale === "ko" ? "박 " : "N "}{nights + 1}{locale === "ko" ? "일" : "D"}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      disabled={(draft.totalNights || 0) >= 14}
-                                      onClick={() => handleDirectCityNightChange(city, 1)}
-                                      className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
-                                      title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
-                                    >
-                                      +
-                                    </button>
-                                  </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded-full font-bold border border-slate-200/70">
+                                    {nights}{locale === "ko" ? "박 " : "N "}{nights + 1}{locale === "ko" ? "일" : "D"}
+                                  </span>
                                   <span className={`text-xs font-black ${color.text} group-hover:translate-x-0.5 transition-transform`} aria-hidden="true">
                                     →
                                   </span>
@@ -2928,14 +2981,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
               )}
 
-              {/* Tab 3: 🗓️ 여행 기간 & 도시별 박수 상세 설정 */}
+              {/* Tab 3: 🗓️ 여행 전체 기간 설정 */}
               {editTab === "NIGHTS" && (() => {
-                const targetNights = editDraft.totalNights || 5;
-                const currentAlloc = editDraft.cityNightAllocations || {};
-                const allocatedSum = editDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
-                const isComplete = allocatedSum === targetNights;
-                const deficitNights = targetNights - allocatedSum;
-
                 return (
                   <div className="space-y-5">
                     <div className="space-y-3">
@@ -2990,67 +3037,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
                       </div>
                     </div>
-
-                    {/* 도시별 박수 배분 리스트 */}
-                    {editDraft.selectedCities.length > 0 && (
-                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1">
-                            <span>⛺</span>
-                            <span>도시별 박수 상세 배분</span>
-                            <span className={`ml-1 text-[11px] font-extrabold ${isComplete ? "text-emerald-600" : "text-[#e25c5c]"}`}>
-                              ({isComplete ? `총 ${targetNights}박 중 ${targetNights}박 배분 완료` : `총 ${targetNights}박 중 ${allocatedSum}박 배분 - ${deficitNights}박 미달`})
-                            </span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={handleModalResetEqualAllocation}
-                            className="text-[11px] font-bold text-[#e25c5c] hover:underline cursor-pointer"
-                          >
-                            🔄 균등 배분 재정렬
-                          </button>
-                        </div>
-
-                        <div className="space-y-2">
-                          {editDraft.selectedCities.map((city) => {
-                            const cityName = ALL_CITY_OPTIONS.find((c) => c.key === city)?.nameKo || city;
-                            const nights = currentAlloc[city] || 1;
-                            const canAdd = allocatedSum < targetNights;
-
-                            return (
-                              <div key={city} className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80">
-                                <span className="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
-                                  <span>📍</span>
-                                  <span>{cityName}</span>
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleModalCityNightChange(city, -1)}
-                                    disabled={nights <= 1}
-                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-sm transition-colors cursor-pointer"
-                                  >
-                                    -
-                                  </button>
-                                  <span className="text-xs font-black text-[#e25c5c] min-w-[32px] text-center">
-                                    {nights}박
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleModalCityNightChange(city, 1)}
-                                    disabled={!canAdd}
-                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 text-slate-800 font-bold text-sm transition-colors cursor-pointer"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                      </div>
-                    )}
                   </div>
                 );
               })()}

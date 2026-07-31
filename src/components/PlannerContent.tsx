@@ -2437,24 +2437,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
                       </div>
 
-                      {shoppingAmountKrw > 0 && (
-                        <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                          <span>
-                            {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
-                            <strong className="text-slate-800 font-bold">
-                              {shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
-                                ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
-                                : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
-                            </strong>
-                          </span>
-                          <span>
-                            {locale === "ko" ? "1인당 쇼핑 예산:" : "Per Traveler:"}{" "}
-                            <strong className="text-[#e25c5c] font-extrabold">
-                              {formatKrw(Math.round(shoppingAmountKrw / adultCount))}
-                            </strong>
-                          </span>
-                        </div>
-                      )}
+                      <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                        <span>
+                          {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                          <strong className="text-slate-800 font-bold">
+                            {shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
+                              ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
+                              : shoppingAmountKrw === 0
+                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                              : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                          </strong>
+                        </span>
+                        <span>
+                          {locale === "ko" ? "1인당 쇼핑 예산:" : "Per Traveler:"}{" "}
+                          <strong className="text-[#e25c5c] font-extrabold">
+                            {formatKrw(Math.round(shoppingAmountKrw / adultCount))}
+                          </strong>
+                        </span>
+                      </div>
                     </div>
                   );
                 })()}

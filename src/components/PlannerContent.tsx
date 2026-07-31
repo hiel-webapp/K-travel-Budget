@@ -2313,13 +2313,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                             }`}
                           >
-                            <div>{preset.label}</div>
-                            <div className="text-[10px] opacity-80 mt-0.5">{formatKrw(calcVal)}</div>
+                            <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
+                            <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
                           </button>
                         );
                       })}
 
-                      <div className="relative rounded-xl border border-slate-200 bg-white flex items-center px-2.5">
+                      <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                        emergencyManualInput !== ""
+                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
+                          : "bg-white border-slate-200"
+                      }`}>
                         <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
                         <input
                           type="number"

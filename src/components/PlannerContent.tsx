@@ -1184,82 +1184,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   ? "💡 선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
                   : "💡 AI matches optimal accommodation, food, and activities based on your per-person target budget."}
               </p>
-
-              {/* Optional Shopping & Souvenirs Selector Card */}
-              {(() => {
-                const adultCount = draft.adultCount || 1;
-                const shoppingAmountKrw = (() => {
-                  if (shoppingOption === "NONE") return 0;
-                  if (shoppingOption === "BEAUTY") return 150000 * adultCount;
-                  if (shoppingOption === "FASHION") return 300000 * adultCount;
-                  if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
-                  if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
-                  return 0;
-                })();
-
-                return (
-                  <div className="pt-3 border-t border-slate-100 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                        <span>🛍️</span>
-                        <span>{locale === "ko" ? "선택형 쇼핑 & 기념품 예산 설정" : "Optional Shopping & Souvenirs"}</span>
-                      </span>
-                      <span className="text-xs font-extrabold text-[#e25c5c]">
-                        {shoppingAmountKrw > 0 ? formatKrw(shoppingAmountKrw) : (locale === "ko" ? "계획 없음 (₩0)" : "No Shopping")}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {[
-                        { id: "NONE", label: locale === "ko" ? "🚫 쇼핑 없음 (₩0)" : "🚫 No Shopping" },
-                        { id: "BEAUTY", label: locale === "ko" ? "💄 K-뷰티 (15만원/인)" : "💄 K-Beauty (150k)" },
-                        { id: "FASHION", label: locale === "ko" ? "👗 K-패션 (30만원/인)" : "👗 K-Fashion (300k)" },
-                        { id: "SOUVENIR", label: locale === "ko" ? "🎁 기념품 (10만원/인)" : "🎁 Souvenirs (100k)" },
-                      ].map((opt) => {
-                        const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
-                        return (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            onClick={() => {
-                              setShoppingOption(opt.id as ShoppingOption);
-                              setShoppingCustomInput("");
-                            }}
-                            className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                              isSelected
-                                ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                            }`}
-                          >
-                            <div>{opt.label}</div>
-                          </button>
-                        );
-                      })}
-
-                      {/* Custom input */}
-                      <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                        shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
-                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
-                          : "bg-white border-slate-200"
-                      }`}>
-                        <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="10000"
-                          className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                          placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                          value={shoppingCustomInput}
-                          onChange={(e) => {
-                            setShoppingCustomInput(e.target.value);
-                            setShoppingOption("CUSTOM");
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
           </div>
 
@@ -1832,6 +1756,89 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         )}
                       </div>
                     </div>
+
+                    {/* Optional Shopping & Souvenirs Selector Card */}
+                    {(() => {
+                      const adultCount = draft.adultCount || 1;
+                      const shoppingAmountKrw = (() => {
+                        if (shoppingOption === "NONE") return 0;
+                        if (shoppingOption === "BEAUTY") return 150000 * adultCount;
+                        if (shoppingOption === "FASHION") return 300000 * adultCount;
+                        if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
+                        if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
+                        return 0;
+                      })();
+
+                      return (
+                        <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                          <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                            <div>
+                              <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                                <span>🛍️</span>
+                                <span>{locale === "ko" ? "선택형 쇼핑 & 기념품 예산 설정" : "Optional Shopping & Souvenirs"}</span>
+                              </h4>
+                              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                {locale === "ko"
+                                  ? "선택하신 금액은 여행 중 자율 쇼핑 예산으로 합산되며, 품목 제한 없이 자유롭게 사용하실 수 있습니다."
+                                  : "The selected amount is added for shopping without item restrictions."}
+                              </p>
+                            </div>
+                            <span className="text-base font-extrabold text-[#e25c5c]">
+                              {shoppingAmountKrw > 0 ? formatKrw(shoppingAmountKrw) : (locale === "ko" ? "계획 없음 (₩0)" : "No Shopping")}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {[
+                              { id: "NONE", label: locale === "ko" ? "🚫 쇼핑 없음 (₩0)" : "🚫 No Shopping" },
+                              { id: "SOUVENIR", label: locale === "ko" ? "🎁 가벼운 쇼핑 (10만원/인)" : "🎁 Light Shopping (100k)" },
+                              { id: "BEAUTY", label: locale === "ko" ? "💄 일반 쇼핑 (15만원/인)" : "💄 Standard Shopping (150k)" },
+                              { id: "FASHION", label: locale === "ko" ? "🛍️ 풍족한 쇼핑 (30만원/인)" : "🛍️ Premium Shopping (300k)" },
+                            ].map((opt) => {
+                              const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setShoppingOption(opt.id as ShoppingOption);
+                                    setShoppingCustomInput("");
+                                  }}
+                                  className={`py-2.5 px-3 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                    isSelected
+                                      ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                      : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                  }`}
+                                >
+                                  <div>{opt.label}</div>
+                                </button>
+                              );
+                            })}
+
+                            {/* Custom input */}
+                            <div className={`relative rounded-xl border flex items-center px-3 transition-all ${
+                              shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
+                                ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
+                                : "bg-white border-slate-200"
+                            }`}>
+                              <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="10000"
+                                className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                                placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                                value={shoppingCustomInput}
+                                onChange={(e) => {
+                                  setShoppingCustomInput(e.target.value);
+                                  setShoppingOption("CUSTOM");
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Trip-wide Activity Pocket Money & Reserve Setting Block */}
                     <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">

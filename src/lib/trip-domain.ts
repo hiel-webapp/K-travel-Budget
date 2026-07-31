@@ -241,8 +241,8 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
       }
     }
 
-    // 할당 합계와 totalNights 일치 여부 확인
-    if (errors.length === 0 && totalNights !== null && allocatedSum !== totalNights) {
+    // 할당 합계가 totalNights를 초과하는지 확인 (미배분 박수 허용, 초과 시만 오류)
+    if (errors.length === 0 && totalNights !== null && allocatedSum > totalNights) {
       errors.push("allocation_sum_mismatch");
     }
   }

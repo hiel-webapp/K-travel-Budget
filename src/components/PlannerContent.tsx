@@ -1201,9 +1201,27 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
           </div>
 
-          {/* City Visit Tabs & Far-Right Summary Tab */}
-          <div className="flex items-center justify-between border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
-            {/* Left: City Tabs (Scrollbar hidden) */}
+          {/* Summary Tab & City Visit Tabs */}
+          <div className="flex items-center justify-start border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
+            {/* Left: Distinctive Summary Tab with Right Divider */}
+            <div className="flex items-center border-r border-slate-200/80 pr-2.5 mr-2 shrink-0">
+              <button
+                role="tab"
+                aria-selected={selectedCityTab === "ALL"}
+                id="city-tab-ALL"
+                aria-controls="city-panel-ALL"
+                onClick={() => setSelectedCityTab("ALL")}
+                className={`h-8 px-3.5 rounded-t-xl text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap ${
+                  selectedCityTab === "ALL"
+                    ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
+                    : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
+                }`}
+              >
+                <span>{locale === "ko" ? "요약" : "Summary"}</span>
+              </button>
+            </div>
+
+            {/* Right: City Tabs (Scrollbar hidden) */}
             <div className="flex items-center space-x-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
               {sortCitiesByStandardOrder(draft.selectedCities).map((city) => {
                 const isActive = selectedCityTab === city;
@@ -1221,7 +1239,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     onClick={() => setSelectedCityTab(city)}
                     className={`h-8 px-3 rounded-t-xl text-[13px] font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer whitespace-nowrap ${
                       isActive
-                        ? "bg-white text-[#e25c5c] border-slate-200 border-b-white shadow-2xs z-10 font-extrabold"
+                        ? "bg-[#e25c5c] text-white border-[#e25c5c] border-b-[#e25c5c] shadow-2xs z-10 font-extrabold"
                         : "bg-[#faf9f6]/60 text-slate-600 border-slate-200/50 border-b-slate-200 hover:text-slate-900 hover:bg-white"
                     }`}
                   >
@@ -1229,24 +1247,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </button>
                 );
               })}
-            </div>
-
-            {/* Right: Distinctive Summary Tab with Divider */}
-            <div className="flex items-center border-l border-slate-200/80 pl-2.5 ml-2 shrink-0">
-              <button
-                role="tab"
-                aria-selected={selectedCityTab === "ALL"}
-                id="city-tab-ALL"
-                aria-controls="city-panel-ALL"
-                onClick={() => setSelectedCityTab("ALL")}
-                className={`h-8 px-3.5 rounded-t-xl text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap ${
-                  selectedCityTab === "ALL"
-                    ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
-                    : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
-                }`}
-              >
-                <span>{locale === "ko" ? "요약" : "Summary"}</span>
-              </button>
             </div>
           </div>
 

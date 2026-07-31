@@ -260,6 +260,65 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  const handleDirectCityNightChange = (city: SupportedCity, delta: number) => {
+    if (state.status !== "ready") return;
+    const currentDraft = state.draft;
+    const currentAlloc = currentDraft.cityNightAllocations || {};
+    const currentCityNights = currentAlloc[city] || 1;
+
+    const nextCityNights = currentCityNights + delta;
+    if (nextCityNights < 1) return;
+
+    const nextAlloc = {
+      ...currentAlloc,
+      [city]: nextCityNights,
+    };
+
+    const nextTotalNights = currentDraft.selectedCities.reduce(
+      (sum, c) => sum + (nextAlloc[c] || 1),
+      0
+    );
+
+    if (nextTotalNights < 1 || nextTotalNights > 14) return;
+
+    const nextDraft: TripDraft = {
+      ...currentDraft,
+      totalNights: nextTotalNights,
+      cityNightAllocations: nextAlloc,
+    };
+
+    const validation = validateTripDraft(nextDraft);
+    if (!validation.success) return;
+
+    saveTripDraft(nextDraft);
+    savePlannerPreferences({
+      accommodationByCity: state.preferences.accommodationByCity,
+      foodOverrides: state.preferences.foodOverrides,
+      foodAddOnOverrides: state.preferences.addOnSelections,
+      attractionByCity: state.preferences.attractionByCity,
+      attractionSelections: state.preferences.attractionSelections,
+      emergencyFundKrw: state.preferences.emergencyFundKrw,
+      emergencyFundPct: state.preferences.emergencyFundPct,
+      draft: nextDraft,
+    });
+
+    setState((prev) => {
+      if (prev.status !== "ready") return prev;
+      return {
+        ...prev,
+        draft: nextDraft,
+      };
+    });
+
+    const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
+    setToastMessage(
+      locale === "ko"
+        ? `${cityName} 체류 기간이 ${nextCityNights}박으로 변경되어 예산이 실시간 재계산되었습니다.`
+        : `${cityName} stay updated to ${nextCityNights} night(s).`
+    );
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
       setSavedPlaceCount(loadSavedPlaceIds().length);
@@ -1225,9 +1284,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="flex items-center space-x-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
               {sortCitiesByStandardOrder(draft.selectedCities).map((city) => {
                 const isActive = selectedCityTab === city;
-                const label = locale === "ko"
+                const cityNights = draft.cityNightAllocations[city] || 1;
+                const cityLabelName = locale === "ko"
                   ? CITY_KOREAN_NAMES[city] || city
                   : CITY_ENGLISH_NAMES[city] || city;
+                const label = `${cityLabelName} (${cityNights}${locale === "ko" ? "박" : "N"})`;
 
                 return (
                   <button
@@ -1249,6 +1310,55 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               })}
             </div>
           </div>
+
+          {/* Individual City Night Allocation Quick Stepper Banner */}
+          {selectedCityTab !== "ALL" && (() => {
+            const currentNights = draft.cityNightAllocations[selectedCityTab] || 1;
+            const cityName = locale === "ko"
+              ? CITY_KOREAN_NAMES[selectedCityTab] || selectedCityTab
+              : CITY_ENGLISH_NAMES[selectedCityTab] || selectedCityTab;
+
+            return (
+              <div className="bg-[#faf5f5] border border-[#fce8e8] p-3 rounded-xl flex items-center justify-between shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🗓️</span>
+                  <span className="text-xs font-bold text-slate-800">
+                    {locale === "ko" ? `${cityName} 체류 기간:` : `${cityName} Stay:`}
+                  </span>
+                  <strong className="text-xs font-extrabold text-[#e25c5c]">
+                    {currentNights}{locale === "ko" ? "박 " : "N "}{currentNights + 1}{locale === "ko" ? "일" : "D"}
+                  </strong>
+                  <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                    ({locale === "ko" ? `전체 여행 ${draft.totalNights}박 중` : `out of ${draft.totalNights} nights total`})
+                  </span>
+                </div>
+
+                <div className="flex items-center bg-white rounded-lg border border-slate-200 p-0.5 shadow-2xs">
+                  <button
+                    type="button"
+                    disabled={currentNights <= 1}
+                    onClick={() => handleDirectCityNightChange(selectedCityTab, -1)}
+                    className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                    title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
+                  >
+                    -
+                  </button>
+                  <span className="px-2 text-xs font-black text-slate-900 min-w-[45px] text-center">
+                    {currentNights}{locale === "ko" ? "박" : "N"}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={(draft.totalNights || 0) >= 14}
+                    onClick={() => handleDirectCityNightChange(selectedCityTab, 1)}
+                    className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                    title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Category Tabs / Cards (Only shown for individual city tabs: 4 categories) */}
           {selectedCityTab !== "ALL" && (
@@ -1517,10 +1627,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     <span>{locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}</span>
                                   </strong>
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded-full font-bold border border-slate-200/70">
-                                    {nights}{locale === "ko" ? "박 " : "N "}{nights + 1}{locale === "ko" ? "일" : "D"}
-                                  </span>
+                                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center bg-white rounded-lg border border-slate-200 p-0.5 shadow-2xs">
+                                    <button
+                                      type="button"
+                                      disabled={nights <= 1}
+                                      onClick={() => handleDirectCityNightChange(city, -1)}
+                                      className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                                      title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
+                                    >
+                                      -
+                                    </button>
+                                    <span className="px-2 text-xs font-black text-slate-900 min-w-[50px] text-center">
+                                      {nights}{locale === "ko" ? "박 " : "N "}{nights + 1}{locale === "ko" ? "일" : "D"}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={(draft.totalNights || 0) >= 14}
+                                      onClick={() => handleDirectCityNightChange(city, 1)}
+                                      className="h-6 w-6 rounded-md flex items-center justify-center text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent font-extrabold text-sm transition-colors cursor-pointer"
+                                      title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
+                                    >
+                                      +
+                                    </button>
+                                  </div>
                                   <span className={`text-xs font-black ${color.text} group-hover:translate-x-0.5 transition-transform`} aria-hidden="true">
                                     →
                                   </span>

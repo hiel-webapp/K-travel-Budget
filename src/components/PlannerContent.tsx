@@ -2309,7 +2309,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             onClick={() => {
                               if (isSelected) {
                                 handleEmergencyFundPctChange(0);
-                                setEmergencyManualInput("0");
+                                setEmergencyManualInput("");
                               } else {
                                 handleEmergencyFundPctChange(preset.pct);
                                 setEmergencyManualInput("");
@@ -2525,7 +2525,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             type="button"
                             onClick={() => {
                               if (isSelected) {
-                                setActivityManualInput("0");
+                                setActivityManualInput("");
                                 handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
                               } else {
                                 setActivityManualInput("");
@@ -2547,7 +2547,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       })}
 
                       <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                        preferences.attractionCustomDailyKrw || activityManualInput !== ""
+                        (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
                           ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
                           : "bg-white border-slate-200"
                       }`}>
@@ -2558,7 +2558,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           step="10000"
                           className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
                           placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                          value={activityManualInput}
+                          value={activityManualInput === "0" ? "" : activityManualInput}
                           onChange={handleActivityManualInputChange}
                         />
                       </div>

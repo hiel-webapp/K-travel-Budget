@@ -6,6 +6,7 @@ import {
   validateTripDraft,
   migrateLegacyState,
   SupportedCity,
+  BudgetTier,
 } from "./trip-domain";
 import {
   PlannerPreferences,
@@ -463,6 +464,7 @@ function validateAttraction(
 
 export interface SavePlannerPreferencesInput {
   accommodationByCity: AccommodationOverridesByCity;
+  foodTier?: BudgetTier;
   foodOverrides?: FoodOverrides;
   foodAddOnOverrides?: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;
@@ -481,6 +483,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
 
   const {
     accommodationByCity,
+    foodTier,
     foodOverrides = {},
     foodAddOnOverrides = {},
     attractionByCity = {},
@@ -497,6 +500,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       schemaVersion: 5,
       tripFingerprint: generateTripFingerprint(draft),
       accommodationByCity,
+      foodTier,
       foodOverrides,
       addOnSelections: foodAddOnOverrides,
       attractionByCity,

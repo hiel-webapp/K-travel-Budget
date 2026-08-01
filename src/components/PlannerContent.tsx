@@ -405,6 +405,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const basePlanForEmergency = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,
+    foodTier: preferences.foodTier,
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
     attraction: preferences.attractionByCity,
@@ -419,6 +420,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,
+    foodTier: preferences.foodTier,
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
     attraction: preferences.attractionByCity,
@@ -505,6 +507,37 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         draft: nextDraft,
       };
     });
+  };
+
+  const handleFoodTierChange = (newFoodTier: BudgetTier) => {
+    const saved = savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodTier: newFoodTier,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
+      attractionSelections: preferences.attractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
+      emergencyFundKrw: preferences.emergencyFundKrw,
+      emergencyFundPct: preferences.emergencyFundPct,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            foodTier: newFoodTier,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
   };
 
   const handleResetStay = (cityTarget: SupportedCity) => {
@@ -1954,7 +1987,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {activeCategory === "FOOD" && (() => {
                   const city = selectedCityTab;
                   const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
-                  const activeFoodTier = draft.budgetTier || "STANDARD";
+                  const activeFoodTier = preferences.foodTier || draft.budgetTier || "STANDARD";
                   const foodBasketOptions: BudgetBasketId[] = ["BUDGET_MEAL_PLAN", "STANDARD_MEAL_PLAN", "PREMIUM_MEAL_PLAN"];
 
                   return (
@@ -1972,7 +2005,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             {locale === "ko" ? "💡 기본 식비 플랜 (1인 1일 정수 평균가)" : "💡 Food Tier Average"}
                           </span>
                           <span className="text-[10px] text-slate-400 font-medium">
-                            {locale === "ko" ? "전체 여행 1인당 목표 예산에 연동" : "Linked to per-person target budget"}
+                            {locale === "ko" ? "독립적 식비 스타일 반영" : "Independent Food Tier Style"}
                           </span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1995,7 +2028,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <button
                                 key={opt}
                                 type="button"
-                                onClick={() => handleBudgetTierChange(targetTier as BudgetTier)}
+                                onClick={() => handleFoodTierChange(targetTier as BudgetTier)}
                                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
                                   isSelected
                                     ? "bg-amber-50/40 border-2 border-amber-500 shadow-xs text-slate-900"

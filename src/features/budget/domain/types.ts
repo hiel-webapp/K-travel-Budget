@@ -167,6 +167,7 @@ export type AttractionSelectionsByCity = Partial<Record<SupportedCity, Attractio
 
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
+  foodTier?: BudgetTier;
   food?: FoodOverrides;
   foodAddOns?: FoodAddOnOverrides;
   attraction?: AttractionOverridesByCity;
@@ -333,6 +334,7 @@ export interface PlannerPreferences {
   schemaVersion: number;
   tripFingerprint: string;
   accommodationByCity: AccommodationOverridesByCity;
+  foodTier?: BudgetTier;
   foodOverrides: FoodOverrides;
   addOnSelections: FoodAddOnOverrides;
   attractionByCity?: AttractionOverridesByCity;

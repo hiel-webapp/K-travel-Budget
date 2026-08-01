@@ -62,14 +62,15 @@ export function generateInitialBudgetPlan(
       let item: BudgetLineItem;
 
       if (category === "FOOD") {
-        const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+        const effectiveFoodTier = overrides?.foodTier || budgetTier;
+        const basketId = BUDGET_TIER_DEFAULT_BASKETS[effectiveFoodTier][category];
         const basket = findBasket(catalog, basketId, category, city);
 
         if (!basket) {
-          throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
+          throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${effectiveFoodTier}`);
         }
 
-        const baseMealPlan = generateBaseMealPlan(city, nights, budgetTier, MOCK_MEAL_SLOT_PRICES);
+        const baseMealPlan = generateBaseMealPlan(city, nights, effectiveFoodTier, MOCK_MEAL_SLOT_PRICES);
         const foodOverrides = overrides?.food || {};
         const foodAddOnOverrides = overrides?.foodAddOns || {};
         const replacedMealPlan = applyFoodReplacements(baseMealPlan, foodOverrides, undefined, adultCount);

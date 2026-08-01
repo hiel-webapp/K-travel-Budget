@@ -500,10 +500,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleTargetBudgetTierChange = (newTier: BudgetTier) => {
     const adultCount = draft.adultCount || 1;
-    let perPersonAmount = 1500000;
-    if (newTier === "BUDGET") perPersonAmount = 800000;
-    if (newTier === "STANDARD") perPersonAmount = 1500000;
-    if (newTier === "PREMIUM") perPersonAmount = 2500000;
+    let perPersonAmount = 2000000;
+    if (newTier === "BUDGET") perPersonAmount = 1000000;
+    if (newTier === "STANDARD") perPersonAmount = 2000000;
+    if (newTier === "PREMIUM") perPersonAmount = 3000000;
 
     const nextTargetBudget = perPersonAmount * adultCount;
     const nextDraft: TripDraft = {
@@ -1253,12 +1253,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </span>
               </div>
 
-              {/* 4 buttons grid: 80만원대, 150만원대, 250만원대, 직접 입력 */}
+              {/* 4 buttons grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, 직접 입력 */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { key: "BUDGET", label: locale === "ko" ? "80만원대" : "~800k" },
-                  { key: "STANDARD", label: locale === "ko" ? "150만원대" : "~1.5m" },
-                  { key: "PREMIUM", label: locale === "ko" ? "250만원대" : "~2.5m" },
+                  { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
+                  { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
+                  { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
                 ].map((tierOpt) => {
                   const isSelected = !isCustomTargetBudget && (draft.budgetTier || "STANDARD") === tierOpt.key;
                   return (
@@ -1272,7 +1272,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
                       }`}
                     >
-                      <span className="text-xs">{tierOpt.label}</span>
+                      <span className="text-xs font-bold">{tierOpt.label}</span>
                     </button>
                   );
                 })}
@@ -1287,11 +1287,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
                   }`}
                 >
-                  <span className="text-xs">{locale === "ko" ? "직접 입력" : "Custom"}</span>
+                  <span className="text-xs font-bold">{locale === "ko" ? "직접 입력" : "Custom"}</span>
                 </button>
               </div>
 
-              {/* Custom Budget Direct Input Form */}
+              {/* Custom Budget Direct Input Form (Auto-applied on input change) */}
               {isCustomTargetBudget && (
                 <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-2 text-xs">
                   <div className="flex items-center justify-between font-bold text-slate-800">
@@ -1307,23 +1307,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         type="number"
                         step="10000"
                         value={customTargetBudgetInput}
-                        onChange={(e) => setCustomTargetBudgetInput(e.target.value)}
+                        onChange={(e) => {
+                          const valStr = e.target.value;
+                          setCustomTargetBudgetInput(valStr);
+                          const valNum = parseInt(valStr, 10);
+                          if (!isNaN(valNum) && valNum > 0) {
+                            handleCustomTargetBudgetSubmit(valNum);
+                          }
+                        }}
                         placeholder={String(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
                         className="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-2 focus:outline-[#e25c5c]"
                       />
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const val = parseInt(customTargetBudgetInput, 10);
-                        if (!isNaN(val) && val > 0) {
-                          handleCustomTargetBudgetSubmit(val);
-                        }
-                      }}
-                      className="px-3 py-1.5 bg-[#0f172a] text-white font-bold rounded-lg text-xs hover:bg-slate-800 transition-colors cursor-pointer"
-                    >
-                      {locale === "ko" ? "적용" : "Apply"}
-                    </button>
                   </div>
                 </div>
               )}

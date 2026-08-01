@@ -144,7 +144,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   // 여행 조건 수정 팝오버 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [pendingBudgetTier, setPendingBudgetTier] = useState<BudgetTier | null>(null);
-  const [editTab, setEditTab] = useState<"ADULTS" | "CITIES" | "NIGHTS">("ADULTS");
+  const [editTab, setEditTab] = useState<"NIGHTS" | "ADULTS" | "CITIES">("NIGHTS");
   const [editDraft, setEditDraft] = useState<TripDraft | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -3342,6 +3342,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="flex border-b border-slate-200 bg-slate-50 p-1.5 gap-1.5">
               <button
                 type="button"
+                onClick={() => setEditTab("NIGHTS")}
+                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
+                  editTab === "NIGHTS"
+                    ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                🗓️ 1단계: 기간 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setEditTab("ADULTS")}
                 className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
                   editTab === "ADULTS"
@@ -3349,7 +3361,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                👥 1단계: 인원 ({editDraft.adultCount ? `${editDraft.adultCount}명` : "미선택"})
+                👥 2단계: 인원 ({editDraft.adultCount ? `${editDraft.adultCount}명` : "미선택"})
               </button>
 
               <button
@@ -3361,19 +3373,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                📍 2단계: 목적지 ({editDraft.selectedCities.length}곳)
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setEditTab("NIGHTS")}
-                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
-                  editTab === "NIGHTS"
-                    ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                🗓️ 3단계: 기간 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
+                📍 3단계: 목적지 ({editDraft.selectedCities.length}곳)
               </button>
             </div>
 

@@ -5,6 +5,7 @@ import { Locale } from "../lib/i18n/locales";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { CalculatedMealPlan, EffectiveMealSlot } from "../features/budget/domain/types";
 import { formatKrw } from "../features/budget/presentation/formatters";
+import { FOOD_SPOTS_CATALOG, FoodCandidateSpot } from "../features/budget/catalog/food-spots";
 import { MOCK_FOOD_ITEMS, MOCK_FOOD_ADD_ONS } from "../features/budget/catalog/mock-catalog";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 
@@ -31,6 +32,8 @@ export default function FoodPlannerPanel({
 }: FoodPlannerPanelProps) {
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
+  const [showMoreFood, setShowMoreFood] = useState<boolean>(false);
+  const [activeSlotPickerSpotId, setActiveSlotPickerSpotId] = useState<string | null>(null);
 
   if (!mealPlan || !mealPlan.slots || mealPlan.slots.length === 0) {
     return (
@@ -92,6 +95,156 @@ export default function FoodPlannerPanel({
             : "Meal slots are automatically populated based on your budget tier. Expand 'Wishlist Menu' on any slot to substitute signature Korean dishes."}
         </p>
       </div>
+
+      {/* 2. In-place Candidate K-Food Menu Section (3x2 Desktop, 2x3 Mobile Grid) */}
+      {(() => {
+        const foodSpotsForCity = FOOD_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity);
+        const displayedFoodSpots = showMoreFood ? foodSpotsForCity : foodSpotsForCity.slice(0, 6);
+
+        return (
+          <div className="space-y-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                🍱 {locale === "ko" ? `${currentCityLabel} 대표 시그니처 K-Food & 맛집 탐색` : `${currentCityLabel} Signature K-Food Candidates`}
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {locale === "ko" ? `전체 ${foodSpotsForCity.length}개 중 ${displayedFoodSpots.length}개 노출` : `Showing ${displayedFoodSpots.length} of ${foodSpotsForCity.length}`}
+              </span>
+            </div>
+
+            {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {displayedFoodSpots.map((spot) => {
+                const replacedSlot = mealPlan.slots.find(
+                  (s) => s.replacedByFoodItemId === spot.id || s.replacedByFoodItemId === spot.nameKo
+                );
+                const isReplaced = !!replacedSlot;
+                const isPickerActive = activeSlotPickerSpotId === spot.id;
+
+                const slotBadgeLabel =
+                  spot.recommendedSlot === "BREAKFAST"
+                    ? (locale === "ko" ? "아침 추천" : "Breakfast")
+                    : spot.recommendedSlot === "LUNCH"
+                    ? (locale === "ko" ? "점심 추천" : "Lunch")
+                    : spot.recommendedSlot === "DINNER"
+                    ? (locale === "ko" ? "저녁 추천" : "Dinner")
+                    : (locale === "ko" ? "간식/디저트" : "Snack/Cafe");
+
+                return (
+                  <div
+                    key={spot.id}
+                    className={`p-3.5 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all relative ${
+                      isReplaced
+                        ? "border-amber-400 ring-2 ring-amber-200 bg-amber-50/20"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      {/* Visual Header */}
+                      <div className={`h-12 w-full rounded-xl bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
+                        <span className="text-2xl">{spot.emoji}</span>
+                        <span className="text-[9px] bg-white/90 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
+                          🏷️ {spot.tag}
+                        </span>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
+                            {locale === "ko" ? spot.nameKo : spot.nameEn}
+                          </h5>
+                        </div>
+                        <p className="text-[10px] text-slate-400 leading-snug line-clamp-2 mt-0.5">
+                          {locale === "ko" ? spot.descKo : spot.descEn}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-2 border-t border-slate-100 space-y-2">
+                      <div className="flex items-baseline justify-between text-xs">
+                        <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+                          {slotBadgeLabel}
+                        </span>
+                        <strong className="font-extrabold text-[#e25c5c]">
+                          {formatKrw(spot.pricePerPerson)}
+                        </strong>
+                      </div>
+
+                      <div className="relative pt-1 border-t border-slate-50">
+                        {isReplaced ? (
+                          <button
+                            type="button"
+                            onClick={() => replacedSlot && onClearReplacement && onClearReplacement(replacedSlot.id)}
+                            className="w-full py-1.5 px-2 rounded-lg text-xs font-extrabold bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-2xs flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <span>✓ Day {replacedSlot.dayIndex + 1} 대체됨 (취소 ✕)</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setActiveSlotPickerSpotId(isPickerActive ? null : spot.id)}
+                            className="w-full py-1.5 px-2 rounded-lg text-xs font-extrabold bg-[#0f172a] text-white hover:bg-slate-800 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <span>+ 식사 슬롯에 담기</span>
+                          </button>
+                        )}
+
+                        {/* Slot Picker Dropdown Popover */}
+                        {isPickerActive && !isReplaced && (
+                          <div className="absolute bottom-full left-0 right-0 mb-2 p-2.5 bg-white border border-slate-200 rounded-xl shadow-xl z-30 space-y-1.5 text-left">
+                            <div className="flex items-center justify-between text-[10px] font-extrabold text-slate-700 border-b border-slate-100 pb-1">
+                              <span>어느 슬롯에 담을까요?</span>
+                              <button
+                                type="button"
+                                onClick={() => setActiveSlotPickerSpotId(null)}
+                                className="text-slate-400 hover:text-slate-600"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
+                              {mealPlan.slots.map((s) => {
+                                const slotName = getSlotLabel(s.slot);
+                                return (
+                                  <button
+                                    key={s.id}
+                                    type="button"
+                                    onClick={() => {
+                                      onSelectReplacement && onSelectReplacement(s.id, spot.id);
+                                      setActiveSlotPickerSpotId(null);
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[11px] font-bold text-slate-800 bg-slate-50 hover:bg-[#faf5f5] hover:text-[#e25c5c] border border-slate-100 transition-colors flex items-center justify-between cursor-pointer"
+                                  >
+                                    <span>Day {s.dayIndex + 1} {slotName}</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">대체 →</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Show More / Show Less Toggle Button */}
+            {foodSpotsForCity.length > 6 && (
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMoreFood((prev) => !prev)}
+                  className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  {showMoreFood ? (dict.planner.showLess || "접기 ▲") : (dict.planner.showMore || "더보기 ▼")}
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Day-by-Day Meal Slots */}
       <div className="space-y-4">

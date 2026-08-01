@@ -1954,6 +1954,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {activeCategory === "FOOD" && (() => {
                   const city = selectedCityTab;
                   const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
+                  const activeFoodTier = draft.budgetTier || "STANDARD";
+                  const foodBasketOptions: BudgetBasketId[] = ["BUDGET_MEAL_PLAN", "STANDARD_MEAL_PLAN", "PREMIUM_MEAL_PLAN"];
+
                   return (
                     <div className="space-y-6">
                       {saveError && (
@@ -1961,6 +1964,69 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           {dict.planner.saveFailedNotice}
                         </div>
                       )}
+
+                      {/* 1. Concise Food Tier Basket Cards */}
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {locale === "ko" ? "💡 기본 식비 플랜 (1인 1일 정수 평균가)" : "💡 Food Tier Average"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {locale === "ko" ? "전체 여행 1인당 목표 예산에 연동" : "Linked to per-person target budget"}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {foodBasketOptions.map((opt) => {
+                            const isSelected =
+                              (opt === "BUDGET_MEAL_PLAN" && activeFoodTier === "BUDGET") ||
+                              (opt === "STANDARD_MEAL_PLAN" && activeFoodTier === "STANDARD") ||
+                              (opt === "PREMIUM_MEAL_PLAN" && activeFoodTier === "PREMIUM");
+
+                            const name = getBasketLabel(opt, dict, locale, city);
+                            const price = opt === "BUDGET_MEAL_PLAN" ? 20000 : opt === "STANDARD_MEAL_PLAN" ? 28000 : 50000;
+
+                            let desc = locale === "ko" ? "삼겹살, 인사동 한정식, 감성 카페" : "Samgyeopsal, Hanjeongsik & dessert cafe";
+                            if (opt === "BUDGET_MEAL_PLAN") desc = locale === "ko" ? "광장시장 먹거리, 뚝배기 국밥" : "Gwangjang market street food & local eats";
+                            if (opt === "PREMIUM_MEAL_PLAN") desc = locale === "ko" ? "셰프 오마카세 & 프리미엄 다이닝" : "Chef Omakase & premium fine dining";
+
+                            const targetTier = opt === "BUDGET_MEAL_PLAN" ? "BUDGET" : opt === "STANDARD_MEAL_PLAN" ? "STANDARD" : "PREMIUM";
+
+                            return (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => handleBudgetTierChange(targetTier as BudgetTier)}
+                                className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
+                                  isSelected
+                                    ? "bg-amber-50/40 border-2 border-amber-500 shadow-xs text-slate-900"
+                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
+                                }`}
+                              >
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className={`text-xs font-extrabold tracking-tight ${isSelected ? "text-amber-800" : "text-[#0f172a]"}`}>
+                                      {name}
+                                    </span>
+                                    {isSelected && (
+                                      <span className="text-[10px] bg-amber-500 text-white px-2 py-0.5 rounded-md font-extrabold">
+                                        ✓ {locale === "ko" ? "적용 중" : "Active"}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] leading-relaxed text-slate-500">
+                                    {desc}
+                                  </p>
+                                </div>
+                                <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-100 pt-2">
+                                  <span className="text-[10px] font-bold text-slate-400">1인 1일 평균</span>
+                                  <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(price)}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
                       <FoodPlannerPanel
                         locale={locale}
                         dict={dict}

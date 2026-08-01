@@ -10,6 +10,7 @@ import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPla
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset } from "../features/budget/catalog/attraction-spots";
+import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
 import { getIntercityFareOptions, IntercityFareInfo } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
@@ -134,6 +135,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
   const [activityManualInput, setActivityManualInput] = useState<string>("");
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
+  const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
 
   // 여행 조건 수정 팝오버 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -1694,48 +1696,58 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const accOverride = preferences.accommodationByCity[city];
                   const hasOverride = !!accOverride;
                   const isPlaceOverride = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && accOverride.kind === "PLACE";
-                  const activeBasketId =
-                    isPlaceOverride
+                  const activeBasketId: BudgetBasketId =
+                    (isPlaceOverride
                       ? (accOverride as { basketId: BudgetBasketId }).basketId
                       : typeof accOverride === "string"
                         ? accOverride
                         : typeof accOverride === "object" && accOverride !== null && "basketId" in accOverride
                           ? accOverride.basketId
-                          : plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId;
+                          : plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId) || "STANDARD_HOTEL";
                   const basketOptions: BudgetBasketId[] = ["BUDGET_STAY", "STANDARD_HOTEL", "PREMIUM_HERITAGE"];
 
+                  const accSpotsForCity = ACCOMMODATION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+                  const isShowMoreAcc = !!showMoreAccommodationsByCity[city];
+                  const displayedAccSpots = isShowMoreAcc ? accSpotsForCity : accSpotsForCity.slice(0, 6);
+                  const cityNights = draft.cityNightAllocations[city] ?? 0;
+
                   return (
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
+                    <div className="space-y-6">
+                      {/* Header & Reset Button */}
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {CITY_KOREAN_NAMES[city] || city} {dict.planner.selectStayTitle}
+                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                            <span>🏨</span>
+                            <span>{CITY_KOREAN_NAMES[city] || city} {dict.planner.selectStayTitle}</span>
                           </h4>
-                          <p className="text-xs text-slate-400">
-                            {dict.planner.selectStayDescription}
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {locale === "ko"
+                              ? "숙소 유형(평균가)을 고르거나, 하단 실제 후보 숙소를 직접 선택하여 예산에 담으세요."
+                              : "Choose stay tier average or select specific candidate places below."}
                           </p>
                         </div>
                         <button
+                          type="button"
                           onClick={() => handleResetStay(city)}
                           disabled={!hasOverride}
                           className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${hasOverride
                               ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
-                              : "text-slate-355 border-slate-100 bg-slate-50 cursor-not-allowed"
+                              : "text-slate-300 border-slate-100 bg-slate-50 cursor-not-allowed"
                             }`}
                         >
-                          {dict.planner.resetToRecommended}
+                          {dict.planner.resetToRecommended || "추천 숙소 유형으로 초기화"}
                         </button>
                       </div>
 
                       {/* PLACE Override Active Banner */}
                       {isPlaceOverride && (
-                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-xs flex items-center justify-between font-bold text-amber-900 shadow-2xs">
+                        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs flex items-center justify-between font-bold text-amber-900 shadow-2xs">
                           <div className="flex items-center gap-2">
-                            <span className="text-base">🏨</span>
+                            <span className="text-base">📍</span>
                             <span>
                               {locale === "ko"
                                 ? `${(accOverride as any).placeNameKo} (${formatKrw((accOverride as any).nightlyPriceKrw)}/박) · 개별 숙소 지정가가 우선 적용 중입니다.`
-                                : `${(accOverride as any).placeNameEn || (accOverride as any).placeNameKo} (${formatKrw((accOverride as any).nightlyPriceKrw)}/night) · Specific place price is active.`}
+                                : `${(accOverride as any).placeNameEn || (accOverride as any).placeNameKo} (${formatKrw((accOverride as any).nightlyPriceKrw)}/night) · Specific place active.`}
                             </span>
                           </div>
                           <button
@@ -1748,40 +1760,192 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
                       )}
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {basketOptions.map((opt) => {
-                          const isSelected = activeBasketId === opt;
-                          const name = getBasketLabel(opt, dict, locale, city);
-                          const price = getCatalogStayPrice(city, opt);
+                      {/* 1. Concise Stay Tier Basket Cards */}
+                      <div className="space-y-2.5">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                          {locale === "ko" ? "💡 숙소 유형 선택 (도시 평균 정수 단가)" : "💡 Stay Tier Average"}
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {basketOptions.map((opt) => {
+                            const isSelected = !isPlaceOverride && activeBasketId === opt;
+                            const name = getBasketLabel(opt, dict, locale, city);
+                            const price = getCatalogStayPrice(city, opt);
 
-                          let desc = dict.planner.standardHotelDesc;
-                          if (opt === "BUDGET_STAY") desc = dict.planner.budgetStayDesc;
-                          if (opt === "PREMIUM_HERITAGE") desc = dict.planner.premiumHeritageDesc;
+                            let desc = locale === "ko" ? "편안한 비즈니스 & 시티뷰 호텔" : "Comfortable business & city view hotel";
+                            if (opt === "BUDGET_STAY") desc = locale === "ko" ? "가성비 호스텔, 도미토리, 게스트하우스" : "Affordable hostel & guesthouse";
+                            if (opt === "PREMIUM_HERITAGE") desc = locale === "ko" ? "고급 호텔, 독채 한옥, 풀빌라 리조트" : "Luxury hotel, Hanok stay & resort";
 
-                          return (
-                            <button
-                              key={opt}
-                              onClick={() => handleStayOverride(city, opt)}
-                              className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
-                                  ? "bg-white border-[#e25c5c] shadow-sm text-slate-800"
-                                  : "bg-white/60 border-slate-200 text-slate-500 hover:border-slate-350 hover:bg-white"
-                                }`}
-                            >
-                              <div>
-                                <span className={`text-[11px] font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-600"}`}>
-                                  {name}
-                                </span>
-                                <p className="mt-1 text-[10px] leading-relaxed text-slate-400">
-                                  {desc}
-                                </p>
-                              </div>
-                              <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-50 pt-2">
-                                <span className="text-[9px] font-bold text-slate-400 uppercase">Per Room/Night</span>
-                                <span className="text-xs font-extrabold text-slate-800">{formatKrw(price)}</span>
-                              </div>
-                            </button>
-                          );
-                        })}
+                            return (
+                              <button
+                                key={opt}
+                                type="button"
+                                onClick={() => handleStayOverride(city, opt)}
+                                className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
+                                    ? "bg-rose-50/40 border-2 border-[#e25c5c] shadow-xs text-slate-900"
+                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
+                                  }`}
+                              >
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between w-full">
+                                    <span className={`text-xs font-extrabold tracking-tight ${isSelected ? "text-[#e25c5c]" : "text-[#0f172a]"}`}>
+                                      {name}
+                                    </span>
+                                    {isSelected && (
+                                      <span className="text-[10px] bg-[#e25c5c] text-white px-2 py-0.5 rounded-md font-extrabold">
+                                        ✓ {locale === "ko" ? "선택됨" : "Selected"}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] leading-relaxed text-slate-500">
+                                    {desc}
+                                  </p>
+                                </div>
+                                <div className="mt-3 flex items-baseline justify-between w-full border-t border-slate-100 pt-2">
+                                  <span className="text-[10px] font-bold text-slate-400">1박당 평균가</span>
+                                  <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(price)}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 2. In-place Candidate Accommodations Section (3x2 Desktop, 2x3 Mobile Grid) */}
+                      {accSpotsForCity.length > 0 && (
+                        <div className="space-y-3 pt-3 border-t border-slate-100">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                              {locale === "ko" ? `🏘️ ${CITY_KOREAN_NAMES[city] || city} 실제 후보 숙소 탐색` : `🏘️ ${CITY_ENGLISH_NAMES[city] || city} Candidate Accommodations`}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              {locale === "ko" ? `전체 ${accSpotsForCity.length}개 중 ${displayedAccSpots.length}개 노출` : `Showing ${displayedAccSpots.length} of ${accSpotsForCity.length}`}
+                            </span>
+                          </div>
+
+                          {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {displayedAccSpots.map((spot) => {
+                              const isSelectedSpot = isPlaceOverride && (accOverride as any).placeId === spot.id;
+                              const stayNights = Math.max(1, cityNights);
+                              const totalStayPrice = spot.nightlyPriceKrw * stayNights;
+
+                              return (
+                                <div
+                                  key={spot.id}
+                                  className={`p-3.5 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all ${
+                                    isSelectedSpot
+                                      ? "border-rose-400 ring-2 ring-rose-200 bg-rose-50/20"
+                                      : "border-slate-200 hover:border-slate-300"
+                                  }`}
+                                >
+                                  <div className="space-y-2">
+                                    {/* Visual Header */}
+                                    <div className={`h-12 w-full rounded-xl bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
+                                      <span className="text-2xl">{spot.emoji}</span>
+                                      <span className="text-[9px] bg-white/90 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
+                                        📍 {locale === "ko" ? spot.locationKo : spot.locationEn}
+                                      </span>
+                                    </div>
+
+                                    <div>
+                                      <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
+                                        {locale === "ko" ? spot.nameKo : spot.nameEn}
+                                      </h5>
+                                      <p className="text-[10px] text-slate-400 leading-snug line-clamp-2 mt-0.5">
+                                        {locale === "ko" ? spot.descKo : spot.descEn}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-3 pt-2 border-t border-slate-100 space-y-2">
+                                    <div className="flex items-baseline justify-between text-xs">
+                                      <span className="text-[10px] text-slate-400 font-medium">1박 당</span>
+                                      <strong className="font-extrabold text-slate-900">{formatKrw(spot.nightlyPriceKrw)}</strong>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-1 border-t border-slate-50">
+                                      <span className="text-[10px] font-extrabold text-[#e25c5c]">
+                                        {cityNights === 0
+                                          ? (locale === "ko" ? "당일치기" : "Day trip")
+                                          : `${cityNights}${locale === "ko" ? "박 " : "N "}${formatKrw(totalStayPrice)}`}
+                                      </span>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (isSelectedSpot) {
+                                            handleResetStay(city);
+                                          } else {
+                                            handleStayOverride(city, {
+                                              kind: "PLACE",
+                                              basketId: spot.basketId,
+                                              placeId: spot.id,
+                                              placeNameKo: spot.nameKo,
+                                              placeNameEn: spot.nameEn,
+                                              nightlyPriceKrw: spot.nightlyPriceKrw,
+                                              priceSource: "MOCK",
+                                              snapshotAt: "2026-08-01",
+                                            });
+                                          }
+                                        }}
+                                        className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-colors cursor-pointer shrink-0 ${
+                                          isSelectedSpot
+                                            ? "bg-rose-500 text-white hover:bg-rose-600 shadow-2xs"
+                                            : "bg-[#0f172a] text-white hover:bg-slate-800"
+                                        }`}
+                                      >
+                                        {isSelectedSpot
+                                          ? (locale === "ko" ? "✓ 선택됨" : "✓ Selected")
+                                          : (locale === "ko" ? "+ 예산에 담기" : "+ Add Stay")}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Show More / Show Less Toggle Button */}
+                          {accSpotsForCity.length > 6 && (
+                            <div className="text-center pt-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setShowMoreAccommodationsByCity((prev) => ({
+                                    ...prev,
+                                    [city]: !prev[city],
+                                  }))
+                                }
+                                className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                              >
+                                {isShowMoreAcc ? (dict.planner.showLess || "접기 ▲") : (dict.planner.showMore || "더보기 ▼")}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 3. My Stay Budget Summary Panel */}
+                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                          <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1">
+                            <span>📋</span>
+                            <span>{locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 숙박 예산 요약` : `${city} Stay Summary`}</span>
+                          </span>
+                          <span className="text-xs font-black text-[#e25c5c]">
+                            {formatKrw(plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.lineTotalKrw || 0)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs text-slate-600">
+                          <span className="font-bold">
+                            {isPlaceOverride ? (locale === "ko" ? "선택 숙소:" : "Selected Stay:") : (locale === "ko" ? "숙소 유형:" : "Stay Tier:")}
+                          </span>
+                          <span className="font-extrabold text-slate-800">
+                            {isPlaceOverride
+                              ? `${(accOverride as any).placeNameKo} (${formatKrw((accOverride as any).nightlyPriceKrw)}/박)`
+                              : getBasketLabel(activeBasketId, dict, locale, city)}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   );

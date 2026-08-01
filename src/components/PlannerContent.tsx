@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder } from "../lib/trip-domain";
+import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds } from "../lib/storage-helper";
 
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection } from "../features/budget/domain/types";
@@ -151,10 +151,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleModalNightsChange = (newNights: number) => {
     if (!editDraft) return;
     const newAllocations = calculateDefaultNightAllocation(editDraft.selectedCities, newNights);
+    const defaultBudget = getDefaultTargetBudgetByNights(newNights, editDraft.adultCount);
     setEditDraft({
       ...editDraft,
       totalNights: newNights,
       cityNightAllocations: newAllocations,
+      budgetTier: isCustomTargetBudget ? editDraft.budgetTier : defaultBudget.budgetTier,
+      targetBudgetKrw: isCustomTargetBudget ? editDraft.targetBudgetKrw : defaultBudget.targetBudgetKrw,
     });
   };
 
@@ -191,9 +194,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleModalAdultsChange = (newAdults: number) => {
     if (!editDraft) return;
+    const defaultBudget = getDefaultTargetBudgetByNights(editDraft.totalNights, newAdults);
     setEditDraft({
       ...editDraft,
       adultCount: newAdults,
+      budgetTier: isCustomTargetBudget ? editDraft.budgetTier : defaultBudget.budgetTier,
+      targetBudgetKrw: isCustomTargetBudget ? editDraft.targetBudgetKrw : defaultBudget.targetBudgetKrw,
     });
   };
 

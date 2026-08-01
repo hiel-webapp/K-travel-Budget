@@ -93,9 +93,43 @@ export const DEFAULT_TRIP_DRAFT: TripDraft = {
     SEOUL: 5,
   },
   budgetTier: "STANDARD",
-  targetBudgetKrw: 3000000,
+  targetBudgetKrw: 4000000,
   schemaVersion: 1,
 };
+
+/**
+ * 선택된 박수(totalNights)와 인원수(adultCount)에 따라 1인당 및 총 기본 목표 예산을 연산합니다.
+ * - 1박 ~ 3박: 1인당 100만원 (BUDGET)
+ * - 4박 ~ 7박: 1인당 200만원 (STANDARD)
+ * - 8박 이상: 1인당 300만원 (PREMIUM)
+ */
+export function getDefaultTargetBudgetByNights(
+  totalNights: number | null,
+  adultCount: number | null
+): { budgetTier: BudgetTier; perPersonBudgetKrw: number; targetBudgetKrw: number } {
+  const nights = totalNights && totalNights > 0 ? totalNights : 5;
+  const adults = adultCount && adultCount > 0 ? adultCount : 1;
+
+  let perPersonBudgetKrw = 2000000;
+  let budgetTier: BudgetTier = "STANDARD";
+
+  if (nights <= 3) {
+    perPersonBudgetKrw = 1000000;
+    budgetTier = "BUDGET";
+  } else if (nights <= 7) {
+    perPersonBudgetKrw = 2000000;
+    budgetTier = "STANDARD";
+  } else {
+    perPersonBudgetKrw = 3000000;
+    budgetTier = "PREMIUM";
+  }
+
+  return {
+    budgetTier,
+    perPersonBudgetKrw,
+    targetBudgetKrw: perPersonBudgetKrw * adults,
+  };
+}
 
 /**
  * 예산 등급에 따른 문장 조립용 Phrase 매핑 정보

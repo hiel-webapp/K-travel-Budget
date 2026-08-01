@@ -3008,7 +3008,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       type="button"
                       onClick={() => {
                         setEditDraft(draft);
-                        setEditTab("ADULTS");
+                        setEditTab("NIGHTS");
                         setEditError(null);
                         setIsEditModalOpen(true);
                       }}

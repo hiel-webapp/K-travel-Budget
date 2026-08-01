@@ -137,6 +137,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
   const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
 
+  // 목표 예산 직접 입력 상태
+  const [isCustomTargetBudget, setIsCustomTargetBudget] = useState<boolean>(false);
+  const [customTargetBudgetInput, setCustomTargetBudgetInput] = useState<string>("");
+
   // 여행 조건 수정 팝오버 모달 상태
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [pendingBudgetTier, setPendingBudgetTier] = useState<BudgetTier | null>(null);
@@ -494,12 +498,76 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const handleBudgetTierChange = (newTier: BudgetTier) => {
+  const handleTargetBudgetTierChange = (newTier: BudgetTier) => {
+    const adultCount = draft.adultCount || 1;
+    let perPersonAmount = 1500000;
+    if (newTier === "BUDGET") perPersonAmount = 800000;
+    if (newTier === "STANDARD") perPersonAmount = 1500000;
+    if (newTier === "PREMIUM") perPersonAmount = 2500000;
+
+    const nextTargetBudget = perPersonAmount * adultCount;
     const nextDraft: TripDraft = {
       ...draft,
       budgetTier: newTier,
+      targetBudgetKrw: nextTargetBudget,
     };
+
     saveTripDraft(nextDraft);
+    setIsCustomTargetBudget(false);
+
+    // 사용자의 모든 개별 오버라이드(숙소, K-Food, 관광 등) 100% 완전 보존
+    savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodTier: preferences.foodTier,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
+      attractionSelections: preferences.attractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
+      emergencyFundKrw: preferences.emergencyFundKrw,
+      emergencyFundPct: preferences.emergencyFundPct,
+      draft: nextDraft,
+    });
+
+    setState((prev) => {
+      if (prev.status !== "ready") return prev;
+      return {
+        ...prev,
+        draft: nextDraft,
+      };
+    });
+  };
+
+  const handleCustomTargetBudgetSubmit = (perPersonAmount: number) => {
+    if (isNaN(perPersonAmount) || perPersonAmount <= 0) return;
+    const adultCount = draft.adultCount || 1;
+    const nextTargetBudget = perPersonAmount * adultCount;
+
+    let inferredTier: BudgetTier = "STANDARD";
+    if (perPersonAmount <= 1000000) inferredTier = "BUDGET";
+    else if (perPersonAmount >= 2000000) inferredTier = "PREMIUM";
+
+    const nextDraft: TripDraft = {
+      ...draft,
+      budgetTier: inferredTier,
+      targetBudgetKrw: nextTargetBudget,
+    };
+
+    saveTripDraft(nextDraft);
+
+    savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodTier: preferences.foodTier,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
+      attractionSelections: preferences.attractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
+      emergencyFundKrw: preferences.emergencyFundKrw,
+      emergencyFundPct: preferences.emergencyFundPct,
+      draft: nextDraft,
+    });
+
     setState((prev) => {
       if (prev.status !== "ready") return prev;
       return {
@@ -1177,31 +1245,27 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             {/* Interactive AI Target Budget Selector Switch */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                  <span>🤖</span>
-                  <span>{locale === "ko" ? "AI 1인당 목표 예산 맞춤 설정" : "AI Per-Person Target Budget"}</span>
+                <span className="text-xs font-extrabold text-[#0f172a]">
+                  {locale === "ko" ? "AI 1인당 목표 예산 맞춤 설정" : "AI Per-Person Target Budget"}
                 </span>
                 <span className="text-xs font-extrabold text-[#e25c5c]">
-                  1인당 {formatKrw(Math.round(plan.targetBudgetKrw / (draft.adultCount || 1)))}
+                  1인당 {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
+              {/* 4 buttons grid: 80만원대, 150만원대, 250만원대, 직접 입력 */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { key: "BUDGET", label: locale === "ko" ? "💡 1인 80만원대" : "💡 ~800k/person" },
-                  { key: "STANDARD", label: locale === "ko" ? "⭐️ 1인 150만원대" : "⭐️ ~1.5m/person" },
-                  { key: "PREMIUM", label: locale === "ko" ? "👑 1인 250만원대" : "👑 ~2.5m/person" },
+                  { key: "BUDGET", label: locale === "ko" ? "80만원대" : "~800k" },
+                  { key: "STANDARD", label: locale === "ko" ? "150만원대" : "~1.5m" },
+                  { key: "PREMIUM", label: locale === "ko" ? "250만원대" : "~2.5m" },
                 ].map((tierOpt) => {
-                  const isSelected = (draft.budgetTier || "STANDARD") === tierOpt.key;
+                  const isSelected = !isCustomTargetBudget && (draft.budgetTier || "STANDARD") === tierOpt.key;
                   return (
                     <button
                       key={tierOpt.key}
                       type="button"
-                      onClick={() => {
-                        if (!isSelected) {
-                          setPendingBudgetTier(tierOpt.key as BudgetTier);
-                        }
-                      }}
+                      onClick={() => handleTargetBudgetTierChange(tierOpt.key as BudgetTier)}
                       className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
                         isSelected
                           ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
@@ -1212,12 +1276,62 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </button>
                   );
                 })}
+
+                {/* Directly Custom Input Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsCustomTargetBudget(true)}
+                  className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
+                    isCustomTargetBudget
+                      ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                      : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
+                  }`}
+                >
+                  <span className="text-xs">{locale === "ko" ? "직접 입력" : "Custom"}</span>
+                </button>
               </div>
+
+              {/* Custom Budget Direct Input Form */}
+              {isCustomTargetBudget && (
+                <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-2 text-xs">
+                  <div className="flex items-center justify-between font-bold text-slate-800">
+                    <span>{locale === "ko" ? "1인당 목표 예산 직접 입력" : "Enter per-person target budget:"}</span>
+                    <span className="text-[10px] text-slate-400">
+                      {locale === "ko" ? `성인 ${draft.adultCount || 1}명 총액 = 1인당 금액 × ${draft.adultCount || 1}` : `Total = Per person × ${draft.adultCount || 1}`}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₩</span>
+                      <input
+                        type="number"
+                        step="10000"
+                        value={customTargetBudgetInput}
+                        onChange={(e) => setCustomTargetBudgetInput(e.target.value)}
+                        placeholder={String(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
+                        className="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-2 focus:outline-[#e25c5c]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = parseInt(customTargetBudgetInput, 10);
+                        if (!isNaN(val) && val > 0) {
+                          handleCustomTargetBudgetSubmit(val);
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-[#0f172a] text-white font-bold rounded-lg text-xs hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      {locale === "ko" ? "적용" : "Apply"}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
                 {locale === "ko"
-                  ? "💡 선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
-                  : "💡 AI matches optimal accommodation, food, and activities based on your per-person target budget."}
+                  ? "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
+                  : "AI matches optimal accommodation, food, and activities based on your per-person target budget."}
               </p>
             </div>
           </div>
@@ -3503,7 +3617,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <button
                 type="button"
                 onClick={() => {
-                  handleBudgetTierChange(pendingBudgetTier);
+                  handleTargetBudgetTierChange(pendingBudgetTier);
                   setPendingBudgetTier(null);
                 }}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-[#e25c5c] hover:bg-[#d14b4b] text-white font-extrabold text-xs shadow-xs transition-colors cursor-pointer"

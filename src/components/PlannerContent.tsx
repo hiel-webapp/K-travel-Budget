@@ -1253,7 +1253,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </span>
               </div>
 
-              {/* 4 buttons grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, 직접 입력 */}
+              {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
                   { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
@@ -1265,7 +1265,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     <button
                       key={tierOpt.key}
                       type="button"
-                      onClick={() => handleTargetBudgetTierChange(tierOpt.key as BudgetTier)}
+                      onClick={() => {
+                        setIsCustomTargetBudget(false);
+                        setCustomTargetBudgetInput("");
+                        handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
+                      }}
                       className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
                         isSelected
                           ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
@@ -1277,51 +1281,34 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   );
                 })}
 
-                {/* Directly Custom Input Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsCustomTargetBudget(true)}
-                  className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
+                {/* 4th Card: Integrated Direct Custom Input Card */}
+                <div
+                  className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
                     isCustomTargetBudget
                       ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                       : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
                   }`}
                 >
-                  <span className="text-xs font-bold">{locale === "ko" ? "직접 입력" : "Custom"}</span>
-                </button>
-              </div>
-
-              {/* Custom Budget Direct Input Form (Auto-applied on input change) */}
-              {isCustomTargetBudget && (
-                <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-2 text-xs">
-                  <div className="flex items-center justify-between font-bold text-slate-800">
-                    <span>{locale === "ko" ? "1인당 목표 예산 직접 입력" : "Enter per-person target budget:"}</span>
-                    <span className="text-[10px] text-slate-400">
-                      {locale === "ko" ? `성인 ${draft.adultCount || 1}명 총액 = 1인당 금액 × ${draft.adultCount || 1}` : `Total = Per person × ${draft.adultCount || 1}`}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₩</span>
-                      <input
-                        type="number"
-                        step="10000"
-                        value={customTargetBudgetInput}
-                        onChange={(e) => {
-                          const valStr = e.target.value;
-                          setCustomTargetBudgetInput(valStr);
-                          const valNum = parseInt(valStr, 10);
-                          if (!isNaN(valNum) && valNum > 0) {
-                            handleCustomTargetBudgetSubmit(valNum);
-                          }
-                        }}
-                        placeholder={String(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
-                        className="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-2 focus:outline-[#e25c5c]"
-                      />
-                    </div>
-                  </div>
+                  <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                  <input
+                    type="number"
+                    step="10000"
+                    value={customTargetBudgetInput}
+                    onFocus={() => setIsCustomTargetBudget(true)}
+                    onChange={(e) => {
+                      const valStr = e.target.value;
+                      setCustomTargetBudgetInput(valStr);
+                      setIsCustomTargetBudget(true);
+                      const valNum = parseInt(valStr, 10);
+                      if (!isNaN(valNum) && valNum > 0) {
+                        handleCustomTargetBudgetSubmit(valNum);
+                      }
+                    }}
+                    placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                    className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                  />
                 </div>
-              )}
+              </div>
 
               <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
                 {locale === "ko"

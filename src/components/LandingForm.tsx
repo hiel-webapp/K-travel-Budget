@@ -12,6 +12,7 @@ import {
   getCitiesSentenceLabel,
   CITY_KOREAN_NAMES,
   sortCitiesByStandardOrder,
+  getDefaultTargetBudgetByNights,
 } from "src/lib/trip-domain";
 import {
   saveTripDraft,
@@ -93,17 +94,23 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
   const handleNightsChange = (newNights: number) => {
     const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
+    const defaultBudget = getDefaultTargetBudgetByNights(newNights, draft.adultCount);
     setDraft((prev) => ({
       ...prev,
       totalNights: newNights,
       cityNightAllocations: newAllocations,
+      budgetTier: defaultBudget.budgetTier,
+      targetBudgetKrw: defaultBudget.targetBudgetKrw,
     }));
   };
 
   const handleAdultsChange = (newAdults: number) => {
+    const defaultBudget = getDefaultTargetBudgetByNights(draft.totalNights, newAdults);
     setDraft((prev) => ({
       ...prev,
       adultCount: newAdults,
+      budgetTier: defaultBudget.budgetTier,
+      targetBudgetKrw: defaultBudget.targetBudgetKrw,
     }));
   };
 
@@ -167,9 +174,12 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
     e.preventDefault();
     setValidationError(null);
 
+    const defaultBudget = getDefaultTargetBudgetByNights(draft.totalNights, draft.adultCount);
+
     const draftToSave: TripDraft = {
       ...draft,
-      budgetTier: draft.budgetTier || "STANDARD",
+      budgetTier: draft.budgetTier || defaultBudget.budgetTier,
+      targetBudgetKrw: draft.targetBudgetKrw || defaultBudget.targetBudgetKrw,
     };
 
     const validation = validateTripDraft(draftToSave);

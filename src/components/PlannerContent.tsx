@@ -1260,61 +1260,69 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
 
               {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {[
-                  { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
-                  { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
-                  { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
-                ].map((tierOpt) => {
-                  const isSelected = !isCustomTargetBudget && (draft.budgetTier || "STANDARD") === tierOpt.key;
-                  return (
-                    <button
-                      key={tierOpt.key}
-                      type="button"
-                      onClick={() => {
-                        setIsCustomTargetBudget(false);
-                        setCustomTargetBudgetInput("");
-                        handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
-                      }}
-                      className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
-                        isSelected
+              {(() => {
+                const currentPerPerson = Math.round((draft.targetBudgetKrw || 2000000) / (draft.adultCount || 1));
+                const isPresetMatch = currentPerPerson === 1000000 || currentPerPerson === 2000000 || currentPerPerson === 3000000;
+                const isCustomActive = isCustomTargetBudget || !isPresetMatch;
+
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
+                      { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
+                      { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
+                    ].map((tierOpt) => {
+                      const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
+                      return (
+                        <button
+                          key={tierOpt.key}
+                          type="button"
+                          onClick={() => {
+                            setIsCustomTargetBudget(false);
+                            setCustomTargetBudgetInput("");
+                            handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
+                          }}
+                          className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
+                            isSelected
+                              ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                              : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
+                          }`}
+                        >
+                          <span className="text-xs font-bold">{tierOpt.label}</span>
+                        </button>
+                      );
+                    })}
+
+                    {/* 4th Card: Integrated Direct Custom Input Card */}
+                    <div
+                      className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
+                        isCustomActive
                           ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                           : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
                       }`}
                     >
-                      <span className="text-xs font-bold">{tierOpt.label}</span>
-                    </button>
-                  );
-                })}
-
-                {/* 4th Card: Integrated Direct Custom Input Card */}
-                <div
-                  className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                    isCustomTargetBudget
-                      ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                      : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
-                  }`}
-                >
-                  <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
-                  <input
-                    type="number"
-                    step="10000"
-                    value={customTargetBudgetInput}
-                    onFocus={() => setIsCustomTargetBudget(true)}
-                    onChange={(e) => {
-                      const valStr = e.target.value;
-                      setCustomTargetBudgetInput(valStr);
-                      setIsCustomTargetBudget(true);
-                      const valNum = parseInt(valStr, 10);
-                      if (!isNaN(valNum) && valNum > 0) {
-                        handleCustomTargetBudgetSubmit(valNum);
-                      }
-                    }}
-                    placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                    className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
-                  />
-                </div>
-              </div>
+                      <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                      <input
+                        type="number"
+                        step="10000"
+                        value={customTargetBudgetInput || (isCustomActive ? String(currentPerPerson) : "")}
+                        onFocus={() => setIsCustomTargetBudget(true)}
+                        onChange={(e) => {
+                          const valStr = e.target.value;
+                          setCustomTargetBudgetInput(valStr);
+                          setIsCustomTargetBudget(true);
+                          const valNum = parseInt(valStr, 10);
+                          if (!isNaN(valNum) && valNum > 0) {
+                            handleCustomTargetBudgetSubmit(valNum);
+                          }
+                        }}
+                        placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                        className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
 
               <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
                 {locale === "ko"

@@ -1373,54 +1373,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             aria-labelledby={`cat-tab-${selectedCityTab === "ALL" ? "summary" : activeCategory}`}
             aria-live="polite"
           >
-            {selectedCityTab !== "ALL" && activeCategory !== "ATTRACTION" && (() => {
-              const currentCategory = activeCategory === "EMERGENCY_FUND" ? "ACCOMMODATION" : activeCategory;
-              return (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <h3 className="text-lg font-bold text-[#0f172a]">
-                      {currentCategory === "ACCOMMODATION" && dict.planner.accommodationTitle}
-                      {currentCategory === "FOOD" && dict.planner.foodTitle}
-                      {currentCategory === "CITY_TRANSPORT" && dict.planner.transportTitle}
-                    </h3>
-                    <p className="mt-1 text-xs sm:text-sm text-slate-400">
-                      {currentCategory === "ACCOMMODATION" && dict.planner.accommodationDescription}
-                      {currentCategory === "FOOD" && dict.planner.foodDescription}
-                      {currentCategory === "CITY_TRANSPORT" && dict.planner.transportDescription}
-                    </p>
-                  </div>
 
-                  {(currentCategory === "ACCOMMODATION" || currentCategory === "FOOD") && (
-                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
-                      {savedPlaceCount > 0 && (
-                        <Link
-                          href={`/${locale}/places?savedOnly=true`}
-                          className="inline-flex items-center gap-1 text-xs font-bold text-[#0f172a] bg-amber-100/70 hover:bg-amber-200/70 px-3 py-2 rounded-xl border border-amber-300/60 transition-colors"
-                        >
-                          <span>★</span>
-                          <span>
-                            {(dict.places?.savedCountBadge || "저장한 후보 {count}개").replace(
-                              "{count}",
-                              String(savedPlaceCount)
-                            )}
-                          </span>
-                        </Link>
-                      )}
-                      <Link
-                        href={`/${locale}/places?city=${selectedCityTab}&category=${
-                          currentCategory === "ACCOMMODATION"
-                            ? "ACCOMMODATION"
-                            : "RESTAURANT"
-                        }`}
-                        className="inline-flex items-center justify-center text-xs font-bold text-[#e25c5c] bg-[#faf5f5] hover:bg-[#fdeeed] px-3 py-2 rounded-xl border border-[#fce8e8] transition-colors"
-                      >
-                        {dict.places?.exploreCandidatePlaces || "실제 후보 장소 탐색 →"}
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
 
             {/* 1. Summary Tab Mode: Stacked Horizontal Progress Bars & City Details */}
             {selectedCityTab === "ALL" && (() => {
@@ -1746,17 +1699,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   return (
                     <div className="space-y-6">
-                      {/* Header & Reset Button */}
+                      {/* Consolidated Header & Reset Button */}
                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
                           <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
                             <span>🏨</span>
-                            <span>{CITY_KOREAN_NAMES[city] || city} {dict.planner.selectStayTitle}</span>
+                            <span>{CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "숙박 예산 및 유형 선택" : "Accommodation Budget & Tier"}</span>
                           </h4>
                           <p className="text-xs text-slate-400 mt-0.5">
                             {locale === "ko"
-                              ? "숙소 유형(평균가)을 고르거나, 하단 실제 후보 숙소를 직접 선택하여 예산에 담으세요."
-                              : "Choose stay tier average or select specific candidate places below."}
+                              ? "여행 조건에 맞는 숙소 유형(평균가)을 고르거나 하단 후보 숙소를 예산에 담으세요."
+                              : "Choose stay tier average or select candidate places below."}
                           </p>
                         </div>
                         <button
@@ -1768,7 +1721,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               : "text-slate-300 border-slate-100 bg-slate-50 cursor-not-allowed"
                             }`}
                         >
-                          {dict.planner.resetToRecommended || "추천 숙소 유형으로 초기화"}
+                          {dict.planner.resetToRecommended || "추천 숙소로 초기화"}
                         </button>
                       </div>
 

@@ -1,6 +1,8 @@
 import { SupportedCity } from "../trip-domain";
 import { PlaceCategory, PlaceQualityStatus } from "../kto/types";
 
+export type PlacePriceStatus = "FREE" | "OFFICIAL_PRICE" | "NEEDS_CHECK";
+
 export interface PlaceItem {
   id: string;
   contentId: string;
@@ -16,7 +18,12 @@ export interface PlaceItem {
   rawUpdatedAt?: string;
   qualityStatus: PlaceQualityStatus;
   tags: string[];
-  sourceName: "MOCK";
+  sourceName: "MOCK" | "KTO";
+  priceStatus?: PlacePriceStatus;
+  priceKrw?: number;
+  officialLink?: string;
+  tel?: string;
+  useTime?: string;
 }
 
 export interface PlaceFilterOptions {
@@ -24,4 +31,17 @@ export interface PlaceFilterOptions {
   category?: PlaceCategory | "ALL";
   query?: string;
   locale?: "ko" | "en";
+}
+
+export interface TripItineraryItem {
+  id: string;
+  tripId: string;
+  dayIndex: number;
+  placeId: string;
+  place?: PlaceItem;
+  memo?: string;
+  sortOrder: number;
+  userCostOverrideKrw?: number;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -1,4 +1,4 @@
-import { SupportedCity } from "../trip-domain";
+import { SupportedCity, ALL_SUPPORTED_CITIES } from "../trip-domain";
 import {
   CAFE_KEYWORD_REGEX,
   KTO_AREA_CODE_TO_CITY,
@@ -107,7 +107,7 @@ export function resolveSupportedCity(
   areaCode?: string,
   overrideCity?: SupportedCity
 ): SupportedCity | null {
-  if (overrideCity === "SEOUL" || overrideCity === "BUSAN") {
+  if (overrideCity && ALL_SUPPORTED_CITIES.includes(overrideCity)) {
     return overrideCity;
   }
 
@@ -182,6 +182,8 @@ export function normalizeKtoPlace(
     });
   }
 
+  const rawUpdatedAt = "modifiedtime" in rawItem ? parseKtoModifiedTime(rawItem.modifiedtime) : undefined;
+
   return {
     contentId,
     sourceName: locale === "en" ? "KTO_ENG" : "KTO_KOR",
@@ -192,9 +194,24 @@ export function normalizeKtoPlace(
     longitude,
     repImageUrl,
     qualityStatus,
-    rawUpdatedAt: "modifiedtime" in rawItem ? rawItem.modifiedtime : undefined,
+    rawUpdatedAt,
     translations: [translation],
     images: images.length > 0 ? images : undefined,
     rawSourceData: rawItem as unknown as Record<string, unknown>,
   };
+}
+
+export function parseKtoModifiedTime(modifiedTime?: string): string | undefined {
+  if (!modifiedTime || typeof modifiedTime !== "string") return undefined;
+  const cleaned = modifiedTime.trim();
+  if (cleaned.length === 14 && /^\d{14}$/.test(cleaned)) {
+    const yyyy = cleaned.substring(0, 4);
+    const mm = cleaned.substring(4, 6);
+    const dd = cleaned.substring(6, 8);
+    const hh = cleaned.substring(8, 10);
+    const mi = cleaned.substring(10, 12);
+    const ss = cleaned.substring(12, 14);
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}.000Z`;
+  }
+  return undefined;
 }

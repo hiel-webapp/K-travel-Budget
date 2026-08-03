@@ -1,6 +1,8 @@
 import { SupportedCity } from "../trip-domain";
 import { PlaceCategory, PlaceQualityStatus } from "../kto/types";
 
+export type DbPlacePriceStatus = "FREE" | "OFFICIAL_PRICE" | "NEEDS_CHECK";
+
 export interface DbPlace {
   id?: string;
   content_id: string;
@@ -12,6 +14,11 @@ export interface DbPlace {
   longitude?: number;
   rep_image_url?: string;
   quality_status: PlaceQualityStatus;
+  price_status?: DbPlacePriceStatus;
+  price_krw?: number;
+  official_link?: string;
+  tel?: string;
+  use_time?: string;
   raw_updated_at?: string;
   ingested_at?: string;
   updated_at?: string;
@@ -59,4 +66,16 @@ export interface DbIngestionRun {
   error_message?: string;
   started_at?: string;
   completed_at?: string;
+}
+
+export interface DbTripItinerary {
+  id?: string;
+  trip_id: string;
+  day_index: number;
+  place_id: string;
+  memo?: string;
+  sort_order: number;
+  user_cost_override_krw?: number;
+  created_at?: string;
+  updated_at?: string;
 }

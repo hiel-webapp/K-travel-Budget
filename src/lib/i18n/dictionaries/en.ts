@@ -7,7 +7,7 @@ export const en: Dictionary = {
     userAccount: "User Account",
   },
   navigation: {
-    planner: "Travel Budget Planner",
+    planner: "Planner",
     trend: "K-Trend",
     guide: "K-Guide",
     savedTrips: "Saved Trips",

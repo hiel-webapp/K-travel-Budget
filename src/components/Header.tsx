@@ -26,8 +26,10 @@ export default function Header({ locale, dict }: HeaderProps) {
   };
 
   const navItems = [
+    { key: "planner", label: dict.navigation.planner, path: `/${locale}/planner` },
     { key: "trend", label: dict.navigation.trend, path: `/${locale}/trend` },
     { key: "guide", label: dict.navigation.guide, path: `/${locale}/guide` },
+    { key: "places", label: dict.navigation.places, path: `/${locale}/places` },
     { key: "saved-trips", label: dict.navigation.savedTrips, path: `/${locale}/saved-trips` },
   ] as const;
 

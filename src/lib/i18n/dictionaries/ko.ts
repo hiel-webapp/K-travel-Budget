@@ -5,7 +5,7 @@ export const ko = {
     userAccount: "사용자 계정",
   },
   navigation: {
-    planner: "여행 예산 플래너",
+    planner: "플래너",
     trend: "K-트렌드",
     guide: "K-가이드",
     savedTrips: "저장한 여행",

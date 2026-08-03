@@ -11,7 +11,7 @@ export const en: Dictionary = {
     trend: "K-Trend",
     guide: "K-Guide",
     savedTrips: "Saved Trips",
-    places: "Places",
+    places: "K-Spots",
   },
   footer: {
     copyright: "© 2026 HypeHeritage",

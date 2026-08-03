@@ -9,7 +9,7 @@ export const ko = {
     trend: "K-트렌드",
     guide: "K-가이드",
     savedTrips: "저장한 여행",
-    places: "장소 탐색",
+    places: "K-스팟",
   },
   footer: {
     copyright: "© 2026 HypeHeritage",

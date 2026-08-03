@@ -103,9 +103,6 @@ export default function Header({ locale, dict }: HeaderProps) {
                       aria-current={active ? "page" : undefined}
                     >
                       {item.label}
-                      {active && (
-                        <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#b93829] rounded-full" />
-                      )}
                     </Link>
                   </li>
                 );

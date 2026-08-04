@@ -1261,92 +1261,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-start">
         {/* ================= LEFT WORKSPACE (60%) ================= */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Main Title Banner */}
-          <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4">
-            {/* Interactive AI Target Budget Selector Switch */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-[#0f172a]">
-                  {locale === "ko" ? "AI 1인당 목표 예산 맞춤 설정" : "AI Per-Person Target Budget"}
-                </span>
-                <span className="text-xs font-extrabold text-[#e25c5c]">
-                  1인당 {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
-                </span>
-              </div>
-
-              {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
-              {(() => {
-                const currentPerPerson = Math.round((draft.targetBudgetKrw || 2000000) / (draft.adultCount || 1));
-                const isPresetMatch = currentPerPerson === 1000000 || currentPerPerson === 2000000 || currentPerPerson === 3000000;
-                const isCustomActive = isCustomTargetBudget || !isPresetMatch;
-
-                return (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
-                      { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
-                      { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
-                    ].map((tierOpt) => {
-                      const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
-                      return (
-                        <button
-                          key={tierOpt.key}
-                          type="button"
-                          onClick={() => {
-                            setIsCustomTargetBudget(false);
-                            setCustomTargetBudgetInput("");
-                            handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
-                          }}
-                          className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
-                            isSelected
-                              ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                              : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
-                          }`}
-                        >
-                          <span className="text-xs font-bold">{tierOpt.label}</span>
-                        </button>
-                      );
-                    })}
-
-                    {/* 4th Card: Integrated Direct Custom Input Card */}
-                    <div
-                      className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                        isCustomActive
-                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                          : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
-                      }`}
-                    >
-                      <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
-                      <input
-                        type="number"
-                        step="10000"
-                        value={customTargetBudgetInput || (isCustomActive ? String(currentPerPerson) : "")}
-                        onFocus={() => setIsCustomTargetBudget(true)}
-                        onChange={(e) => {
-                          const valStr = e.target.value;
-                          setCustomTargetBudgetInput(valStr);
-                          setIsCustomTargetBudget(true);
-                          const valNum = parseInt(valStr, 10);
-                          if (!isNaN(valNum) && valNum > 0) {
-                            handleCustomTargetBudgetSubmit(valNum);
-                          }
-                        }}
-                        placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                        className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
-                      />
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
-                {locale === "ko"
-                  ? "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
-                  : "AI matches optimal accommodation, food, and activities based on your per-person target budget."}
-              </p>
-            </div>
-          </div>
-
           {/* Summary Tab & City Visit Tabs */}
           <div className="flex items-center justify-start border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
             {/* Left: Distinctive Summary Tab with Right Divider */}
@@ -1543,6 +1457,91 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               return (
                 <div className="space-y-6 pt-2 border-t border-slate-100">
+                  {/* AI 1인당 목표 예산 맞춤 설정 Box */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-2xs space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-[#0f172a]">
+                          {locale === "ko" ? "AI 1인당 목표 예산 맞춤 설정" : "AI Per-Person Target Budget"}
+                        </span>
+                        <span className="text-xs font-extrabold text-[#e25c5c]">
+                          1인당 {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
+                        </span>
+                      </div>
+
+                      {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
+                      {(() => {
+                        const currentPerPerson = Math.round((draft.targetBudgetKrw || 2000000) / (draft.adultCount || 1));
+                        const isPresetMatch = currentPerPerson === 1000000 || currentPerPerson === 2000000 || currentPerPerson === 3000000;
+                        const isCustomActive = isCustomTargetBudget || !isPresetMatch;
+
+                        return (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {[
+                              { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
+                              { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
+                              { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
+                            ].map((tierOpt) => {
+                              const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
+                              return (
+                                <button
+                                  key={tierOpt.key}
+                                  type="button"
+                                  onClick={() => {
+                                    setIsCustomTargetBudget(false);
+                                    setCustomTargetBudgetInput("");
+                                    handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
+                                  }}
+                                  className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
+                                    isSelected
+                                      ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                      : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
+                                  }`}
+                                >
+                                  <span className="text-xs font-bold">{tierOpt.label}</span>
+                                </button>
+                              );
+                            })}
+
+                            {/* 4th Card: Integrated Direct Custom Input Card */}
+                            <div
+                              className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
+                                isCustomActive
+                                  ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
+                              }`}
+                            >
+                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                              <input
+                                type="number"
+                                step="10000"
+                                value={customTargetBudgetInput || (isCustomActive ? String(currentPerPerson) : "")}
+                                onFocus={() => setIsCustomTargetBudget(true)}
+                                onChange={(e) => {
+                                  const valStr = e.target.value;
+                                  setCustomTargetBudgetInput(valStr);
+                                  setIsCustomTargetBudget(true);
+                                  const valNum = parseInt(valStr, 10);
+                                  if (!isNaN(valNum) && valNum > 0) {
+                                    handleCustomTargetBudgetSubmit(valNum);
+                                  }
+                                }}
+                                placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                                className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
+                        {locale === "ko"
+                          ? "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
+                          : "AI matches optimal accommodation, food, and activities based on your per-person target budget."}
+                      </p>
+                    </div>
+                  </div>
+
                   {/* Dedicated Header Card: City Night Allocation Bar */}
                   <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 rounded-2xl space-y-3 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-[#fce8e8] pb-2.5">

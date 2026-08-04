@@ -40,6 +40,7 @@ export const ko = {
     missingState: "생성된 예산 조건이 없습니다. 랜딩 페이지에서 먼저 예산을 만들어보세요.",
     goBack: "랜딩 페이지로 가기",
     title: "여행 예산 플래너",
+    summaryTab: "여행 개요",
     status: "성공적으로 여행 정보를 로드했습니다:",
     // Missing state UI
     missingTitle: "아직 입력된 여행 정보가 없어요",

@@ -12,6 +12,7 @@ import {
   getCategoryLabel,
   getBasketLabel,
   getCalculationExpression,
+  getCombinedTransportSubtotal,
 } from "../features/budget/presentation/formatters";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
@@ -255,6 +256,214 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           <p className="text-sm text-slate-400 font-medium">{dict.planner.reportNoTargetBudget}</p>
         )}
       </div>
+
+      {/* 3.5. Visual Progress Bars & City Breakdown Cards */}
+      {(() => {
+        const citySubtotalMap: Record<string, number> = {};
+        let sumCitySubtotals = 0;
+        draft.selectedCities.forEach((city) => {
+          const sub = plan.citySections[city]?.subtotalKrw || 0;
+          citySubtotalMap[city] = sub;
+          sumCitySubtotals += sub;
+        });
+
+        const safeCitySum = Math.max(1, sumCitySubtotals);
+
+        const cityColors = [
+          { bg: "bg-[#e25c5c]", text: "text-[#e25c5c]", border: "border-[#fce8e8]", lightBg: "bg-[#faf5f5]" },
+          { bg: "bg-indigo-600", text: "text-indigo-600", border: "border-indigo-100", lightBg: "bg-indigo-50/50" },
+          { bg: "bg-emerald-600", text: "text-emerald-600", border: "border-emerald-100", lightBg: "bg-emerald-50/50" },
+          { bg: "bg-amber-600", text: "text-amber-600", border: "border-amber-100", lightBg: "bg-amber-50/50" },
+        ];
+
+        const categoryMeta = [
+          { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
+          { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
+          { cat: "CITY_TRANSPORT", icon: "🚌", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
+          { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
+        ];
+
+        const grandTotal = plan.grandTotalKrw || 1;
+        const categorySubtotals = categoryMeta.map((item) => {
+          const amount =
+            item.cat === "CITY_TRANSPORT"
+              ? getCombinedTransportSubtotal(plan)
+              : plan.categoryTotals[item.cat as BudgetCategory] || 0;
+          return {
+            label: item.label,
+            amount,
+            pct: Math.round((amount / grandTotal) * 100),
+            colorBg: item.colorBg,
+          };
+        });
+
+        return (
+          <div className="space-y-6">
+            {/* Two Stacked Progress Bar Cards Side-by-Side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Chart 1: City Budget Allocation Stacked Bar */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                    <span>🏙️</span>
+                    <span>{locale === "ko" ? `도시별 합계: ${formatKrw(sumCitySubtotals)}` : `City Total: ${formatKrw(sumCitySubtotals)}`}</span>
+                  </h4>
+                </div>
+
+                {/* Segmented Progress Bar */}
+                <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
+                  {draft.selectedCities.map((city, idx) => {
+                    const amount = citySubtotalMap[city] || 0;
+                    const pct = Math.round((amount / safeCitySum) * 100);
+                    if (pct <= 0) return null;
+                    const color = cityColors[idx % cityColors.length];
+                    return (
+                      <div
+                        key={city}
+                        style={{ width: `${pct}%` }}
+                        className={`${color.bg} transition-all duration-300 relative group`}
+                        title={`${CITY_KOREAN_NAMES[city] || city}: ${pct}% (${formatKrw(amount)})`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Legends */}
+                <div className="grid grid-cols-2 gap-x-8 gap-y-2 pt-1 text-xs w-max mx-auto">
+                  {draft.selectedCities.map((city, idx) => {
+                    const amount = citySubtotalMap[city] || 0;
+                    const pct = Math.round((amount / safeCitySum) * 100);
+                    const color = cityColors[idx % cityColors.length];
+                    const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
+
+                    return (
+                      <div key={city} className="flex items-center gap-1.5 justify-start min-w-0">
+                        <span className={`h-2.5 w-2.5 rounded-full ${color.bg} shrink-0`}></span>
+                        <span className="font-bold text-slate-800 truncate">{cityName}</span>
+                        <span className="font-extrabold text-slate-900 ml-1.5 shrink-0">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Chart 2: Category Distribution Stacked Bar */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                    <span>📦</span>
+                    <span>{locale === "ko" ? `항목별 합계: ${formatKrw(plan.grandTotalKrw)}` : `Category Total: ${formatKrw(plan.grandTotalKrw)}`}</span>
+                  </h4>
+                </div>
+
+                {/* Segmented Progress Bar */}
+                <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
+                  {categorySubtotals.map((item, idx) => {
+                    if (item.pct <= 0) return null;
+                    return (
+                      <div
+                        key={idx}
+                        style={{ width: `${item.pct}%` }}
+                        className={`${item.colorBg} transition-all duration-300 relative group`}
+                        title={`${item.label}: ${item.pct}% (${formatKrw(item.amount)})`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Legends */}
+                <div className="grid grid-cols-2 gap-x-8 gap-y-2 pt-1 text-xs w-max mx-auto">
+                  {categorySubtotals.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 justify-start min-w-0">
+                      <span className={`h-2.5 w-2.5 rounded-full ${item.colorBg} shrink-0`}></span>
+                      <span className="font-bold text-slate-800 truncate">{item.label}</span>
+                      <span className="font-extrabold text-slate-900 ml-1.5 shrink-0">{item.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* City Details Cards with Amounts */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                <span>📌</span>
+                <span>{locale === "ko" ? "도시별 세부 금액 정보" : "City Breakdown Details"}</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {draft.selectedCities.map((city, idx) => {
+                  const nights = draft.cityNightAllocations[city] || 0;
+                  const subtotal = citySubtotalMap[city] || 0;
+                  const color = cityColors[idx % cityColors.length];
+
+                  const lineItems = plan.citySections[city]?.lineItems || [];
+                  const stayAmount = lineItems.find((i) => i.category === "ACCOMMODATION")?.lineTotalKrw || 0;
+                  const foodAmount = lineItems.find((i) => i.category === "FOOD")?.lineTotalKrw || 0;
+                  const transportAmount = lineItems.find((i) => i.category === "CITY_TRANSPORT")?.lineTotalKrw || 0;
+                  const attractionAmount = lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0;
+
+                  return (
+                    <div
+                      key={city}
+                      className={`p-4 rounded-2xl border ${color.border} ${color.lightBg} flex flex-col justify-between space-y-3 shadow-2xs text-left`}
+                    >
+                      <div className="space-y-3">
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-slate-200/50 pb-2">
+                          <div className="flex items-center gap-1.5">
+                            <strong className="text-base font-extrabold text-slate-900 flex items-center gap-1">
+                              <svg className={`w-4 h-4 ${color.text} fill-current shrink-0`} viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                              </svg>
+                              <span>{locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city)}</span>
+                            </strong>
+                          </div>
+                          <span className="text-xs bg-white text-slate-700 px-2 py-0.5 rounded-full font-bold border border-slate-200/70">
+                            {nights === 0
+                              ? (locale === "ko" ? "당일치기" : "Day Trip")
+                              : `${nights}${locale === "ko" ? "박 " : "N "}${nights + 1}${locale === "ko" ? "일" : "D"}`}
+                          </span>
+                        </div>
+
+                        {/* Amount Breakdown */}
+                        <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                          <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                            <span className="text-slate-500 font-semibold">🏨 {locale === "ko" ? "숙박" : "Stay"}</span>
+                            <strong className="text-slate-900 font-extrabold">{formatKrw(stayAmount)}</strong>
+                          </div>
+                          <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                            <span className="text-slate-500 font-semibold">🍱 {locale === "ko" ? "음식" : "Food"}</span>
+                            <strong className="text-slate-900 font-extrabold">{formatKrw(foodAmount)}</strong>
+                          </div>
+                          <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                            <span className="text-slate-500 font-semibold">🚌 {locale === "ko" ? "교통" : "Transit"}</span>
+                            <strong className="text-slate-900 font-extrabold">{formatKrw(transportAmount)}</strong>
+                          </div>
+                          <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
+                            <span className="text-slate-500 font-semibold">🏛️ {locale === "ko" ? "관광" : "Attr"}</span>
+                            <strong className="text-slate-900 font-extrabold">{formatKrw(attractionAmount)}</strong>
+                          </div>
+                        </div>
+
+                        {/* Subtotal */}
+                        <div className="flex items-baseline justify-between pt-1 border-t border-slate-200/40">
+                          <span className="text-xs text-slate-500 font-bold">
+                            {locale === "ko" ? "도시 예산 소계" : "City Subtotal"}
+                          </span>
+                          <strong className={`text-base font-black ${color.text}`}>
+                            {formatKrw(subtotal)}
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 4. Categorized & Localized Breakdowns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

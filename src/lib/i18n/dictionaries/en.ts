@@ -42,6 +42,7 @@ export const en: Dictionary = {
     missingState: "No trip budget parameters found. Please configure your trip on the landing page first.",
     goBack: "Go to Landing",
     title: "Travel Budget Planner",
+    summaryTab: "Trip Overview",
     status: "Successfully loaded trip parameters:",
     // Missing state UI
     missingTitle: "Let's set up your trip details!",

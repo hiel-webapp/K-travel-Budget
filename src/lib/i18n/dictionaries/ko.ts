@@ -42,17 +42,17 @@ export const ko = {
     title: "여행 예산 플래너",
     status: "성공적으로 여행 정보를 로드했습니다:",
     // Missing state UI
-    missingTitle: "여행 정보가 없습니다",
-    missingDescription: "먼저 여행 조건을 입력한 후 예산 플래너를 시작해주세요.",
-    missingButton: "여행 조건 입력하기",
+    missingTitle: "아직 입력된 여행 정보가 없어요",
+    missingDescription: "메인 페이지에서 1, 2, 3 단계를 선택해 주시면 나에게 꼭 맞는 맞춤형 한국 여행 예산 플래너를 만들어 드려요!",
+    missingButton: "1단계부터 여행 시작하기",
     // Invalid state UI
-    invalidTitle: "여행 정보를 불러올 수 없습니다",
-    invalidDescription: "저장된 여행 정보가 올바르지 않습니다. 여행 조건을 다시 확인해주세요.",
-    invalidButton: "여행 조건 다시 입력하기",
+    invalidTitle: "여행 정보를 다시 확인해 주세요",
+    invalidDescription: "저장된 여행 정보를 찾을 수 없어요. 메인 페이지에서 여행 조건을 선택해 주세요.",
+    invalidButton: "여행 정보 입력하러 가기",
     // Calculation Error UI
-    calculationErrorTitle: "예산을 계산할 수 없습니다",
-    calculationErrorDescription: "여행 조건과 예산 데이터를 확인한 후 다시 시도해주세요.",
-    calculationErrorButton: "여행 조건 확인하기",
+    calculationErrorTitle: "예산 계산에 확인이 필요해요",
+    calculationErrorDescription: "선택하신 여행 조건을 확인하신 후 다시 시도해 주세요.",
+    calculationErrorButton: "여행 조건 다시 선택하기",
 
     // Left workspace
     workspaceTitle: "한국 여행 예산 만들기",

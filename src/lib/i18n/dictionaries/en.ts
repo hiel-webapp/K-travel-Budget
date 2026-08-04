@@ -44,17 +44,17 @@ export const en: Dictionary = {
     title: "Travel Budget Planner",
     status: "Successfully loaded trip parameters:",
     // Missing state UI
-    missingTitle: "No trip information found",
-    missingDescription: "Enter your trip details before starting the budget planner.",
-    missingButton: "Enter Trip Details",
+    missingTitle: "Let's set up your trip details!",
+    missingDescription: "Complete steps 1, 2, and 3 on the home page to build your customized Korea travel budget planner.",
+    missingButton: "Start Step 1 Now",
     // Invalid state UI
-    invalidTitle: "Unable to load trip information",
-    invalidDescription: "The saved trip information is invalid. Please enter your trip details again.",
-    invalidButton: "Re-enter Trip Details",
+    invalidTitle: "Trip Information Needed",
+    invalidDescription: "We couldn't load your saved trip details. Please select your trip options on the home page.",
+    invalidButton: "Go to Trip Setup",
     // Calculation Error UI
-    calculationErrorTitle: "Unable to calculate budget",
-    calculationErrorDescription: "Please verify your trip parameters and try again.",
-    calculationErrorButton: "Verify Trip Details",
+    calculationErrorTitle: "Budget Calculation Notice",
+    calculationErrorDescription: "Please check your trip selections and try again.",
+    calculationErrorButton: "Check Trip Details",
 
     // Left workspace
     workspaceTitle: "Build Your Korea Travel Budget",

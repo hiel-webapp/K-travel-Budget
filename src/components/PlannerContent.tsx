@@ -136,6 +136,77 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [activityManualInput, setActivityManualInput] = useState<string>("");
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
   const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
+  const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
+
+  // 여행 개요 섹션용 Option B Info 뱃지 및 툴팁 렌더러
+  const renderOverviewSectionHeader = (
+    key: string,
+    icon: string,
+    titleKo: string,
+    titleEn: string,
+    subtextKo: string,
+    subtextEn: string,
+    infoDescKo: string,
+    infoDescEn: string
+  ) => {
+    const isOpen = openOverviewInfoKey === key;
+    return (
+      <div className="relative space-y-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 flex-wrap">
+            {icon && <span className="text-base">{icon}</span>}
+            <h4 className="text-sm font-extrabold text-[#0f172a]">
+              {locale === "ko" ? titleKo : titleEn}
+            </h4>
+            <button
+              type="button"
+              onClick={() => setOpenOverviewInfoKey(isOpen ? null : key)}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
+                isOpen
+                  ? "bg-[#0f172a] text-white border-[#0f172a]"
+                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400"
+              }`}
+              title={locale === "ko" ? "설명 보기" : "View explanation"}
+            >
+              <span>ⓘ</span>
+              <span>Info</span>
+            </button>
+          </div>
+        </div>
+
+        <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+          {locale === "ko" ? subtextKo : subtextEn}
+        </p>
+
+        {isOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
+              onClick={() => setOpenOverviewInfoKey(null)}
+            />
+            <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-slate-900 text-white text-xs rounded-xl shadow-xl z-50 space-y-2 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between font-bold text-slate-200 border-b border-slate-700/80 pb-1.5">
+                <span className="flex items-center gap-1.5">
+                  <span>ⓘ</span>
+                  <span>{locale === "ko" ? `${titleKo} 상세 안내` : `${titleEn} Details`}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setOpenOverviewInfoKey(null)}
+                  className="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-slate-800 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="leading-relaxed text-slate-300 font-normal text-[11px]">
+                {locale === "ko" ? infoDescKo : infoDescEn}
+              </p>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   // 목표 예산 직접 입력 상태
   const [isCustomTargetBudget, setIsCustomTargetBudget] = useState<boolean>(false);
@@ -1461,10 +1532,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-2xs space-y-4">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-[#0f172a]">
-                          {locale === "ko" ? "AI 1인당 목표 예산 맞춤 설정" : "AI Per-Person Target Budget"}
-                        </span>
-                        <span className="text-xs font-extrabold text-[#e25c5c]">
+                        <div className="flex-1">
+                          {renderOverviewSectionHeader(
+                            "targetBudget",
+                            "🎯",
+                            "AI 1인당 목표 예산 맞춤 설정",
+                            "AI Per-Person Target Budget",
+                            "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다.",
+                            "AI matches optimal accommodation, food, and activities based on your target budget.",
+                            "목표 예산은 여행 기간과 인원수를 반영한 총 예산의 기준점입니다. 프리셋(100만/200만/300만)을 선택하거나 원하는 금액을 직접 입력하면 전체 여행 항목에 균형 있게 예산이 배분됩니다.",
+                            "Target budget serves as the baseline for your total trip costs. Select a preset or enter a custom amount to automatically balance your accommodation, food, and activity budgets."
+                          )}
+                        </div>
+                        <span className="text-xs font-extrabold text-[#e25c5c] shrink-0 ml-3">
                           1인당 {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
                         </span>
                       </div>
@@ -1476,7 +1556,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const isCustomActive = isCustomTargetBudget || !isPresetMatch;
 
                         return (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                             {[
                               { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
                               { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
@@ -1533,26 +1613,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </div>
                         );
                       })()}
-
-                      <p className="text-[11px] text-slate-500 font-medium leading-relaxed bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
-                        {locale === "ko"
-                          ? "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다."
-                          : "AI matches optimal accommodation, food, and activities based on your per-person target budget."}
-                      </p>
                     </div>
                   </div>
 
                   {/* Dedicated Header Card: City Night Allocation Bar */}
                   <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 rounded-2xl space-y-3 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-[#fce8e8] pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">🗓️</span>
-                        <h4 className="text-sm font-extrabold text-[#0f172a]">
-                          {locale === "ko" ? "도시별 체류 박수 상세 배분" : "City Night Allocation"}
-                        </h4>
-                        <span className="text-xs text-slate-500 font-medium">
-                          ({locale === "ko" ? `전체 ${draft.totalNights}박 설정` : `Total ${draft.totalNights} nights`})
-                        </span>
+                      <div className="flex-1">
+                        {renderOverviewSectionHeader(
+                          "cityNights",
+                          "🗓️",
+                          `도시별 체류 박수 상세 배분 (${draft.totalNights}박)`,
+                          `City Night Allocation (${draft.totalNights}N)`,
+                          "전체 여행 기간에 맞춰 각 도시의 체류 박수를 +/- 버튼으로 조절하세요.",
+                          "Adjust stay nights for each city using the +/- buttons.",
+                          "목적지 간 이동 시간과 권장 관광 일수를 바탕으로 배분된 일정입니다. 각 도시의 체류 박수는 총 일정 범위 내에서 자유롭게 조정할 수 있습니다.",
+                          "Set how many nights you will stay in each city. Adjusting nights automatically updates lodging and dining budgets for that city."
+                        )}
                       </div>
                       {(() => {
                         const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
@@ -1561,7 +1638,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const isFull = unallocatedNights === 0;
 
                         return (
-                          <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full border shadow-2xs ${
+                          <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full border shadow-2xs shrink-0 ml-2 ${
                             isFull
                               ? "bg-white text-[#e25c5c] border-[#fce8e8]"
                               : "bg-amber-100 text-amber-800 border-amber-300"
@@ -2438,18 +2515,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {/* 1. Trip-wide Emergency Fund Setting Block */}
                 <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                   <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                    <div>
-                      <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                        <span>🛡️</span>
-                        <span>{locale === "ko" ? "여행 전체 비상금 설정" : "Trip-wide Emergency Fund"}</span>
-                      </h4>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        {locale === "ko"
-                          ? "여행 중 발생할 수 있는 돌발 상황이나 비상 상황을 대비한 예산입니다."
-                          : "Budget for unexpected emergencies or unforeseen contingencies during your trip."}
-                      </p>
+                    <div className="flex-1">
+                      {renderOverviewSectionHeader(
+                        "emergencyFund",
+                        "🛡️",
+                        "여행 전체 비상금 설정",
+                        "Trip-wide Emergency Fund",
+                        "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.",
+                        "Budget for unexpected emergencies or unforeseen contingencies during your trip.",
+                        "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 비상금은 영수증 총액에 포함되며 예산 초과 방지에 도움을 줍니다.",
+                        "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. This helps prevent unexpected budget overruns."
+                      )}
                     </div>
-                    <span className="text-base font-extrabold text-[#e25c5c]">
+                    <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
                       {formatKrw(computedEmergencyKrw)}
                     </span>
                   </div>
@@ -2543,18 +2621,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   return (
                     <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                       <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                        <div>
-                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                            <span>🛍️</span>
-                            <span>{locale === "ko" ? "선택형 쇼핑 & 기념품 예산 설정" : "Optional Shopping & Souvenirs"}</span>
-                          </h4>
-                          <p className="text-xs text-slate-500 font-medium mt-0.5">
-                            {locale === "ko"
-                              ? "뷰티, 패션, 특산품 등 한국 여행 중, 쇼핑을 위한 예산입니다."
-                              : "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea."}
-                          </p>
+                        <div className="flex-1">
+                          {renderOverviewSectionHeader(
+                            "shoppingFund",
+                            "🛍️",
+                            "선택형 쇼핑 & 기념품 예산 설정",
+                            "Optional Shopping & Souvenirs",
+                            "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.",
+                            "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.",
+                            "가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 영수증 예산 총액에 합산됩니다.",
+                            "Select shopping budget presets per person or enter a custom amount to include in your grand total."
+                          )}
                         </div>
-                        <span className="text-base font-extrabold text-[#e25c5c]">
+                        <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
                           {formatKrw(shoppingAmountKrw)}
                         </span>
                       </div>
@@ -2634,18 +2713,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {/* 3. Trip-wide Activity Pocket Money & Reserve Setting Block */}
                 <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                   <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                    <div>
-                      <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                        <span>🎟️</span>
-                        <span>{locale === "ko" ? "현지 활동 용돈 & 자유 예비비 설정" : "Activity Pocket Money & Reserve"}</span>
-                      </h4>
-                      <p className="text-xs text-slate-500 font-medium mt-0.5">
-                        {locale === "ko"
-                          ? "여행 중 자유롭게 사용할 일일 용돈입니다."
-                          : "Daily pocket money for personal activities during your trip."}
-                      </p>
+                    <div className="flex-1">
+                      {renderOverviewSectionHeader(
+                        "activityFund",
+                        "🎟️",
+                        "현지 활동 용돈 & 자유 예비비 설정",
+                        "Activity Pocket Money & Reserve",
+                        "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.",
+                        "Daily pocket money for personal activities and extras during your trip.",
+                        "일일 1인 기준 용돈 단가를 설정하면 [1일 단가 × 인원수 × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
+                        "Daily activity allowance is calculated as [Daily rate × Number of travelers × Total nights] and included in your overall budget."
+                      )}
                     </div>
-                    <span className="text-base font-extrabold text-[#e25c5c]">
+                    <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
                       {formatKrw(
                         Object.values(plan.citySections).reduce(
                           (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
@@ -2762,16 +2842,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {draft.selectedCities.length >= 2 && (
                   <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                      <div>
-                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                          <span>🚅</span>
-                          <span>{locale === "ko" ? "도시 간 이동 여정 타임라인 (Intercity Transport)" : "Intercity Transit Timeline"}</span>
-                        </h4>
-                        <p className="text-xs text-slate-500 font-medium mt-0.5">
-                          {locale === "ko"
-                            ? "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다."
-                            : "Representative transit options and fares between your selected trip cities."}
-                        </p>
+                      <div className="flex-1">
+                        {renderOverviewSectionHeader(
+                          "intercityTransit",
+                          "🚅",
+                          "도시 간 이동 여정 타임라인",
+                          "Intercity Transit Timeline",
+                          "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다.",
+                          "Representative transit options and fares between your selected trip cities.",
+                          "KTX, 고속버스, 내륙 항공 등 도시 간 이동 구간별 대표 교통편과 평균 시세 요금(1인 편도 기준)을 보여주며, 전체 인원수에 맞게 예산에 합산됩니다.",
+                          "Displays primary transit options (KTX, express bus, domestic flights) and fares between your chosen destinations, scaled to your total group size."
+                        )}
                       </div>
                     </div>
 

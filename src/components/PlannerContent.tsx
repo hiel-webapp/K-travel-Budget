@@ -151,59 +151,59 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   ) => {
     const isOpen = openOverviewInfoKey === key;
     return (
-      <div className="relative space-y-1">
+      <div className="space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             {icon && <span className="text-base">{icon}</span>}
             <h4 className="text-sm font-extrabold text-[#0f172a]">
               {locale === "ko" ? titleKo : titleEn}
             </h4>
-            <button
-              type="button"
-              onClick={() => setOpenOverviewInfoKey(isOpen ? null : key)}
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
-                isOpen
-                  ? "bg-[#0f172a] text-white border-[#0f172a]"
-                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400"
-              }`}
-              title={locale === "ko" ? "설명 보기" : "View explanation"}
-            >
-              <span>ⓘ</span>
-              <span>Info</span>
-            </button>
+
+            {/* Info Badge Button & Directly Attached Tooltip Container */}
+            <div className="relative inline-block">
+              <button
+                type="button"
+                onClick={() => setOpenOverviewInfoKey(isOpen ? null : key)}
+                className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
+                  isOpen
+                    ? "bg-[#0f172a] text-white border-[#0f172a]"
+                    : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400"
+                }`}
+                title={locale === "ko" ? "설명 보기" : "View explanation"}
+              >
+                <span>Info</span>
+              </button>
+
+              {isOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
+                    onClick={() => setOpenOverviewInfoKey(null)}
+                  />
+                  <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-50 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-slate-200">
+                        {locale === "ko" ? infoDescKo : infoDescEn}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setOpenOverviewInfoKey(null)}
+                        className="text-slate-400 hover:text-white text-xs p-0.5 rounded hover:bg-slate-800 transition-colors shrink-0 -mr-1 -mt-0.5"
+                        title={locale === "ko" ? "닫기" : "Close"}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
           {locale === "ko" ? subtextKo : subtextEn}
         </p>
-
-        {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
-              onClick={() => setOpenOverviewInfoKey(null)}
-            />
-            <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-slate-900 text-white text-xs rounded-xl shadow-xl z-50 space-y-2 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between font-bold text-slate-200 border-b border-slate-700/80 pb-1.5">
-                <span className="flex items-center gap-1.5">
-                  <span>ⓘ</span>
-                  <span>{locale === "ko" ? `${titleKo} 상세 안내` : `${titleEn} Details`}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setOpenOverviewInfoKey(null)}
-                  className="text-slate-400 hover:text-white text-xs px-1.5 py-0.5 rounded hover:bg-slate-800 transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-              <p className="leading-relaxed text-slate-300 font-normal text-[11px]">
-                {locale === "ko" ? infoDescKo : infoDescEn}
-              </p>
-            </div>
-          </>
-        )}
       </div>
     );
   };

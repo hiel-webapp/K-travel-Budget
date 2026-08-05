@@ -2497,19 +2497,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
           {/* ================= DEDICATED GLOBAL TRIP OPTIONS & INTERCITY TRANSIT SECTION (Shown only on Summary Tab) ================= */}
           {selectedCityTab === "ALL" && (
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6">
-              <div className="border-b border-slate-200/60 pb-3">
-                <h3 className="text-base font-extrabold text-[#0f172a] flex items-center gap-2">
-                  <span>⚙️</span>
-                  <span>{locale === "ko" ? "여행 전체 공통 옵션 & 도시간 이동 설정" : "Global Trip Options & Intercity Transit"}</span>
-                </h3>
-                <p className="text-xs text-slate-500 font-medium mt-1">
-                  {locale === "ko"
-                    ? "* 비상금, 쇼핑 예산, 활동 용돈 및 도시간 이동 교통편 설정은 전체 여행 예산에 통합 합산됩니다."
-                    : "* Emergency fund, shopping budget, activity reserve, and intercity transit are integrated into your total budget."}
-                </p>
-              </div>
-
+            <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
               <div className="space-y-5">
                 {/* 1. Trip-wide Emergency Fund Setting Block */}
                 <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">

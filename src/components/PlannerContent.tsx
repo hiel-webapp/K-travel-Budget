@@ -151,8 +151,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   ) => {
     const isOpen = openOverviewInfoKey === key;
     return (
-      <div className="relative space-y-1">
-        <div className="flex items-center justify-between">
+      <div className="space-y-1">
+        <div className="relative flex items-center justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             {icon && <span className="text-base">{icon}</span>}
             <h4 className="text-sm font-extrabold text-[#0f172a]">
@@ -173,36 +173,36 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <span>Info</span>
             </button>
           </div>
+
+          {/* Popover Tooltip Aligned Directly Below Title Row */}
+          {isOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
+                onClick={() => setOpenOverviewInfoKey(null)}
+              />
+              <div className="absolute left-0 top-full mt-1.5 w-full sm:w-80 max-w-full p-3.5 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-50 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-slate-200">
+                    {locale === "ko" ? infoDescKo : infoDescEn}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOpenOverviewInfoKey(null)}
+                    className="text-slate-400 hover:text-white text-xs p-0.5 rounded hover:bg-slate-800 transition-colors shrink-0 -mr-1 -mt-0.5"
+                    title={locale === "ko" ? "닫기" : "Close"}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
           {locale === "ko" ? subtextKo : subtextEn}
         </p>
-
-        {/* Popover Tooltip Aligned to Parent Container's Left Edge */}
-        {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
-              onClick={() => setOpenOverviewInfoKey(null)}
-            />
-            <div className="absolute left-0 top-full mt-1.5 w-full sm:w-80 max-w-full p-3.5 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-50 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-slate-200">
-                  {locale === "ko" ? infoDescKo : infoDescEn}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setOpenOverviewInfoKey(null)}
-                  className="text-slate-400 hover:text-white text-xs p-0.5 rounded hover:bg-slate-800 transition-colors shrink-0 -mr-1 -mt-0.5"
-                  title={locale === "ko" ? "닫기" : "Close"}
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          </>
-        )}
       </div>
     );
   };

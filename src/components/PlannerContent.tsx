@@ -151,7 +151,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   ) => {
     const isOpen = openOverviewInfoKey === key;
     return (
-      <div className="space-y-1">
+      <div className="relative space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             {icon && <span className="text-base">{icon}</span>}
@@ -159,51 +159,50 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               {locale === "ko" ? titleKo : titleEn}
             </h4>
 
-            {/* Info Badge Button & Directly Attached Tooltip Container */}
-            <div className="relative inline-block">
-              <button
-                type="button"
-                onClick={() => setOpenOverviewInfoKey(isOpen ? null : key)}
-                className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
-                  isOpen
-                    ? "bg-[#0f172a] text-white border-[#0f172a]"
-                    : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400"
-                }`}
-                title={locale === "ko" ? "설명 보기" : "View explanation"}
-              >
-                <span>Info</span>
-              </button>
-
-              {isOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
-                    onClick={() => setOpenOverviewInfoKey(null)}
-                  />
-                  <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-50 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-slate-200">
-                        {locale === "ko" ? infoDescKo : infoDescEn}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setOpenOverviewInfoKey(null)}
-                        className="text-slate-400 hover:text-white text-xs p-0.5 rounded hover:bg-slate-800 transition-colors shrink-0 -mr-1 -mt-0.5"
-                        title={locale === "ko" ? "닫기" : "Close"}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+            {/* Info Badge Button */}
+            <button
+              type="button"
+              onClick={() => setOpenOverviewInfoKey(isOpen ? null : key)}
+              className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
+                isOpen
+                  ? "bg-[#0f172a] text-white border-[#0f172a]"
+                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400"
+              }`}
+              title={locale === "ko" ? "설명 보기" : "View explanation"}
+            >
+              <span>Info</span>
+            </button>
           </div>
         </div>
 
         <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
           {locale === "ko" ? subtextKo : subtextEn}
         </p>
+
+        {/* Popover Tooltip Aligned to Parent Container's Left Edge */}
+        {isOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40 bg-black/10 backdrop-blur-[1px]"
+              onClick={() => setOpenOverviewInfoKey(null)}
+            />
+            <div className="absolute left-0 top-full mt-1.5 w-full sm:w-80 max-w-full p-3.5 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-50 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-slate-200">
+                  {locale === "ko" ? infoDescKo : infoDescEn}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setOpenOverviewInfoKey(null)}
+                  className="text-slate-400 hover:text-white text-xs p-0.5 rounded hover:bg-slate-800 transition-colors shrink-0 -mr-1 -mt-0.5"
+                  title={locale === "ko" ? "닫기" : "Close"}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   };

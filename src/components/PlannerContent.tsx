@@ -1573,8 +1573,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   }}
                                   className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
                                     isSelected
-                                      ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                      : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
+                                      ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                      : "bg-slate-50 border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
                                   }`}
                                 >
                                   <span className="text-xs font-bold">{tierOpt.label}</span>
@@ -1586,8 +1586,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <div
                               className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
                                 isCustomActive
-                                  ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                  : "bg-slate-50 border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
+                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-slate-50 border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
                               }`}
                             >
                               <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
@@ -1789,8 +1789,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 type="button"
                                 onClick={() => handleStayOverride(city, opt)}
                                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isSelected
-                                    ? "bg-rose-50/40 border-2 border-[#e25c5c] shadow-xs text-slate-900"
-                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
+                                    ? "bg-rose-50/40 border border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
+                                    : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
                                   }`}
                               >
                                 <div className="space-y-1">
@@ -2006,8 +2006,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 onClick={() => handleFoodTierChange(targetTier as BudgetTier)}
                                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
                                   isSelected
-                                    ? "bg-amber-50/40 border-2 border-amber-500 shadow-xs text-slate-900"
-                                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
+                                    ? "bg-amber-50/40 border border-amber-500 ring-1 ring-amber-500 shadow-xs text-slate-900"
+                                    : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50/50"
                                 }`}
                               >
                                 <div className="space-y-1">
@@ -2159,8 +2159,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 onClick={() => handleToggleCourse(city, course.id)}
                                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${
                                   isSelected
-                                    ? "bg-rose-50/40 border-2 border-[#e25c5c] shadow-xs"
-                                    : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+                                    ? "bg-rose-50/40 border border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+                                    : "bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                                 }`}
                               >
                                 <div className="space-y-1.5 w-full">
@@ -2544,8 +2544,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             }}
                             className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                               isSelected
-                                ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                             }`}
                           >
                             <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
@@ -2556,8 +2556,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                       <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
                         emergencyManualInput !== "" && emergencyManualInput !== "0"
-                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
-                          : "bg-white border-slate-200"
+                          ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
+                          : "bg-white border border-slate-200"
                       }`}>
                         <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
                         <input
@@ -2644,8 +2644,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               }}
                               className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                                 isSelected
-                                  ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                  : "bg-white border-slate-200 text-[#0f172a] font-semibold hover:bg-slate-100"
+                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-white border border-slate-200 text-[#0f172a] font-semibold hover:bg-slate-100"
                               }`}
                             >
                               <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{opt.title}</div>
@@ -2656,8 +2656,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                         <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
                           shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
-                            ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
-                            : "bg-white border-slate-200"
+                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
+                            : "bg-white border border-slate-200"
                         }`}>
                           <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
                           <input
@@ -2763,8 +2763,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             }}
                             className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
                               isSelected
-                                ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                : "bg-white border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                             }`}
                           >
                             <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
@@ -2777,8 +2777,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                       <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
                         (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
-                          ? "bg-[#fdf2f2] border-2 border-[#e25c5c] font-extrabold shadow-2xs"
-                          : "bg-white border-slate-200"
+                          ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
+                          : "bg-white border border-slate-200"
                       }`}>
                         <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
                         <input

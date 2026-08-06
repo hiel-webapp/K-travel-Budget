@@ -1526,10 +1526,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               });
 
               return (
-                <div className="space-y-6">
-                  {/* Unified Trip Overview Box */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-2xs space-y-5">
-                    {/* 1. AI 1인당 목표 예산 맞춤 설정 */}
+                <div className="space-y-5">
+                  {/* 1. AI 1인당 목표 예산 맞춤 설정 Box */}
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-2xs space-y-4">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -1614,85 +1613,458 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         );
                       })()}
                     </div>
+                  </div>
 
-                    {/* 2. City Night Allocation Bar */}
-                    <div className="bg-[#faf5f5]/80 border border-[#fce8e8] p-4 rounded-xl space-y-3">
-                      <div className="flex items-center justify-between border-b border-[#fce8e8] pb-2.5">
-                        <div className="flex-1">
-                          {renderOverviewSectionHeader(
-                            "cityNights",
-                            "🗓️",
-                            `도시별 체류 기간 (${draft.totalNights}박)`,
-                            `City Stay Duration (${draft.totalNights}N)`,
-                            "전체 여행 기간에 맞춰 각 도시의 체류 박수를 +/- 버튼으로 조절하세요.",
-                            "Adjust stay nights for each city using the +/- buttons.",
-                            "목적지 간 이동 시간과 권장 관광 일수를 바탕으로 배분된 일정입니다. 각 도시의 체류 박수는 총 일정 범위 내에서 자유롭게 조정할 수 있습니다.",
-                            "Set how many nights you will stay in each city. Adjusting nights automatically updates lodging and dining budgets for that city."
-                          )}
-                        </div>
-                        {(() => {
-                          const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
-                          const maxNights = draft.totalNights || 5;
-                          const unallocatedNights = maxNights - currentAllocatedSum;
-                          const isFull = unallocatedNights === 0;
+                  {/* 2. Dedicated Header Card: City Night Allocation Bar */}
+                  <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 rounded-2xl space-y-3 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-[#fce8e8] pb-2.5">
+                      <div className="flex-1">
+                        {renderOverviewSectionHeader(
+                          "cityNights",
+                          "🗓️",
+                          `도시별 체류 기간 (${draft.totalNights}박)`,
+                          `City Stay Duration (${draft.totalNights}N)`,
+                          "전체 여행 기간에 맞춰 각 도시의 체류 박수를 +/- 버튼으로 조절하세요.",
+                          "Adjust stay nights for each city using the +/- buttons.",
+                          "목적지 간 이동 시간과 권장 관광 일수를 바탕으로 배분된 일정입니다. 각 도시의 체류 박수는 총 일정 범위 내에서 자유롭게 조정할 수 있습니다.",
+                          "Set how many nights you will stay in each city. Adjusting nights automatically updates lodging and dining budgets for that city."
+                        )}
+                      </div>
+                      {(() => {
+                        const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
+                        const maxNights = draft.totalNights || 5;
+                        const unallocatedNights = maxNights - currentAllocatedSum;
+                        const isFull = unallocatedNights === 0;
+
+                        return (
+                          <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full border shadow-2xs shrink-0 ml-2 ${
+                            isFull
+                              ? "bg-white text-[#e25c5c] border-[#fce8e8]"
+                              : "bg-amber-100 text-amber-800 border-amber-300"
+                          }`}>
+                            {locale === "ko"
+                              ? (isFull ? `총 ${maxNights}박 배분 완료` : `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`)
+                              : `${currentAllocatedSum} / ${maxNights} Nights`}
+                          </span>
+                        );
+                      })()}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {draft.selectedCities.map((city) => {
+                        const cityNights = draft.cityNightAllocations[city] ?? 0;
+                        const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
+                        const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
+                        const maxNights = draft.totalNights || 5;
+                        const canIncrease = currentAllocatedSum < maxNights;
+                        const canDecrease = cityNights > 0;
+
+                        return (
+                          <div key={city} className="bg-white/80 px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-2 min-w-0 shadow-2xs">
+                            <div className="flex items-center gap-1.5 min-w-0 shrink-0">
+                              <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">📍 {cityName}</span>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                disabled={!canDecrease}
+                                onClick={() => handleDirectCityNightChange(city, -1)}
+                                className="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+                                title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
+                              >
+                                -
+                              </button>
+                              <span className="px-1.5 text-xs font-black text-[#e25c5c] min-w-[38px] text-center whitespace-nowrap">
+                                {cityNights === 0 ? (locale === "ko" ? "당일" : "Day") : `${cityNights}${locale === "ko" ? "박" : "N"}`}
+                              </span>
+                              <button
+                                type="button"
+                                disabled={!canIncrease}
+                                onClick={() => handleDirectCityNightChange(city, 1)}
+                                className="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
+                                title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 3. Trip-wide Emergency Fund Setting Block */}
+                  <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                      <div className="flex-1">
+                        {renderOverviewSectionHeader(
+                          "emergencyFund",
+                          "🛡️",
+                          "여행 비상금",
+                          "Emergency Fund",
+                          "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.",
+                          "Budget for unexpected emergencies or unforeseen contingencies during your trip.",
+                          "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 비상금은 영수증 총액에 포함되며 예산 초과 방지에 도움을 줍니다.",
+                          "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. This helps prevent unexpected budget overruns."
+                        )}
+                      </div>
+                      <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
+                        {formatKrw(computedEmergencyKrw)}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { pct: 0.05, label: "5%" },
+                          { pct: 0.10, label: locale === "ko" ? "10% (추천)" : "10% (Rec)" },
+                          { pct: 0.15, label: "15%" },
+                        ].map((preset) => {
+                          const calcVal = Math.round((basePlanForEmergency.grandTotalKrw * preset.pct) / 1000) * 1000;
+                          const isSelected = activeEmergencyPct === preset.pct && emergencyManualInput === "";
 
                           return (
-                            <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full border shadow-2xs shrink-0 ml-2 ${
-                              isFull
-                                ? "bg-white text-[#e25c5c] border-[#fce8e8]"
-                                : "bg-amber-100 text-amber-800 border-amber-300"
-                            }`}>
-                              {locale === "ko"
-                                ? (isFull ? `총 ${maxNights}박 배분 완료` : `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`)
-                                : `${currentAllocatedSum} / ${maxNights} Nights`}
-                            </span>
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  handleEmergencyFundPctChange(0);
+                                  setEmergencyManualInput("");
+                                } else {
+                                  handleEmergencyFundPctChange(preset.pct);
+                                  setEmergencyManualInput("");
+                                }
+                              }}
+                              className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
+                              <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
+                            </button>
                           );
-                        })()}
+                        })}
+
+                        <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                          emergencyManualInput !== "" && emergencyManualInput !== "0"
+                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
+                            : "bg-white border border-slate-200"
+                        }`}>
+                          <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="10000"
+                            className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                            value={emergencyManualInput === "0" ? "" : emergencyManualInput}
+                            onChange={handleEmergencyFundChange}
+                          />
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        {draft.selectedCities.map((city) => {
-                          const cityNights = draft.cityNightAllocations[city] ?? 0;
-                          const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
-                          const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
-                          const maxNights = draft.totalNights || 5;
-                          const canIncrease = currentAllocatedSum < maxNights;
-                          const canDecrease = cityNights > 0;
+                      <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                        <span>
+                          {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                          <strong className="text-slate-800 font-bold">
+                            {emergencyManualInput !== "" && emergencyManualInput !== "0"
+                              ? (locale === "ko" ? "사용자 설정 긴급 비상금" : "Custom Emergency Fund")
+                              : (activeEmergencyPct || 0) === 0
+                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                              : `${locale === "ko" ? "기본 여행 예산" : "Base Trip Budget"} (${formatKrw(basePlanForEmergency.grandTotalKrw)}) × ${locale === "ko" ? "비상금 비율" : "Rate"} (${Math.round((activeEmergencyPct || 0.10) * 100)}%)`}
+                          </strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4. Optional Shopping & Souvenirs Selector Card */}
+                  {(() => {
+                    const adultCount = draft.adultCount || 1;
+                    const shoppingAmountKrw = (() => {
+                      if (shoppingOption === "NONE") return 0;
+                      if (shoppingOption === "BEAUTY") return 200000 * adultCount;
+                      if (shoppingOption === "FASHION") return 300000 * adultCount;
+                      if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
+                      if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
+                      return 0;
+                    })();
+
+                    const presets = [
+                      { id: "SOUVENIR", title: locale === "ko" ? "가벼운 쇼핑" : "Light Shopping", perPerson: 100000 },
+                      { id: "BEAUTY", title: locale === "ko" ? "일반 쇼핑" : "Standard Shopping", perPerson: 200000 },
+                      { id: "FASHION", title: locale === "ko" ? "풍족한 쇼핑" : "Premium Shopping", perPerson: 300000 },
+                    ];
+
+                    return (
+                      <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                          <div className="flex-1">
+                            {renderOverviewSectionHeader(
+                              "shoppingFund",
+                              "🛍️",
+                              "쇼핑 예산",
+                              "Shopping Budget",
+                              "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.",
+                              "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.",
+                              "가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 영수증 예산 총액에 합산됩니다.",
+                              "Select shopping budget presets per person or enter a custom amount to include in your grand total."
+                            )}
+                          </div>
+                          <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
+                            {formatKrw(shoppingAmountKrw)}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {presets.map((opt) => {
+                            const calcVal = opt.perPerson * adultCount;
+                            const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
+                            return (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setShoppingOption("NONE");
+                                    setShoppingCustomInput("");
+                                  } else {
+                                    setShoppingOption(opt.id as ShoppingOption);
+                                    setShoppingCustomInput("");
+                                  }
+                                }}
+                                className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                  isSelected
+                                    ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                    : "bg-white border border-slate-200 text-[#0f172a] font-semibold hover:bg-slate-100"
+                                }`}
+                              >
+                                <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{opt.title}</div>
+                                <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
+                              </button>
+                            );
+                          })}
+
+                          <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                            shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
+                              ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
+                              : "bg-white border border-slate-200"
+                          }`}>
+                            <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="10000"
+                              className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                              placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                              value={shoppingCustomInput}
+                              onChange={(e) => {
+                                setShoppingCustomInput(e.target.value);
+                                setShoppingOption("CUSTOM");
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                          <span>
+                            {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                            <strong className="text-slate-800 font-bold">
+                              {shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
+                                ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
+                                : shoppingAmountKrw === 0
+                                ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                                : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                            </strong>
+                          </span>
+                          <span>
+                            {locale === "ko" ? "1인당 쇼핑 예산:" : "Per Traveler:"}{" "}
+                            <strong className="text-[#e25c5c] font-extrabold">
+                              {formatKrw(Math.round(shoppingAmountKrw / adultCount))}
+                            </strong>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* 5. Trip-wide Activity Pocket Money & Reserve Setting Block */}
+                  <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                      <div className="flex-1">
+                        {renderOverviewSectionHeader(
+                          "activityFund",
+                          "🎟️",
+                          "용돈",
+                          "Activity Allowance",
+                          "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.",
+                          "Daily pocket money for personal activities and extras during your trip.",
+                          "일일 1인 기준 용돈 단가를 설정하면 [1일 단가 × 인원수 × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
+                          "Daily activity allowance is calculated as [Daily rate × Number of travelers × Total nights] and included in your overall budget."
+                        )}
+                      </div>
+                      <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
+                        {formatKrw(
+                          Object.values(plan.citySections).reduce(
+                            (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
+                            0
+                          )
+                        )}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          {
+                            id: "MOSTLY_FREE" as BudgetBasketId,
+                            label: locale === "ko" ? "1만/일" : "10k/day",
+                            dailyPrice: 10000,
+                          },
+                          {
+                            id: "BALANCED" as BudgetBasketId,
+                            label: locale === "ko" ? "3만/일 (추천)" : "30k/day (Rec)",
+                            dailyPrice: 30000,
+                          },
+                          {
+                            id: "EXPERIENCE_RICH" as BudgetBasketId,
+                            label: locale === "ko" ? "5만/일" : "50k/day",
+                            dailyPrice: 50000,
+                          },
+                        ].map((preset) => {
+                          const firstCity = draft.selectedCities[0];
+                          const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                          const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
+                          const totalNights = draft.totalNights || 1;
+                          const adultCount = draft.adultCount || 1;
+                          const calcVal = preset.dailyPrice * adultCount * totalNights;
 
                           return (
-                            <div key={city} className="bg-white/80 px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-2 min-w-0 shadow-2xs">
-                              <div className="flex items-center gap-1.5 min-w-0 shrink-0">
-                                <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">📍 {cityName}</span>
+                            <button
+                              key={preset.id}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setActivityManualInput("");
+                                  handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
+                                } else {
+                                  setActivityManualInput("");
+                                  handleSetAllCitiesAttractionBasket(preset.id);
+                                }
+                              }}
+                              className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
+                              <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>
+                                {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({totalNights}{locale === "ko" ? "박 기준" : "N"})</span>
                               </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <button
-                                  type="button"
-                                  disabled={!canDecrease}
-                                  onClick={() => handleDirectCityNightChange(city, -1)}
-                                  className="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
-                                  title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
-                                >
-                                  -
-                                </button>
-                                <span className="px-1.5 text-xs font-black text-[#e25c5c] min-w-[38px] text-center whitespace-nowrap">
-                                  {cityNights === 0 ? (locale === "ko" ? "당일" : "Day") : `${cityNights}${locale === "ko" ? "박" : "N"}`}
-                                </span>
-                                <button
-                                  type="button"
-                                  disabled={!canIncrease}
-                                  onClick={() => handleDirectCityNightChange(city, 1)}
-                                  className="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-slate-100 disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs transition-colors cursor-pointer"
-                                  title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
-                                >
-                                  +
-                                </button>
+                            </button>
+                          );
+                        })}
+
+                        <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                          (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
+                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
+                            : "bg-white border border-slate-200"
+                        }`}>
+                          <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="10000"
+                            className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                            value={activityManualInput === "0" ? "" : activityManualInput}
+                            onChange={handleActivityManualInputChange}
+                          />
+                        </div>
+                      </div>
+
+                      {(() => {
+                        const firstCity = draft.selectedCities[0];
+                        const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                        const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
+                          ? preferences.attractionCustomDailyKrw
+                          : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
+                        const totalNights = draft.totalNights || 1;
+                        const adultCount = draft.adultCount || 1;
+                        const perPersonBudget = currentDailyRate * totalNights;
+
+                        return (
+                          <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                            <span>
+                              {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                              <strong className="text-slate-800 font-bold">
+                                {currentDailyRate === 0
+                                  ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                                  : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
+                              </strong>
+                            </span>
+                            <span>
+                              {locale === "ko" ? "1인당 전체 활동 예산:" : "Per Traveler:"}{" "}
+                              <strong className="text-[#e25c5c] font-extrabold">
+                                {formatKrw(perPersonBudget)}
+                              </strong>
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* 6. Intercity Transport Route Timeline */}
+                  {draft.selectedCities.length >= 2 && (
+                    <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                        <div className="flex-1">
+                          {renderOverviewSectionHeader(
+                            "intercityTransit",
+                            "🚅",
+                            "도시 간 이동",
+                            "Intercity Transit",
+                            "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다.",
+                            "Representative transit options and fares between your selected trip cities.",
+                            "KTX, 고속버스, 내륙 항공 등 도시 간 이동 구간별 대표 교통편과 평균 시세 요금(1인 편도 기준)을 보여주며, 전체 인원수에 맞게 예산에 합산됩니다.",
+                            "Displays primary transit options (KTX, express bus, domestic flights) and fares between your chosen destinations, scaled to your total group size."
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {draft.selectedCities.slice(0, -1).map((fromCity, idx) => {
+                          const toCity = draft.selectedCities[idx + 1];
+                          const fareOptions = getIntercityFareOptions(fromCity, toCity);
+                          const primaryFare = fareOptions[0];
+
+                          return (
+                            <div
+                              key={`${fromCity}-${toCity}`}
+                              className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                            >
+                              <div className="flex items-center gap-2 font-extrabold text-xs text-slate-800">
+                                <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-700">{CITY_KOREAN_NAMES[fromCity] || fromCity}</span>
+                                <span>──▶</span>
+                                <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-700">{CITY_KOREAN_NAMES[toCity] || toCity}</span>
+                              </div>
+
+                              <div className="flex items-center gap-3 text-xs">
+                                <span className="text-slate-500 font-medium">{primaryFare.nameKo} ({primaryFare.durationTextKo})</span>
+                                <strong className="text-[#e25c5c] font-black">{formatKrw(primaryFare.oneWayPriceKrw * (draft.adultCount || 1))}</strong>
+                                <span className="text-[10px] text-slate-400">({draft.adultCount || 1}명 기준)</span>
                               </div>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               );
             })()}
@@ -2502,385 +2874,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             })()}
           </div>
 
-          {/* ================= DEDICATED GLOBAL TRIP OPTIONS & INTERCITY TRANSIT SECTION (Shown only on Summary Tab) ================= */}
-          {selectedCityTab === "ALL" && (
-            <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-5">
-              <div className="space-y-5">
-                {/* 1. Trip-wide Emergency Fund Setting Block */}
-                <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                    <div className="flex-1">
-                      {renderOverviewSectionHeader(
-                        "emergencyFund",
-                        "🛡️",
-                        "여행 비상금",
-                        "Emergency Fund",
-                        "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.",
-                        "Budget for unexpected emergencies or unforeseen contingencies during your trip.",
-                        "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 비상금은 영수증 총액에 포함되며 예산 초과 방지에 도움을 줍니다.",
-                        "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. This helps prevent unexpected budget overruns."
-                      )}
-                    </div>
-                    <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                      {formatKrw(computedEmergencyKrw)}
-                    </span>
-                  </div>
 
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        { pct: 0.05, label: "5%" },
-                        { pct: 0.10, label: locale === "ko" ? "10% (추천)" : "10% (Rec)" },
-                        { pct: 0.15, label: "15%" },
-                      ].map((preset) => {
-                        const calcVal = Math.round((basePlanForEmergency.grandTotalKrw * preset.pct) / 1000) * 1000;
-                        const isSelected = activeEmergencyPct === preset.pct && emergencyManualInput === "";
-
-                        return (
-                          <button
-                            key={preset.label}
-                            type="button"
-                            onClick={() => {
-                              if (isSelected) {
-                                handleEmergencyFundPctChange(0);
-                                setEmergencyManualInput("");
-                              } else {
-                                handleEmergencyFundPctChange(preset.pct);
-                                setEmergencyManualInput("");
-                              }
-                            }}
-                            className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                              isSelected
-                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                            }`}
-                          >
-                            <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
-                            <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
-                          </button>
-                        );
-                      })}
-
-                      <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                        emergencyManualInput !== "" && emergencyManualInput !== "0"
-                          ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
-                          : "bg-white border border-slate-200"
-                      }`}>
-                        <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="10000"
-                          className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                          placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                          value={emergencyManualInput === "0" ? "" : emergencyManualInput}
-                          onChange={handleEmergencyFundChange}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                      <span>
-                        {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
-                        <strong className="text-slate-800 font-bold">
-                          {emergencyManualInput !== "" && emergencyManualInput !== "0"
-                            ? (locale === "ko" ? "사용자 설정 긴급 비상금" : "Custom Emergency Fund")
-                            : (activeEmergencyPct || 0) === 0
-                            ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                            : `${locale === "ko" ? "기본 여행 예산" : "Base Trip Budget"} (${formatKrw(basePlanForEmergency.grandTotalKrw)}) × ${locale === "ko" ? "비상금 비율" : "Rate"} (${Math.round((activeEmergencyPct || 0.10) * 100)}%)`}
-                        </strong>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. Optional Shopping & Souvenirs Selector Card */}
-                {(() => {
-                  const adultCount = draft.adultCount || 1;
-                  const shoppingAmountKrw = (() => {
-                    if (shoppingOption === "NONE") return 0;
-                    if (shoppingOption === "BEAUTY") return 200000 * adultCount;
-                    if (shoppingOption === "FASHION") return 300000 * adultCount;
-                    if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
-                    if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
-                    return 0;
-                  })();
-
-                  const presets = [
-                    { id: "SOUVENIR", title: locale === "ko" ? "가벼운 쇼핑" : "Light Shopping", perPerson: 100000 },
-                    { id: "BEAUTY", title: locale === "ko" ? "일반 쇼핑" : "Standard Shopping", perPerson: 200000 },
-                    { id: "FASHION", title: locale === "ko" ? "풍족한 쇼핑" : "Premium Shopping", perPerson: 300000 },
-                  ];
-
-                  return (
-                    <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
-                      <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                        <div className="flex-1">
-                          {renderOverviewSectionHeader(
-                            "shoppingFund",
-                            "🛍️",
-                            "쇼핑 예산",
-                            "Shopping Budget",
-                            "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.",
-                            "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.",
-                            "가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 영수증 예산 총액에 합산됩니다.",
-                            "Select shopping budget presets per person or enter a custom amount to include in your grand total."
-                          )}
-                        </div>
-                        <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                          {formatKrw(shoppingAmountKrw)}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {presets.map((opt) => {
-                          const calcVal = opt.perPerson * adultCount;
-                          const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
-                          return (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              onClick={() => {
-                                if (isSelected) {
-                                  setShoppingOption("NONE");
-                                  setShoppingCustomInput("");
-                                } else {
-                                  setShoppingOption(opt.id as ShoppingOption);
-                                  setShoppingCustomInput("");
-                                }
-                              }}
-                              className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                                isSelected
-                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                  : "bg-white border border-slate-200 text-[#0f172a] font-semibold hover:bg-slate-100"
-                              }`}
-                            >
-                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{opt.title}</div>
-                              <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
-                            </button>
-                          );
-                        })}
-
-                        <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                          shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
-                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
-                            : "bg-white border border-slate-200"
-                        }`}>
-                          <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="10000"
-                            className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                            value={shoppingCustomInput}
-                            onChange={(e) => {
-                              setShoppingCustomInput(e.target.value);
-                              setShoppingOption("CUSTOM");
-                            }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                        <span>
-                          {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
-                          <strong className="text-slate-800 font-bold">
-                            {shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
-                              ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
-                              : shoppingAmountKrw === 0
-                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                              : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
-                          </strong>
-                        </span>
-                        <span>
-                          {locale === "ko" ? "1인당 쇼핑 예산:" : "Per Traveler:"}{" "}
-                          <strong className="text-[#e25c5c] font-extrabold">
-                            {formatKrw(Math.round(shoppingAmountKrw / adultCount))}
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 3. Trip-wide Activity Pocket Money & Reserve Setting Block */}
-                <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
-                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                    <div className="flex-1">
-                      {renderOverviewSectionHeader(
-                        "activityFund",
-                        "🎟️",
-                        "용돈",
-                        "Activity Allowance",
-                        "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.",
-                        "Daily pocket money for personal activities and extras during your trip.",
-                        "일일 1인 기준 용돈 단가를 설정하면 [1일 단가 × 인원수 × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
-                        "Daily activity allowance is calculated as [Daily rate × Number of travelers × Total nights] and included in your overall budget."
-                      )}
-                    </div>
-                    <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                      {formatKrw(
-                        Object.values(plan.citySections).reduce(
-                          (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
-                          0
-                        )
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        {
-                          id: "MOSTLY_FREE" as BudgetBasketId,
-                          label: locale === "ko" ? "1만/일" : "10k/day",
-                          dailyPrice: 10000,
-                        },
-                        {
-                          id: "BALANCED" as BudgetBasketId,
-                          label: locale === "ko" ? "3만/일 (추천)" : "30k/day (Rec)",
-                          dailyPrice: 30000,
-                        },
-                        {
-                          id: "EXPERIENCE_RICH" as BudgetBasketId,
-                          label: locale === "ko" ? "5만/일" : "50k/day",
-                          dailyPrice: 50000,
-                        },
-                      ].map((preset) => {
-                        const firstCity = draft.selectedCities[0];
-                        const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
-                        const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
-                        const totalNights = draft.totalNights || 1;
-                        const adultCount = draft.adultCount || 1;
-                        const calcVal = preset.dailyPrice * adultCount * totalNights;
-
-                        return (
-                          <button
-                            key={preset.id}
-                            type="button"
-                            onClick={() => {
-                              if (isSelected) {
-                                setActivityManualInput("");
-                                handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
-                              } else {
-                                setActivityManualInput("");
-                                handleSetAllCitiesAttractionBasket(preset.id);
-                              }
-                            }}
-                            className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                              isSelected
-                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                            }`}
-                          >
-                            <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
-                            <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>
-                              {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({totalNights}{locale === "ko" ? "박 기준" : "N"})</span>
-                            </div>
-                          </button>
-                        );
-                      })}
-
-                      <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                        (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
-                          ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
-                          : "bg-white border border-slate-200"
-                      }`}>
-                        <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
-                        <input
-                          type="number"
-                          min="0"
-                          step="10000"
-                          className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                          placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                          value={activityManualInput === "0" ? "" : activityManualInput}
-                          onChange={handleActivityManualInputChange}
-                        />
-                      </div>
-                    </div>
-
-                    {(() => {
-                      const firstCity = draft.selectedCities[0];
-                      const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
-                      const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
-                        ? preferences.attractionCustomDailyKrw
-                        : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
-                      const totalNights = draft.totalNights || 1;
-                      const adultCount = draft.adultCount || 1;
-                      const perPersonBudget = currentDailyRate * totalNights;
-
-                      return (
-                        <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                          <span>
-                            {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
-                            <strong className="text-slate-800 font-bold">
-                              {currentDailyRate === 0
-                                ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
-                            </strong>
-                          </span>
-                          <span>
-                            {locale === "ko" ? "1인당 전체 활동 예산:" : "Per Traveler:"}{" "}
-                            <strong className="text-[#e25c5c] font-extrabold">
-                              {formatKrw(perPersonBudget)}
-                            </strong>
-                          </span>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-
-                {/* 4. Intercity Transport Route Timeline */}
-                {draft.selectedCities.length >= 2 && (
-                  <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
-                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                      <div className="flex-1">
-                        {renderOverviewSectionHeader(
-                          "intercityTransit",
-                          "🚅",
-                          "도시 간 이동",
-                          "Intercity Transit",
-                          "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다.",
-                          "Representative transit options and fares between your selected trip cities.",
-                          "KTX, 고속버스, 내륙 항공 등 도시 간 이동 구간별 대표 교통편과 평균 시세 요금(1인 편도 기준)을 보여주며, 전체 인원수에 맞게 예산에 합산됩니다.",
-                          "Displays primary transit options (KTX, express bus, domestic flights) and fares between your chosen destinations, scaled to your total group size."
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {draft.selectedCities.slice(0, -1).map((fromCity, idx) => {
-                        const toCity = draft.selectedCities[idx + 1];
-                        const fareOptions = getIntercityFareOptions(fromCity, toCity);
-                        const primaryFare = fareOptions[0];
-
-                        return (
-                          <div
-                            key={`${fromCity}-${toCity}`}
-                            className="p-3.5 rounded-xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                          >
-                            <div className="flex items-center gap-2 font-extrabold text-xs text-slate-800">
-                              <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-700">{CITY_KOREAN_NAMES[fromCity] || fromCity}</span>
-                              <span>──▶</span>
-                              <span className="px-2 py-0.5 bg-slate-100 rounded-md text-slate-700">{CITY_KOREAN_NAMES[toCity] || toCity}</span>
-                            </div>
-
-                            <div className="flex items-center gap-3 text-xs">
-                              <span className="text-slate-500 font-medium">{primaryFare.nameKo} ({primaryFare.durationTextKo})</span>
-                              <strong className="text-[#e25c5c] font-black">{formatKrw(primaryFare.oneWayPriceKrw * (draft.adultCount || 1))}</strong>
-                              <span className="text-[10px] text-slate-400">({draft.adultCount || 1}명 기준)</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ================= RIGHT STICKY SMART RECEIPT (40%) ================= */}

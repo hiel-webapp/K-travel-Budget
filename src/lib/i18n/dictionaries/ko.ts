@@ -83,7 +83,6 @@ export const ko = {
     // Active Category Content
     accommodationTitle: "숙박 예산",
     accommodationDescription: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 숙박 예산입니다.",
-    accommodationNotice: "이곳에서 도시별 숙박 옵션을 커스텀 변경하여 총액 예산을 조정해보세요.",
 
     attractionOverrideTitle: "관광 및 액티비티 예산",
     attractionOverrideDesc: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 관광/액티비티 예산입니다.",

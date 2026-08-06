@@ -85,7 +85,6 @@ export const en: Dictionary = {
     // Active Category Content
     accommodationTitle: "Stay Budget",
     accommodationDescription: "The accommodation budget automatically selected based on your trip details and budget tier.",
-    accommodationNotice: "You can customize accommodation options here to balance your total budget.",
 
     attractionOverrideTitle: "Attractions Budget",
     attractionOverrideDesc: "The attractions and activities budget automatically selected based on your trip parameters and budget tier.",

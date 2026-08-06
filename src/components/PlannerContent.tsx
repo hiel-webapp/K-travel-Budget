@@ -1526,7 +1526,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               });
 
               return (
-                <div className="space-y-6 pt-2 border-t border-slate-100">
+                <div className="space-y-6">
                   {/* AI 1인당 목표 예산 맞춤 설정 Box */}
                   <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-2xs space-y-4">
                     <div className="space-y-3">
@@ -1698,7 +1698,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
             {/* 2. Single City Tab Mode: City-Specific Category Options */}
             {selectedCityTab !== "ALL" && (
-              <div className="space-y-6 pt-2 border-t border-slate-100">
+              <div className="space-y-6">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab;
                   const accOverride = preferences.accommodationByCity[city];
@@ -2481,18 +2481,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
 
 
-            <div className="pt-4 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-400">
-              <svg className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="leading-relaxed">
-                {activeCategory === "ACCOMMODATION" && dict.planner.accommodationNotice}
-                {activeCategory === "FOOD" && dict.planner.foodNotice}
-                {activeCategory === "CITY_TRANSPORT" && dict.planner.transportNotice}
-                {activeCategory === "ATTRACTION" && dict.planner.attractionOverrideNotice}
-                {activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyNotice}
-              </p>
-            </div>
+            {(() => {
+              const activeNotice =
+                (activeCategory === "FOOD" && dict.planner.foodNotice) ||
+                (activeCategory === "CITY_TRANSPORT" && dict.planner.transportNotice) ||
+                (activeCategory === "ATTRACTION" && dict.planner.attractionOverrideNotice) ||
+                (activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyNotice);
+
+              if (!activeNotice) return null;
+
+              return (
+                <div className="flex items-start gap-2 text-xs text-slate-400">
+                  <svg className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="leading-relaxed">{activeNotice}</p>
+                </div>
+              );
+            })()}
           </div>
 
           {/* ================= DEDICATED GLOBAL TRIP OPTIONS & INTERCITY TRANSIT SECTION (Shown only on Summary Tab) ================= */}

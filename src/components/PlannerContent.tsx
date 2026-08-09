@@ -1613,14 +1613,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           "🎯",
                           "1인당 목표 예산",
                           "Per-Person Target Budget",
-                          "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다.",
-                          "AI matches optimal accommodation, food, and activities based on your target budget.",
-                          "목표 예산은 여행 기간과 인원수를 반영한 총 예산의 기준점입니다. 프리셋(100만/200만/300만)을 선택하거나 원하는 금액을 직접 입력하면 전체 여행 항목에 균형 있게 예산이 배분됩니다.",
-                          "Target budget serves as the baseline for your total trip costs. Select a preset or enter a custom amount to automatically balance your accommodation, food, and activity budgets."
+                          "",
+                          "",
+                          "여행 기간 동안의 예산을 프리셋(100만/200만/300만) 선택 또는 직접 입력으로 설정할 수 있으며, 선택한 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다.",
+                          "You can set your trip budget using presets or custom input, and the AI K-Trend DB will automatically match the optimal combination of accommodation, food, and activity budgets for your selected per-person budget."
                         )}
                       </div>
                       <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                        1인당 {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
+                        {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
                       </span>
                     </div>
 

@@ -1630,6 +1630,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       const isPresetMatch = currentPerPerson === 1000000 || currentPerPerson === 2000000 || currentPerPerson === 3000000;
                       const isCustomActive = isCustomTargetBudget || !isPresetMatch;
 
+                      const displayInputValue = customTargetBudgetInput !== ""
+                        ? customTargetBudgetInput
+                        : (isCustomTargetBudget ? "" : (!isPresetMatch ? String(currentPerPerson) : ""));
+
                       return (
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                           {[
@@ -1670,8 +1674,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <input
                               type="number"
                               step="10000"
-                              value={customTargetBudgetInput || (isCustomActive ? String(currentPerPerson) : "")}
-                              onFocus={() => setIsCustomTargetBudget(true)}
+                              value={displayInputValue}
+                              onFocus={() => {
+                                setIsCustomTargetBudget(true);
+                                if (isPresetMatch) {
+                                  setCustomTargetBudgetInput("");
+                                } else if (!customTargetBudgetInput) {
+                                  setCustomTargetBudgetInput(String(currentPerPerson));
+                                }
+                              }}
                               onChange={(e) => {
                                 const valStr = e.target.value;
                                 setCustomTargetBudgetInput(valStr);

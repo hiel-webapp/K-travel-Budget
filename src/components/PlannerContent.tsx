@@ -183,7 +183,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               />
               <div className="absolute left-0 top-full mt-1.5 w-full sm:w-80 max-w-full p-3.5 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-50 border border-slate-700 animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-slate-200">
+                  <p className="text-slate-200 whitespace-pre-line">
                     {locale === "ko" ? infoDescKo : infoDescEn}
                   </p>
                   <button
@@ -200,9 +200,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           )}
         </div>
 
-        <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-          {locale === "ko" ? subtextKo : subtextEn}
-        </p>
+        {(locale === "ko" ? subtextKo : subtextEn) ? (
+          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+            {locale === "ko" ? subtextKo : subtextEn}
+          </p>
+        ) : null}
       </div>
     );
   };
@@ -1528,39 +1530,34 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               return (
                 <div className="space-y-5">
                   {/* 1. Dedicated Header Card: City Night Allocation Bar */}
-                  <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 rounded-2xl space-y-3 shadow-2xs">
-                    <div className="flex items-center justify-between border-b border-[#fce8e8] pb-2.5">
-                      <div className="flex-1">
-                        {renderOverviewSectionHeader(
-                          "cityNights",
-                          "🗓️",
-                          `도시별 체류 기간 (${draft.totalNights}박)`,
-                          `City Stay Duration (${draft.totalNights}N)`,
-                          "전체 여행 기간에 맞춰 각 도시의 체류 박수를 +/- 버튼으로 조절하세요.",
-                          "Adjust stay nights for each city using the +/- buttons.",
-                          "목적지 간 이동 시간과 권장 관광 일수를 바탕으로 배분된 일정입니다. 각 도시의 체류 박수는 총 일정 범위 내에서 자유롭게 조정할 수 있습니다.",
-                          "Set how many nights you will stay in each city. Adjusting nights automatically updates lodging and dining budgets for that city."
-                        )}
-                      </div>
-                      {(() => {
-                        const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
-                        const maxNights = draft.totalNights || 5;
-                        const unallocatedNights = maxNights - currentAllocatedSum;
-                        const isFull = unallocatedNights === 0;
+                  {(() => {
+                    const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
+                    const maxNights = draft.totalNights || 5;
+                    const unallocatedNights = maxNights - currentAllocatedSum;
+                    const isFull = unallocatedNights === 0;
 
-                        return (
-                          <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full border shadow-2xs shrink-0 ml-2 ${
-                            isFull
-                              ? "bg-white text-[#e25c5c] border-[#fce8e8]"
-                              : "bg-amber-100 text-amber-800 border-amber-300"
-                          }`}>
-                            {locale === "ko"
-                              ? (isFull ? `총 ${maxNights}박 배분 완료` : `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`)
-                              : `${currentAllocatedSum} / ${maxNights} Nights`}
-                          </span>
-                        );
-                      })()}
-                    </div>
+                    const titleKo = isFull
+                      ? `도시별 체류 기간 (${maxNights}박)`
+                      : `도시별 체류 기간 (총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 / ${unallocatedNights}박 여유)`;
+
+                    const titleEn = isFull
+                      ? `City Stay Duration (${maxNights}N)`
+                      : `City Stay Duration (${currentAllocatedSum}/${maxNights}N Allocated / ${unallocatedNights}N Left)`;
+
+                    return (
+                      <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 rounded-2xl space-y-3 shadow-2xs">
+                        <div className="border-b border-[#fce8e8] pb-2.5">
+                          {renderOverviewSectionHeader(
+                            "cityNights",
+                            "🗓️",
+                            titleKo,
+                            titleEn,
+                            "",
+                            "",
+                            "각 도시의 체류 박수는 총 일정 범위 내에서 자유롭게 조정할 수 있습니다.\n각 도시의 체류 박수를 +/- 버튼으로 조절하세요.",
+                            "You can freely adjust stay nights for each city within your total trip duration.\nUse the +/- buttons to adjust stay nights for each city."
+                          )}
+                        </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       {draft.selectedCities.map((city) => {
@@ -1604,6 +1601,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       })}
                     </div>
                   </div>
+                );
+              })()}
 
                   {/* 2. AI 1인당 목표 예산 맞춤 설정 Box */}
                   <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">

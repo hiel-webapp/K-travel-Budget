@@ -1606,182 +1606,92 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
 
                   {/* 2. AI 1인당 목표 예산 맞춤 설정 Box */}
-                  <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-2xs space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          {renderOverviewSectionHeader(
-                            "targetBudget",
-                            "🎯",
-                            "1인당 목표 예산",
-                            "Per-Person Target Budget",
-                            "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다.",
-                            "AI matches optimal accommodation, food, and activities based on your target budget.",
-                            "목표 예산은 여행 기간과 인원수를 반영한 총 예산의 기준점입니다. 프리셋(100만/200만/300만)을 선택하거나 원하는 금액을 직접 입력하면 전체 여행 항목에 균형 있게 예산이 배분됩니다.",
-                            "Target budget serves as the baseline for your total trip costs. Select a preset or enter a custom amount to automatically balance your accommodation, food, and activity budgets."
-                          )}
-                        </div>
-                        <span className="text-xs font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                          1인당 {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
-                        </span>
-                      </div>
-
-                      {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
-                      {(() => {
-                        const currentPerPerson = Math.round((draft.targetBudgetKrw || 2000000) / (draft.adultCount || 1));
-                        const isPresetMatch = currentPerPerson === 1000000 || currentPerPerson === 2000000 || currentPerPerson === 3000000;
-                        const isCustomActive = isCustomTargetBudget || !isPresetMatch;
-
-                        return (
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                            {[
-                              { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
-                              { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
-                              { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
-                            ].map((tierOpt) => {
-                              const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
-                              return (
-                                <button
-                                  key={tierOpt.key}
-                                  type="button"
-                                  onClick={() => {
-                                    setIsCustomTargetBudget(false);
-                                    setCustomTargetBudgetInput("");
-                                    handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
-                                  }}
-                                  className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
-                                    isSelected
-                                      ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                      : "bg-slate-50 border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
-                                  }`}
-                                >
-                                  <span className="text-xs font-bold">{tierOpt.label}</span>
-                                </button>
-                              );
-                            })}
-
-                            {/* 4th Card: Integrated Direct Custom Input Card */}
-                            <div
-                              className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                                isCustomActive
-                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                  : "bg-slate-50 border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100 hover:border-slate-300"
-                              }`}
-                            >
-                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
-                              <input
-                                type="number"
-                                step="10000"
-                                value={customTargetBudgetInput || (isCustomActive ? String(currentPerPerson) : "")}
-                                onFocus={() => setIsCustomTargetBudget(true)}
-                                onChange={(e) => {
-                                  const valStr = e.target.value;
-                                  setCustomTargetBudgetInput(valStr);
-                                  setIsCustomTargetBudget(true);
-                                  const valNum = parseInt(valStr, 10);
-                                  if (!isNaN(valNum) && valNum > 0) {
-                                    handleCustomTargetBudgetSubmit(valNum);
-                                  }
-                                }}
-                                placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                                className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
-                              />
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  </div>
-
-                  {/* 3. Trip-wide Emergency Fund Setting Block */}
                   <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
                       <div className="flex-1">
                         {renderOverviewSectionHeader(
-                          "emergencyFund",
-                          "🛡️",
-                          "여행 비상금",
-                          "Emergency Fund",
-                          "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.",
-                          "Budget for unexpected emergencies or unforeseen contingencies during your trip.",
-                          "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 비상금은 영수증 총액에 포함되며 예산 초과 방지에 도움을 줍니다.",
-                          "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. This helps prevent unexpected budget overruns."
+                          "targetBudget",
+                          "🎯",
+                          "1인당 목표 예산",
+                          "Per-Person Target Budget",
+                          "선택하신 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다.",
+                          "AI matches optimal accommodation, food, and activities based on your target budget.",
+                          "목표 예산은 여행 기간과 인원수를 반영한 총 예산의 기준점입니다. 프리셋(100만/200만/300만)을 선택하거나 원하는 금액을 직접 입력하면 전체 여행 항목에 균형 있게 예산이 배분됩니다.",
+                          "Target budget serves as the baseline for your total trip costs. Select a preset or enter a custom amount to automatically balance your accommodation, food, and activity budgets."
                         )}
                       </div>
                       <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                        {formatKrw(computedEmergencyKrw)}
+                        1인당 {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
                       </span>
                     </div>
 
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {[
-                          { pct: 0.05, label: "5%" },
-                          { pct: 0.10, label: locale === "ko" ? "10% (추천)" : "10% (Rec)" },
-                          { pct: 0.15, label: "15%" },
-                        ].map((preset) => {
-                          const calcVal = Math.round((basePlanForEmergency.grandTotalKrw * preset.pct) / 1000) * 1000;
-                          const isSelected = activeEmergencyPct === preset.pct && emergencyManualInput === "";
+                    {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
+                    {(() => {
+                      const currentPerPerson = Math.round((draft.targetBudgetKrw || 2000000) / (draft.adultCount || 1));
+                      const isPresetMatch = currentPerPerson === 1000000 || currentPerPerson === 2000000 || currentPerPerson === 3000000;
+                      const isCustomActive = isCustomTargetBudget || !isPresetMatch;
 
-                          return (
-                            <button
-                              key={preset.label}
-                              type="button"
-                              onClick={() => {
-                                if (isSelected) {
-                                  handleEmergencyFundPctChange(0);
-                                  setEmergencyManualInput("");
-                                } else {
-                                  handleEmergencyFundPctChange(preset.pct);
-                                  setEmergencyManualInput("");
+                      return (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                          {[
+                            { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
+                            { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
+                            { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
+                          ].map((tierOpt) => {
+                            const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
+                            return (
+                              <button
+                                key={tierOpt.key}
+                                type="button"
+                                onClick={() => {
+                                  setIsCustomTargetBudget(false);
+                                  setCustomTargetBudgetInput("");
+                                  handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
+                                }}
+                                className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
+                                  isSelected
+                                    ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                    : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                }`}
+                              >
+                                <span className="text-xs font-bold">{tierOpt.label}</span>
+                              </button>
+                            );
+                          })}
+
+                          {/* 4th Card: Integrated Direct Custom Input Card */}
+                          <div
+                            className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
+                              isCustomActive
+                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                            }`}
+                          >
+                            <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                            <input
+                              type="number"
+                              step="10000"
+                              value={customTargetBudgetInput || (isCustomActive ? String(currentPerPerson) : "")}
+                              onFocus={() => setIsCustomTargetBudget(true)}
+                              onChange={(e) => {
+                                const valStr = e.target.value;
+                                setCustomTargetBudgetInput(valStr);
+                                setIsCustomTargetBudget(true);
+                                const valNum = parseInt(valStr, 10);
+                                if (!isNaN(valNum) && valNum > 0) {
+                                  handleCustomTargetBudgetSubmit(valNum);
                                 }
                               }}
-                              className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                                isSelected
-                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                  : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                              }`}
-                            >
-                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
-                              <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
-                            </button>
-                          );
-                        })}
-
-                        <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                          emergencyManualInput !== "" && emergencyManualInput !== "0"
-                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
-                            : "bg-white border border-slate-200"
-                        }`}>
-                          <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="10000"
-                            className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                            value={emergencyManualInput === "0" ? "" : emergencyManualInput}
-                            onChange={handleEmergencyFundChange}
-                          />
+                              placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                              className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                            />
+                          </div>
                         </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                        <span>
-                          {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
-                          <strong className="text-slate-800 font-bold">
-                            {emergencyManualInput !== "" && emergencyManualInput !== "0"
-                              ? (locale === "ko" ? "사용자 설정 긴급 비상금" : "Custom Emergency Fund")
-                              : (activeEmergencyPct || 0) === 0
-                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                              : `${locale === "ko" ? "기본 여행 예산" : "Base Trip Budget"} (${formatKrw(basePlanForEmergency.grandTotalKrw)}) × ${locale === "ko" ? "비상금 비율" : "Rate"} (${Math.round((activeEmergencyPct || 0.10) * 100)}%)`}
-                          </strong>
-                        </span>
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
 
-                  {/* 4. Optional Shopping & Souvenirs Selector Card */}
+                  {/* 3. Optional Shopping & Souvenirs Selector Card */}
                   {(() => {
                     const adultCount = draft.adultCount || 1;
                     const shoppingAmountKrw = (() => {
@@ -1891,7 +1801,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     );
                   })()}
 
-                  {/* 5. Trip-wide Activity Pocket Money & Reserve Setting Block */}
+                  {/* 4. Trip-wide Activity Pocket Money & Reserve Setting Block */}
                   <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
                       <div className="flex-1">
@@ -2016,6 +1926,94 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </div>
                         );
                       })()}
+                    </div>
+                  </div>
+
+                  {/* 5. Trip-wide Emergency Fund Setting Block */}
+                  <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
+                    <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                      <div className="flex-1">
+                        {renderOverviewSectionHeader(
+                          "emergencyFund",
+                          "🛡️",
+                          "여행 비상금",
+                          "Emergency Fund",
+                          "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.",
+                          "Budget for unexpected emergencies or unforeseen contingencies during your trip.",
+                          "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 비상금은 영수증 총액에 포함되며 예산 초과 방지에 도움을 줍니다.",
+                          "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. This helps prevent unexpected budget overruns."
+                        )}
+                      </div>
+                      <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
+                        {formatKrw(computedEmergencyKrw)}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { pct: 0.05, label: "5%" },
+                          { pct: 0.10, label: locale === "ko" ? "10% (추천)" : "10% (Rec)" },
+                          { pct: 0.15, label: "15%" },
+                        ].map((preset) => {
+                          const calcVal = Math.round((basePlanForEmergency.grandTotalKrw * preset.pct) / 1000) * 1000;
+                          const isSelected = activeEmergencyPct === preset.pct && emergencyManualInput === "";
+
+                          return (
+                            <button
+                              key={preset.label}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  handleEmergencyFundPctChange(0);
+                                  setEmergencyManualInput("");
+                                } else {
+                                  handleEmergencyFundPctChange(preset.pct);
+                                  setEmergencyManualInput("");
+                                }
+                              }}
+                              className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
+                              <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
+                            </button>
+                          );
+                        })}
+
+                        <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                          emergencyManualInput !== "" && emergencyManualInput !== "0"
+                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
+                            : "bg-white border border-slate-200"
+                        }`}>
+                          <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="10000"
+                            className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                            value={emergencyManualInput === "0" ? "" : emergencyManualInput}
+                            onChange={handleEmergencyFundChange}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                        <span>
+                          {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                          <strong className="text-slate-800 font-bold">
+                            {emergencyManualInput !== "" && emergencyManualInput !== "0"
+                              ? (locale === "ko" ? "사용자 설정 긴급 비상금" : "Custom Emergency Fund")
+                              : (activeEmergencyPct || 0) === 0
+                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                              : `${locale === "ko" ? "기본 여행 예산" : "Base Trip Budget"} (${formatKrw(basePlanForEmergency.grandTotalKrw)}) × ${locale === "ko" ? "비상금 비율" : "Rate"} (${Math.round((activeEmergencyPct || 0.10) * 100)}%)`}
+                          </strong>
+                        </span>
+                      </div>
                     </div>
                   </div>
 

@@ -1611,22 +1611,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {renderOverviewSectionHeader(
                           "targetBudget",
                           "🎯",
-                          "1인당 목표 예산",
-                          "Per-Person Target Budget",
+                          `1인당 목표 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                          `Target Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
                           "",
                           "",
-                          "여행 기간 동안의 예산을 프리셋(100만/200만/300만) 선택 또는 직접 입력으로 설정할 수 있으며, 선택한 1인당 예산에 맞춰 AI K-트렌드 DB가 최적의 숙소·식비·활동 용돈 조합을 자동 매칭합니다.",
-                          "You can set your trip budget using presets or custom input, and the AI K-Trend DB will automatically match the optimal combination of accommodation, food, and activity budgets for your selected per-person budget."
+                          "여행 기간 동안의 1인당 목표 예산을 프리셋(1인 100만/200만/300만) 선택 또는 직접 입력으로 설정할 수 있으며, 선택한 1인당 예산에 맞춰 전체 여행 예산(1인당 × 여행 인원)이 자동 산출됩니다.",
+                          "You can set your per-person budget using presets (1M/2M/3M) or custom input. The overall trip budget (per person × travelers) will be automatically calculated."
                         )}
                       </div>
-                      <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                        {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
-                      </span>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "1인당" : "Per Traveler"}</span>
+                        <span className="text-base font-extrabold text-[#e25c5c]">
+                          {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
+                        </span>
+                      </div>
                     </div>
 
                     {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
                     {(() => {
-                      const currentPerPerson = Math.round((draft.targetBudgetKrw || 2000000) / (draft.adultCount || 1));
+                      const adultCount = draft.adultCount || 1;
+                      const currentPerPerson = Math.round((draft.targetBudgetKrw || 2000000) / adultCount);
                       const isPresetMatch = currentPerPerson === 1000000 || currentPerPerson === 2000000 || currentPerPerson === 3000000;
                       const isCustomActive = isCustomTargetBudget || !isPresetMatch;
 
@@ -1635,66 +1639,84 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         : (isCustomTargetBudget ? "" : (!isPresetMatch ? String(currentPerPerson) : ""));
 
                       return (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                          {[
-                            { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
-                            { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
-                            { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
-                          ].map((tierOpt) => {
-                            const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
-                            return (
-                              <button
-                                key={tierOpt.key}
-                                type="button"
-                                onClick={() => {
-                                  setIsCustomTargetBudget(false);
-                                  setCustomTargetBudgetInput("");
-                                  handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
-                                }}
-                                className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-center ${
-                                  isSelected
-                                    ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                    : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                                }`}
-                              >
-                                <span className="text-xs font-bold">{tierOpt.label}</span>
-                              </button>
-                            );
-                          })}
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                            {[
+                              { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
+                              { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
+                              { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
+                            ].map((tierOpt) => {
+                              const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
+                              return (
+                                <button
+                                  key={tierOpt.key}
+                                  type="button"
+                                  onClick={() => {
+                                    setIsCustomTargetBudget(false);
+                                    setCustomTargetBudgetInput("");
+                                    handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
+                                  }}
+                                  className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+                                    isSelected
+                                      ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                      : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                  }`}
+                                >
+                                  <span className="text-xs font-bold">{tierOpt.label}</span>
+                                  <span className="text-[10px] text-slate-400 font-medium mt-0.5">{locale === "ko" ? "1인당" : "per person"}</span>
+                                </button>
+                              );
+                            })}
 
-                          {/* 4th Card: Integrated Direct Custom Input Card */}
-                          <div
-                            className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                              isCustomActive
-                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                            }`}
-                          >
-                            <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
-                            <input
-                              type="number"
-                              step="10000"
-                              value={displayInputValue}
-                              onFocus={() => {
-                                setIsCustomTargetBudget(true);
-                                if (isPresetMatch) {
-                                  setCustomTargetBudgetInput("");
-                                } else if (!customTargetBudgetInput) {
-                                  setCustomTargetBudgetInput(String(currentPerPerson));
-                                }
-                              }}
-                              onChange={(e) => {
-                                const valStr = e.target.value;
-                                setCustomTargetBudgetInput(valStr);
-                                setIsCustomTargetBudget(true);
-                                const valNum = parseInt(valStr, 10);
-                                if (!isNaN(valNum) && valNum > 0) {
-                                  handleCustomTargetBudgetSubmit(valNum);
-                                }
-                              }}
-                              placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                              className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
-                            />
+                            {/* 4th Card: Integrated Direct Custom Input Card */}
+                            <div
+                              className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
+                                isCustomActive
+                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                              }`}
+                            >
+                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                              <input
+                                type="number"
+                                step="10000"
+                                value={displayInputValue}
+                                onFocus={() => {
+                                  setIsCustomTargetBudget(true);
+                                  if (isPresetMatch) {
+                                    setCustomTargetBudgetInput("");
+                                  } else if (!customTargetBudgetInput) {
+                                    setCustomTargetBudgetInput(String(currentPerPerson));
+                                  }
+                                }}
+                                onChange={(e) => {
+                                  const valStr = e.target.value;
+                                  setCustomTargetBudgetInput(valStr);
+                                  setIsCustomTargetBudget(true);
+                                  const valNum = parseInt(valStr, 10);
+                                  if (!isNaN(valNum) && valNum > 0) {
+                                    handleCustomTargetBudgetSubmit(valNum);
+                                  }
+                                }}
+                                placeholder={locale === "ko" ? "1인당 직접 입력" : "Custom / person"}
+                                className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Real-time Total Helper Bar */}
+                          <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                            <span className="flex items-center gap-1.5">
+                              <span className="inline-block w-2 h-2 rounded-full bg-[#e25c5c]"></span>
+                              <span>
+                                {locale === "ko"
+                                  ? `${adultCount}명 기준 전체 예상 목표 예산:`
+                                  : `Total target budget for ${adultCount} travelers:`}
+                              </span>
+                            </span>
+                            <strong className="text-[#0f172a] font-extrabold text-sm">
+                              {formatKrw(draft.targetBudgetKrw)}
+                            </strong>
                           </div>
                         </div>
                       );
@@ -1726,22 +1748,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             {renderOverviewSectionHeader(
                               "shoppingFund",
                               "🛍️",
-                              "쇼핑 예산",
-                              "Shopping Budget",
+                              `쇼핑 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                              `Shopping Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
                               "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.",
                               "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.",
-                              "가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 영수증 예산 총액에 합산됩니다.",
-                              "Select shopping budget presets per person or enter a custom amount to include in your grand total."
+                              "가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 인원수(N명)에 따라 총액이 자동 산출되어 영수증에 포함됩니다.",
+                              "Select shopping budget presets per person or enter a custom amount. The total will be multiplied by your travelers."
                             )}
                           </div>
-                          <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                            {formatKrw(shoppingAmountKrw)}
-                          </span>
+                          <div className="text-right shrink-0 ml-3">
+                            <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
+                            <span className="text-base font-extrabold text-[#e25c5c]">
+                              {formatKrw(shoppingAmountKrw)}
+                            </span>
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {presets.map((opt) => {
-                            const calcVal = opt.perPerson * adultCount;
                             const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
                             return (
                               <button
@@ -1763,7 +1787,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 }`}
                               >
                                 <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{opt.title}</div>
-                                <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
+                                <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(opt.perPerson)} <span className="text-[9px] text-slate-400">/{locale === "ko" ? "인" : "person"}</span></div>
                               </button>
                             );
                           })}
@@ -1779,7 +1803,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               min="0"
                               step="10000"
                               className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                              placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                              placeholder={locale === "ko" ? "1인당 직접 입력" : "Custom / person"}
                               value={shoppingCustomInput}
                               onChange={(e) => {
                                 setShoppingCustomInput(e.target.value);
@@ -1797,13 +1821,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
                                 : shoppingAmountKrw === 0
                                 ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} (1인당) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
                             </strong>
                           </span>
                           <span>
-                            {locale === "ko" ? "1인당 쇼핑 예산:" : "Per Traveler:"}{" "}
+                            {locale === "ko" ? `${adultCount}명 기준 전체 쇼핑 예산:` : `Total for ${adultCount}:`}{" "}
                             <strong className="text-[#e25c5c] font-extrabold">
-                              {formatKrw(Math.round(shoppingAmountKrw / adultCount))}
+                              {formatKrw(shoppingAmountKrw)}
                             </strong>
                           </span>
                         </div>
@@ -1818,22 +1842,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {renderOverviewSectionHeader(
                           "activityFund",
                           "🎟️",
-                          "용돈",
-                          "Activity Allowance",
+                          `용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                          `Activity Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
                           "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.",
                           "Daily pocket money for personal activities and extras during your trip.",
-                          "일일 1인 기준 용돈 단가를 설정하면 [1일 단가 × 인원수 × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
-                          "Daily activity allowance is calculated as [Daily rate × Number of travelers × Total nights] and included in your overall budget."
+                          "일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
+                          "Daily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget."
                         )}
                       </div>
-                      <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                        {formatKrw(
-                          Object.values(plan.citySections).reduce(
-                            (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
-                            0
-                          )
-                        )}
-                      </span>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
+                        <span className="text-base font-extrabold text-[#e25c5c]">
+                          {formatKrw(
+                            Object.values(plan.citySections).reduce(
+                              (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
+                              0
+                            )
+                          )}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -1841,7 +1868,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {[
                           {
                             id: "MOSTLY_FREE" as BudgetBasketId,
-                            label: locale === "ko" ? "1만/일" : "10k/day",
+                            label: locale === "ko" ? "1만/일 (1인)" : "10k/day/p",
                             dailyPrice: 10000,
                           },
                           {
@@ -1851,7 +1878,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           },
                           {
                             id: "EXPERIENCE_RICH" as BudgetBasketId,
-                            label: locale === "ko" ? "5만/일" : "50k/day",
+                            label: locale === "ko" ? "5만/일 (1인)" : "50k/day/p",
                             dailyPrice: 50000,
                           },
                         ].map((preset) => {
@@ -1883,7 +1910,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             >
                               <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
                               <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>
-                                {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({totalNights}{locale === "ko" ? "박 기준" : "N"})</span>
+                                {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({adultCount}{locale === "ko" ? "명" : "P"}·{totalNights}{locale === "ko" ? "박" : "N"})</span>
                               </div>
                             </button>
                           );
@@ -1900,7 +1927,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             min="0"
                             step="10000"
                             className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                            placeholder={locale === "ko" ? "1인 일일 용돈" : "Daily / person"}
                             value={activityManualInput === "0" ? "" : activityManualInput}
                             onChange={handleActivityManualInputChange}
                           />
@@ -1916,6 +1943,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const totalNights = draft.totalNights || 1;
                         const adultCount = draft.adultCount || 1;
                         const perPersonBudget = currentDailyRate * totalNights;
+                        const totalActivityFund = currentDailyRate * adultCount * totalNights;
 
                         return (
                           <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
@@ -1924,13 +1952,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <strong className="text-slate-800 font-bold">
                                 {currentDailyRate === 0
                                   ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                  : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
+                                  : `${formatKrw(currentDailyRate)} (1인/일) × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
                               </strong>
                             </span>
                             <span>
-                              {locale === "ko" ? "1인당 전체 활동 예산:" : "Per Traveler:"}{" "}
+                              {locale === "ko" ? `${adultCount}명 기준 전체 용돈:` : `Total for ${adultCount}:`}{" "}
                               <strong className="text-[#e25c5c] font-extrabold">
-                                {formatKrw(perPersonBudget)}
+                                {formatKrw(totalActivityFund)}
                               </strong>
                             </span>
                           </div>
@@ -1946,17 +1974,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {renderOverviewSectionHeader(
                           "emergencyFund",
                           "🛡️",
-                          "여행 비상금",
-                          "Emergency Fund",
+                          `여행 비상금 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                          `Emergency Fund ${dict.planner.perPersonLabel || "(Per Person)"}`,
                           "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.",
                           "Budget for unexpected emergencies or unforeseen contingencies during your trip.",
-                          "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 비상금은 영수증 총액에 포함되며 예산 초과 방지에 도움을 줍니다.",
-                          "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. This helps prevent unexpected budget overruns."
+                          "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 1인당 비상금 수치와 전체 여행 인원 수치(N명)가 명확히 계산되어 합산됩니다.",
+                          "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. Per-person and total figures will be clearly presented."
                         )}
                       </div>
-                      <span className="text-base font-extrabold text-[#e25c5c] shrink-0 ml-3">
-                        {formatKrw(computedEmergencyKrw)}
-                      </span>
+                      <div className="text-right shrink-0 ml-3">
+                        <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
+                        <span className="text-base font-extrabold text-[#e25c5c]">
+                          {formatKrw(computedEmergencyKrw)}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="space-y-3">

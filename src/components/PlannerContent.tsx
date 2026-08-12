@@ -523,9 +523,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     emergencyFundKrw: 0,
   });
 
+  const emergencyAdultCount = draft.adultCount || 1;
   const computedEmergencyKrw = activeEmergencyPct !== undefined
-    ? Math.round((basePlanForEmergency.grandTotalKrw * activeEmergencyPct) / 1000) * 1000
-    : (preferences.emergencyFundKrw || 0);
+    ? Math.round(((basePlanForEmergency.grandTotalKrw / emergencyAdultCount) * activeEmergencyPct) / 1000) * 1000 * emergencyAdultCount
+    : ((preferences.emergencyFundKrw || 0) * emergencyAdultCount);
+
+  const perPersonEmergencyKrw = Math.round(computedEmergencyKrw / emergencyAdultCount);
 
   const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,
@@ -1633,28 +1636,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     <div className="space-y-4">
                       {/* 2-1. AI 목표 예산 맞춤 설정 Box */}
                       <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                          <div className="flex-1">
-                            {renderOverviewSectionHeader(
-                              "targetBudget",
-                              "🎯",
-                              `목표 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
-                              `Target Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                              "",
-                              "",
-                              "여행 기간 동안의 1인당 목표 예산을 프리셋(1인 100만/200만/300만) 선택 또는 직접 입력으로 설정할 수 있으며, 선택한 1인당 예산에 맞춰 전체 여행 예산(1인당 × 여행 인원)이 자동 산출됩니다.",
-                              "You can set your per-person budget using presets (1M/2M/3M) or custom input. The overall trip budget (per person × travelers) will be automatically calculated.",
-                              "여행 전체",
-                              "Trip Total",
-                              "total"
-                            )}
-                          </div>
-                          <div className="text-right shrink-0 ml-3">
-                            <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
-                            <span className="text-base font-extrabold text-[#e25c5c]">
-                              {formatKrw(draft.targetBudgetKrw)}
-                            </span>
-                          </div>
+                        <div className="border-b border-slate-200/60 pb-3">
+                          {renderOverviewSectionHeader(
+                            "targetBudget",
+                            "🎯",
+                            `목표 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                            `Target Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
+                            "",
+                            "",
+                            "여행 기간 동안의 1인당 목표 예산을 프리셋(1인 100만/200만/300만) 선택 또는 직접 입력으로 설정할 수 있으며, 선택한 1인당 예산에 맞춰 전체 여행 예산(1인당 × 여행 인원)이 자동 산출됩니다.",
+                            "You can set your per-person budget using presets (1M/2M/3M) or custom input. The overall trip budget (per person × travelers) will be automatically calculated.",
+                            "여행 전체",
+                            "Trip Total",
+                            "total"
+                          )}
                         </div>
 
                         {/* 4 cards grid: ₩1,000,000, ₩2,000,000, ₩3,000,000, ₩ 직접 입력 인풋 카드 */}
@@ -1773,28 +1768,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                         return (
                           <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
-                            <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                              <div className="flex-1">
-                                {renderOverviewSectionHeader(
-                                  "shoppingFund",
-                                  "🛍️",
-                                  `쇼핑 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
-                                  `Shopping Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                                  "",
-                                  "",
-                                  "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.\n가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 인원수(N명)에 따라 총액이 자동 산출되어 영수증에 포함됩니다.",
-                                  "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.\nSelect shopping budget presets per person or enter a custom amount. The total will be multiplied by your travelers.",
-                                  "여행 전체",
-                                  "Trip Total",
-                                  "total"
-                                )}
-                              </div>
-                              <div className="text-right shrink-0 ml-3">
-                                <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
-                                <span className="text-base font-extrabold text-[#e25c5c]">
-                                  {formatKrw(shoppingAmountKrw)}
-                                </span>
-                              </div>
+                            <div className="border-b border-slate-200/60 pb-3">
+                              {renderOverviewSectionHeader(
+                                "shoppingFund",
+                                "🛍️",
+                                `쇼핑 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                                `Shopping Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
+                                "",
+                                "",
+                                "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.\n가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 인원수(N명)에 따라 총액이 자동 산출되어 영수증에 포함됩니다.",
+                                "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.\nSelect shopping budget presets per person or enter a custom amount. The total will be multiplied by your travelers.",
+                                "여행 전체",
+                                "Trip Total",
+                                "total"
+                              )}
                             </div>
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1869,28 +1856,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                       {/* 2-3. Trip-wide Emergency Fund Setting Block */}
                       <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                          <div className="flex-1">
-                            {renderOverviewSectionHeader(
-                              "emergencyFund",
-                              "🛡️",
-                              `여행 비상금 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
-                              `Emergency Fund ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                              "",
-                              "",
-                              "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.\n전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 1인당 비상금 수치와 전체 여행 인원 수치(N명)가 명확히 계산되어 합산됩니다.",
-                              "Budget for unexpected emergencies or unforeseen contingencies during your trip.\nSet an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. Per-person and total figures will be clearly presented.",
-                              "여행 전체",
-                              "Trip Total",
-                              "total"
-                            )}
-                          </div>
-                          <div className="text-right shrink-0 ml-3">
-                            <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
-                            <span className="text-base font-extrabold text-[#e25c5c]">
-                              {formatKrw(computedEmergencyKrw)}
-                            </span>
-                          </div>
+                        <div className="border-b border-slate-200/60 pb-3">
+                          {renderOverviewSectionHeader(
+                            "emergencyFund",
+                            "🛡️",
+                            `여행 비상금 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                            `Emergency Fund ${dict.planner.perPersonLabel || "(Per Person)"}`,
+                            "",
+                            "",
+                            "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.\n전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 1인당 비상금 수치와 전체 여행 인원 수치(N명)가 명확히 계산되어 합산됩니다.",
+                            "Budget for unexpected emergencies or unforeseen contingencies during your trip.\nSet an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. Per-person and total figures will be clearly presented.",
+                            "여행 전체",
+                            "Trip Total",
+                            "total"
+                          )}
                         </div>
 
                         <div className="space-y-3">
@@ -1900,7 +1879,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               { pct: 0.10, label: locale === "ko" ? "10% (추천)" : "10% (Rec)" },
                               { pct: 0.15, label: "15%" },
                             ].map((preset) => {
-                              const calcVal = Math.round((basePlanForEmergency.grandTotalKrw * preset.pct) / 1000) * 1000;
+                              const adultCount = draft.adultCount || 1;
+                              const basePerPerson = Math.round(basePlanForEmergency.grandTotalKrw / adultCount);
+                              const calcValPerPerson = Math.round((basePerPerson * preset.pct) / 1000) * 1000;
                               const isSelected = activeEmergencyPct === preset.pct && emergencyManualInput === "";
 
                               return (
@@ -1923,22 +1904,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   }`}
                                 >
                                   <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
-                                  <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcVal)}</div>
+                                  <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcValPerPerson)}</div>
                                 </button>
                               );
                             })}
 
-                            <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
                               emergencyManualInput !== "" && emergencyManualInput !== "0"
-                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
-                                : "bg-white border border-slate-200"
+                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                             }`}>
-                              <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
                               <input
                                 type="number"
                                 min="0"
                                 step="10000"
-                                className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
+                                className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
                                 placeholder={locale === "ko" ? "직접 입력" : "Custom"}
                                 value={emergencyManualInput === "0" ? "" : emergencyManualInput}
                                 onChange={handleEmergencyFundChange}
@@ -1946,18 +1927,29 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             </div>
                           </div>
 
-                          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                            <span>
-                              {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
-                              <strong className="text-slate-800 font-bold">
-                                {emergencyManualInput !== "" && emergencyManualInput !== "0"
-                                  ? (locale === "ko" ? "사용자 설정 긴급 비상금" : "Custom Emergency Fund")
-                                  : (activeEmergencyPct || 0) === 0
-                                  ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                  : `${locale === "ko" ? "기본 여행 예산" : "Base Trip Budget"} (${formatKrw(basePlanForEmergency.grandTotalKrw)}) × ${locale === "ko" ? "비상금 비율" : "Rate"} (${Math.round((activeEmergencyPct || 0.10) * 100)}%)`}
-                              </strong>
-                            </span>
-                          </div>
+                          {(() => {
+                            const adultCount = draft.adultCount || 1;
+                            return (
+                              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                                <span>
+                                  {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                                  <strong className="text-slate-800 font-bold">
+                                    {emergencyManualInput !== "" && emergencyManualInput !== "0"
+                                      ? `${formatKrw(parseInt(emergencyManualInput, 10) || 0)} (${locale === "ko" ? "1인당" : "per person"}) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`
+                                      : (activeEmergencyPct || 0) === 0
+                                      ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                                      : `${formatKrw(perPersonEmergencyKrw)} (${locale === "ko" ? "1인당" : "per person"}) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                  </strong>
+                                </span>
+                                <span>
+                                  {locale === "ko" ? `${adultCount}명 기준 전체 비상금:` : `Total for ${adultCount}:`}{" "}
+                                  <strong className="text-[#e25c5c] font-extrabold">
+                                    {formatKrw(computedEmergencyKrw)}
+                                  </strong>
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </div>
 
@@ -2030,33 +2022,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     <div className="space-y-4">
                       {/* 3-1. Trip-wide Activity Pocket Money & Reserve Setting Block */}
                       <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                          <div className="flex-1">
-                            {renderOverviewSectionHeader(
-                              "activityFund",
-                              "🎟️",
-                              `용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
-                              `Activity Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                              "",
-                              "",
-                              "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.\n일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
-                              "Daily pocket money for personal activities and extras during your trip.\nDaily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget.",
-                              `1일 기준 (${draft.totalNights || 1}박 연동)`,
-                              `Daily (${draft.totalNights || 1}N)`,
-                              "daily"
-                            )}
-                          </div>
-                          <div className="text-right shrink-0 ml-3">
-                            <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
-                            <span className="text-base font-extrabold text-[#e25c5c]">
-                              {formatKrw(
-                                Object.values(plan.citySections).reduce(
-                                  (sum, sec) => sum + (sec?.lineItems.find((i) => i.category === "ATTRACTION")?.lineTotalKrw || 0),
-                                  0
-                                )
-                              )}
-                            </span>
-                          </div>
+                        <div className="border-b border-slate-200/60 pb-3">
+                          {renderOverviewSectionHeader(
+                            "activityFund",
+                            "🎟️",
+                            `용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                            `Activity Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
+                            "",
+                            "",
+                            "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.\n일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
+                            "Daily pocket money for personal activities and extras during your trip.\nDaily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget.",
+                            `1일 기준 (${draft.totalNights || 1}박 연동)`,
+                            `Daily (${draft.totalNights || 1}N)`,
+                            "daily"
+                          )}
                         </div>
 
                         <div className="space-y-3">

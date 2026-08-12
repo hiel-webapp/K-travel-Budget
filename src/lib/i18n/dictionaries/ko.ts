@@ -67,7 +67,7 @@ export const ko = {
     targetBudget: "목표 예산",
     perPersonLabel: "(1인 기준)",
     totalForTravelersHelper: "{adults}명 기준 전체 예상 금액: {total}",
-    perPersonTargetBudgetLabel: "1인당 목표 예산",
+    perPersonTargetBudgetLabel: "목표 예산",
     perPersonShoppingLabel: "1인당 쇼핑 예산",
     perPersonAllowanceLabel: "1인당 용돈",
     perPersonEmergencyLabel: "1인당 비상금",

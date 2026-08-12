@@ -1600,14 +1600,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 );
               })()}
 
-                  {/* 2. AI 1인당 목표 예산 맞춤 설정 Box */}
+                  {/* 2. AI 목표 예산 맞춤 설정 Box */}
                   <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/70 space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
                       <div className="flex-1">
                         {renderOverviewSectionHeader(
                           "targetBudget",
                           "🎯",
-                          `1인당 목표 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                          `목표 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                           `Target Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
                           "",
                           "",
@@ -1616,9 +1616,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         )}
                       </div>
                       <div className="text-right shrink-0 ml-3">
-                        <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "1인당" : "Per Traveler"}</span>
+                        <span className="text-xs text-slate-400 block font-semibold">{locale === "ko" ? "전체 총액" : "Total"}</span>
                         <span className="text-base font-extrabold text-[#e25c5c]">
-                          {formatKrw(Math.round(draft.targetBudgetKrw / (draft.adultCount || 1)))}
+                          {formatKrw(draft.targetBudgetKrw)}
                         </span>
                       </div>
                     </div>
@@ -1659,7 +1659,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   }`}
                                 >
                                   <span className="text-xs font-bold">{tierOpt.label}</span>
-                                  <span className="text-[10px] text-slate-400 font-medium mt-0.5">{locale === "ko" ? "1인당" : "per person"}</span>
                                 </button>
                               );
                             })}
@@ -1694,25 +1693,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     handleCustomTargetBudgetSubmit(valNum);
                                   }
                                 }}
-                                placeholder={locale === "ko" ? "1인당 직접 입력" : "Custom / person"}
+                                placeholder={locale === "ko" ? "직접 입력" : "Custom"}
                                 className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
                               />
                             </div>
                           </div>
 
-                          {/* Real-time Total Helper Bar */}
+                          {/* Real-time Total Helper Bar with Formula */}
                           <div className="p-3 rounded-xl bg-white border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                            <span className="flex items-center gap-1.5">
-                              <span className="inline-block w-2 h-2 rounded-full bg-[#e25c5c]"></span>
-                              <span>
-                                {locale === "ko"
-                                  ? `${adultCount}명 기준 전체 예상 목표 예산:`
-                                  : `Total target budget for ${adultCount} travelers:`}
-                              </span>
+                            <span>
+                              {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
+                              <strong className="text-slate-800 font-bold">
+                                {`${formatKrw(currentPerPerson)} (${locale === "ko" ? "1인당" : "per person"}) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                              </strong>
                             </span>
-                            <strong className="text-[#0f172a] font-extrabold text-sm">
-                              {formatKrw(draft.targetBudgetKrw)}
-                            </strong>
+                            <span>
+                              {locale === "ko" ? `${adultCount}명 기준 전체 예상 목표 예산:` : `Total for ${adultCount}:`}{" "}
+                              <strong className="text-[#e25c5c] font-extrabold">
+                                {formatKrw(draft.targetBudgetKrw)}
+                              </strong>
+                            </span>
                           </div>
                         </div>
                       );

@@ -1731,7 +1731,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               {/* Real-time Total Helper Bar with Formula */}
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
                                 <span>
-                                  {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
                                   <strong className="text-slate-800 font-bold">
                                     {`${formatKrw(currentPerPerson)} (${locale === "ko" ? "1인당" : "per person"}) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
                                   </strong>
@@ -1834,7 +1833,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
                               <span>
-                                {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
                                 <strong className="text-slate-800 font-bold">
                                   {shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
                                     ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
@@ -1945,7 +1943,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             return (
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 font-medium">
                                 <span>
-                                  {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
                                   <strong className="text-slate-800 font-bold">
                                     {formulaText}
                                   </strong>
@@ -2132,7 +2129,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             return (
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
                                 <span>
-                                  {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
                                   <strong className="text-slate-800 font-bold">
                                     {currentDailyRate === 0
                                       ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")

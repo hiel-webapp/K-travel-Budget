@@ -1732,7 +1732,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
                                 <span>
                                   <strong className="text-slate-800 font-bold">
-                                    {`${formatKrw(currentPerPerson)} (${locale === "ko" ? "1인당" : "per person"}) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                    {`${formatKrw(currentPerPerson)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
                                   </strong>
                                 </span>
                                 <span>
@@ -1932,13 +1932,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                             const formulaText = emergencyManualInput !== "" && emergencyManualInput !== "0"
                               ? (locale === "ko"
-                                  ? `직접 입력 ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} (1인당) × ${adultCount}명`
-                                  : `Custom ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} (per person) × ${adultCount} travelers`)
+                                  ? `직접 입력 ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} × ${adultCount}명`
+                                  : `Custom ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} × ${adultCount} travelers`)
                               : (activeEmergencyPct || 0) === 0
                               ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
                               : (locale === "ko"
-                                  ? `기본 예산 ${formatKrw(basePerPerson)} (1인당) × ${pctPct}% 비율 ➔ ${formatKrw(perPersonEmergencyKrw)} (1인당) × ${adultCount}명`
-                                  : `Base Budget ${formatKrw(basePerPerson)} (per person) × ${pctPct}% Rate ➔ ${formatKrw(perPersonEmergencyKrw)} (per person) × ${adultCount} travelers`);
+                                  ? `기본 예산 ${formatKrw(basePerPerson)} × ${pctPct}% ➔ ${formatKrw(perPersonEmergencyKrw)} × ${adultCount}명`
+                                  : `Base Budget ${formatKrw(basePerPerson)} × ${pctPct}% ➔ ${formatKrw(perPersonEmergencyKrw)} × ${adultCount} travelers`);
 
                             return (
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 font-medium">
@@ -2132,7 +2132,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <strong className="text-slate-800 font-bold">
                                     {currentDailyRate === 0
                                       ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                      : `${formatKrw(currentDailyRate)} (1인/일) × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
+                                      : `${formatKrw(currentDailyRate)}${locale === "ko" ? "/일" : "/day"} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
                                   </strong>
                                 </span>
                                 <span>

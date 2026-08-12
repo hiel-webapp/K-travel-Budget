@@ -1865,7 +1865,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {[
                               { pct: 0.05, label: "5%" },
-                              { pct: 0.10, label: locale === "ko" ? "10% (추천)" : "10% (Rec)" },
+                              { pct: 0.10, label: "10%" },
                               { pct: 0.15, label: "15%" },
                             ].map((preset) => {
                               const adultCount = draft.adultCount || 1;
@@ -2030,7 +2030,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           },
                           {
                             id: "BALANCED" as BudgetBasketId,
-                            label: locale === "ko" ? "30,000원 (추천)" : "₩30,000 (Rec)",
+                            label: locale === "ko" ? "30,000원" : "₩30,000",
                             dailyPrice: 30000,
                           },
                           {

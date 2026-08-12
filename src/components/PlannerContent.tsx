@@ -1928,8 +1928,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               : (activeEmergencyPct || 0) === 0
                               ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
                               : (locale === "ko"
-                                  ? `기본 예산 ${formatKrw(basePerPerson)} × ${pctPct}% ➔ ${formatKrw(perPersonEmergencyKrw)} × ${adultCount}명`
-                                  : `Base Budget ${formatKrw(basePerPerson)} × ${pctPct}% ➔ ${formatKrw(perPersonEmergencyKrw)} × ${adultCount} travelers`);
+                                  ? `기본 예산 ${formatKrw(basePerPerson)} × ${pctPct}% × ${adultCount}명`
+                                  : `Base Budget ${formatKrw(basePerPerson)} × ${pctPct}% × ${adultCount} travelers`);
 
                             return (
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 font-medium">

@@ -1733,7 +1733,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   </strong>
                                 </span>
                                 <span>
-                                  {locale === "ko" ? `${adultCount}명 기준 전체 예상 목표 예산:` : `Total for ${adultCount}:`}{" "}
+                                  {locale === "ko" ? `${adultCount}명 기준 목표 예산:` : `Total for ${adultCount}:`}{" "}
                                   <strong className="text-[#e25c5c] font-extrabold">
                                     {formatKrw(draft.targetBudgetKrw)}
                                   </strong>
@@ -1836,7 +1836,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 </strong>
                               </span>
                               <span>
-                                {locale === "ko" ? `${adultCount}명 기준 전체 쇼핑 예산:` : `Total for ${adultCount}:`}{" "}
+                                {locale === "ko" ? `${adultCount}명 기준 쇼핑 예산:` : `Total for ${adultCount}:`}{" "}
                                 <strong className="text-[#e25c5c] font-extrabold">
                                   {formatKrw(shoppingAmountKrw)}
                                 </strong>
@@ -1939,7 +1939,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   </strong>
                                 </span>
                                 <span className="shrink-0">
-                                  {locale === "ko" ? `${adultCount}명 기준 전체 비상금:` : `Total for ${adultCount}:`}{" "}
+                                  {locale === "ko" ? `${adultCount}명 기준 비상금:` : `Total for ${adultCount}:`}{" "}
                                   <strong className="text-[#e25c5c] font-extrabold">
                                     {formatKrw(computedEmergencyKrw)}
                                   </strong>

@@ -1929,19 +1929,28 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                           {(() => {
                             const adultCount = draft.adultCount || 1;
+                            const basePerPerson = Math.round(basePlanForEmergency.grandTotalKrw / adultCount);
+                            const pctPct = Math.round((activeEmergencyPct || 0.10) * 100);
+
+                            const formulaText = emergencyManualInput !== "" && emergencyManualInput !== "0"
+                              ? (locale === "ko"
+                                  ? `직접 입력 ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} (1인당) × ${adultCount}명`
+                                  : `Custom ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} (per person) × ${adultCount} travelers`)
+                              : (activeEmergencyPct || 0) === 0
+                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                              : (locale === "ko"
+                                  ? `기본 예산 ${formatKrw(basePerPerson)} (1인당) × ${pctPct}% 비율 ➔ ${formatKrw(perPersonEmergencyKrw)} (1인당) × ${adultCount}명`
+                                  : `Base Budget ${formatKrw(basePerPerson)} (per person) × ${pctPct}% Rate ➔ ${formatKrw(perPersonEmergencyKrw)} (per person) × ${adultCount} travelers`);
+
                             return (
-                              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 font-medium">
                                 <span>
                                   {locale === "ko" ? "산출 공식:" : "Formula:"}{" "}
                                   <strong className="text-slate-800 font-bold">
-                                    {emergencyManualInput !== "" && emergencyManualInput !== "0"
-                                      ? `${formatKrw(parseInt(emergencyManualInput, 10) || 0)} (${locale === "ko" ? "1인당" : "per person"}) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`
-                                      : (activeEmergencyPct || 0) === 0
-                                      ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                      : `${formatKrw(perPersonEmergencyKrw)} (${locale === "ko" ? "1인당" : "per person"}) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                    {formulaText}
                                   </strong>
                                 </span>
-                                <span>
+                                <span className="shrink-0">
                                   {locale === "ko" ? `${adultCount}명 기준 전체 비상금:` : `Total for ${adultCount}:`}{" "}
                                   <strong className="text-[#e25c5c] font-extrabold">
                                     {formatKrw(computedEmergencyKrw)}

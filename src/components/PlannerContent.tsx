@@ -1746,10 +1746,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               "🛍️",
                               `쇼핑 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                               `Shopping Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                              "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.",
-                              "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.",
-                              "가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 인원수(N명)에 따라 총액이 자동 산출되어 영수증에 포함됩니다.",
-                              "Select shopping budget presets per person or enter a custom amount. The total will be multiplied by your travelers."
+                              "",
+                              "",
+                              "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.\n가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 인원수(N명)에 따라 총액이 자동 산출되어 영수증에 포함됩니다.",
+                              "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.\nSelect shopping budget presets per person or enter a custom amount. The total will be multiplied by your travelers."
                             )}
                           </div>
                           <div className="text-right shrink-0 ml-3">
@@ -1840,10 +1840,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           "🎟️",
                           `용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                           `Activity Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                          "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.",
-                          "Daily pocket money for personal activities and extras during your trip.",
-                          "일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
-                          "Daily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget."
+                          "",
+                          "",
+                          "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.\n일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
+                          "Daily pocket money for personal activities and extras during your trip.\nDaily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget."
                         )}
                       </div>
                       <div className="text-right shrink-0 ml-3">
@@ -1972,10 +1972,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           "🛡️",
                           `여행 비상금 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                           `Emergency Fund ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                          "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.",
-                          "Budget for unexpected emergencies or unforeseen contingencies during your trip.",
-                          "전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 1인당 비상금 수치와 전체 여행 인원 수치(N명)가 명확히 계산되어 합산됩니다.",
-                          "Set an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. Per-person and total figures will be clearly presented."
+                          "",
+                          "",
+                          "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.\n전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 1인당 비상금 수치와 전체 여행 인원 수치(N명)가 명확히 계산되어 합산됩니다.",
+                          "Budget for unexpected emergencies or unforeseen contingencies during your trip.\nSet an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. Per-person and total figures will be clearly presented."
                         )}
                       </div>
                       <div className="text-right shrink-0 ml-3">
@@ -2064,10 +2064,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             "🚅",
                             "도시 간 이동",
                             "Intercity Transit",
-                            "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다.",
-                            "Representative transit options and fares between your selected trip cities.",
-                            "KTX, 고속버스, 내륙 항공 등 도시 간 이동 구간별 대표 교통편과 평균 시세 요금(1인 편도 기준)을 보여주며, 전체 인원수에 맞게 예산에 합산됩니다.",
-                            "Displays primary transit options (KTX, express bus, domestic flights) and fares between your chosen destinations, scaled to your total group size."
+                            "",
+                            "",
+                            "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다.\nKTX, 고속버스, 내륙 항공 등 도시 간 이동 구간별 대표 교통편과 평균 시세 요금(1인 편도 기준)을 보여주며, 전체 인원수에 맞게 예산에 합산됩니다.",
+                            "Representative transit options and fares between your selected trip cities.\nDisplays primary transit options (KTX, express bus, domestic flights) and fares between your chosen destinations, scaled to your total group size."
                           )}
                         </div>
                       </div>

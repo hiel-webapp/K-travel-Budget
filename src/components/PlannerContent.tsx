@@ -1645,10 +1645,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             "",
                             "",
                             "여행 기간 동안의 1인당 목표 예산을 프리셋(1인 100만/200만/300만) 선택 또는 직접 입력으로 설정할 수 있으며, 선택한 1인당 예산에 맞춰 전체 여행 예산(1인당 × 여행 인원)이 자동 산출됩니다.",
-                            "You can set your per-person budget using presets (1M/2M/3M) or custom input. The overall trip budget (per person × travelers) will be automatically calculated.",
-                            "여행 전체",
-                            "Trip Total",
-                            "total"
+                            "You can set your per-person budget using presets (1M/2M/3M) or custom input. The overall trip budget (per person × travelers) will be automatically calculated."
                           )}
                         </div>
 
@@ -1776,10 +1773,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 "",
                                 "",
                                 "뷰티, 패션, 특산품 등 한국 여행 중 쇼핑을 위한 예산입니다.\n가벼운 쇼핑부터 프리미엄 쇼핑까지 1인당 단가 옵션을 선택하거나 원하는 금액을 입력할 수 있으며, 인원수(N명)에 따라 총액이 자동 산출되어 영수증에 포함됩니다.",
-                                "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.\nSelect shopping budget presets per person or enter a custom amount. The total will be multiplied by your travelers.",
-                                "여행 전체",
-                                "Trip Total",
-                                "total"
+                                "Budget for shopping cosmetics, fashion, souvenirs, and local products in Korea.\nSelect shopping budget presets per person or enter a custom amount. The total will be multiplied by your travelers."
                               )}
                             </div>
 
@@ -1863,10 +1857,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             "",
                             "",
                             "여행 중 발생할 수 있는 돌발 상황이나 현지 비상 지출을 대비한 예산입니다.\n전체 예산의 5%, 10%, 15% 비율 또는 수동 입력으로 비상금을 설정할 수 있습니다. 1인당 비상금 수치와 전체 여행 인원 수치(N명)가 명확히 계산되어 합산됩니다.",
-                            "Budget for unexpected emergencies or unforeseen contingencies during your trip.\nSet an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. Per-person and total figures will be clearly presented.",
-                            "여행 전체",
-                            "Trip Total",
-                            "total"
+                            "Budget for unexpected emergencies or unforeseen contingencies during your trip.\nSet an emergency reserve as 5%, 10%, or 15% of your total budget, or enter a custom amount. Per-person and total figures will be clearly presented."
                           )}
                         </div>
 

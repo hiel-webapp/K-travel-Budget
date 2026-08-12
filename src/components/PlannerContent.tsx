@@ -2101,7 +2101,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <strong className="text-slate-800 font-bold">
                                 {currentDailyRate === 0
                                   ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                  : `${formatKrw(currentDailyRate)}${locale === "ko" ? "/일" : "/day"} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
+                                  : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
                               </strong>
                             </span>
                             <span>

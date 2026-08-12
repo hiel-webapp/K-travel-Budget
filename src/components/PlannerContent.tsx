@@ -2965,7 +2965,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           const adultCount = draft.adultCount || 1;
           const shoppingAmountKrw = (() => {
             if (shoppingOption === "NONE") return 0;
-            if (shoppingOption === "BEAUTY") return 150000 * adultCount;
+            if (shoppingOption === "BEAUTY") return 200000 * adultCount;
             if (shoppingOption === "FASHION") return 300000 * adultCount;
             if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
             if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
@@ -3078,15 +3078,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                         {dict.planner.tripWideExpenses}
                       </h4>
-                      {plan.tripWideSection.lineItems.map((item) => (
-                        <div key={item.id} className="flex justify-between items-start text-xs">
-                          <div>
-                            <span className="text-slate-800 font-bold block">{getBasketLabel(item.basketId, dict, locale)}</span>
-                            <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
+                      {plan.tripWideSection.lineItems.map((item) => {
+                        const isEmergency = item.basketId === "EMERGENCY_FIXED";
+                        const baseLabel = getBasketLabel(item.basketId, dict, locale);
+                        const displayLabel = isEmergency
+                          ? (activeEmergencyPct && emergencyManualInput === "" && activeEmergencyPct > 0
+                              ? `${locale === "ko" ? "여행 비상금" : "Emergency Fund"} (${Math.round(activeEmergencyPct * 100)}%)`
+                              : (locale === "ko" ? "여행 비상금" : "Emergency Fund"))
+                          : baseLabel;
+
+                        return (
+                          <div key={item.id} className="flex justify-between items-start text-xs">
+                            <div>
+                              <span className="text-slate-800 font-bold block">{displayLabel}</span>
+                              <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
+                            </div>
+                            <span className="font-sans tabular-nums font-bold text-[#0f172a]">{formatKrw(item.lineTotalKrw)}</span>
                           </div>
-                          <span className="font-sans tabular-nums font-bold text-[#0f172a]">{formatKrw(item.lineTotalKrw)}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 

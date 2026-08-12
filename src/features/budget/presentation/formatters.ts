@@ -30,7 +30,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "N서울타워 전망대 & 한복 대여 체험", en: "N Seoul Tower & Hanbok Rental Experience" },
     EXPERIENCE_RICH: { ko: "한강 프라이빗 요트 & VIP 뮤지컬 관람", en: "Hangang Private Yacht & VIP Musical Show" },
     KTX_STANDARD: { ko: "KTX 고속철도 이동", en: "KTX High-Speed Rail" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   BUSAN: {
     BUDGET_STAY: { ko: "자갈치/남포 오션 가성비 게스트하우스", en: "Jagalchi/Nampo Ocean Budget Guesthouse" },
@@ -46,7 +46,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "해운대 블루라인파크 해변열차 & 요트투어", en: "Haeundae Blueline Park Train & Yacht Tour" },
     EXPERIENCE_RICH: { ko: "프라이빗 해운대 요트 스파 & 스카이캡슐 VIP", en: "Private Yacht Spa & Sky Capsule VIP" },
     KTX_STANDARD: { ko: "KTX 고속철도 이동", en: "KTX High-Speed Rail" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   JEJU: {
     BUDGET_STAY: { ko: "제주공항 근처 아담한 게스트하우스", en: "Jeju Airport Budget Guesthouse" },
@@ -62,7 +62,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "제주 승마 체험 & 감귤 따기 체험", en: "Jeju Horseback Riding & Tangerine Picking" },
     EXPERIENCE_RICH: { ko: "제주 프라이빗 요트 투어 & 잠수함 탐험", en: "Jeju Private Yacht Tour & Submarine" },
     KTX_STANDARD: { ko: "KTX/항공 이동", en: "Flight / KTX Transport" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   JEONJU: {
     BUDGET_STAY: { ko: "한옥마을 아담한 뜰채 게스트하우스", en: "Jeonju Hanok Village Traditional Guesthouse" },
@@ -78,7 +78,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "한옥마을 명품 한복 체험 & 다도 교실", en: "Hanok Village Premium Hanbok & Tea Class" },
     EXPERIENCE_RICH: { ko: "전주 전통 공예 명인 클래스 & VIP 한옥 체험", en: "Jeonju Traditional Craft Master Class & VIP" },
     KTX_STANDARD: { ko: "KTX 고속철도 이동", en: "KTX High-Speed Rail" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   GYEONGJU: {
     BUDGET_STAY: { ko: "황리단길 감성 가성비 한옥 게스트하우스", en: "Hwangridan-gil Hanok Guesthouse" },
@@ -94,7 +94,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "불국사/석굴암 전문 해설 가이드 투어", en: "Bulguksa & Seokguram Guided Tour" },
     EXPERIENCE_RICH: { ko: "동궁과 월지 야경 VIP 도슨트 & 신라 문화 체험", en: "Donggung & Wolji VIP Night Tour" },
     KTX_STANDARD: { ko: "KTX 고속철도 이동", en: "KTX High-Speed Rail" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   GANGNEUNG: {
     BUDGET_STAY: { ko: "안목해변 감성 미니멀 오션뷰 스테이", en: "Anmok Beach Minimal Oceanview Stay" },
@@ -110,7 +110,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "오죽헌·선교장 문화 투어 & 바다부채길", en: "Ojukheon & Sea Fan Road Tour" },
     EXPERIENCE_RICH: { ko: "강릉 럭셔리 해안 요트 투어 & 서핑 체험", en: "Gangneung Luxury Ocean Yacht & Surfing" },
     KTX_STANDARD: { ko: "KTX 고속철도 이동", en: "KTX High-Speed Rail" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   INCHEON: {
     BUDGET_STAY: { ko: "송도/월미도 가성비 비즈니스 스테이", en: "Songdo/Wolmido Budget Business Stay" },
@@ -126,7 +126,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "월미도 테마파크 & 소래포구 수산시장", en: "Wolmido Theme Park & Sorae Market" },
     EXPERIENCE_RICH: { ko: "영종도 씨사이드 레일바이크 & 럭셔리 스파", en: "Yeongjongdo Railbike & Luxury Spa" },
     KTX_STANDARD: { ko: "공항철도 / KTX 이동", en: "Airport Express / KTX Transport" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   SUWON: {
     BUDGET_STAY: { ko: "수원 화성 행궁동 가성비 게스트하우스", en: "Suwon Haenggung-dong Budget Stay" },
@@ -142,7 +142,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "수원화성 어차 탑승 & 국궁 활쏘기 체험", en: "Hwaseong Trolley & Archery Experience" },
     EXPERIENCE_RICH: { ko: "수원화성 미디어아트 & 열기구 플라잉수원", en: "Flying Suwon Hot Air Balloon & Media Art" },
     KTX_STANDARD: { ko: "KTX/수원선 이동", en: "KTX Transport" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   YEOSU: {
     BUDGET_STAY: { ko: "여수 낭만포차 근처 가성비 게스트하우스", en: "Yeosu Romantic Pocha Budget Stay" },
@@ -158,7 +158,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "여수 해상케이블카 & 이순신광장 투어", en: "Yeosu Maritime Cable Car & Tour" },
     EXPERIENCE_RICH: { ko: "여수 밤바다 프라이빗 요트 & 불꽃 투어", en: "Yeosu Night Sea Private Yacht & Fireworks" },
     KTX_STANDARD: { ko: "KTX 고속철도 이동", en: "KTX High-Speed Rail" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
   SOKCHO: {
     BUDGET_STAY: { ko: "속초 중앙시장 근처 가성비 스테이", en: "Sokcho Central Market Budget Stay" },
@@ -174,7 +174,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     BALANCED: { ko: "설악산 케이블카 & 아바이마을 갯배 체험", en: "Seoraksan Cable Car & Abai Village Gaetbae" },
     EXPERIENCE_RICH: { ko: "속초 요트 마리나 & 설악 럭셔리 스파", en: "Sokcho Yacht Marina & Luxury Spa" },
     KTX_STANDARD: { ko: "고속버스 / KTX-이음 이동", en: "Express Bus / KTX Transport" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   },
 };
 
@@ -206,7 +206,7 @@ export function getBasketLabel(
     BALANCED: { ko: "균형 잡힌 체험 활동", en: "Balanced Attractions" },
     EXPERIENCE_RICH: { ko: "풍성한 체험 활동", en: "Experience-rich Attractions" },
     KTX_STANDARD: { ko: "KTX 일반실", en: "KTX Standard Class" },
-    EMERGENCY_FIXED: { ko: "기본 비상금", en: "Basic Emergency Fund" },
+    EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
   };
 
   const item = mapping[basketId];

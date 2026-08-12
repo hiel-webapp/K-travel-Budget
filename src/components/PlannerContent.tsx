@@ -1776,30 +1776,29 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     setShoppingCustomInput("");
                                   }
                                 }}
-                                className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
+                                className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
                                   isSelected
                                     ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                    : "bg-white border border-slate-200 text-[#0f172a] font-semibold hover:bg-slate-100"
+                                    : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                 }`}
                               >
-                                <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{opt.title}</div>
-                                <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(opt.perPerson)} <span className="text-[9px] text-slate-400">/{locale === "ko" ? "인" : "person"}</span></div>
+                                <span className="text-xs font-bold">{formatKrw(opt.perPerson)}</span>
                               </button>
                             );
                           })}
 
-                          <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
+                          <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
                             shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
-                              ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
-                              : "bg-white border border-slate-200"
+                              ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                              : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                           }`}>
-                            <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
+                            <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
                             <input
                               type="number"
                               min="0"
                               step="10000"
-                              className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                              placeholder={locale === "ko" ? "1인당 직접 입력" : "Custom / person"}
+                              className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                              placeholder={locale === "ko" ? "직접 입력" : "Custom"}
                               value={shoppingCustomInput}
                               onChange={(e) => {
                                 setShoppingCustomInput(e.target.value);

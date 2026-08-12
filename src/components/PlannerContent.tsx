@@ -1949,8 +1949,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           })()}
                         </div>
                       </div>
-
-                      {/* 2-4. Intercity Transport Route Timeline */}
                       {draft.selectedCities.length >= 2 && (
                         <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
                           <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
@@ -2002,141 +2000,119 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </div>
                   </div>
 
-                  {/* 3단 박스: 📌 일자별 경비 설정 Outer Box Container */}
+                  {/* 3단 박스: 📌 일일 용돈 (1인 기준) Outer Box Container */}
                   <div className="bg-[#fdf2f2]/60 border border-rose-200/90 p-5 rounded-2xl space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-rose-200/80 pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">📌</span>
-                        <h3 className="text-sm font-extrabold text-[#0f172a] tracking-tight">
-                          {locale === "ko" ? "일자별 경비 설정" : "Daily Expense Budgeting"}
-                        </h3>
+                      <div className="flex-1">
+                        {renderOverviewSectionHeader(
+                          "activityFund",
+                          "📌",
+                          `일일 용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                          `Daily Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
+                          "",
+                          "",
+                          "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.\n일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
+                          "Daily pocket money for personal activities and extras during your trip.\nDaily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget."
+                        )}
                       </div>
-                      <span className="text-xs font-bold text-[#e25c5c]">
+                      <span className="text-xs font-bold text-[#e25c5c] shrink-0 ml-3">
                         {locale === "ko" ? `${draft.totalNights || 1}박 일수 자동 연동` : `Applied across ${draft.totalNights || 1} nights`}
                       </span>
                     </div>
 
-                    <div className="space-y-4">
-                      {/* 3-1. Trip-wide Activity Pocket Money & Reserve Setting Block */}
-                      <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
-                        <div className="border-b border-slate-200/60 pb-3">
-                          {renderOverviewSectionHeader(
-                            "activityFund",
-                            "🎟️",
-                            `용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
-                            `Activity Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                            "",
-                            "",
-                            "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.\n일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
-                            "Daily pocket money for personal activities and extras during your trip.\nDaily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget.",
-                            `1일 기준 (${draft.totalNights || 1}박 연동)`,
-                            `Daily (${draft.totalNights || 1}N)`,
-                            "daily"
-                          )}
-                        </div>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          {
+                            id: "MOSTLY_FREE" as BudgetBasketId,
+                            label: locale === "ko" ? "10,000원" : "₩10,000",
+                            dailyPrice: 10000,
+                          },
+                          {
+                            id: "BALANCED" as BudgetBasketId,
+                            label: locale === "ko" ? "30,000원 (추천)" : "₩30,000 (Rec)",
+                            dailyPrice: 30000,
+                          },
+                          {
+                            id: "EXPERIENCE_RICH" as BudgetBasketId,
+                            label: locale === "ko" ? "50,000원" : "₩50,000",
+                            dailyPrice: 50000,
+                          },
+                        ].map((preset) => {
+                          const firstCity = draft.selectedCities[0];
+                          const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                          const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
 
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {[
-                              {
-                                id: "MOSTLY_FREE" as BudgetBasketId,
-                                label: locale === "ko" ? "1만/일 (1인)" : "10k/day/p",
-                                dailyPrice: 10000,
-                              },
-                              {
-                                id: "BALANCED" as BudgetBasketId,
-                                label: locale === "ko" ? "3만/일 (추천)" : "30k/day (Rec)",
-                                dailyPrice: 30000,
-                              },
-                              {
-                                id: "EXPERIENCE_RICH" as BudgetBasketId,
-                                label: locale === "ko" ? "5만/일 (1인)" : "50k/day/p",
-                                dailyPrice: 50000,
-                              },
-                            ].map((preset) => {
-                              const firstCity = draft.selectedCities[0];
-                              const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
-                              const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
-                              const totalNights = draft.totalNights || 1;
-                              const adultCount = draft.adultCount || 1;
-                              const calcVal = preset.dailyPrice * adultCount * totalNights;
+                          return (
+                            <button
+                              key={preset.id}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setActivityManualInput("");
+                                  handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
+                                } else {
+                                  setActivityManualInput("");
+                                  handleSetAllCitiesAttractionBasket(preset.id);
+                                }
+                              }}
+                              className={`py-2.5 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer flex items-center justify-center ${
+                                isSelected
+                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                  : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
+                            </button>
+                          );
+                        })}
 
-                              return (
-                                <button
-                                  key={preset.id}
-                                  type="button"
-                                  onClick={() => {
-                                    if (isSelected) {
-                                      setActivityManualInput("");
-                                      handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
-                                    } else {
-                                      setActivityManualInput("");
-                                      handleSetAllCitiesAttractionBasket(preset.id);
-                                    }
-                                  }}
-                                  className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                                    isSelected
-                                      ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                      : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                                  }`}
-                                >
-                                  <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
-                                  <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>
-                                    {formatKrw(calcVal)} <span className="text-[9px] text-slate-400">({adultCount}{locale === "ko" ? "명" : "P"}·{totalNights}{locale === "ko" ? "박" : "N"})</span>
-                                  </div>
-                                </button>
-                              );
-                            })}
-
-                            <div className={`relative rounded-xl border flex items-center px-2.5 transition-all ${
-                              (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
-                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] font-extrabold shadow-2xs"
-                                : "bg-white border border-slate-200"
-                            }`}>
-                              <span className="text-slate-400 text-xs font-bold mr-1">₩</span>
-                              <input
-                                type="number"
-                                min="0"
-                                step="10000"
-                                className="w-full text-xs font-bold text-slate-900 bg-transparent border-none p-1 focus:outline-none"
-                                placeholder={locale === "ko" ? "1인 일일 용돈" : "Daily / person"}
-                                value={activityManualInput === "0" ? "" : activityManualInput}
-                                onChange={handleActivityManualInputChange}
-                              />
-                            </div>
-                          </div>
-
-                          {(() => {
-                            const firstCity = draft.selectedCities[0];
-                            const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
-                            const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
-                              ? preferences.attractionCustomDailyKrw
-                              : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
-                            const totalNights = draft.totalNights || 1;
-                            const adultCount = draft.adultCount || 1;
-                            const perPersonBudget = currentDailyRate * totalNights;
-                            const totalActivityFund = currentDailyRate * adultCount * totalNights;
-
-                            return (
-                              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                                <span>
-                                  <strong className="text-slate-800 font-bold">
-                                    {currentDailyRate === 0
-                                      ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                      : `${formatKrw(currentDailyRate)}${locale === "ko" ? "/일" : "/day"} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
-                                  </strong>
-                                </span>
-                                <span>
-                                  {locale === "ko" ? `${adultCount}명 기준 전체 용돈:` : `Total for ${adultCount}:`}{" "}
-                                  <strong className="text-[#e25c5c] font-extrabold">
-                                    {formatKrw(totalActivityFund)}
-                                  </strong>
-                                </span>
-                              </div>
-                            );
-                          })()}
+                        <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
+                          (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
+                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                            : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                        }`}>
+                          <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="10000"
+                            className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                            value={activityManualInput === "0" ? "" : activityManualInput}
+                            onChange={handleActivityManualInputChange}
+                          />
                         </div>
                       </div>
+
+                      {(() => {
+                        const firstCity = draft.selectedCities[0];
+                        const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                        const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
+                          ? preferences.attractionCustomDailyKrw
+                          : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
+                        const totalNights = draft.totalNights || 1;
+                        const adultCount = draft.adultCount || 1;
+                        const totalActivityFund = currentDailyRate * adultCount * totalNights;
+
+                        return (
+                          <div className="p-3 rounded-xl bg-white/80 border border-rose-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                            <span>
+                              <strong className="text-slate-800 font-bold">
+                                {currentDailyRate === 0
+                                  ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                                  : `${formatKrw(currentDailyRate)}${locale === "ko" ? "/일" : "/day"} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
+                              </strong>
+                            </span>
+                            <span>
+                              {locale === "ko" ? `${adultCount}명 기준 용돈:` : `Total for ${adultCount}:`}{" "}
+                              <strong className="text-[#e25c5c] font-extrabold">
+                                {formatKrw(totalActivityFund)}
+                              </strong>
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

@@ -6,6 +6,9 @@ import {
   parsePlannerPreferences,
   savePlannerPreferences,
   loadPlannerPreferencesEx,
+  saveTripDraft,
+  hasActiveDraft,
+  resetSessionCheckForTest,
 } from "../../../lib/storage-helper";
 
 const defaultTrip: TripDraft = {
@@ -182,12 +185,14 @@ describe("Planner Preferences & Storage Domain", () => {
     });
   });
 
-  describe("3. LocalStorage Side-Effects (Mocked environment)", () => {
+  describe("3. LocalStorage & SessionStorage Side-Effects (Mocked environment)", () => {
     let mockStorage: Record<string, string> = {};
 
     beforeEach(() => {
-      mockStorage = {};
-      vi.stubGlobal("localStorage", {
+      mockStorage = {
+        hypeheritage_session_active: "true",
+      };
+      const storageImpl = {
         getItem: vi.fn((key: string) => mockStorage[key] || null),
         setItem: vi.fn((key: string, val: string) => {
           mockStorage[key] = val;
@@ -195,9 +200,14 @@ describe("Planner Preferences & Storage Domain", () => {
         removeItem: vi.fn((key: string) => {
           delete mockStorage[key];
         }),
-      });
+      };
+      vi.stubGlobal("localStorage", storageImpl);
+      vi.stubGlobal("sessionStorage", storageImpl);
       // window defined to simulate client environment
-      vi.stubGlobal("window", {});
+      vi.stubGlobal("window", {
+        localStorage: storageImpl,
+        sessionStorage: storageImpl,
+      });
     });
 
     afterEach(() => {
@@ -225,14 +235,18 @@ describe("Planner Preferences & Storage Domain", () => {
       expect(res.preferences.accommodationByCity).toEqual({});
     });
 
-    it("should not delete TripDraft or legacy storage when loading preferences", () => {
-      localStorage.setItem("hypeheritage_trip_draft", "some-trip");
-      localStorage.setItem("k_travel_state", "legacy-trip");
+    it("should clear active trip draft and preferences on new browser session", () => {
+      saveTripDraft(defaultTrip);
+      savePlannerPreferences({ accommodationByCity: { SEOUL: "BUDGET_STAY" }, draft: defaultTrip });
+      expect(hasActiveDraft()).toBe(true);
 
-      loadPlannerPreferencesEx(defaultTrip);
+      // Simulate browser completely closed and reopened (new session)
+      resetSessionCheckForTest();
+      delete mockStorage.hypeheritage_session_active;
 
-      expect(localStorage.getItem("hypeheritage_trip_draft")).toBe("some-trip");
-      expect(localStorage.getItem("k_travel_state")).toBe("legacy-trip");
+      expect(hasActiveDraft()).toBe(false);
+      const res = loadPlannerPreferencesEx(defaultTrip);
+      expect(res.status).toBe("missing");
     });
 
     it("should migrate V1 envelope to V3 envelope successfully", () => {

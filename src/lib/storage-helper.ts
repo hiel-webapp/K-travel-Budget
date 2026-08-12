@@ -25,9 +25,76 @@ const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
 const PREFS_STORAGE_KEY = "hypeheritage_planner_preferences";
 const SAVED_PLACE_IDS_STORAGE_KEY = "hypeheritage_saved_place_ids";
+const SESSION_ACTIVE_KEY = "hypeheritage_session_active";
 
 export function isClient(): boolean {
   return typeof window !== "undefined";
+}
+
+let isSessionChecked = false;
+
+export function resetSessionCheckForTest(): void {
+  isSessionChecked = false;
+}
+
+export function getStorage(): Storage | null {
+  if (!isClient()) return null;
+  try {
+    return window.sessionStorage || window.localStorage || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+  * 브라우저 재실행 시 설정했던 작성 중인 여행 정보를 완전 초기화하고,
+  * 브라우저 세션 사용 중에는 정보를 유지하도록 세션 상태를 검사/초기화합니다.
+  */
+export function ensureSessionInitialized(): void {
+  if (!isClient()) return;
+  if (isSessionChecked) return;
+
+  try {
+    const sessionStore = window.sessionStorage;
+    if (sessionStore) {
+      const isActive = sessionStore.getItem(SESSION_ACTIVE_KEY);
+      if (!isActive) {
+        sessionStore.setItem(SESSION_ACTIVE_KEY, "true");
+        sessionStore.removeItem(NEW_STORAGE_KEY);
+        sessionStore.removeItem(LEGACY_STORAGE_KEY);
+        sessionStore.removeItem(PREFS_STORAGE_KEY);
+        sessionStore.removeItem(SAVED_PLACE_IDS_STORAGE_KEY);
+
+        if (typeof window.localStorage !== "undefined" && window.localStorage) {
+          window.localStorage.removeItem(NEW_STORAGE_KEY);
+          window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+          window.localStorage.removeItem(PREFS_STORAGE_KEY);
+          window.localStorage.removeItem(SAVED_PLACE_IDS_STORAGE_KEY);
+        }
+      }
+    }
+  } catch {
+  } finally {
+    isSessionChecked = true;
+  }
+}
+
+/**
+ * 작성 중인 여행 드래프트 데이터가 존재하는지 검사합니다.
+ */
+export function hasActiveDraft(): boolean {
+  if (!isClient()) return false;
+  ensureSessionInitialized();
+  const storage = getStorage();
+  if (!storage) return false;
+  try {
+    return (
+      storage.getItem(NEW_STORAGE_KEY) !== null ||
+      storage.getItem(LEGACY_STORAGE_KEY) !== null
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -43,10 +110,11 @@ export function generateTripFingerprint(draft: TripDraft): string {
 }
 
 /**
- * TripDraft를 로컬스토리지에 envelope 형식으로 안전하게 저장합니다.
+ * TripDraft를 세션스토리지에 envelope 형식으로 안전하게 저장합니다.
  */
 export function saveTripDraft(draft: TripDraft): boolean {
   if (!isClient()) return false;
+  ensureSessionInitialized();
 
   try {
     const validation = validateTripDraft(draft);
@@ -60,7 +128,9 @@ export function saveTripDraft(draft: TripDraft): boolean {
       tripDraft: draft,
     };
 
-    localStorage.setItem(NEW_STORAGE_KEY, JSON.stringify(envelope));
+    const storage = getStorage();
+    if (!storage) return false;
+    storage.setItem(NEW_STORAGE_KEY, JSON.stringify(envelope));
     return true;
   } catch {
     return false;
@@ -72,6 +142,7 @@ export function saveTripDraft(draft: TripDraft): boolean {
  */
 export function saveActiveDraft(draft: TripDraft, mobileStep: number = 1): boolean {
   if (!isClient()) return false;
+  ensureSessionInitialized();
 
   try {
     const envelope = {
@@ -81,7 +152,9 @@ export function saveActiveDraft(draft: TripDraft, mobileStep: number = 1): boole
       mobileStep,
     };
 
-    localStorage.setItem(NEW_STORAGE_KEY, JSON.stringify(envelope));
+    const storage = getStorage();
+    if (!storage) return false;
+    storage.setItem(NEW_STORAGE_KEY, JSON.stringify(envelope));
     return true;
   } catch {
     return false;
@@ -89,15 +162,21 @@ export function saveActiveDraft(draft: TripDraft, mobileStep: number = 1): boole
 }
 
 /**
- * 로컬스토리지로부터 저장된 실시간 TripDraft 및 mobileStep 상태를 복원합니다.
+ * 세션스토리지로부터 저장된 실시간 TripDraft 및 mobileStep 상태를 복원합니다.
  */
 export function loadActiveDraft(): { draft: TripDraft; mobileStep: number } {
   if (!isClient()) {
     return { draft: EMPTY_TRIP_DRAFT, mobileStep: 1 };
   }
+  ensureSessionInitialized();
+
+  const storage = getStorage();
+  if (!storage) {
+    return { draft: EMPTY_TRIP_DRAFT, mobileStep: 1 };
+  }
 
   try {
-    const rawNew = localStorage.getItem(NEW_STORAGE_KEY);
+    const rawNew = storage.getItem(NEW_STORAGE_KEY);
     if (rawNew) {
       const envelope = JSON.parse(rawNew);
       if (envelope && envelope.tripDraft) {
@@ -111,7 +190,7 @@ export function loadActiveDraft(): { draft: TripDraft; mobileStep: number } {
   }
 
   try {
-    const rawLegacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    const rawLegacy = storage.getItem(LEGACY_STORAGE_KEY);
     if (rawLegacy) {
       const legacyObj = JSON.parse(rawLegacy);
       const migrated = migrateLegacyState(legacyObj);
@@ -131,10 +210,16 @@ export function loadActiveDraft(): { draft: TripDraft; mobileStep: number } {
  */
 export function clearActiveDraft(): boolean {
   if (!isClient()) return false;
+  ensureSessionInitialized();
 
   try {
-    localStorage.removeItem(NEW_STORAGE_KEY);
-    localStorage.removeItem(LEGACY_STORAGE_KEY);
+    const storage = getStorage();
+    storage?.removeItem(NEW_STORAGE_KEY);
+    storage?.removeItem(LEGACY_STORAGE_KEY);
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(NEW_STORAGE_KEY);
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    }
     return true;
   } catch {
     return false;
@@ -142,7 +227,7 @@ export function clearActiveDraft(): boolean {
 }
 
 /**
- * 로컬스토리지로부터 TripDraft를 우선 로드하며, 필요 시 기존 레거시 상태를 마이그레이션합니다.
+ * 세션스토리지로부터 TripDraft를 우선 로드하며, 필요 시 기존 레거시 상태를 마이그레이션합니다.
  */
 export function loadTripDraft(): TripDraft {
   return loadActiveDraft().draft;
@@ -370,12 +455,10 @@ export function parsePlannerPreferences(
         attractionByCity: prefs.attractionByCity || {},
         attractionSelections: prefs.attractionSelections || {},
         attractionCustomDailyKrw: isEmergencyValValid(prefs.attractionCustomDailyKrw) ? prefs.attractionCustomDailyKrw : undefined,
+        emergencyFundKrw: isEmergencyValValid(prefs.emergencyFundKrw) ? prefs.emergencyFundKrw : 0,
         emergencyFundPct: prefs.emergencyFundPct !== undefined
           ? prefs.emergencyFundPct
           : (prefs.emergencyFundKrw === undefined || prefs.emergencyFundKrw === 0 ? 0.10 : undefined),
-        emergencyFundKrw: (isEmergencyValValid(prefs.emergencyFundKrw) && prefs.emergencyFundKrw > 0)
-          ? prefs.emergencyFundKrw
-          : undefined,
       };
 
       return { status: "valid", preferences: returnPrefs };
@@ -476,10 +559,11 @@ export interface SavePlannerPreferencesInput {
 }
 
 /**
- * PlannerPreferences를 로컬스토리지에 envelope 형식으로 안전하게 저장합니다.
+ * PlannerPreferences를 세션스토리지에 envelope 형식으로 안전하게 저장합니다.
  */
 export function savePlannerPreferences(input: SavePlannerPreferencesInput): boolean {
   if (!isClient()) return false;
+  ensureSessionInitialized();
 
   const {
     accommodationByCity,
@@ -506,7 +590,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       attractionByCity,
       attractionSelections,
       attractionCustomDailyKrw: isValValid(input.attractionCustomDailyKrw) ? input.attractionCustomDailyKrw : undefined,
-      emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : undefined,
+      emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : 0,
       emergencyFundPct: typeof input.emergencyFundPct === "number" ? input.emergencyFundPct : undefined,
     };
 
@@ -516,7 +600,9 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       preferences: prefs,
     };
 
-    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(envelope));
+    const storage = getStorage();
+    if (!storage) return false;
+    storage.setItem(PREFS_STORAGE_KEY, JSON.stringify(envelope));
     return true;
   } catch {
     return false;
@@ -524,7 +610,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
 }
 
 /**
- * 로컬스토리지로부터 PlannerPreferences의 검증 상태와 Preferences 데이터를 반환합니다.
+ * 세션스토리지로부터 PlannerPreferences의 검증 상태와 Preferences 데이터를 반환합니다.
  */
 export function loadPlannerPreferencesEx(
   draft: TripDraft
@@ -546,9 +632,14 @@ export function loadPlannerPreferencesEx(
   if (!isClient()) {
     return { status: "unavailable", preferences: defaultPrefs };
   }
+  ensureSessionInitialized();
 
   try {
-    const raw = localStorage.getItem(PREFS_STORAGE_KEY);
+    const storage = getStorage();
+    if (!storage) {
+      return { status: "unavailable", preferences: defaultPrefs };
+    }
+    const raw = storage.getItem(PREFS_STORAGE_KEY);
     return parsePlannerPreferences(raw, draft);
   } catch {
     return { status: "unavailable", preferences: defaultPrefs };
@@ -585,8 +676,12 @@ export interface SavedTripsEnvelope {
  */
 export function loadSavedPlaceIds(): string[] {
   if (!isClient()) return [];
+  ensureSessionInitialized();
+
   try {
-    const raw = localStorage.getItem(SAVED_PLACE_IDS_STORAGE_KEY);
+    const storage = getStorage();
+    if (!storage) return [];
+    const raw = storage.getItem(SAVED_PLACE_IDS_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -598,14 +693,18 @@ export function loadSavedPlaceIds(): string[] {
 }
 
 /**
- * 저장 장소 ID 목록을 로컬스토리지에 유효성 및 중복을 방지하여 저장합니다.
+ * 저장 장소 ID 목록을 세션스토리지에 유효성 및 중복을 방지하여 저장합니다.
  */
 export function saveSavedPlaceIds(ids: string[]): boolean {
   if (!isClient()) return false;
+  ensureSessionInitialized();
+
   try {
+    const storage = getStorage();
+    if (!storage) return false;
     const validIds = ids.filter((id): id is string => typeof id === "string" && id.trim().length > 0);
     const uniqueIds = Array.from(new Set(validIds));
-    localStorage.setItem(SAVED_PLACE_IDS_STORAGE_KEY, JSON.stringify(uniqueIds));
+    storage.setItem(SAVED_PLACE_IDS_STORAGE_KEY, JSON.stringify(uniqueIds));
     return true;
   } catch {
     return false;
@@ -739,6 +838,8 @@ export function deleteSavedTrip(id: string): boolean {
 
 export function restoreSavedTrip(id: string): boolean {
   if (!isClient()) return false;
+  ensureSessionInitialized();
+
   try {
     const trips = loadSavedTrips();
     const found = trips.find((t) => t.id === id);
@@ -749,14 +850,17 @@ export function restoreSavedTrip(id: string): boolean {
       savedAt: new Date().toISOString(),
       tripDraft: found.draft,
     };
-    localStorage.setItem(NEW_STORAGE_KEY, JSON.stringify(draftEnvelope));
+
+    const storage = getStorage();
+    if (!storage) return false;
+    storage.setItem(NEW_STORAGE_KEY, JSON.stringify(draftEnvelope));
 
     const prefsEnvelope = {
       schemaVersion: 4,
       savedAt: new Date().toISOString(),
       preferences: found.preferences,
     };
-    localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefsEnvelope));
+    storage.setItem(PREFS_STORAGE_KEY, JSON.stringify(prefsEnvelope));
 
     // Restore saved place candidate IDs for this snapshot
     saveSavedPlaceIds(found.savedPlaceIds || []);

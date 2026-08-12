@@ -80,11 +80,7 @@ const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[]
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
   const [state, setState] = useState<PlannerState>(() => {
-    const hasDraftKey =
-      localStorage.getItem("hypeheritage_trip_draft") !== null ||
-      localStorage.getItem("k_travel_state") !== null;
-
-    if (!hasDraftKey) {
+    if (!hasActiveDraft()) {
       return { status: "missing" };
     }
 

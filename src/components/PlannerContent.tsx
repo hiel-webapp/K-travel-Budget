@@ -1838,7 +1838,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
                                     : shoppingAmountKrw === 0
                                     ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                    : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} (1인당) × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                    : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
                                 </strong>
                               </span>
                               <span>

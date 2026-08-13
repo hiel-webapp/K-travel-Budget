@@ -1567,10 +1567,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               // Category Amounts Data
               const categoryMeta = [
-                { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
-                { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
-                { cat: "CITY_TRANSPORT", icon: "🚌", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
-                { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
+                { cat: "ACCOMMODATION", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
+                { cat: "FOOD", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
+                { cat: "CITY_TRANSPORT", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
+                { cat: "ATTRACTION", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
               ];
 
               const grandTotal = plan.grandTotalKrw || 1;
@@ -1609,7 +1609,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div className="border-b border-[#fce8e8] pb-2.5">
                           {renderOverviewSectionHeader(
                             "cityNights",
-                            "📌",
+                            "",
                             titleKo,
                             titleEn,
                             "",
@@ -1631,7 +1631,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         return (
                           <div key={city} className="bg-white/80 px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-2 min-w-0 shadow-2xs">
                             <div className="flex items-center gap-1.5 min-w-0 shrink-0">
-                              <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">📍 {cityName}</span>
+                              <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">{cityName}</span>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               <button
@@ -1664,11 +1664,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 );
               })()}
 
-                  {/* 2단 박스: 📌 여행 전체 예산 설정 Outer Box Container */}
+                  {/* 2단 박스: 여행 전체 예산 설정 Outer Box Container */}
                   <div className="bg-slate-50/80 border border-slate-200/90 p-5 rounded-2xl space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-base">📌</span>
                         <h3 className="text-sm font-extrabold text-[#0f172a] tracking-tight">
                           {locale === "ko" ? "여행 전체 예산 설정" : "Total Trip Budgeting"}
                         </h3>
@@ -1684,7 +1683,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div className="border-b border-slate-200/60 pb-3">
                           {renderOverviewSectionHeader(
                             "targetBudget",
-                            "🎯",
+                            "",
                             `목표 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                             `Target Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
                             "",
@@ -1812,7 +1811,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <div className="border-b border-slate-200/60 pb-3">
                               {renderOverviewSectionHeader(
                                 "shoppingFund",
-                                "🛍️",
+                                "",
                                 `쇼핑 예산 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                                 `Shopping Budget ${dict.planner.perPersonLabel || "(Per Person)"}`,
                                 "",
@@ -1896,7 +1895,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div className="border-b border-slate-200/60 pb-3">
                           {renderOverviewSectionHeader(
                             "emergencyFund",
-                            "🛡️",
+                            "",
                             `여행 비상금 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                             `Emergency Fund ${dict.planner.perPersonLabel || "(Per Person)"}`,
                             "",
@@ -1997,13 +1996,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </div>
                   </div>
 
-                  {/* 3단 박스: 📌 일일 용돈 (1인 기준) Outer Box Container */}
+                  {/* 3단 박스: 일일 용돈 (1인 기준) Outer Box Container */}
                   <div className="bg-[#fdf2f2]/60 border border-rose-200/90 p-5 rounded-2xl space-y-4 shadow-2xs">
                     <div className="flex items-center justify-between border-b border-rose-200/80 pb-3">
                       <div className="flex-1">
                         {renderOverviewSectionHeader(
                           "activityFund",
-                          "📌",
+                          "",
                           `일일 용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
                           `Daily Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
                           "",
@@ -2155,9 +2154,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* Consolidated Header & Reset Button */}
                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                            <span>🏨</span>
-                            <span>{CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "숙박 예산 및 유형 선택" : "Accommodation Budget & Tier"}</span>
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">
+                            {CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "숙박 예산 및 유형 선택" : "Accommodation Budget & Tier"}
                           </h4>
                           <p className="text-xs text-slate-400 mt-0.5">
                             {locale === "ko"
@@ -2181,8 +2179,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* PLACE Override Active Banner */}
                       {isPlaceOverride && (
                         <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs flex items-center justify-between font-bold text-amber-900 shadow-2xs">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base">📍</span>
+                          <div>
                             <span>
                               {locale === "ko"
                                 ? `${(accOverride as any).placeNameKo} (${formatKrw((accOverride as any).nightlyPriceKrw)}/박) · 개별 숙소 지정가가 우선 적용 중입니다.`
@@ -2202,7 +2199,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* 1. Concise Stay Tier Basket Cards */}
                       <div className="space-y-2.5">
                         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                          {locale === "ko" ? "💡 숙소 유형 선택 (도시 평균 정수 단가)" : "💡 Stay Tier Average"}
+                          {locale === "ko" ? "숙소 유형 선택 (도시 평균 정수 단가)" : "Stay Tier Average"}
                         </span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {basketOptions.map((opt) => {
@@ -2254,7 +2251,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div className="space-y-3 pt-3 border-t border-slate-100">
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                              {locale === "ko" ? `🏘️ ${CITY_KOREAN_NAMES[city] || city} 실제 후보 숙소 탐색` : `🏘️ ${CITY_ENGLISH_NAMES[city] || city} Candidate Accommodations`}
+                              {locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 실제 후보 숙소 탐색` : `${CITY_ENGLISH_NAMES[city] || city} Candidate Accommodations`}
                             </span>
                             <span className="text-[10px] text-slate-400 font-medium">
                               {locale === "ko" ? `전체 ${accSpotsForCity.length}개 중 ${displayedAccSpots.length}개 노출` : `Showing ${displayedAccSpots.length} of ${accSpotsForCity.length}`}
@@ -2536,9 +2533,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* Header & Reset */}
                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                            <span>🏛️</span>
-                            <span>{CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "관광·액티비티 키오스크" : "Attractions Kiosk"}</span>
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">
+                            {CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "관광·액티비티 키오스크" : "Attractions Kiosk"}
                           </h4>
                           <p className="text-xs text-slate-400 mt-0.5">
                             {locale === "ko"
@@ -2564,7 +2560,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                            {dict.planner.recommendedCoursesTitle || "⚡ 추천 관광 코스 프리셋 (복수 선택 가능)"}
+                            {dict.planner.recommendedCoursesTitle || "추천 관광 코스 프리셋 (복수 선택 가능)"}
                           </span>
                           <span className="text-[10px] text-slate-400 font-medium">
                             {locale === "ko" ? "중복 관광지 비용은 1회만 자동 계산" : "Deduplicated spot pricing"}
@@ -2871,7 +2867,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* Shopping Selector Card */}
                       <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-3">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">🛍️ {locale === "ko" ? "쇼핑 예산 옵션" : "Shopping Budget"}</h4>
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">{locale === "ko" ? "쇼핑 예산 옵션" : "Shopping Budget"}</h4>
                         </div>
                         <select
                           value={shoppingOption}
@@ -2897,7 +2893,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                       {/* K-Guide Tip Banner */}
                       <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 font-medium flex items-start gap-2">
-                        <span className="text-base shrink-0">💡</span>
                         <p className="leading-relaxed">
                           {locale === "ko"
                             ? "K-Guide 팁: T-money 교통카드는 한국의 모든 편의점에서 ₩2,500에 구매할 수 있으며, 서울/수원/부산 등 전국의 지하철과 시내버스에서 공통 사용할 수 있습니다."

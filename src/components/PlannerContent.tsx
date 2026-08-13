@@ -319,6 +319,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   };
 
+  const handleReorderCities = (newCities: SupportedCity[]) => {
+    if (state.status !== "ready") return;
+    const nextDraft: TripDraft = {
+      ...state.draft,
+      selectedCities: newCities,
+    };
+    saveTripDraft(nextDraft);
+    setState({
+      ...state,
+      draft: nextDraft,
+    });
+  };
+
   const handleModalToggleCity = (cityCode: SupportedCity) => {
     if (!editDraft) return;
     let nextCities: SupportedCity[];
@@ -2121,6 +2134,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 draft={draft}
                 intercityOverrides={preferences.intercityTransportOverrides || {}}
                 onSelectIntercityOverride={handleSelectIntercityOverride}
+                onReorderCities={handleReorderCities}
                 locale={locale}
                 dict={dict}
               />

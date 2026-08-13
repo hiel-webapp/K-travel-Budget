@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
+import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { IntercityTransportMode, IntercityFareInfo, getIntercityFareOptions } from "../lib/transport/intercity-fares";
 import { formatKrw } from "../features/budget/presentation/formatters";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -11,6 +11,7 @@ interface TransportPlannerPanelProps {
   draft: TripDraft;
   intercityOverrides: Record<string, IntercityTransportMode>;
   onSelectIntercityOverride: (routeKey: string, mode: IntercityTransportMode) => void;
+  onReorderCities?: (newCities: SupportedCity[]) => void;
   locale: Locale;
   dict: Dictionary;
 }
@@ -19,6 +20,7 @@ export default function TransportPlannerPanel({
   draft,
   intercityOverrides,
   onSelectIntercityOverride,
+  onReorderCities,
   locale,
   dict,
 }: TransportPlannerPanelProps) {
@@ -30,6 +32,33 @@ export default function TransportPlannerPanel({
     return locale === "ko"
       ? CITY_KOREAN_NAMES[city] || city
       : CITY_ENGLISH_NAMES[city] || city;
+  };
+
+  // 도시 순서 좌우 이동
+  const handleMoveCity = (index: number, direction: "LEFT" | "RIGHT") => {
+    if (!onReorderCities) return;
+    const targetIdx = direction === "LEFT" ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= selectedCities.length) return;
+
+    const nextCities = [...selectedCities];
+    const temp = nextCities[index];
+    nextCities[index] = nextCities[targetIdx];
+    nextCities[targetIdx] = temp;
+    onReorderCities(nextCities);
+  };
+
+  // 출발지 퀵 선택
+  const handleSelectStartCity = (startCity: SupportedCity) => {
+    if (!onReorderCities) return;
+    const filtered = selectedCities.filter((c) => c !== startCity);
+    onReorderCities([startCity, ...filtered]);
+  };
+
+  // 최적 동선 자동 정렬
+  const handleOptimizeRoute = () => {
+    if (!onReorderCities) return;
+    const sorted = sortCitiesByStandardOrder(selectedCities);
+    onReorderCities(sorted);
   };
 
   return (
@@ -55,6 +84,96 @@ export default function TransportPlannerPanel({
             : "Select the optimal transit option (KTX, Express Bus, Flight) for each segment."}
         </p>
       </div>
+
+      {/* Part 0: 자율 동선 순서 재배치 컨트롤 (Route Sequence Reordering) */}
+      {isMultiCity && (
+        <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+            <div>
+              <h4 className="text-sm font-extrabold text-[#0f172a]">
+                {locale === "ko" ? "여행 동선 및 방문 순서 설정" : "Trip Route & Visit Sequence"}
+              </h4>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {locale === "ko"
+                  ? "출발지와 방문 도시 순서를 자유롭게 변경할 수 있습니다."
+                  : "Freely change your starting city and route order."}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {onReorderCities && (
+                <button
+                  type="button"
+                  onClick={handleOptimizeRoute}
+                  className="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
+                >
+                  {locale === "ko" ? "최적 동선 자동 정렬" : "Auto Optimize Route"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Sequence Chips */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedCities.map((city, idx) => {
+                const isFirst = idx === 0;
+                const isLast = idx === selectedCities.length - 1;
+                const badgeLabel = isFirst
+                  ? (locale === "ko" ? "출발지" : "Start")
+                  : isLast
+                  ? (locale === "ko" ? "도착지" : "End")
+                  : (locale === "ko" ? `경유 ${idx}` : `Stop ${idx}`);
+
+                return (
+                  <React.Fragment key={city}>
+                    <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs">
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                        isFirst
+                          ? "bg-rose-500 text-white"
+                          : isLast
+                          ? "bg-indigo-600 text-white"
+                          : "bg-slate-200 text-slate-700"
+                      }`}>
+                        {badgeLabel}
+                      </span>
+                      <span className="text-xs font-black text-[#0f172a] px-1">
+                        {getCityName(city)}
+                      </span>
+
+                      {onReorderCities && (
+                        <div className="flex items-center gap-0.5 ml-1 border-l border-slate-200 pl-1.5">
+                          <button
+                            type="button"
+                            disabled={isFirst}
+                            onClick={() => handleMoveCity(idx, "LEFT")}
+                            className="w-5 h-5 rounded bg-white hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-white text-slate-700 font-black text-xs flex items-center justify-center border border-slate-200 cursor-pointer"
+                            title={locale === "ko" ? "앞으로 이동" : "Move left"}
+                          >
+                            ◄
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isLast}
+                            onClick={() => handleMoveCity(idx, "RIGHT")}
+                            className="w-5 h-5 rounded bg-white hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-white text-slate-700 font-black text-xs flex items-center justify-center border border-slate-200 cursor-pointer"
+                            title={locale === "ko" ? "뒤로 이동" : "Move right"}
+                          >
+                            ►
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {!isLast && (
+                      <span className="text-slate-300 font-bold text-xs">──►</span>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Part 1: 도시 간 이동 구간 카드 */}
       <div className="space-y-4">

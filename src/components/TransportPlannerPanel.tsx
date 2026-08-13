@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { IntercityTransportMode, IntercityFareInfo, getIntercityFareOptions } from "../lib/transport/intercity-fares";
 import { formatKrw } from "../features/budget/presentation/formatters";
@@ -28,9 +28,16 @@ export default function TransportPlannerPanel({
   const adultCount = draft.adultCount || 1;
   const isMultiCity = selectedCities.length >= 2;
 
-  // Drag and drop state for insertion line between cards
-  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
-  const [dropSlotIdx, setDropSlotIdx] = useState<number | null>(null);
+  // Real-time live reflow state
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+  const [liveCities, setLiveCities] = useState<SupportedCity[]>(selectedCities);
+
+  // Sync state when props change and not dragging
+  useEffect(() => {
+    if (draggingIdx === null) {
+      setLiveCities(selectedCities);
+    }
+  }, [selectedCities, draggingIdx]);
 
   const getCityName = (city: SupportedCity) => {
     return locale === "ko"
@@ -45,50 +52,45 @@ export default function TransportPlannerPanel({
     onReorderCities(sorted);
   };
 
-  // Drag & Drop Handlers
+  // Live Reflow Drag & Drop Handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIdx(index);
+    setDraggingIdx(index);
+    setLiveCities([...selectedCities]);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", index.toString());
   };
 
-  const handleSlotDragOver = (e: React.DragEvent, slotIdx: number) => {
+  const handleDragOverCard = (e: React.DragEvent, targetIdx: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    if (dropSlotIdx !== slotIdx) {
-      setDropSlotIdx(slotIdx);
-    }
+
+    if (draggingIdx === null || draggingIdx === targetIdx) return;
+
+    // Real-time array shift
+    const updated = [...liveCities];
+    const [movedItem] = updated.splice(draggingIdx, 1);
+    updated.splice(targetIdx, 0, movedItem);
+
+    setLiveCities(updated);
+    setDraggingIdx(targetIdx); // Update active position instantly
   };
 
-  const handleSlotDrop = (e: React.DragEvent, slotIdx: number) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (draggedIdx === null || !onReorderCities) {
-      setDraggedIdx(null);
-      setDropSlotIdx(null);
-      return;
+    if (onReorderCities && liveCities.length > 0) {
+      onReorderCities(liveCities);
     }
-
-    // Adjust target slot index when moving forward
-    let targetIdx = slotIdx;
-    if (draggedIdx < slotIdx) {
-      targetIdx = slotIdx - 1;
-    }
-
-    if (draggedIdx !== targetIdx) {
-      const nextCities = [...selectedCities];
-      const [movedItem] = nextCities.splice(draggedIdx, 1);
-      nextCities.splice(targetIdx, 0, movedItem);
-      onReorderCities(nextCities);
-    }
-
-    setDraggedIdx(null);
-    setDropSlotIdx(null);
+    setDraggingIdx(null);
   };
 
   const handleDragEnd = () => {
-    setDraggedIdx(null);
-    setDropSlotIdx(null);
+    if (onReorderCities && liveCities.length > 0) {
+      onReorderCities(liveCities);
+    }
+    setDraggingIdx(null);
   };
+
+  const displayCities = draggingIdx !== null ? liveCities : selectedCities;
 
   return (
     <div className="space-y-6">
@@ -114,7 +116,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 직관적인 드래그 앤 드롭 카드 사이 삽입(Between Insertion) 동선 설정 */}
+      {/* Part 0: 마우스 이동에 따라 실시간으로 기존 카드가 밀려나는 라이브 리플로우 드래그 앤 드롭 동선 설정 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -124,8 +126,8 @@ export default function TransportPlannerPanel({
               </h4>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 {locale === "ko"
-                  ? "목적지 카드를 카드 사이 원하는 위치로 드래그하여 순서를 변경하세요."
-                  : "Drag destination cards between items to rearrange travel sequence."}
+                  ? "목적지 카드를 마우스로 끌고 이동하면 기존 카드가 실시간으로 밀려나며 순서가 변경됩니다."
+                  : "Drag cards to watch other items shift smoothly in real-time."}
               </p>
             </div>
             {onReorderCities && (
@@ -139,83 +141,45 @@ export default function TransportPlannerPanel({
             )}
           </div>
 
-          {/* Interactive Drag & Drop Between-Insertion Area */}
-          <div className="flex flex-wrap items-center gap-1 pt-1 min-h-[52px]">
-            {selectedCities.map((city, idx) => {
-              const isDragging = draggedIdx === idx;
+          {/* Real-time Live Reflow Drag & Drop Cards */}
+          <div className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]">
+            {displayCities.map((city, idx) => {
+              const isDragging = draggingIdx === idx;
 
               return (
-                <React.Fragment key={city}>
-                  {/* Drop Slot BEFORE this card (Slot index = idx) */}
-                  <div
-                    onDragOver={(e) => handleSlotDragOver(e, idx)}
-                    onDrop={(e) => handleSlotDrop(e, idx)}
-                    className={`h-10 transition-all duration-150 flex items-center justify-center ${
-                      dropSlotIdx === idx && draggedIdx !== idx && draggedIdx !== idx - 1
-                        ? "w-6"
-                        : "w-2.5 hover:w-4"
-                    }`}
-                  >
-                    <div
-                      className={`h-9 rounded-full transition-all duration-150 ${
-                        dropSlotIdx === idx && draggedIdx !== idx && draggedIdx !== idx - 1
-                          ? "w-1.5 bg-[#e25c5c] ring-4 ring-rose-200 scale-y-110 animate-pulse shadow-sm"
-                          : "w-0.5 bg-slate-200/50 opacity-0 hover:opacity-100"
-                      }`}
-                    />
+                <div
+                  key={city}
+                  draggable={!!onReorderCities}
+                  onDragStart={(e) => handleDragStart(e, idx)}
+                  onDragOver={(e) => handleDragOverCard(e, idx)}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none ${
+                    isDragging
+                      ? "opacity-50 bg-rose-50/70 border-rose-400 ring-2 ring-rose-300 scale-105 shadow-md z-20"
+                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                  }`}
+                >
+                  {/* Grip Icon */}
+                  <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
+                    <span>⋮</span>
+                    <span>⋮</span>
                   </div>
 
-                  {/* Draggable City Card */}
-                  <div
-                    draggable={!!onReorderCities}
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragOver={(e) => handleSlotDragOver(e, idx)}
-                    onDrop={(e) => handleSlotDrop(e, idx)}
-                    onDragEnd={handleDragEnd}
-                    className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-150 cursor-grab active:cursor-grabbing select-none ${
-                      isDragging
-                        ? "opacity-30 bg-slate-100 border-dashed border-slate-400 scale-95"
-                        : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
-                    }`}
-                  >
-                    {/* Grip Icon */}
-                    <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
-                      <span>⋮</span>
-                      <span>⋮</span>
-                    </div>
+                  {/* Dynamic Step Number Badge */}
+                  <span className={`w-5 h-5 rounded-full font-extrabold text-[11px] flex items-center justify-center shrink-0 transition-colors ${
+                    isDragging ? "bg-[#e25c5c] text-white" : "bg-[#0f172a] text-white"
+                  }`}>
+                    {idx + 1}
+                  </span>
 
-                    {/* Step Number Badge */}
-                    <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                      {idx + 1}
-                    </span>
-
-                    {/* City Name */}
-                    <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
-                      {getCityName(city)}
-                    </span>
-                  </div>
-                </React.Fragment>
+                  {/* City Name */}
+                  <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
+                    {getCityName(city)}
+                  </span>
+                </div>
               );
             })}
-
-            {/* Drop Slot AFTER the last card (Slot index = selectedCities.length) */}
-            <div
-              onDragOver={(e) => handleSlotDragOver(e, selectedCities.length)}
-              onDrop={(e) => handleSlotDrop(e, selectedCities.length)}
-              className={`h-10 transition-all duration-150 flex items-center justify-center ${
-                dropSlotIdx === selectedCities.length && draggedIdx !== selectedCities.length - 1
-                  ? "w-6"
-                  : "w-2.5 hover:w-4"
-              }`}
-            >
-              <div
-                className={`h-9 rounded-full transition-all duration-150 ${
-                  dropSlotIdx === selectedCities.length && draggedIdx !== selectedCities.length - 1
-                    ? "w-1.5 bg-[#e25c5c] ring-4 ring-rose-200 scale-y-110 animate-pulse shadow-sm"
-                    : "w-0.5 bg-slate-200/50 opacity-0 hover:opacity-100"
-                }`}
-              />
-            </div>
           </div>
 
           {/* Info Banner for Upcoming Auto-Optimization Feature */}

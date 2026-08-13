@@ -1419,12 +1419,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="flex items-center space-x-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
               {sortCitiesByStandardOrder(draft.selectedCities).map((city) => {
                 const isActive = selectedCityTab === city;
-                const cityNights = draft.cityNightAllocations[city] ?? 0;
-                const cityLabelName = locale === "ko"
+                const label = locale === "ko"
                   ? CITY_KOREAN_NAMES[city] || city
                   : CITY_ENGLISH_NAMES[city] || city;
-                const nightBadge = cityNights === 0 ? (locale === "ko" ? "당일" : "Day") : `${cityNights}${locale === "ko" ? "박" : "N"}`;
-                const label = `${cityLabelName} (${nightBadge})`;
 
                 return (
                   <button

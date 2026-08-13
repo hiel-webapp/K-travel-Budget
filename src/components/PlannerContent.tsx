@@ -3148,19 +3148,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   {shoppingAmountKrw > 0 && (
                     <div className="space-y-1.5 pt-2 border-t border-slate-100">
                       <div className="flex justify-between items-baseline">
-                        <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1">
-                          <span>🛍️</span>
-                          <span>{locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}</span>
+                        <h4 className="text-sm font-extrabold text-[#0f172a]">
+                          {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
                         </h4>
                         <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(shoppingAmountKrw)}</span>
                       </div>
-                      {shoppingOption !== "CUSTOM" && (
-                        <div className="text-[10px] text-slate-400 italic pl-1.5">
-                          {shoppingOption === "BEAUTY" && (locale === "ko" ? "💄 K-뷰티 & 올리브영 화장품 쇼핑 예산" : "K-Beauty Cosmetics Shopping")}
-                          {shoppingOption === "FASHION" && (locale === "ko" ? "👗 K-패션 & 의류/브랜드 쇼핑 예산" : "K-Fashion & Apparel Shopping")}
-                          {shoppingOption === "SOUVENIR" && (locale === "ko" ? "🎁 K-굿즈, 식료품 & 전통 기념품 예산" : "K-Goods & Souvenirs Shopping")}
-                        </div>
-                      )}
                     </div>
                   )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { IntercityTransportMode, IntercityFareInfo, getIntercityFareOptions } from "../lib/transport/intercity-fares";
 import { formatKrw } from "../features/budget/presentation/formatters";
@@ -28,9 +28,16 @@ export default function TransportPlannerPanel({
   const adultCount = draft.adultCount || 1;
   const isMultiCity = selectedCities.length >= 2;
 
-  // Smooth gap expansion drag & drop state
+  // Drag and drop state without card loss
   const [dragCity, setDragCity] = useState<SupportedCity | null>(null);
-  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const [activeCities, setActiveCities] = useState<SupportedCity[]>(selectedCities);
+
+  // Keep state in sync with props when not dragging
+  useEffect(() => {
+    if (dragCity === null) {
+      setActiveCities(selectedCities);
+    }
+  }, [selectedCities, dragCity]);
 
   const getCityName = (city: SupportedCity) => {
     return locale === "ko"
@@ -45,50 +52,48 @@ export default function TransportPlannerPanel({
     onReorderCities(sorted);
   };
 
-  // Drag Handlers for Smooth Gap Motion
+  // Drag & Drop Handlers
   const handleDragStart = (e: React.DragEvent, city: SupportedCity) => {
     setDragCity(city);
+    setActiveCities([...selectedCities]);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", city);
   };
 
-  const handleDragOverSlot = (e: React.DragEvent, slotIdx: number) => {
+  const handleDragOverCard = (e: React.DragEvent, targetCity: SupportedCity) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    if (dragOverSlot !== slotIdx) {
-      setDragOverSlot(slotIdx);
+
+    if (!dragCity || dragCity === targetCity) return;
+
+    const currentList = [...activeCities];
+    const fromIndex = currentList.indexOf(dragCity);
+    const toIndex = currentList.indexOf(targetCity);
+
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      // Move dragCity to toIndex position and shift others
+      currentList.splice(fromIndex, 1);
+      currentList.splice(toIndex, 0, dragCity);
+      setActiveCities(currentList);
     }
   };
 
-  const handleDropOnSlot = (e: React.DragEvent, slotIdx: number) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!dragCity || !onReorderCities) {
-      setDragCity(null);
-      setDragOverSlot(null);
-      return;
+    if (onReorderCities && activeCities.length > 0) {
+      onReorderCities(activeCities);
     }
-
-    const currentCities = [...selectedCities];
-    const fromIdx = currentCities.indexOf(dragCity);
-    if (fromIdx !== -1) {
-      currentCities.splice(fromIdx, 1);
-      // Adjust target index if removing item before target slot
-      const insertIdx = fromIdx < slotIdx ? slotIdx - 1 : slotIdx;
-      currentCities.splice(insertIdx, 0, dragCity);
-      onReorderCities(currentCities);
-    }
-
     setDragCity(null);
-    setDragOverSlot(null);
   };
 
   const handleDragEnd = () => {
+    if (onReorderCities && activeCities.length > 0) {
+      onReorderCities(activeCities);
+    }
     setDragCity(null);
-    setDragOverSlot(null);
   };
 
-  // Cities excluding the item currently being dragged for smooth gap opening
-  const remainingCities = selectedCities.filter((c) => c !== dragCity);
+  const displayCities = dragCity !== null ? activeCities : selectedCities;
 
   return (
     <div className="space-y-6">
@@ -114,7 +119,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 마우스를 이동하면 주변 카드들이 부드럽게 옆으로 벌어지는 유기적 드래그 앤 드롭 동선 설정 */}
+      {/* Part 0: 카드가 절대로 사라지지 않고, 이동 시 마우스 커서 위치의 주변 카드가 실시간으로 옆으로 스르륵 밀려나며 위치가 교체되는 드래그 앤 드롭 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -124,8 +129,8 @@ export default function TransportPlannerPanel({
               </h4>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 {locale === "ko"
-                  ? "목적지 카드를 끌고 이동하면 카드들이 옆으로 비켜서 자리를 벌려줍니다."
-                  : "Drag cards between destinations as other items shift smoothly."}
+                  ? "목적지 카드를 마우스로 끌어 이동하면 주변 카드가 실시간으로 밀려나며 순서가 변경됩니다."
+                  : "Drag cards to watch other items shift position in real-time."}
               </p>
             </div>
             {onReorderCities && (
@@ -139,89 +144,45 @@ export default function TransportPlannerPanel({
             )}
           </div>
 
-          {/* Smooth Gap Opening Drag & Drop Container */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1 min-h-[52px]">
-            {dragCity === null ? (
-              // Normal rendering when not dragging
-              selectedCities.map((city, idx) => (
+          {/* Real-time Swap & Shift Drag & Drop Container */}
+          <div className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]">
+            {displayCities.map((city, idx) => {
+              const isBeingDragged = dragCity === city;
+
+              return (
                 <div
                   key={city}
                   draggable={!!onReorderCities}
                   onDragStart={(e) => handleDragStart(e, city)}
-                  onDragOver={(e) => handleDragOverSlot(e, idx)}
-                  onDrop={(e) => handleDropOnSlot(e, idx)}
+                  onDragOver={(e) => handleDragOverCard(e, city)}
+                  onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
-                  className="group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60 transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0"
+                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
+                    isBeingDragged
+                      ? "bg-rose-50 border-rose-300 ring-2 ring-rose-200 shadow-md z-20 scale-105"
+                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                  }`}
                 >
+                  {/* Grip Icon */}
                   <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
                     <span>⋮</span>
                     <span>⋮</span>
                   </div>
-                  <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
+
+                  {/* Dynamic Step Number Badge */}
+                  <span className={`w-5 h-5 rounded-full font-extrabold text-[11px] flex items-center justify-center shrink-0 transition-colors ${
+                    isBeingDragged ? "bg-[#e25c5c] text-white" : "bg-[#0f172a] text-white"
+                  }`}>
                     {idx + 1}
                   </span>
+
+                  {/* City Name */}
                   <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
                     {getCityName(city)}
                   </span>
                 </div>
-              ))
-            ) : (
-              // Live Gap Opening Mode when dragging a card
-              <>
-                {remainingCities.map((city, idx) => {
-                  const isGapActive = dragOverSlot === idx;
-
-                  return (
-                    <React.Fragment key={city}>
-                      {/* Smooth Expanded Gap Slot before item */}
-                      <div
-                        onDragOver={(e) => handleDragOverSlot(e, idx)}
-                        onDrop={(e) => handleDropOnSlot(e, idx)}
-                        className={`h-10 transition-all duration-200 ease-out flex items-center justify-center ${
-                          isGapActive ? "w-28 opacity-100" : "w-2 opacity-0"
-                        }`}
-                      >
-                        <div className={`h-9 w-full rounded-xl border-2 border-dashed border-[#e25c5c]/60 bg-[#fdf2f2]/50 transition-all ${
-                          isGapActive ? "opacity-100 scale-100" : "opacity-0 scale-95"
-                        }`} />
-                      </div>
-
-                      {/* City Card */}
-                      <div
-                        onDragOver={(e) => handleDragOverSlot(e, idx)}
-                        onDrop={(e) => handleDropOnSlot(e, idx)}
-                        onDragEnd={handleDragEnd}
-                        className="group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-white shadow-2xs transition-all duration-200 ease-out select-none shrink-0"
-                      >
-                        <div className="text-slate-300 text-xs font-bold flex flex-col gap-0.5 leading-none">
-                          <span>⋮</span>
-                          <span>⋮</span>
-                        </div>
-                        <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                          {idx >= (dragOverSlot ?? 999) ? idx + 2 : idx + 1}
-                        </span>
-                        <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
-                          {getCityName(city)}
-                        </span>
-                      </div>
-                    </React.Fragment>
-                  );
-                })}
-
-                {/* Final Gap Slot after last item */}
-                <div
-                  onDragOver={(e) => handleDragOverSlot(e, remainingCities.length)}
-                  onDrop={(e) => handleDropOnSlot(e, remainingCities.length)}
-                  className={`h-10 transition-all duration-200 ease-out flex items-center justify-center ${
-                    dragOverSlot === remainingCities.length ? "w-28 opacity-100" : "w-2 opacity-0"
-                  }`}
-                >
-                  <div className={`h-9 w-full rounded-xl border-2 border-dashed border-[#e25c5c]/60 bg-[#fdf2f2]/50 transition-all ${
-                    dragOverSlot === remainingCities.length ? "opacity-100 scale-100" : "opacity-0 scale-95"
-                  }`} />
-                </div>
-              </>
-            )}
+              );
+            })}
           </div>
 
           {/* Info Banner for Upcoming Auto-Optimization Feature */}

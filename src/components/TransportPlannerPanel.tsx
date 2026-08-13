@@ -136,49 +136,53 @@ export default function TransportPlannerPanel({
             {selectedCities.map((city, idx) => {
               const isDragging = draggedIdx === idx;
               const isDragOver = dragOverIdx === idx;
-              const isLast = idx === selectedCities.length - 1;
 
               return (
-                <React.Fragment key={city}>
-                  <div
-                    draggable={!!onReorderCities}
-                    onDragStart={(e) => handleDragStart(e, idx)}
-                    onDragOver={(e) => handleDragOver(e, idx)}
-                    onDrop={(e) => handleDrop(e, idx)}
-                    onDragEnd={handleDragEnd}
-                    className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-150 cursor-grab active:cursor-grabbing select-none ${
-                      isDragging
-                        ? "opacity-40 bg-slate-100 border-dashed border-slate-400 scale-95"
-                        : isDragOver
-                        ? "bg-rose-50 border-rose-400 ring-2 ring-rose-300 scale-105 shadow-md"
-                        : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
-                    }`}
-                  >
-                    {/* Grip Icon */}
-                    <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
-                      <span>⋮</span>
-                      <span>⋮</span>
-                    </div>
-
-                    {/* Step Number Badge */}
-                    <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                      {idx + 1}
-                    </span>
-
-                    {/* City Name */}
-                    <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
-                      {getCityName(city)}
-                    </span>
+                <div
+                  key={city}
+                  draggable={!!onReorderCities}
+                  onDragStart={(e) => handleDragStart(e, idx)}
+                  onDragOver={(e) => handleDragOver(e, idx)}
+                  onDrop={(e) => handleDrop(e, idx)}
+                  onDragEnd={handleDragEnd}
+                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-150 cursor-grab active:cursor-grabbing select-none ${
+                    isDragging
+                      ? "opacity-40 bg-slate-100 border-dashed border-slate-400 scale-95"
+                      : isDragOver
+                      ? "bg-rose-50 border-rose-400 ring-2 ring-rose-300 scale-105 shadow-md"
+                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                  }`}
+                >
+                  {/* Grip Icon */}
+                  <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
+                    <span>⋮</span>
+                    <span>⋮</span>
                   </div>
 
-                  {!isLast && (
-                    <span className="text-slate-300 font-bold text-xs select-none">
-                      ──►
-                    </span>
-                  )}
-                </React.Fragment>
+                  {/* Step Number Badge */}
+                  <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                    {idx + 1}
+                  </span>
+
+                  {/* City Name */}
+                  <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
+                    {getCityName(city)}
+                  </span>
+                </div>
               );
             })}
+          </div>
+
+          {/* Info Banner for Upcoming Auto-Optimization Feature */}
+          <div className="p-2.5 rounded-lg bg-blue-50/80 border border-blue-200/70 text-[11px] text-blue-900 font-medium leading-relaxed flex items-center gap-2">
+            <span className="font-extrabold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] shrink-0">
+              {locale === "ko" ? "기능 개발 예정" : "Upcoming Feature"}
+            </span>
+            <span>
+              {locale === "ko"
+                ? "추후 여행 리포트 기능 완성 시, 선택한 도시의 실제 관광 코스 정보 기반으로 최적 동선이 자동 연결될 예정입니다."
+                : "Auto route optimization based on city tour courses will be supported with upcoming Trip Reports."}
+            </span>
           </div>
         </div>
       )}

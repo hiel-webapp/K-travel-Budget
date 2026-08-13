@@ -45,10 +45,7 @@ export default function PlannerContent({ locale, dict }: PlannerContentProps) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    const handle = requestAnimationFrame(() => {
-      setIsHydrated(true);
-    });
-    return () => cancelAnimationFrame(handle);
+    setIsHydrated(true);
   }, []);
 
   if (!isHydrated) {

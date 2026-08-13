@@ -116,7 +116,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 마우스 이동에 따라 실시간으로 기존 카드가 밀려나는 라이브 리플로우 드래그 앤 드롭 동선 설정 */}
+      {/* Part 0: 마우스 이동에 따라 실시간으로 기존 카드가 밀려나며 이동 자리가 점선 배경(Placeholder)으로 노출되는 드래그 앤 드롭 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -141,10 +141,30 @@ export default function TransportPlannerPanel({
             )}
           </div>
 
-          {/* Real-time Live Reflow Drag & Drop Cards */}
+          {/* Real-time Live Reflow Drag & Drop Cards with Clean Placeholder Slot */}
           <div className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]">
             {displayCities.map((city, idx) => {
               const isDragging = draggingIdx === idx;
+
+              // 드래그 중인 이동 자리는 겹쳐 보이는 대신 깔끔한 점선 배경 슬롯(Placeholder)으로 표현
+              if (isDragging) {
+                return (
+                  <div
+                    key={`placeholder-${idx}`}
+                    onDragOver={(e) => handleDragOverCard(e, idx)}
+                    onDrop={handleDrop}
+                    onDragEnd={handleDragEnd}
+                    className="px-4 py-2.5 rounded-xl border-2 border-dashed border-[#e25c5c] bg-[#fdf2f2]/70 text-[#e25c5c] font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all duration-200 ease-out shadow-2xs select-none"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white font-black text-[11px] flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+                    <span className="text-[11px] font-black text-[#e25c5c] tracking-tight">
+                      {locale === "ko" ? "이동 위치" : "Drop Place"}
+                    </span>
+                  </div>
+                );
+              }
 
               return (
                 <div
@@ -154,11 +174,7 @@ export default function TransportPlannerPanel({
                   onDragOver={(e) => handleDragOverCard(e, idx)}
                   onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
-                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none ${
-                    isDragging
-                      ? "opacity-50 bg-rose-50/70 border-rose-400 ring-2 ring-rose-300 scale-105 shadow-md z-20"
-                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
-                  }`}
+                  className="group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60 transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none"
                 >
                   {/* Grip Icon */}
                   <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
@@ -167,9 +183,7 @@ export default function TransportPlannerPanel({
                   </div>
 
                   {/* Dynamic Step Number Badge */}
-                  <span className={`w-5 h-5 rounded-full font-extrabold text-[11px] flex items-center justify-center shrink-0 transition-colors ${
-                    isDragging ? "bg-[#e25c5c] text-white" : "bg-[#0f172a] text-white"
-                  }`}>
+                  <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
                     {idx + 1}
                   </span>
 

@@ -116,7 +116,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 마우스 이동에 따라 실시간으로 기존 카드가 밀려나며 이동 자리가 점선 배경(Placeholder)으로 노출되는 드래그 앤 드롭 */}
+      {/* Part 0: 마우스 이동에 따라 기존 카드가 옆으로 밀려나고 이동하는 자리는 순수한 빈 배경 공간으로 표현되는 드래그 앤 드롭 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -141,12 +141,12 @@ export default function TransportPlannerPanel({
             )}
           </div>
 
-          {/* Real-time Live Reflow Drag & Drop Cards with Clean Placeholder Slot */}
+          {/* Real-time Live Reflow Drag & Drop Cards with Pure Empty Background Slot */}
           <div className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]">
             {displayCities.map((city, idx) => {
               const isDragging = draggingIdx === idx;
 
-              // 드래그 중인 이동 자리는 겹쳐 보이는 대신 깔끔한 점선 배경 슬롯(Placeholder)으로 표현
+              // 드래그 중인 이동 자리는 숫자/점선/텍스트 없는 순수 빈 배경색 슬롯으로 표현
               if (isDragging) {
                 return (
                   <div
@@ -154,15 +154,8 @@ export default function TransportPlannerPanel({
                     onDragOver={(e) => handleDragOverCard(e, idx)}
                     onDrop={handleDrop}
                     onDragEnd={handleDragEnd}
-                    className="px-4 py-2.5 rounded-xl border-2 border-dashed border-[#e25c5c] bg-[#fdf2f2]/70 text-[#e25c5c] font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all duration-200 ease-out shadow-2xs select-none"
-                  >
-                    <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white font-black text-[11px] flex items-center justify-center shrink-0">
-                      {idx + 1}
-                    </span>
-                    <span className="text-[11px] font-black text-[#e25c5c] tracking-tight">
-                      {locale === "ko" ? "이동 위치" : "Drop Place"}
-                    </span>
-                  </div>
+                    className="w-[104px] h-[42px] rounded-xl bg-slate-100/90 border border-slate-200/60 shadow-inner transition-all duration-200 ease-out select-none"
+                  />
                 );
               }
 

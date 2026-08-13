@@ -30,12 +30,14 @@ export default function TransportPlannerPanel({
 
   // Real-time drag and drop state
   const [dragCity, setDragCity] = useState<SupportedCity | null>(null);
+  const [isGhostCaptured, setIsGhostCaptured] = useState<boolean>(false);
   const [activeCities, setActiveCities] = useState<SupportedCity[]>(selectedCities);
 
   // Keep state in sync with props when not dragging
   useEffect(() => {
     if (dragCity === null) {
       setActiveCities(selectedCities);
+      setIsGhostCaptured(false);
     }
   }, [selectedCities, dragCity]);
 
@@ -52,12 +54,18 @@ export default function TransportPlannerPanel({
     onReorderCities(sorted);
   };
 
-  // Drag & Drop Handlers with Native Ghost Support
+  // Drag & Drop Handlers with Ghost Capture Management
   const handleDragStart = (e: React.DragEvent, city: SupportedCity) => {
     setDragCity(city);
+    setIsGhostCaptured(false);
     setActiveCities([...selectedCities]);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", city);
+
+    // Hide background slot in next animation tick after native drag image capture finishes
+    setTimeout(() => {
+      setIsGhostCaptured(true);
+    }, 0);
   };
 
   const handleDragOverCard = (e: React.DragEvent, targetCity: SupportedCity) => {
@@ -83,6 +91,7 @@ export default function TransportPlannerPanel({
       onReorderCities(activeCities);
     }
     setDragCity(null);
+    setIsGhostCaptured(false);
   };
 
   const handleDragEnd = () => {
@@ -90,6 +99,7 @@ export default function TransportPlannerPanel({
       onReorderCities(activeCities);
     }
     setDragCity(null);
+    setIsGhostCaptured(false);
   };
 
   const displayCities = dragCity !== null ? activeCities : selectedCities;
@@ -118,7 +128,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 마우스 드래그 중인 카드가 선명하게 유지되며 마우스 이동에 따라 주변 카드가 밀려나는 드래그 앤 드롭 */}
+      {/* Part 0: 드래그 중 이중 비침 없이 마우스에만 1개 카드가 따라다니고 실시간 위치가 교체되는 완벽 드래그 앤 드롭 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -147,6 +157,7 @@ export default function TransportPlannerPanel({
           <div className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]">
             {displayCities.map((city, idx) => {
               const isBeingDragged = dragCity === city;
+              const isSlotHidden = isBeingDragged && isGhostCaptured;
 
               return (
                 <div
@@ -157,8 +168,10 @@ export default function TransportPlannerPanel({
                   onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
                   className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
-                    isBeingDragged
-                      ? "bg-slate-100/80 border-slate-300 ring-2 ring-slate-300/60 opacity-80 scale-95 shadow-inner"
+                    isSlotHidden
+                      ? "opacity-0 border-transparent pointer-events-none"
+                      : isBeingDragged
+                      ? "bg-white border-slate-300 shadow-md"
                       : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
                   }`}
                 >

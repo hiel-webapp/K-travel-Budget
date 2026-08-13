@@ -28,7 +28,7 @@ export default function TransportPlannerPanel({
   const adultCount = draft.adultCount || 1;
   const isMultiCity = selectedCities.length >= 2;
 
-  // Drag and drop state
+  // Real-time drag and drop state
   const [dragCity, setDragCity] = useState<SupportedCity | null>(null);
   const [activeCities, setActiveCities] = useState<SupportedCity[]>(selectedCities);
 
@@ -52,7 +52,7 @@ export default function TransportPlannerPanel({
     onReorderCities(sorted);
   };
 
-  // Drag & Drop Handlers
+  // Drag & Drop Handlers with Native Ghost Support
   const handleDragStart = (e: React.DragEvent, city: SupportedCity) => {
     setDragCity(city);
     setActiveCities([...selectedCities]);
@@ -118,7 +118,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 마우스 드래그 중인 자리는 완료 전까지 완전히 비어있고, 놓는 순간 깔끔하게 안착되는 동선 설정 */}
+      {/* Part 0: 마우스 드래그 중인 카드가 선명하게 유지되며 마우스 이동에 따라 주변 카드가 밀려나는 드래그 앤 드롭 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -148,19 +148,6 @@ export default function TransportPlannerPanel({
             {displayCities.map((city, idx) => {
               const isBeingDragged = dragCity === city;
 
-              // 드래그 완료 전까지 해당 슬롯 자리는 카드가 중복되지 않도록 완전히 비어있는(Invisible Blank Space) 처리
-              if (isBeingDragged) {
-                return (
-                  <div
-                    key={`blank-${city}`}
-                    onDragOver={(e) => handleDragOverCard(e, city)}
-                    onDrop={handleDrop}
-                    onDragEnd={handleDragEnd}
-                    className="w-[104px] h-[40px] rounded-xl invisible border border-transparent select-none shrink-0"
-                  />
-                );
-              }
-
               return (
                 <div
                   key={city}
@@ -169,7 +156,11 @@ export default function TransportPlannerPanel({
                   onDragOver={(e) => handleDragOverCard(e, city)}
                   onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
-                  className="group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60 transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0"
+                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
+                    isBeingDragged
+                      ? "bg-slate-100/80 border-slate-300 ring-2 ring-slate-300/60 opacity-80 scale-95 shadow-inner"
+                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                  }`}
                 >
                   {/* Grip Icon */}
                   <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">

@@ -22,7 +22,8 @@ export default function TransportPlannerPanel({
   locale,
   dict,
 }: TransportPlannerPanelProps) {
-  const { selectedCities, adultCount } = draft;
+  const selectedCities = draft.selectedCities || [];
+  const adultCount = draft.adultCount || 1;
   const isMultiCity = selectedCities.length >= 2;
 
   const getCityName = (city: SupportedCity) => {

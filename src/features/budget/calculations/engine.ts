@@ -291,33 +291,24 @@ export function generateInitialBudgetPlan(
       const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
       const basket = catalog.find(
         (b) => b.category === category && b.id === basketId && b.isActive
-      ) || {
-        id: basketId,
-        category,
-        pricingUnit: "PERSON_ONE_WAY" as const,
-        unitPriceKrw: selectedOption ? selectedOption.oneWayPriceKrw : 59800,
-        confidence: "PUBLIC_GOVT_GAZETTE" as const,
-        sourceLabel: "Public Transit Fares 2026",
-        isActive: true,
-        updatedAt: "2026-01-01",
-      };
+      ) || catalog.find(
+        (b) => b.category === category && b.isActive
+      ) || catalog[0];
 
-      const unitPriceKrw = selectedOption ? selectedOption.oneWayPriceKrw : basket.unitPriceKrw;
-
-      const item: BudgetLineItem = {
-        basketId: basket.id,
-        category: basket.category,
-        pricingUnit: "PERSON_ONE_WAY",
-        unitPriceKrw,
-        quantity: 1,
-        participantCount: adultCount,
-        durationCount: 1,
-        lineTotalKrw: unitPriceKrw * adultCount,
-        confidence: basket.confidence,
-        sourceLabel: selectedOption ? `${selectedOption.nameKo} (${fromCity}➔${toCity})` : basket.sourceLabel,
+      const item = calculateLineItem({
+        basket: selectedOption
+          ? {
+              ...basket,
+              representativePriceKrw: selectedOption.oneWayPriceKrw,
+              sourceLabel: `${selectedOption.nameKo} (${fromCity}➔${toCity})`,
+            }
+          : basket,
         cityCode: null,
         route: routeKey,
-      };
+        adultCount,
+        duration: 1,
+        cityCount: selectedCities.length,
+      });
 
       intercityLineItems.push(item);
       lineItems.push(item);

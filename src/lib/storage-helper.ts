@@ -20,6 +20,7 @@ import {
   FoodAddOnOverrides,
 } from "../features/budget/domain/types";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
+import { IntercityTransportMode } from "./transport/intercity-fares";
 
 const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
@@ -555,6 +556,7 @@ export interface SavePlannerPreferencesInput {
   attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
   emergencyFundPct?: number;
+  intercityTransportOverrides?: Record<string, IntercityTransportMode>;
   draft: TripDraft;
 }
 
@@ -592,6 +594,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       attractionCustomDailyKrw: isValValid(input.attractionCustomDailyKrw) ? input.attractionCustomDailyKrw : undefined,
       emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : 0,
       emergencyFundPct: typeof input.emergencyFundPct === "number" ? input.emergencyFundPct : undefined,
+      intercityTransportOverrides: input.intercityTransportOverrides,
     };
 
     const envelope: PlannerPreferencesEnvelope = {

@@ -1449,11 +1449,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           </div>
 
           {/* Individual City Night Allocation Quick Stepper Banner */}
-          {selectedCityTab !== "ALL" && (() => {
-            const currentNights = draft.cityNightAllocations[selectedCityTab] ?? 0;
+          {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {
+            const city = selectedCityTab;
+            const currentNights = draft.cityNightAllocations[city] ?? 0;
             const cityName = locale === "ko"
-              ? CITY_KOREAN_NAMES[selectedCityTab] || selectedCityTab
-              : CITY_ENGLISH_NAMES[selectedCityTab] || selectedCityTab;
+              ? CITY_KOREAN_NAMES[city] || city
+              : CITY_ENGLISH_NAMES[city] || city;
             const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
             const maxNights = draft.totalNights || 5;
             const canIncrease = currentAllocatedSum < maxNights;
@@ -1479,7 +1480,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <button
                     type="button"
                     disabled={currentNights <= 0}
-                    onClick={() => handleDirectCityNightChange(selectedCityTab, -1)}
+                    onClick={() => handleDirectCityNightChange(city, -1)}
                     className="w-6 h-6 rounded-md bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200/80 transition-colors cursor-pointer"
                     title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
                   >
@@ -1491,7 +1492,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <button
                     type="button"
                     disabled={!canIncrease}
-                    onClick={() => handleDirectCityNightChange(selectedCityTab, 1)}
+                    onClick={() => handleDirectCityNightChange(city, 1)}
                     className="w-6 h-6 rounded-md bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200/80 transition-colors cursor-pointer"
                     title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
                   >

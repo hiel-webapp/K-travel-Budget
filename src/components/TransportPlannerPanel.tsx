@@ -57,7 +57,7 @@ export default function TransportPlannerPanel({
     onReorderCities(sorted);
   };
 
-  // Drag & Drop Handlers
+  // Drag & Drop Handlers with Clean Drag Image (Prevents static badge number confusion during move)
   const handleDragStart = (e: React.DragEvent, city: SupportedCity) => {
     setDragCity(city);
     setIsGhostCaptured(false);
@@ -65,7 +65,29 @@ export default function TransportPlannerPanel({
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", city);
 
+    // Create a clean ghost element without static number badge so cursor icon doesn't conflict with target index
+    const ghostEl = document.createElement("div");
+    ghostEl.style.position = "absolute";
+    ghostEl.style.top = "-9999px";
+    ghostEl.style.left = "-9999px";
+    ghostEl.style.padding = "8px 14px";
+    ghostEl.style.borderRadius = "12px";
+    ghostEl.style.backgroundColor = "#ffffff";
+    ghostEl.style.border = "1.5px solid #cbd5e1";
+    ghostEl.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.1)";
+    ghostEl.style.fontSize = "12px";
+    ghostEl.style.fontWeight = "800";
+    ghostEl.style.color = "#0f172a";
+    ghostEl.style.display = "flex";
+    ghostEl.style.alignItems = "center";
+    ghostEl.style.gap = "8px";
+    ghostEl.innerHTML = `<span style="color:#94a3b8;font-weight:bold;">⋮⋮</span><span>${getCityName(city)}</span>`;
+    document.body.appendChild(ghostEl);
+
+    e.dataTransfer.setDragImage(ghostEl, 20, 20);
+
     setTimeout(() => {
+      document.body.removeChild(ghostEl);
       setIsGhostCaptured(true);
     }, 0);
   };
@@ -333,7 +355,7 @@ export default function TransportPlannerPanel({
                                   className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-tight ${
                                     isSelected
                                       ? "bg-[#e25c5c] text-white"
-                                      : "bg-slate-100 text-slate-600 border border-slate-200"
+                                      : "bg-slate-100 text-[#0f172a] border border-slate-200 font-bold"
                                   }`}
                                 >
                                   {badgeText}

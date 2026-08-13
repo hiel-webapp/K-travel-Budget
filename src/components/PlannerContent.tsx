@@ -11,9 +11,10 @@ import { generateInitialBudgetPlan } from "../features/budget/calculations/engin
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset } from "../features/budget/catalog/attraction-spots";
 import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
-import { getIntercityFareOptions, IntercityFareInfo } from "../lib/transport/intercity-fares";
+import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
+import TransportPlannerPanel from "./TransportPlannerPanel";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 import {
@@ -115,7 +116,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   });
 
-  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | SupportedCity>("ALL");
+  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "TRANSPORT" | SupportedCity>("ALL");
   const [activeCategory, setActiveCategory] = useState<BudgetCategory>("ACCOMMODATION");
   const [saveError, setSaveError] = useState<boolean>(false);
 
@@ -284,6 +285,37 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       adultCount: newAdults,
       budgetTier: isCustomTargetBudget ? editDraft.budgetTier : defaultBudget.budgetTier,
       targetBudgetKrw: isCustomTargetBudget ? editDraft.targetBudgetKrw : defaultBudget.targetBudgetKrw,
+    });
+  };
+
+  const handleSelectIntercityOverride = (routeKey: string, mode: IntercityTransportMode) => {
+    if (state.status !== "ready") return;
+    const currentOverrides = state.preferences.intercityTransportOverrides || {};
+    const updatedOverrides = {
+      ...currentOverrides,
+      [routeKey]: mode,
+    };
+    const nextPrefs: PlannerPreferences = {
+      ...state.preferences,
+      intercityTransportOverrides: updatedOverrides,
+    };
+
+    savePlannerPreferences({
+      draft: state.draft,
+      accommodationByCity: nextPrefs.accommodationByCity,
+      foodOverrides: nextPrefs.foodOverrides,
+      foodAddOnOverrides: nextPrefs.addOnSelections,
+      attractionByCity: nextPrefs.attractionByCity,
+      attractionSelections: nextPrefs.attractionSelections,
+      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
+      emergencyFundKrw: nextPrefs.emergencyFundKrw,
+      emergencyFundPct: nextPrefs.emergencyFundPct,
+      intercityTransportOverrides: updatedOverrides,
+    });
+
+    setState({
+      ...state,
+      preferences: nextPrefs,
     });
   };
 
@@ -1350,8 +1382,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         <div className="lg:col-span-6 space-y-6">
           {/* Summary Tab & City Visit Tabs */}
           <div className="flex items-center justify-start border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
-            {/* Left: Distinctive Summary Tab with Right Divider */}
-            <div className="flex items-center border-r border-slate-200/80 pr-2.5 mr-2 shrink-0">
+            {/* Left: Distinctive Summary & Transport Tabs with Right Divider */}
+            <div className="flex items-center gap-1.5 border-r border-slate-200/80 pr-2.5 mr-2 shrink-0">
               <button
                 role="tab"
                 aria-selected={selectedCityTab === "ALL"}
@@ -1365,6 +1397,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 }`}
               >
                 <span>{dict.planner.summaryTab || (locale === "ko" ? "여행 개요" : "Trip Overview")}</span>
+              </button>
+
+              <button
+                role="tab"
+                aria-selected={selectedCityTab === "TRANSPORT"}
+                id="city-tab-TRANSPORT"
+                aria-controls="city-panel-TRANSPORT"
+                onClick={() => setSelectedCityTab("TRANSPORT")}
+                className={`h-8 px-3.5 rounded-t-xl text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap ${
+                  selectedCityTab === "TRANSPORT"
+                    ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
+                    : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
+                }`}
+              >
+                <span>🚆</span>
+                <span>{locale === "ko" ? "교통" : "Transport"}</span>
               </button>
             </div>
 
@@ -2119,8 +2167,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               );
             })()}
 
+            {/* 1.5 Transport Tab Mode: Custom Transport Planner Panel */}
+            {selectedCityTab === "TRANSPORT" && (
+              <TransportPlannerPanel
+                draft={draft}
+                intercityOverrides={preferences.intercityTransportOverrides || {}}
+                onSelectIntercityOverride={handleSelectIntercityOverride}
+                locale={locale}
+                dict={dict}
+              />
+            )}
+
             {/* 2. Single City Tab Mode: City-Specific Category Options */}
-            {selectedCityTab !== "ALL" && (
+            {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (
               <div className="space-y-6">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab;

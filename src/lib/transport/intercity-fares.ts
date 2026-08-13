@@ -1,6 +1,6 @@
 import { SupportedCity } from "../trip-domain";
 
-export type IntercityTransportMode = "KTX" | "SRT" | "EXPRESS_BUS" | "FLIGHT";
+export type IntercityTransportMode = "KTX" | "SRT" | "EXPRESS_BUS" | "FLIGHT" | "FERRY";
 
 export interface IntercityFareInfo {
   mode: IntercityTransportMode;
@@ -9,6 +9,9 @@ export interface IntercityFareInfo {
   oneWayPriceKrw: number;
   durationTextKo: string;
   durationTextEn: string;
+  isDefault?: boolean;
+  badgeTextKo?: string;
+  badgeTextEn?: string;
 }
 
 export interface RouteFareMapping {
@@ -24,39 +27,88 @@ export interface RouteFareMapping {
 export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   // 서울 - 부산
   "SEOUL-BUSAN": [
-    { mode: "KTX", nameKo: "KTX (고속철도)", nameEn: "KTX Express Train", oneWayPriceKrw: 59800, durationTextKo: "2시간 40분", durationTextEn: "2h 40m" },
+    { mode: "KTX", nameKo: "KTX (고속철도)", nameEn: "KTX Express Train", oneWayPriceKrw: 59800, durationTextKo: "2시간 40분", durationTextEn: "2h 40m", isDefault: true, badgeTextKo: "최단시간", badgeTextEn: "Fastest" },
     { mode: "SRT", nameKo: "SRT (수서발 고속철)", nameEn: "SRT Express Train", oneWayPriceKrw: 52000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m" },
-    { mode: "EXPRESS_BUS", nameKo: "우등 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 36000, durationTextKo: "4시간 15분", durationTextEn: "4h 15m" },
+    { mode: "EXPRESS_BUS", nameKo: "우등 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 36000, durationTextKo: "4시간 15분", durationTextEn: "4h 15m", badgeTextKo: "가성비", badgeTextEn: "Budget" },
     { mode: "FLIGHT", nameKo: "국내선 항공", nameEn: "Domestic Flight", oneWayPriceKrw: 78000, durationTextKo: "1시간 05분", durationTextEn: "1h 05m" },
+  ],
+  // 서울 - 강릉
+  "SEOUL-GANGNEUNG": [
+    { mode: "KTX", nameKo: "KTX-이음 (강릉선)", nameEn: "KTX-Eum Train", oneWayPriceKrw: 27600, durationTextKo: "2시간 00분", durationTextEn: "2h 00m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+    { mode: "EXPRESS_BUS", nameKo: "고속버스", nameEn: "Express Bus", oneWayPriceKrw: 21500, durationTextKo: "2시간 40분", durationTextEn: "2h 40m" },
+  ],
+  // 서울 - 전주
+  "SEOUL-JEONJU": [
+    { mode: "KTX", nameKo: "KTX (전라선)", nameEn: "KTX Express Train", oneWayPriceKrw: 34600, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+    { mode: "EXPRESS_BUS", nameKo: "우등 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 20100, durationTextKo: "2시간 40분", durationTextEn: "2h 40m" },
+  ],
+  // 서울 - 경주
+  "SEOUL-GYEONGJU": [
+    { mode: "KTX", nameKo: "KTX (신경주역)", nameEn: "KTX (Singyeongju)", oneWayPriceKrw: 49300, durationTextKo: "2시간 10분", durationTextEn: "2h 10m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+    { mode: "EXPRESS_BUS", nameKo: "고속버스", nameEn: "Express Bus", oneWayPriceKrw: 32600, durationTextKo: "3시간 30분", durationTextEn: "3h 30m" },
+  ],
+  // 서울 - 여수
+  "SEOUL-YEOSU": [
+    { mode: "KTX", nameKo: "KTX (여수엑스포)", nameEn: "KTX (Yeosu Expo)", oneWayPriceKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+    { mode: "EXPRESS_BUS", nameKo: "우등 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 33200, durationTextKo: "4시간 15분", durationTextEn: "4h 15m" },
   ],
   // 서울 - 수원
   "SEOUL-SUWON": [
-    { mode: "KTX", nameKo: "KTX / 무궁화호", nameEn: "KTX / Train", oneWayPriceKrw: 8400, durationTextKo: "30분", durationTextEn: "30m" },
-    { mode: "EXPRESS_BUS", nameKo: "광역 / 시외버스", nameEn: "Express Bus", oneWayPriceKrw: 3000, durationTextKo: "45분", durationTextEn: "45m" },
+    { mode: "KTX", nameKo: "KTX / 무궁화호", nameEn: "KTX / Train", oneWayPriceKrw: 8400, durationTextKo: "30분", durationTextEn: "30m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+    { mode: "EXPRESS_BUS", nameKo: "광역 / 시외버스", nameEn: "Express Bus", oneWayPriceKrw: 3000, durationTextKo: "45분", durationTextEn: "45m", badgeTextKo: "대중교통", badgeTextEn: "Public" },
   ],
   // 서울 - 속초
   "SEOUL-SOKCHO": [
-    { mode: "EXPRESS_BUS", nameKo: "프리미엄 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 23000, durationTextKo: "2시간 20분", durationTextEn: "2h 20m" },
-    { mode: "KTX", nameKo: "KTX (강릉 연계)", nameEn: "KTX via Gangneung", oneWayPriceKrw: 29000, durationTextKo: "2시간 10분", durationTextEn: "2h 10m" },
+    { mode: "EXPRESS_BUS", nameKo: "프리미엄 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 23000, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", isDefault: true, badgeTextKo: "직통추천", badgeTextEn: "Direct" },
+    { mode: "KTX", nameKo: "KTX (강릉 연계 버스)", nameEn: "KTX via Gangneung", oneWayPriceKrw: 29000, durationTextKo: "2시간 10분", durationTextEn: "2h 10m" },
+  ],
+  // 수원 - 강릉
+  "SUWON-GANGNEUNG": [
+    { mode: "EXPRESS_BUS", nameKo: "시외 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 24500, durationTextKo: "2시간 50분", durationTextEn: "2h 50m", isDefault: true, badgeTextKo: "직통", badgeTextEn: "Direct" },
+    { mode: "KTX", nameKo: "KTX-이음 (청량리 환승)", nameEn: "KTX via Transfer", oneWayPriceKrw: 30800, durationTextKo: "2시간 20분", durationTextEn: "2h 20m" },
   ],
   // 수원 - 속초
   "SUWON-SOKCHO": [
-    { mode: "EXPRESS_BUS", nameKo: "시외 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 24500, durationTextKo: "2시간 50분", durationTextEn: "2h 50m" },
+    { mode: "EXPRESS_BUS", nameKo: "시외 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 24500, durationTextKo: "2시간 50분", durationTextEn: "2h 50m", isDefault: true, badgeTextKo: "직통", badgeTextEn: "Direct" },
   ],
-  // 부산 - 전주 / 속초
+  // 부산 - 속초
   "BUSAN-SOKCHO": [
-    { mode: "EXPRESS_BUS", nameKo: "시외 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 42000, durationTextKo: "5시간 00분", durationTextEn: "5h 00m" },
+    { mode: "EXPRESS_BUS", nameKo: "시외 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 42000, durationTextKo: "5시간 00분", durationTextEn: "5h 00m", isDefault: true },
   ],
+  // 부산 - 수원
   "BUSAN-SUWON": [
-    { mode: "KTX", nameKo: "KTX 고속철도", nameEn: "KTX Train", oneWayPriceKrw: 52000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m" },
+    { mode: "KTX", nameKo: "KTX 고속철도", nameEn: "KTX Train", oneWayPriceKrw: 52000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true },
     { mode: "EXPRESS_BUS", nameKo: "고속버스", nameEn: "Express Bus", oneWayPriceKrw: 34000, durationTextKo: "4시간 00분", durationTextEn: "4h 00m" },
+  ],
+  // 제주 포함 주요 노선
+  "SEOUL-JEJU": [
+    { mode: "FLIGHT", nameKo: "국내선 항공 (김포-제주)", nameEn: "Domestic Flight", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "항공필수", badgeTextEn: "Flight Required" },
+  ],
+  "BUSAN-JEJU": [
+    { mode: "FLIGHT", nameKo: "국내선 항공 (김해-제주)", nameEn: "Domestic Flight", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "항공추천", badgeTextEn: "Flight" },
+    { mode: "FERRY", nameKo: "제주 카페리 선박", nameEn: "Jeju Car Ferry", oneWayPriceKrw: 48000, durationTextKo: "11시간 00분", durationTextEn: "11h 00m", badgeTextKo: "배편", badgeTextEn: "Ferry" },
+  ],
+  "YEOSU-JEJU": [
+    { mode: "FLIGHT", nameKo: "국내선 항공 (여수-제주)", nameEn: "Domestic Flight", oneWayPriceKrw: 68000, durationTextKo: "50분", durationTextEn: "50m", isDefault: true, badgeTextKo: "항공추천", badgeTextEn: "Flight" },
+    { mode: "FERRY", nameKo: "여수-제주 초고속 쾌속선", nameEn: "Express Ferry", oneWayPriceKrw: 42000, durationTextKo: "2시간 40분", durationTextEn: "2h 40m", badgeTextKo: "해상 쾌속선", badgeTextEn: "Sea Ferry" },
   ],
 };
 
 /**
- * 두 도시 간의 요금 옵션 목록을 반환합니다. (양방향 대칭 지원)
+ * 두 도시 간의 요금 옵션 목록을 반환합니다. (양방향 대칭 및 제주 폴백 지원)
  */
 export function getIntercityFareOptions(from: SupportedCity, to: SupportedCity): IntercityFareInfo[] {
+  if (from === "JEJU" || to === "JEJU") {
+    const directKey = `${from}-${to}`;
+    if (INTERCITY_FARE_TABLE[directKey]) return INTERCITY_FARE_TABLE[directKey];
+    const reverseKey = `${to}-${from}`;
+    if (INTERCITY_FARE_TABLE[reverseKey]) return INTERCITY_FARE_TABLE[reverseKey];
+    return [
+      { mode: "FLIGHT", nameKo: "국내선 항공", nameEn: "Domestic Flight", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "항공필수", badgeTextEn: "Flight Required" },
+      { mode: "FERRY", nameKo: "연안 여객선/선박", nameEn: "Passenger Ferry", oneWayPriceKrw: 45000, durationTextKo: "4시간 00분", durationTextEn: "4h 00m", badgeTextKo: "선박", badgeTextEn: "Ferry" },
+    ];
+  }
+
   const directKey = `${from}-${to}`;
   if (INTERCITY_FARE_TABLE[directKey]) {
     return INTERCITY_FARE_TABLE[directKey];
@@ -67,9 +119,9 @@ export function getIntercityFareOptions(from: SupportedCity, to: SupportedCity):
     return INTERCITY_FARE_TABLE[reverseKey];
   }
 
-  // 기본 폴백 (기타 구간)
+  // 기본 폴백 (기타 육지 도시 구간)
   return [
-    { mode: "KTX", nameKo: "KTX / K-철도", nameEn: "Express Train", oneWayPriceKrw: 35000, durationTextKo: "2시간 00분", durationTextEn: "2h 00m" },
-    { mode: "EXPRESS_BUS", nameKo: "고속 / 시외버스", nameEn: "Express Bus", oneWayPriceKrw: 22000, durationTextKo: "3시간 00분", durationTextEn: "3h 00m" },
+    { mode: "KTX", nameKo: "KTX / K-철도", nameEn: "Express Train", oneWayPriceKrw: 35000, durationTextKo: "2시간 00분", durationTextEn: "2h 00m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+    { mode: "EXPRESS_BUS", nameKo: "고속 / 시외버스", nameEn: "Express Bus", oneWayPriceKrw: 22000, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", badgeTextKo: "버스", badgeTextEn: "Bus" },
   ];
 }

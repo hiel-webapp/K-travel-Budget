@@ -165,6 +165,8 @@ export interface AttractionSelections {
 }
 export type AttractionSelectionsByCity = Partial<Record<SupportedCity, AttractionSelections>>;
 
+import { IntercityTransportMode } from "../../../lib/transport/intercity-fares";
+
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
   foodTier?: BudgetTier;
@@ -174,6 +176,7 @@ export interface BudgetPlanOverrides {
   attractionSelections?: AttractionSelectionsByCity;
   attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
+  intercityTransportOverrides?: Record<string, IntercityTransportMode>;
 }
 
 export type FoodCollectionId = "ESSENTIALS" | "INTERNATIONAL" | "TRENDING" | "SPECIALTIES";
@@ -342,6 +345,7 @@ export interface PlannerPreferences {
   attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
   emergencyFundPct?: number;
+  intercityTransportOverrides?: Record<string, IntercityTransportMode>;
 }
 
 export interface PlannerPreferencesEnvelope {

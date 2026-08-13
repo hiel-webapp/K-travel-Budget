@@ -21,6 +21,7 @@ import {
 } from "../catalog/mock-catalog";
 import { applyFoodReplacements, applyFoodAddOns } from "./food-engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
+import { getIntercityFareOptions } from "../../../lib/transport/intercity-fares";
 
 /**
  * TripDraft 입력을 기준으로 초기 BudgetPlan을 생성하는 순수 계산 엔진
@@ -275,38 +276,52 @@ export function generateInitialBudgetPlan(
   // 3. 도시 간 교통 섹션 연산
   const intercityLineItems: BudgetLineItem[] = [];
   if (selectedCities.length >= 2) {
-    // 서울과 부산 간의 경로
-    const route = selectedCities.join("-"); // e.g. "SEOUL-BUSAN"
-    const category: BudgetCategory = "INTERCITY_TRANSPORT";
-    const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+    for (let i = 0; i < selectedCities.length - 1; i++) {
+      const fromCity = selectedCities[i];
+      const toCity = selectedCities[i + 1];
+      const routeKey = `${fromCity}-${toCity}`;
+      const options = getIntercityFareOptions(fromCity, toCity);
 
-    // catalog에서 route에 맞는 바스켓 검색 (순서 무관하게 매칭 가능하도록 정렬 비교 등 수행)
-    const basket = catalog.find(
-      (b) =>
-        b.category === category &&
-        b.id === basketId &&
-        b.isActive &&
-        (b.applicableRoute === route ||
-          b.applicableRoute === [...selectedCities].reverse().join("-") ||
-          b.applicableRoute === "SEOUL-BUSAN" ||
-          !b.applicableRoute)
-    );
+      const userOverrideMode = overrides?.intercityTransportOverrides?.[routeKey] || overrides?.intercityTransportOverrides?.[`${toCity}-${fromCity}`];
+      const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
+        || options.find((o) => o.isDefault)
+        || options[0];
 
-    if (!basket) {
-      throw new Error(`Price catalog missing intercity transport item for route: ${route}`);
+      const category: BudgetCategory = "INTERCITY_TRANSPORT";
+      const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+      const basket = catalog.find(
+        (b) => b.category === category && b.id === basketId && b.isActive
+      ) || {
+        id: basketId,
+        category,
+        pricingUnit: "PERSON_ONE_WAY" as const,
+        unitPriceKrw: selectedOption ? selectedOption.oneWayPriceKrw : 59800,
+        confidence: "PUBLIC_GOVT_GAZETTE" as const,
+        sourceLabel: "Public Transit Fares 2026",
+        isActive: true,
+        updatedAt: "2026-01-01",
+      };
+
+      const unitPriceKrw = selectedOption ? selectedOption.oneWayPriceKrw : basket.unitPriceKrw;
+
+      const item: BudgetLineItem = {
+        basketId: basket.id,
+        category: basket.category,
+        pricingUnit: "PERSON_ONE_WAY",
+        unitPriceKrw,
+        quantity: 1,
+        participantCount: adultCount,
+        durationCount: 1,
+        lineTotalKrw: unitPriceKrw * adultCount,
+        confidence: basket.confidence,
+        sourceLabel: selectedOption ? `${selectedOption.nameKo} (${fromCity}➔${toCity})` : basket.sourceLabel,
+        cityCode: null,
+        route: routeKey,
+      };
+
+      intercityLineItems.push(item);
+      lineItems.push(item);
     }
-
-    const item = calculateLineItem({
-      basket,
-      cityCode: null,
-      route,
-      adultCount,
-      duration: 1, // KTX 이용 횟수는 도시 간 이동 횟수로 아래에서 quantity로 처리됨
-      cityCount: selectedCities.length,
-    });
-
-    intercityLineItems.push(item);
-    lineItems.push(item);
   }
 
   const intercitySubtotalKrw = intercityLineItems.reduce((sum, item) => sum + item.lineTotalKrw, 0);

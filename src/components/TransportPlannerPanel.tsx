@@ -62,7 +62,6 @@ export default function TransportPlannerPanel({
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", city);
 
-    // Hide background slot in next animation tick after native drag image capture finishes
     setTimeout(() => {
       setIsGhostCaptured(true);
     }, 0);
@@ -106,103 +105,104 @@ export default function TransportPlannerPanel({
 
   return (
     <div className="space-y-6">
-      {/* Header Summary Banner */}
-      <div className="p-4.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2">
+      {/* 하나로 통합된 깔끔하고 정돈된 단일 여행 동선 & 교통 정보 박스 */}
+      <div className="p-4.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
           <div className="flex items-center gap-2">
             <h3 className="text-base font-extrabold text-[#0f172a]">
-              {locale === "ko" ? "교통수단 맞춤 설계" : "Transport Planner"}
+              {locale === "ko" ? "여행 동선" : "Travel Route"}
             </h3>
             <span className="px-2 py-0.5 rounded-full bg-rose-50 text-[#e25c5c] border border-rose-200/80 text-[10px] font-black">
               {locale === "ko" ? "실시간 연동" : "Live Sync"}
             </span>
           </div>
-          <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
-            {locale === "ko" ? `성인 ${adultCount}명 기준` : `For ${adultCount} travelers`}
-          </span>
-        </div>
-        <p className="text-xs text-slate-600 font-medium leading-relaxed">
-          {locale === "ko"
-            ? "도시 간 이동 구간별 최적의 교통 수단(KTX, 고속버스, 항공 등)을 선택하세요. 선택된 단가가 전체 여행 예산에 실시간 반영됩니다."
-            : "Select the optimal transit option (KTX, Express Bus, Flight) for each segment."}
-        </p>
-      </div>
-
-      {/* Part 0: 마우스 드래그 중 🚫 금지 커서 차단 및 항상 move 커서 보장 */}
-      {isMultiCity && (
-        <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-            <div>
-              <h4 className="text-sm font-extrabold text-[#0f172a]">
-                {locale === "ko" ? "여행 동선 및 목적지 순서" : "Trip Destination Sequence"}
-              </h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                {locale === "ko"
-                  ? "목적지 카드를 마우스로 끌어 이동하면 주변 카드가 실시간으로 밀려나며 순서가 변경됩니다."
-                  : "Drag cards to watch other items shift position in real-time."}
-              </p>
-            </div>
-            {onReorderCities && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+              {locale === "ko" ? `성인 ${adultCount}명 기준` : `For ${adultCount} travelers`}
+            </span>
+            {isMultiCity && onReorderCities && (
               <button
                 type="button"
                 onClick={handleOptimizeRoute}
-                className="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
+                className="px-2.5 py-1 text-xs font-bold rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer shadow-2xs"
               >
                 {locale === "ko" ? "최적 동선 자동 정렬" : "Auto Optimize Route"}
               </button>
             )}
           </div>
+        </div>
 
-          {/* Real-time Swap & Shift Drag & Drop Container (Container prevents 🚫 not-allowed cursor) */}
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-            }}
-            onDrop={handleDrop}
-            className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]"
-          >
-            {displayCities.map((city, idx) => {
-              const isBeingDragged = dragCity === city;
-              const isSlotHidden = isBeingDragged && isGhostCaptured;
+        {/* 통합 Info 설명 문구 */}
+        <div className="space-y-1 text-xs text-slate-600 font-medium leading-relaxed">
+          <p>
+            {locale === "ko"
+              ? "• 도시 간 이동 구간별 최적의 교통 수단(KTX, 고속버스, 항공 등)을 선택하세요. 선택된 단가가 전체 여행 예산에 실시간 반영됩니다."
+              : "• Select the optimal transit option (KTX, Express Bus, Flight) for each segment."}
+          </p>
+          {isMultiCity && (
+            <p className="text-slate-500">
+              {locale === "ko"
+                ? "• 목적지 카드를 마우스로 끌어 이동하면 주변 카드가 실시간으로 밀려나며 순서가 변경됩니다."
+                : "• Drag destination cards to rearrange the travel sequence in real-time."}
+            </p>
+          )}
+        </div>
 
-              return (
-                <div
-                  key={city}
-                  draggable={!!onReorderCities}
-                  onDragStart={(e) => handleDragStart(e, city)}
-                  onDragOver={(e) => handleDragOverCard(e, city)}
-                  onDrop={handleDrop}
-                  onDragEnd={handleDragEnd}
-                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
-                    isSlotHidden
-                      ? "opacity-0 border-transparent pointer-events-none"
-                      : isBeingDragged
-                      ? "bg-white border-slate-300 shadow-md"
-                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
-                  }`}
-                >
-                  {/* Grip Icon */}
-                  <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
-                    <span>⋮</span>
-                    <span>⋮</span>
+        {/* 여행 동선 드래그 앤 드롭 카드 목록 */}
+        {isMultiCity && (
+          <div className="pt-2 border-t border-slate-200/60">
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }}
+              onDrop={handleDrop}
+              className="flex flex-wrap items-center gap-2 pt-1 min-h-[48px]"
+            >
+              {displayCities.map((city, idx) => {
+                const isBeingDragged = dragCity === city;
+                const isSlotHidden = isBeingDragged && isGhostCaptured;
+
+                return (
+                  <div
+                    key={city}
+                    draggable={!!onReorderCities}
+                    onDragStart={(e) => handleDragStart(e, city)}
+                    onDragOver={(e) => handleDragOverCard(e, city)}
+                    onDrop={handleDrop}
+                    onDragEnd={handleDragEnd}
+                    className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
+                      isSlotHidden
+                        ? "opacity-0 border-transparent pointer-events-none"
+                        : isBeingDragged
+                        ? "bg-white border-slate-300 shadow-md"
+                        : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                    }`}
+                  >
+                    {/* Grip Icon */}
+                    <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
+                      <span>⋮</span>
+                      <span>⋮</span>
+                    </div>
+
+                    {/* Dynamic Step Number Badge */}
+                    <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+
+                    {/* City Name */}
+                    <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
+                      {getCityName(city)}
+                    </span>
                   </div>
-
-                  {/* Dynamic Step Number Badge */}
-                  <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-
-                  {/* City Name */}
-                  <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
-                    {getCityName(city)}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
+        )}
 
-          {/* Info Banner for Upcoming Auto-Optimization Feature */}
+        {/* Info Banner for Upcoming Auto-Optimization Feature */}
+        {isMultiCity && (
           <div className="p-2.5 rounded-lg bg-blue-50/80 border border-blue-200/70 text-[11px] text-blue-900 font-medium leading-relaxed flex items-center gap-2">
             <span className="font-extrabold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[10px] shrink-0">
               {locale === "ko" ? "기능 개발 예정" : "Upcoming Feature"}
@@ -213,8 +213,8 @@ export default function TransportPlannerPanel({
                 : "Auto route optimization based on city tour courses will be supported with upcoming Trip Reports."}
             </span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Part 1: 도시 간 이동 구간 카드 */}
       <div className="space-y-4">

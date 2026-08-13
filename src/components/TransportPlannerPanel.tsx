@@ -28,7 +28,7 @@ export default function TransportPlannerPanel({
   const adultCount = draft.adultCount || 1;
   const isMultiCity = selectedCities.length >= 2;
 
-  // Real-time live reflow state
+  // Drag and drop live reflow state
   const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
   const [liveCities, setLiveCities] = useState<SupportedCity[]>(selectedCities);
 
@@ -52,7 +52,7 @@ export default function TransportPlannerPanel({
     onReorderCities(sorted);
   };
 
-  // Live Reflow Drag & Drop Handlers
+  // Drag & Drop Handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggingIdx(index);
     setLiveCities([...selectedCities]);
@@ -66,13 +66,13 @@ export default function TransportPlannerPanel({
 
     if (draggingIdx === null || draggingIdx === targetIdx) return;
 
-    // Real-time array shift
+    // Shift array items in real-time
     const updated = [...liveCities];
     const [movedItem] = updated.splice(draggingIdx, 1);
     updated.splice(targetIdx, 0, movedItem);
 
     setLiveCities(updated);
-    setDraggingIdx(targetIdx); // Update active position instantly
+    setDraggingIdx(targetIdx); // Move active slot position
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -116,7 +116,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 마우스 이동에 따라 기존 카드가 옆으로 밀려나고 이동하는 자리는 순수한 빈 배경 공간으로 표현되는 드래그 앤 드롭 */}
+      {/* Part 0: 드래그 앤 드랍 이동 시 실시간으로 주변 카드가 옆으로 밀려나고, 이동 자리는 순수 빈 배경 공간으로 표기되는 동선 설정 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -141,12 +141,12 @@ export default function TransportPlannerPanel({
             )}
           </div>
 
-          {/* Real-time Live Reflow Drag & Drop Cards with Pure Empty Background Slot */}
+          {/* Real-time Live Reflow Drag & Drop Area */}
           <div className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]">
             {displayCities.map((city, idx) => {
               const isDragging = draggingIdx === idx;
 
-              // 드래그 중인 이동 자리는 숫자/점선/텍스트 없는 순수 빈 배경색 슬롯으로 표현
+              // 드래그 중인 자리는 숫자/점선/텍스트가 일절 없는 순수 빈 배경 공간 슬롯
               if (isDragging) {
                 return (
                   <div
@@ -154,7 +154,7 @@ export default function TransportPlannerPanel({
                     onDragOver={(e) => handleDragOverCard(e, idx)}
                     onDrop={handleDrop}
                     onDragEnd={handleDragEnd}
-                    className="w-[104px] h-[42px] rounded-xl bg-slate-100/90 border border-slate-200/60 shadow-inner transition-all duration-200 ease-out select-none"
+                    className="w-[100px] h-[40px] rounded-xl bg-slate-100/90 border border-slate-200/60 shadow-inner transition-all duration-150 ease-out select-none shrink-0"
                   />
                 );
               }
@@ -167,7 +167,7 @@ export default function TransportPlannerPanel({
                   onDragOver={(e) => handleDragOverCard(e, idx)}
                   onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
-                  className="group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60 transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none"
+                  className="group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60 transition-all duration-150 ease-out cursor-grab active:cursor-grabbing select-none shrink-0"
                 >
                   {/* Grip Icon */}
                   <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">

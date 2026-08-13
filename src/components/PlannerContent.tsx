@@ -1504,7 +1504,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           })()}
 
           {/* Category Tabs / Cards (Only shown for individual city tabs: 4 categories) */}
-          {selectedCityTab !== "ALL" && (
+          {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="Budget categories">
               {(["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION"] as BudgetCategory[]).map((cat) => {
                 const isActive = (activeCategory === "EMERGENCY_FUND" ? "ACCOMMODATION" : activeCategory) === cat;

@@ -54,7 +54,7 @@ export default function TransportPlannerPanel({
     onReorderCities(sorted);
   };
 
-  // Drag & Drop Handlers with Ghost Capture Management
+  // Drag & Drop Handlers
   const handleDragStart = (e: React.DragEvent, city: SupportedCity) => {
     setDragCity(city);
     setIsGhostCaptured(false);
@@ -128,7 +128,7 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 드래그 중 이중 비침 없이 마우스에만 1개 카드가 따라다니고 실시간 위치가 교체되는 완벽 드래그 앤 드롭 */}
+      {/* Part 0: 마우스 드래그 중 🚫 금지 커서 차단 및 항상 move 커서 보장 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
@@ -153,8 +153,15 @@ export default function TransportPlannerPanel({
             )}
           </div>
 
-          {/* Real-time Swap & Shift Drag & Drop Container */}
-          <div className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]">
+          {/* Real-time Swap & Shift Drag & Drop Container (Container prevents 🚫 not-allowed cursor) */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+            }}
+            onDrop={handleDrop}
+            className="flex flex-wrap items-center gap-2 pt-1 min-h-[52px]"
+          >
             {displayCities.map((city, idx) => {
               const isBeingDragged = dragCity === city;
               const isSlotHidden = isBeingDragged && isGhostCaptured;

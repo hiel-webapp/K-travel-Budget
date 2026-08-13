@@ -33,6 +33,9 @@ export default function TransportPlannerPanel({
   const [isGhostCaptured, setIsGhostCaptured] = useState<boolean>(false);
   const [activeCities, setActiveCities] = useState<SupportedCity[]>(selectedCities);
 
+  // Info popover state
+  const [showRouteInfo, setShowRouteInfo] = useState<boolean>(false);
+
   // Keep state in sync with props when not dragging
   useEffect(() => {
     if (dragCity === null) {
@@ -105,99 +108,112 @@ export default function TransportPlannerPanel({
 
   return (
     <div className="space-y-6">
-      {/* 하나로 통합된 깔끔하고 정돈된 단일 여행 동선 & 교통 정보 박스 */}
+      {/* 군더더기 없이 깨끗하고 심플한 단일 여행 동선 박스 */}
       <div className="p-4.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
+          {/* Left: Title & Info Button */}
+          <div className="relative flex items-center gap-2">
             <h3 className="text-base font-extrabold text-[#0f172a]">
               {locale === "ko" ? "여행 동선" : "Travel Route"}
             </h3>
-            <span className="px-2 py-0.5 rounded-full bg-rose-50 text-[#e25c5c] border border-rose-200/80 text-[10px] font-black">
-              {locale === "ko" ? "실시간 연동" : "Live Sync"}
-            </span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
-              {locale === "ko" ? `성인 ${adultCount}명 기준` : `For ${adultCount} travelers`}
-            </span>
-            {isMultiCity && onReorderCities && (
-              <button
-                type="button"
-                onClick={handleOptimizeRoute}
-                className="px-2.5 py-1 text-xs font-bold rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer shadow-2xs"
-              >
-                {locale === "ko" ? "최적 동선 자동 정렬" : "Auto Optimize Route"}
-              </button>
+            <button
+              type="button"
+              onClick={() => setShowRouteInfo(!showRouteInfo)}
+              className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
+                showRouteInfo
+                  ? "bg-[#0f172a] text-white border-[#0f172a]"
+                  : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+              title={locale === "ko" ? "설명 보기" : "View Info"}
+            >
+              Info
+            </button>
+
+            {/* Info Popover Tooltip */}
+            {showRouteInfo && (
+              <>
+                <div
+                  className="fixed inset-0 z-30"
+                  onClick={() => setShowRouteInfo(false)}
+                />
+                <div className="absolute left-0 top-full mt-2 w-72 sm:w-80 p-3.5 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1.5 animate-in fade-in zoom-in-95 duration-150">
+                  <p className="text-slate-200">
+                    • {locale === "ko"
+                      ? "도시 간 이동 구간별 최적의 교통 수단(KTX, 고속버스, 항공 등)을 선택하세요. 선택된 단가가 전체 여행 예산에 실시간 반영됩니다."
+                      : "Select optimal transit options for each segment."}
+                  </p>
+                  {isMultiCity && (
+                    <p className="text-slate-300">
+                      • {locale === "ko"
+                        ? "목적지 카드를 마우스로 끌어 이동하면 주변 카드가 실시간으로 밀려나며 순서가 변경됩니다."
+                        : "Drag destination cards to rearrange the travel sequence in real-time."}
+                    </p>
+                  )}
+                </div>
+              </>
             )}
           </div>
-        </div>
 
-        {/* 통합 Info 설명 문구 */}
-        <div className="space-y-1 text-xs text-slate-600 font-medium leading-relaxed">
-          <p>
-            {locale === "ko"
-              ? "• 도시 간 이동 구간별 최적의 교통 수단(KTX, 고속버스, 항공 등)을 선택하세요. 선택된 단가가 전체 여행 예산에 실시간 반영됩니다."
-              : "• Select the optimal transit option (KTX, Express Bus, Flight) for each segment."}
-          </p>
-          {isMultiCity && (
-            <p className="text-slate-500">
-              {locale === "ko"
-                ? "• 목적지 카드를 마우스로 끌어 이동하면 주변 카드가 실시간으로 밀려나며 순서가 변경됩니다."
-                : "• Drag destination cards to rearrange the travel sequence in real-time."}
-            </p>
+          {/* Right: Auto Route Optimization Button */}
+          {isMultiCity && onReorderCities && (
+            <button
+              type="button"
+              onClick={handleOptimizeRoute}
+              className="px-2.5 py-1 text-xs font-bold rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer shadow-2xs"
+            >
+              {locale === "ko" ? "최적 동선 자동 정렬" : "Auto Optimize Route"}
+            </button>
           )}
         </div>
 
-        {/* 여행 동선 드래그 앤 드롭 카드 목록 */}
+        {/* 섹션 중앙 정렬 (Center Alignment) 처리된 도시 카드 드래그 앤 드롭 목록 */}
         {isMultiCity && (
-          <div className="pt-2 border-t border-slate-200/60">
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-              }}
-              onDrop={handleDrop}
-              className="flex flex-wrap items-center gap-2 pt-1 min-h-[48px]"
-            >
-              {displayCities.map((city, idx) => {
-                const isBeingDragged = dragCity === city;
-                const isSlotHidden = isBeingDragged && isGhostCaptured;
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+            }}
+            onDrop={handleDrop}
+            className="flex flex-wrap items-center justify-center gap-2 pt-1 min-h-[48px]"
+          >
+            {displayCities.map((city, idx) => {
+              const isBeingDragged = dragCity === city;
+              const isSlotHidden = isBeingDragged && isGhostCaptured;
 
-                return (
-                  <div
-                    key={city}
-                    draggable={!!onReorderCities}
-                    onDragStart={(e) => handleDragStart(e, city)}
-                    onDragOver={(e) => handleDragOverCard(e, city)}
-                    onDrop={handleDrop}
-                    onDragEnd={handleDragEnd}
-                    className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
-                      isSlotHidden
-                        ? "opacity-0 border-transparent pointer-events-none"
-                        : isBeingDragged
-                        ? "bg-white border-slate-300 shadow-md"
-                        : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
-                    }`}
-                  >
-                    {/* Grip Icon */}
-                    <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
-                      <span>⋮</span>
-                      <span>⋮</span>
-                    </div>
-
-                    {/* Dynamic Step Number Badge */}
-                    <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                      {idx + 1}
-                    </span>
-
-                    {/* City Name */}
-                    <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
-                      {getCityName(city)}
-                    </span>
+              return (
+                <div
+                  key={city}
+                  draggable={!!onReorderCities}
+                  onDragStart={(e) => handleDragStart(e, city)}
+                  onDragOver={(e) => handleDragOverCard(e, city)}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
+                    isSlotHidden
+                      ? "opacity-0 border-transparent pointer-events-none"
+                      : isBeingDragged
+                      ? "bg-white border-slate-300 shadow-md"
+                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                  }`}
+                >
+                  {/* Grip Icon */}
+                  <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
+                    <span>⋮</span>
+                    <span>⋮</span>
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Dynamic Step Number Badge */}
+                  <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                    {idx + 1}
+                  </span>
+
+                  {/* City Name */}
+                  <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
+                    {getCityName(city)}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
 

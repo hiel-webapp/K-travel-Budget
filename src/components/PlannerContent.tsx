@@ -3054,34 +3054,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                 <div className="py-4 space-y-5 max-h-[360px] overflow-y-auto pr-1">
 
-                  {plan.tripWideSection.lineItems.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        {dict.planner.tripWideExpenses}
-                      </h4>
-                      {plan.tripWideSection.lineItems.map((item) => {
-                        const isEmergency = item.basketId === "EMERGENCY_FIXED";
-                        const baseLabel = getBasketLabel(item.basketId, dict, locale);
-                        const displayLabel = isEmergency
-                          ? (activeEmergencyPct && emergencyManualInput === "" && activeEmergencyPct > 0
-                              ? `${locale === "ko" ? "여행 비상금" : "Emergency Fund"} (${Math.round(activeEmergencyPct * 100)}%)`
-                              : (locale === "ko" ? "여행 비상금" : "Emergency Fund"))
-                          : baseLabel;
-
-                        return (
-                          <div key={item.id} className="flex justify-between items-start text-xs">
-                            <div>
-                              <span className="text-slate-800 font-bold block">{displayLabel}</span>
-                              <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
-                            </div>
-                            <span className="font-sans tabular-nums font-bold text-[#0f172a]">{formatKrw(item.lineTotalKrw)}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {draft.selectedCities.map((city) => {
+                  {draft.selectedCities.map((city, cityIdx) => {
                     const section = plan.citySections[city];
                     if (!section || section.lineItems.length === 0) return null;
 
@@ -3089,7 +3062,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     const cityNights = section.nights;
 
                     return (
-                      <div key={city} className="space-y-2 pt-2 border-t border-slate-100">
+                      <div key={city} className={`space-y-2 ${cityIdx === 0 ? "" : "pt-2 border-t border-slate-100"}`}>
                         <div className="flex justify-between items-baseline">
                           <h4 className="text-sm font-extrabold text-[#0f172a]">
                             {label} <span className="text-[11px] font-bold text-slate-400">({cityNights}박)</span>
@@ -3153,6 +3126,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </h4>
                         <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(shoppingAmountKrw)}</span>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Emergency Fund Subtotal Line in Receipt */}
+                  {plan.tripWideSection.lineItems.length > 0 && (
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                      {plan.tripWideSection.lineItems.map((item) => {
+                        const isEmergency = item.basketId === "EMERGENCY_FIXED";
+                        const baseLabel = getBasketLabel(item.basketId, dict, locale);
+                        const displayLabel = isEmergency
+                          ? (activeEmergencyPct && emergencyManualInput === "" && activeEmergencyPct > 0
+                              ? `${locale === "ko" ? "여행 비상금" : "Emergency Fund"} (${Math.round(activeEmergencyPct * 100)}%)`
+                              : (locale === "ko" ? "여행 비상금" : "Emergency Fund"))
+                          : baseLabel;
+
+                        return (
+                          <div key={item.id} className="flex justify-between items-baseline">
+                            <h4 className="text-sm font-extrabold text-[#0f172a]">
+                              {displayLabel}
+                            </h4>
+                            <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(item.lineTotalKrw)}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 

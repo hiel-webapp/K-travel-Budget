@@ -3150,16 +3150,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="flex justify-between items-baseline">
                         <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1">
                           <span>🛍️</span>
-                          <span>{locale === "ko" ? "선택형 쇼핑 & 기념품 예산" : "Optional Shopping & Souvenirs"}</span>
+                          <span>{locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}</span>
                         </h4>
                         <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(shoppingAmountKrw)}</span>
                       </div>
-                      <div className="text-[10px] text-slate-400 italic pl-1.5">
-                        {shoppingOption === "BEAUTY" && (locale === "ko" ? "💄 K-뷰티 & 올리브영 화장품 쇼핑 예산" : "K-Beauty Cosmetics Shopping")}
-                        {shoppingOption === "FASHION" && (locale === "ko" ? "👗 K-패션 & 의류/브랜드 쇼핑 예산" : "K-Fashion & Apparel Shopping")}
-                        {shoppingOption === "SOUVENIR" && (locale === "ko" ? "🎁 K-굿즈, 식료품 & 전통 기념품 예산" : "K-Goods & Souvenirs Shopping")}
-                        {shoppingOption === "CUSTOM" && (locale === "ko" ? "✏️ 사용자 직접 입력 쇼핑 예산" : "Custom Shopping Budget")}
-                      </div>
+                      {shoppingOption !== "CUSTOM" && (
+                        <div className="text-[10px] text-slate-400 italic pl-1.5">
+                          {shoppingOption === "BEAUTY" && (locale === "ko" ? "💄 K-뷰티 & 올리브영 화장품 쇼핑 예산" : "K-Beauty Cosmetics Shopping")}
+                          {shoppingOption === "FASHION" && (locale === "ko" ? "👗 K-패션 & 의류/브랜드 쇼핑 예산" : "K-Fashion & Apparel Shopping")}
+                          {shoppingOption === "SOUVENIR" && (locale === "ko" ? "🎁 K-굿즈, 식료품 & 전통 기념품 예산" : "K-Goods & Souvenirs Shopping")}
+                        </div>
+                      )}
                     </div>
                   )}
 

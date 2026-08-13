@@ -1998,54 +1998,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           })()}
                         </div>
                       </div>
-                      {draft.selectedCities.length >= 2 && (
-                        <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
-                          <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
-                            <div className="flex-1">
-                              {renderOverviewSectionHeader(
-                                "intercityTransit",
-                                "🚅",
-                                "도시 간 이동",
-                                "Intercity Transit",
-                                "",
-                                "",
-                                "선택된 여행 도시 사이를 이동하는 대표 교통 수단 및 1인 편도 요금입니다.\nKTX, 고속버스, 내륙 항공 등 도시 간 이동 구간별 대표 교통편과 평균 시세 요금(1인 편도 기준)을 보여주며, 전체 인원수에 맞게 예산에 합산됩니다.",
-                                "Representative transit options and fares between your selected trip cities.\nDisplays primary transit options (KTX, express bus, domestic flights) and fares between your chosen destinations, scaled to your total group size.",
-                                "구간 합산",
-                                "Route Total",
-                                "total"
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="space-y-3">
-                            {draft.selectedCities.slice(0, -1).map((fromCity, idx) => {
-                              const toCity = draft.selectedCities[idx + 1];
-                              const fareOptions = getIntercityFareOptions(fromCity, toCity);
-                              const primaryFare = fareOptions[0];
-
-                              return (
-                                <div
-                                  key={`${fromCity}-${toCity}`}
-                                  className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                                >
-                                  <div className="flex items-center gap-2 font-extrabold text-xs text-slate-800">
-                                    <span className="px-2 py-0.5 bg-white rounded-md text-slate-700 border border-slate-200">{CITY_KOREAN_NAMES[fromCity] || fromCity}</span>
-                                    <span>──▶</span>
-                                    <span className="px-2 py-0.5 bg-white rounded-md text-slate-700 border border-slate-200">{CITY_KOREAN_NAMES[toCity] || toCity}</span>
-                                  </div>
-
-                                  <div className="flex items-center gap-3 text-xs">
-                                    <span className="text-slate-500 font-medium">{primaryFare.nameKo} ({primaryFare.durationTextKo})</span>
-                                    <strong className="text-[#e25c5c] font-black">{formatKrw(primaryFare.oneWayPriceKrw * (draft.adultCount || 1))}</strong>
-                                    <span className="text-[10px] text-slate-400">({draft.adultCount || 1}명 기준)</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
 

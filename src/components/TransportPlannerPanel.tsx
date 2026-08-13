@@ -32,29 +32,12 @@ export default function TransportPlannerPanel({
       : CITY_ENGLISH_NAMES[city] || city;
   };
 
-  const getModeIcon = (mode: IntercityTransportMode) => {
-    switch (mode) {
-      case "KTX":
-      case "SRT":
-        return "🚆";
-      case "EXPRESS_BUS":
-        return "🚌";
-      case "FLIGHT":
-        return "✈️";
-      case "FERRY":
-        return "🚢";
-      default:
-        return "🚘";
-    }
-  };
-
   return (
     <div className="space-y-6">
-      {/* Header Summary Banner (여행 개요 탭 스타일과 통일: 화이트 & 슬레이트 톤) */}
+      {/* Header Summary Banner */}
       <div className="p-4.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🚆</span>
             <h3 className="text-base font-extrabold text-[#0f172a]">
               {locale === "ko" ? "교통수단 맞춤 설계" : "Transport Planner"}
             </h3>
@@ -77,7 +60,6 @@ export default function TransportPlannerPanel({
       <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
           <div className="flex items-center gap-2">
-            <span className="text-base">🛣️</span>
             <h4 className="text-sm font-extrabold text-[#0f172a]">
               {locale === "ko" ? "도시 간 이동 구간" : "Intercity Transit Segments"}
             </h4>
@@ -89,7 +71,6 @@ export default function TransportPlannerPanel({
 
         {!isMultiCity ? (
           <div className="p-6 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-center space-y-1.5">
-            <span className="text-2xl block">📍</span>
             <h5 className="text-xs font-bold text-[#0f172a]">
               {locale === "ko" ? "단일 도시 여행입니다" : "Single City Trip"}
             </h5>
@@ -166,8 +147,7 @@ export default function TransportPlannerPanel({
                             }`}
                           >
                             <div className="flex items-center justify-between gap-1">
-                              <div className="flex items-center gap-1.5 font-extrabold text-xs">
-                                <span>{getModeIcon(opt.mode)}</span>
+                              <div className="flex items-center font-extrabold text-xs">
                                 <span className={isSelected ? "text-white" : "text-[#0f172a]"}>
                                   {locale === "ko" ? opt.nameKo : opt.nameEn}
                                 </span>
@@ -187,7 +167,7 @@ export default function TransportPlannerPanel({
 
                             <div className="flex items-center justify-between text-[11px] font-medium opacity-90">
                               <span className={isSelected ? "text-slate-300" : "text-slate-500"}>
-                                ⏱️ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
+                                {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
                               </span>
                               <strong className={isSelected ? "text-amber-300 font-black text-xs" : "text-[#0f172a] font-extrabold text-xs"}>
                                 {formatKrw(opt.oneWayPriceKrw)}
@@ -208,7 +188,6 @@ export default function TransportPlannerPanel({
       {/* Part 2: 도시 내 대중교통 정보 */}
       <div className="space-y-3 pt-2">
         <div className="flex items-center gap-2 border-b border-slate-200/80 pb-2.5">
-          <span className="text-base">🚌</span>
           <h4 className="text-sm font-extrabold text-[#0f172a]">
             {locale === "ko" ? "도시 내 대중교통 알뜰 패스 정보" : "City Transit Info"}
           </h4>
@@ -219,7 +198,7 @@ export default function TransportPlannerPanel({
             <div key={city} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-xs text-[#0f172a]">
-                  📍 {getCityName(city)} {locale === "ko" ? "시내 교통" : "Local Transit"}
+                  {getCityName(city)} {locale === "ko" ? "시내 교통" : "Local Transit"}
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                   T-Money {locale === "ko" ? "연동" : "Compatible"}

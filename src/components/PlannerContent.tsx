@@ -1405,13 +1405,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 id="city-tab-TRANSPORT"
                 aria-controls="city-panel-TRANSPORT"
                 onClick={() => setSelectedCityTab("TRANSPORT")}
-                className={`h-8 px-3.5 rounded-t-xl text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap ${
+                className={`h-8 px-3.5 rounded-t-xl text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap ${
                   selectedCityTab === "TRANSPORT"
                     ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
                     : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
                 }`}
               >
-                <span>🚆</span>
                 <span>{locale === "ko" ? "교통" : "Transport"}</span>
               </button>
             </div>
@@ -1613,7 +1612,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div className="border-b border-[#fce8e8] pb-2.5">
                           {renderOverviewSectionHeader(
                             "cityNights",
-                            "🗓️",
+                            "📌",
                             titleKo,
                             titleEn,
                             "",

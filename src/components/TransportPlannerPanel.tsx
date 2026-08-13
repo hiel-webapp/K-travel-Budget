@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { IntercityTransportMode, IntercityFareInfo, getIntercityFareOptions } from "../lib/transport/intercity-fares";
 import { formatKrw } from "../features/budget/presentation/formatters";
@@ -28,30 +28,14 @@ export default function TransportPlannerPanel({
   const adultCount = draft.adultCount || 1;
   const isMultiCity = selectedCities.length >= 2;
 
+  // Drag and drop state
+  const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
+
   const getCityName = (city: SupportedCity) => {
     return locale === "ko"
       ? CITY_KOREAN_NAMES[city] || city
       : CITY_ENGLISH_NAMES[city] || city;
-  };
-
-  // 도시 순서 좌우 이동
-  const handleMoveCity = (index: number, direction: "LEFT" | "RIGHT") => {
-    if (!onReorderCities) return;
-    const targetIdx = direction === "LEFT" ? index - 1 : index + 1;
-    if (targetIdx < 0 || targetIdx >= selectedCities.length) return;
-
-    const nextCities = [...selectedCities];
-    const temp = nextCities[index];
-    nextCities[index] = nextCities[targetIdx];
-    nextCities[targetIdx] = temp;
-    onReorderCities(nextCities);
-  };
-
-  // 출발지 퀵 선택
-  const handleSelectStartCity = (startCity: SupportedCity) => {
-    if (!onReorderCities) return;
-    const filtered = selectedCities.filter((c) => c !== startCity);
-    onReorderCities([startCity, ...filtered]);
   };
 
   // 최적 동선 자동 정렬
@@ -59,6 +43,43 @@ export default function TransportPlannerPanel({
     if (!onReorderCities) return;
     const sorted = sortCitiesByStandardOrder(selectedCities);
     onReorderCities(sorted);
+  };
+
+  // Drag & Drop Handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIdx(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverIdx !== index) {
+      setDragOverIdx(index);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIdx: number) => {
+    e.preventDefault();
+    if (draggedIdx === null || draggedIdx === dropIdx || !onReorderCities) {
+      setDraggedIdx(null);
+      setDragOverIdx(null);
+      return;
+    }
+
+    const nextCities = [...selectedCities];
+    const [movedItem] = nextCities.splice(draggedIdx, 1);
+    nextCities.splice(dropIdx, 0, movedItem);
+
+    onReorderCities(nextCities);
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIdx(null);
+    setDragOverIdx(null);
   };
 
   return (
@@ -85,92 +106,79 @@ export default function TransportPlannerPanel({
         </p>
       </div>
 
-      {/* Part 0: 자율 동선 순서 재배치 컨트롤 (Route Sequence Reordering) */}
+      {/* Part 0: 직관적인 드래그 앤 드랍 도시 순서 설정 카드 */}
       {isMultiCity && (
         <div className="p-4.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
             <div>
               <h4 className="text-sm font-extrabold text-[#0f172a]">
-                {locale === "ko" ? "여행 동선 및 방문 순서 설정" : "Trip Route & Visit Sequence"}
+                {locale === "ko" ? "여행 동선 및 목적지 순서" : "Trip Destination Sequence"}
               </h4>
               <p className="text-[11px] text-slate-400 mt-0.5">
                 {locale === "ko"
-                  ? "출발지와 방문 도시 순서를 자유롭게 변경할 수 있습니다."
-                  : "Freely change your starting city and route order."}
+                  ? "목적지 카드를 마우스나 손가락으로 드래그하여 이동 순서를 자유롭게 변경하세요."
+                  : "Drag and drop cards to rearrange your travel order."}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              {onReorderCities && (
-                <button
-                  type="button"
-                  onClick={handleOptimizeRoute}
-                  className="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
-                >
-                  {locale === "ko" ? "최적 동선 자동 정렬" : "Auto Optimize Route"}
-                </button>
-              )}
-            </div>
+            {onReorderCities && (
+              <button
+                type="button"
+                onClick={handleOptimizeRoute}
+                className="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "최적 동선 자동 정렬" : "Auto Optimize Route"}
+              </button>
+            )}
           </div>
 
-          {/* Sequence Chips */}
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              {selectedCities.map((city, idx) => {
-                const isFirst = idx === 0;
-                const isLast = idx === selectedCities.length - 1;
-                const badgeLabel = isFirst
-                  ? (locale === "ko" ? "출발지" : "Start")
-                  : isLast
-                  ? (locale === "ko" ? "도착지" : "End")
-                  : (locale === "ko" ? `경유 ${idx}` : `Stop ${idx}`);
+          {/* Interactive Drag & Drop City Cards */}
+          <div className="flex flex-wrap items-center gap-2.5 pt-1">
+            {selectedCities.map((city, idx) => {
+              const isDragging = draggedIdx === idx;
+              const isDragOver = dragOverIdx === idx;
+              const isLast = idx === selectedCities.length - 1;
 
-                return (
-                  <React.Fragment key={city}>
-                    <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs">
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                        isFirst
-                          ? "bg-rose-500 text-white"
-                          : isLast
-                          ? "bg-indigo-600 text-white"
-                          : "bg-slate-200 text-slate-700"
-                      }`}>
-                        {badgeLabel}
-                      </span>
-                      <span className="text-xs font-black text-[#0f172a] px-1">
-                        {getCityName(city)}
-                      </span>
-
-                      {onReorderCities && (
-                        <div className="flex items-center gap-0.5 ml-1 border-l border-slate-200 pl-1.5">
-                          <button
-                            type="button"
-                            disabled={isFirst}
-                            onClick={() => handleMoveCity(idx, "LEFT")}
-                            className="w-5 h-5 rounded bg-white hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-white text-slate-700 font-black text-xs flex items-center justify-center border border-slate-200 cursor-pointer"
-                            title={locale === "ko" ? "앞으로 이동" : "Move left"}
-                          >
-                            ◄
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isLast}
-                            onClick={() => handleMoveCity(idx, "RIGHT")}
-                            className="w-5 h-5 rounded bg-white hover:bg-slate-200 disabled:opacity-30 disabled:hover:bg-white text-slate-700 font-black text-xs flex items-center justify-center border border-slate-200 cursor-pointer"
-                            title={locale === "ko" ? "뒤로 이동" : "Move right"}
-                          >
-                            ►
-                          </button>
-                        </div>
-                      )}
+              return (
+                <React.Fragment key={city}>
+                  <div
+                    draggable={!!onReorderCities}
+                    onDragStart={(e) => handleDragStart(e, idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDrop={(e) => handleDrop(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-150 cursor-grab active:cursor-grabbing select-none ${
+                      isDragging
+                        ? "opacity-40 bg-slate-100 border-dashed border-slate-400 scale-95"
+                        : isDragOver
+                        ? "bg-rose-50 border-rose-400 ring-2 ring-rose-300 scale-105 shadow-md"
+                        : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                    }`}
+                  >
+                    {/* Grip Icon */}
+                    <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
+                      <span>⋮</span>
+                      <span>⋮</span>
                     </div>
 
-                    {!isLast && (
-                      <span className="text-slate-300 font-bold text-xs">──►</span>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </div>
+                    {/* Step Number Badge */}
+                    <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+
+                    {/* City Name */}
+                    <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
+                      {getCityName(city)}
+                    </span>
+                  </div>
+
+                  {!isLast && (
+                    <span className="text-slate-300 font-bold text-xs select-none">
+                      ──►
+                    </span>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
       )}

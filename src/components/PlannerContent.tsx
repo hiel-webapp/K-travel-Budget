@@ -3122,15 +3122,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </div>
                   )}
 
-                  {/* Shopping, Daily Allowance & Emergency Fund Combined Group in Receipt */}
-                  {(shoppingAmountKrw > 0 || plan.categoryTotals.ATTRACTION > 0 || plan.tripWideSection.lineItems.length > 0) && (
+                  {/* Shopping & Daily Allowance Group in Receipt */}
+                  {(shoppingAmountKrw > 0 || plan.categoryTotals.ATTRACTION > 0) && (
                     <div className="space-y-2 pt-2 border-t border-slate-100">
                       {shoppingAmountKrw > 0 && (
                         <div className="flex justify-between items-baseline">
                           <h4 className="text-sm font-extrabold text-[#0f172a]">
                             {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
                           </h4>
-                          <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(shoppingAmountKrw)}</span>
+                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(shoppingAmountKrw)}</span>
                         </div>
                       )}
 
@@ -3139,38 +3139,47 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <h4 className="text-sm font-extrabold text-[#0f172a]">
                             {locale === "ko" ? "일일 용돈" : "Daily Allowance"}
                           </h4>
-                          <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(plan.categoryTotals.ATTRACTION)}</span>
+                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(plan.categoryTotals.ATTRACTION)}</span>
                         </div>
                       )}
-
-                      {plan.tripWideSection.lineItems.length > 0 &&
-                        plan.tripWideSection.lineItems.map((item) => {
-                          const isEmergency = item.basketId === "EMERGENCY_FIXED";
-                          const baseLabel = getBasketLabel(item.basketId, dict, locale);
-                          const displayLabel = isEmergency
-                            ? (activeEmergencyPct && emergencyManualInput === "" && activeEmergencyPct > 0
-                                ? `${locale === "ko" ? "여행 비상금" : "Emergency Fund"} (${Math.round(activeEmergencyPct * 100)}%)`
-                                : (locale === "ko" ? "여행 비상금" : "Emergency Fund"))
-                            : baseLabel;
-
-                          return (
-                            <div key={item.id} className="flex justify-between items-baseline">
-                              <h4 className="text-sm font-extrabold text-[#0f172a]">
-                                {displayLabel}
-                              </h4>
-                              <span className="text-xs font-extrabold text-[#e25c5c]">{formatKrw(item.lineTotalKrw)}</span>
-                            </div>
-                          );
-                        })}
                     </div>
                   )}
 
                 </div>
 
-                <div className="pt-4 border-t border-dashed border-slate-200 space-y-4">
-                  <div className="space-y-2">
+                {/* Bottom Calculation Breakdown: Base Expenses + Emergency Fund = Grand Total */}
+                <div className="pt-4 border-t border-dashed border-slate-200 space-y-3.5">
+                  <div className="space-y-2 bg-slate-50/80 p-3 rounded-xl border border-slate-100">
+                    {/* 1) 기본 여행 경비 */}
+                    <div className="flex justify-between items-baseline text-xs">
+                      <span className="font-bold text-slate-600">
+                        {locale === "ko" ? "기본 여행 경비" : "Base Trip Expenses"}
+                      </span>
+                      <span className="font-extrabold text-slate-900 tabular-nums">
+                        {formatKrw(baseEmergencyGrandTotal)}
+                      </span>
+                    </div>
+
+                    {/* 2) 여행 비상금 */}
+                    <div className="flex justify-between items-baseline text-xs">
+                      <span className="font-bold text-slate-600 flex items-center gap-1.5">
+                        <span>{locale === "ko" ? "여행 비상금" : "Emergency Fund"}</span>
+                        {activeEmergencyPct !== undefined && activeEmergencyPct > 0 && emergencyManualInput === "" && (
+                          <span className="text-[10px] font-extrabold text-[#e25c5c] bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/80 leading-none">
+                            +{Math.round(activeEmergencyPct * 100)}%
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-extrabold text-[#e25c5c] tabular-nums">
+                        +{formatKrw(computedEmergencyKrw)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 3) 최종 예상 총액 */}
+                  <div className="space-y-2 pt-1">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-sm font-bold text-slate-500">{dict.planner.estimatedTotal}</span>
+                      <span className="text-sm font-extrabold text-[#0f172a]">{dict.planner.estimatedTotal}</span>
                       <span className="text-2xl font-extrabold tracking-tight text-[#0f172a]">
                         {formatKrw(finalGrandTotalKrw)}
                       </span>
@@ -3186,6 +3195,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </span>
                     </div>
                   </div>
+                </div>
 
               <div className="text-[10px] text-slate-400 leading-relaxed bg-[#faf9f6] p-2.5 rounded-lg border border-slate-100">
                 {dict.planner.mockDisclaimer}
@@ -3231,9 +3241,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
             </div>
           </div>
-        </div>
-      );
-    })()}
+        );
+      })()}
     </div>
 
       {/* Toast Alert Feedback */}

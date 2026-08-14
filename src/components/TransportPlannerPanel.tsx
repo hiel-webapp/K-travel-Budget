@@ -130,14 +130,14 @@ export default function TransportPlannerPanel({
 
   return (
     <div className="space-y-6">
-      {/* 군더더기 없이 깨끗하고 심플한 단일 여행 동선 박스 */}
-      <div className="p-4.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-        <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
+      {/* 여행 개요 탭 상단 박스와 100% 동일한 규격의 여행 동선 박스 */}
+      <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 rounded-2xl space-y-3 shadow-2xs">
+        <div className="flex items-center justify-between gap-2 border-b border-[#fce8e8] pb-2.5">
           {/* Left: Title & Info Button */}
           <div className="relative flex items-center gap-2">
-            <h3 className="text-base font-extrabold text-[#0f172a]">
+            <h4 className="text-sm font-extrabold text-[#0f172a]">
               {locale === "ko" ? "여행 동선" : "Travel Route"}
-            </h3>
+            </h4>
             <button
               type="button"
               onClick={() => setShowRouteInfo(!showRouteInfo)}
@@ -188,7 +188,7 @@ export default function TransportPlannerPanel({
           )}
         </div>
 
-        {/* 섹션 중앙 정렬 (Center Alignment) 처리된 도시 카드 드래그 앤 드롭 목록 */}
+        {/* 여행 개요 탭과 동일한 2열 그리드 규격의 도시 카드 드래그 앤 드롭 목록 */}
         {isMultiCity && (
           <div
             onDragOver={(e) => {
@@ -196,7 +196,7 @@ export default function TransportPlannerPanel({
               e.dataTransfer.dropEffect = "move";
             }}
             onDrop={handleDrop}
-            className="flex flex-wrap items-center justify-center gap-2 pt-1 min-h-[48px]"
+            className="grid grid-cols-2 gap-3"
           >
             {displayCities.map((city, idx) => {
               const isBeingDragged = dragCity === city;
@@ -210,28 +210,34 @@ export default function TransportPlannerPanel({
                   onDragOver={(e) => handleDragOverCard(e, city)}
                   onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
-                  className={`group relative flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none shrink-0 ${
+                  className={`group relative bg-white/80 px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-2 min-w-0 shadow-2xs border transition-all duration-200 ease-out cursor-grab active:cursor-grabbing select-none ${
                     isSlotHidden
                       ? "opacity-0 border-transparent pointer-events-none"
                       : isBeingDragged
                       ? "bg-white border-slate-300 shadow-md"
-                      : "bg-white border-slate-200/90 hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/60"
+                      : "border-transparent hover:border-slate-300 hover:shadow-xs hover:bg-white"
                   }`}
                 >
-                  {/* Grip Icon */}
-                  <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none">
-                    <span>⋮</span>
-                    <span>⋮</span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    {/* Grip Icon */}
+                    <div className="text-slate-300 group-hover:text-slate-400 text-xs font-bold flex flex-col gap-0.5 leading-none shrink-0">
+                      <span>⋮</span>
+                      <span>⋮</span>
+                    </div>
+
+                    {/* Dynamic Step Number Badge */}
+                    <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+
+                    {/* City Name - 여행 개요 탭과 동일한 폰트 크기 및 웨이트 */}
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">
+                      {getCityName(city)}
+                    </span>
                   </div>
 
-                  {/* Dynamic Step Number Badge */}
-                  <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
-                    {idx + 1}
-                  </span>
-
-                  {/* City Name */}
-                  <span className="text-xs font-extrabold text-[#0f172a] tracking-tight">
-                    {getCityName(city)}
+                  <span className="text-[11px] font-bold text-slate-400 shrink-0">
+                    {locale === "ko" ? `${idx + 1}번째` : `#${idx + 1}`}
                   </span>
                 </div>
               );

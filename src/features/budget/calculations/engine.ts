@@ -252,7 +252,7 @@ export function generateInitialBudgetPlan(
               cityCode: city,
               route: null,
               adultCount,
-              duration: category === "ACCOMMODATION" ? nights : Math.max(1, nights),
+              duration: nights,
               cityCount: selectedCities.length,
             });
           }
@@ -578,9 +578,15 @@ export function generateBaseMealPlan(
   const slots: BaseMealSlot[] = [];
   let perPersonBaseTotalKrw = 0;
 
+  if (nights <= 0) {
+    return {
+      slots: [],
+      perPersonBaseTotalKrw: 0,
+    };
+  }
+
   const mealSlots: MealSlot[] = ["BREAKFAST", "LUNCH", "DINNER", "SNACK_CAFE"];
-  // 0박(당일치기)인 경우 최소 1일치 식사 슬롯 생성
-  const daysCount = Math.max(1, nights);
+  const daysCount = nights;
 
   for (let day = 0; day < daysCount; day++) {
     mealSlots.forEach((slot) => {

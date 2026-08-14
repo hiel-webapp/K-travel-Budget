@@ -19,8 +19,8 @@ describe("Attraction Kiosk Basket Unit Tests", () => {
     const attractionItem = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "ATTRACTION");
     expect(attractionItem).toBeDefined();
     expect(attractionItem?.basketId).toBe("BALANCED");
-    expect(attractionItem?.unitPriceKrw).toBe(50000);
-    expect(attractionItem?.lineTotalKrw).toBe(50000 * 2); // 2 adults
+    expect(attractionItem?.unitPriceKrw).toBe(30000);
+    expect(attractionItem?.lineTotalKrw).toBe(30000 * 2 * 3); // 2 adults, 3 nights = 180,000
   });
 
   it("should update attraction budget when preset/basket choice changes", () => {
@@ -33,6 +33,6 @@ describe("Attraction Kiosk Basket Unit Tests", () => {
     const attractionItem = plan.citySections.SEOUL?.lineItems.find((i) => i.category === "ATTRACTION");
     expect(attractionItem?.basketId).toBe("MOSTLY_FREE");
     expect(attractionItem?.unitPriceKrw).toBe(10000);
-    expect(attractionItem?.lineTotalKrw).toBe(10000 * 2);
+    expect(attractionItem?.lineTotalKrw).toBe(10000 * 2 * 3); // 2 adults, 3 nights = 60,000
   });
 });

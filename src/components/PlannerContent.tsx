@@ -15,6 +15,8 @@ import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } fr
 import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
 import TransportPlannerPanel from "./TransportPlannerPanel";
+import SaveTripModal from "./planner/SaveTripModal";
+import BudgetTierModal from "./planner/BudgetTierModal";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 import {
@@ -3247,55 +3249,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       )}
 
       {/* Save Trip Modal */}
-      {isSaveModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/65"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="save-trip-modal-title"
-        >
-          <div className="bg-white max-w-md w-full rounded-2xl border border-slate-200/80 shadow-2xl p-6 space-y-4">
-            <h3 id="save-trip-modal-title" className="text-base font-extrabold text-[#0f172a]">
-              {dict.planner.saveTripModalTitle}
-            </h3>
-            <form onSubmit={handleSaveTripPlan} className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="trip-title-input" className="text-xs font-bold text-slate-500 block">
-                  {dict.planner.saveTripModalLabel}
-                </label>
-                <input
-                  id="trip-title-input"
-                  type="text"
-                  required
-                  value={saveTitle}
-                  onChange={(e) => setSaveTitle(e.target.value)}
-                  placeholder={dict.planner.saveTripModalPlaceholder}
-                  className="w-full h-10 px-3 rounded-xl border border-slate-200 focus:outline-none focus:border-[#e25c5c] text-sm text-[#0f172a] bg-slate-50/50"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsSaveModalOpen(false);
-                    setSaveTitle("");
-                  }}
-                  className="h-9 px-4 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 font-bold text-xs cursor-pointer"
-                >
-                  {dict.planner.saveTripModalCancel}
-                </button>
-                <button
-                  type="submit"
-                  className="h-9 px-4 rounded-lg bg-[#e25c5c] text-white hover:bg-[#d14b4b] font-bold text-xs cursor-pointer"
-                >
-                  {dict.planner.saveTripModalSave}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <SaveTripModal
+        isOpen={isSaveModalOpen}
+        saveTitle={saveTitle}
+        onSaveTitleChange={setSaveTitle}
+        onClose={() => {
+          setIsSaveModalOpen(false);
+          setSaveTitle("");
+        }}
+        onSave={handleSaveTripPlan}
+        dict={dict}
+      />
       {/* ================= ✈️ 여행 조건 수정 탭 분리형 스마트 팝오버 모달 ================= */}
       {isEditModalOpen && editDraft && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -3562,46 +3526,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       )}
 
       {/* Budget Tier Switch Confirmation Modal */}
-      {pendingBudgetTier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 space-y-4 text-center transform transition-all">
-            <div className="w-12 h-12 rounded-2xl bg-[#fdf2f2] text-[#e25c5c] flex items-center justify-center text-2xl mx-auto font-bold">
-              💡
-            </div>
-            
-            <div className="space-y-1.5">
-              <h3 className="text-base font-extrabold text-[#0f172a]">
-                {locale === "ko" ? "예산 스타일 변경" : "Change Budget Style"}
-              </h3>
-              <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                {locale === "ko"
-                  ? "선택하신 스타일에 맞게 초기화됩니다. 계속 진행하시겠습니까?"
-                  : "Your budget items will be reset to match the selected style. Would you like to proceed?"}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setPendingBudgetTier(null)}
-                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                {locale === "ko" ? "취소" : "Cancel"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleTargetBudgetTierChange(pendingBudgetTier);
-                  setPendingBudgetTier(null);
-                }}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-[#e25c5c] hover:bg-[#d14b4b] text-white font-extrabold text-xs shadow-xs transition-colors cursor-pointer"
-              >
-                {locale === "ko" ? "확인" : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <BudgetTierModal
+        pendingBudgetTier={pendingBudgetTier}
+        onClose={() => setPendingBudgetTier(null)}
+        onConfirm={(tier) => {
+          handleTargetBudgetTierChange(tier);
+          setPendingBudgetTier(null);
+        }}
+        locale={locale}
+      />
     </div>
   );
 }

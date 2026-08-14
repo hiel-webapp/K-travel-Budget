@@ -42,15 +42,15 @@ describe("HypeHeritage 13단계: Attraction(관광) 오버라이드 및 스키�
         (i) => i.category === "ATTRACTION"
       );
 
-      // BALANCED 서울: ₩50,000 * 2명 = ₩100,000
+      // BALANCED 서울: ₩30,000 * 2명 * 3박 = ₩180,000
       expect(seoulAttraction).toBeDefined();
       expect(seoulAttraction?.basketId).toBe("BALANCED");
-      expect(seoulAttraction?.lineTotalKrw).toBe(100000);
+      expect(seoulAttraction?.lineTotalKrw).toBe(180000);
 
-      // BALANCED 부산: ₩40,000 * 2명 = ₩80,000
+      // BALANCED 부산: ₩30,000 * 2명 * 2박 = ₩120,000
       expect(busanAttraction).toBeDefined();
       expect(busanAttraction?.basketId).toBe("BALANCED");
-      expect(busanAttraction?.lineTotalKrw).toBe(80000);
+      expect(busanAttraction?.lineTotalKrw).toBe(120000);
 
       // 수학적 불변식 검사
       const calculatedSum =
@@ -76,11 +76,11 @@ describe("HypeHeritage 13단계: Attraction(관광) 오버라이드 및 스키�
         (i) => i.category === "ATTRACTION"
       );
 
-      // MOSTLY_FREE 서울: ₩10,000 * 2명 = ₩20,000
+      // MOSTLY_FREE 서울: ₩10,000 * 2명 * 3박 = ₩60,000
       expect(seoulAttraction?.basketId).toBe("MOSTLY_FREE");
-      expect(seoulAttraction?.lineTotalKrw).toBe(20000);
+      expect(seoulAttraction?.lineTotalKrw).toBe(60000);
 
-      // EXPERIENCE_RICH 부산: ₩100,000 * 2명 = ₩200,000
+      // EXPERIENCE_RICH 부산: ₩50,000 * 2명 * 2박 = ₩200,000
       expect(busanAttraction?.basketId).toBe("EXPERIENCE_RICH");
       expect(busanAttraction?.lineTotalKrw).toBe(200000);
     });

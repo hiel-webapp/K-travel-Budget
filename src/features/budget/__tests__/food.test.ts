@@ -250,25 +250,25 @@ describe("HypeHeritage 10단계: Food Wishlist 및 Replacement 도메인 연산 
       // 4. 기존 오버라이드 미사용 시 승인 예산 4가지 정상 보존 확인
       // Scenario A: Default standard
       const planA = generateInitialBudgetPlan(defaultTrip);
-      expect(planA.grandTotalKrw).toBe(1292600);
+      expect(planA.grandTotalKrw).toBe(1412600);
 
       // Scenario B: Seoul stay override (BUDGET_STAY)
       const planB = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
         accommodation: { SEOUL: "BUDGET_STAY" },
       });
-      expect(planB.grandTotalKrw).toBe(1112600);
+      expect(planB.grandTotalKrw).toBe(1232600);
 
       // Scenario C: Busan stay override (PREMIUM_HERITAGE)
       const planC = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
         accommodation: { BUSAN: "PREMIUM_HERITAGE" },
       });
-      expect(planC.grandTotalKrw).toBe(1552600);
+      expect(planC.grandTotalKrw).toBe(1672600);
 
       // Scenario D: Combined stay overrides
       const planD = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
         accommodation: { SEOUL: "BUDGET_STAY", BUSAN: "PREMIUM_HERITAGE" },
       });
-      expect(planD.grandTotalKrw).toBe(1372600);
+      expect(planD.grandTotalKrw).toBe(1492600);
     });
   });
 

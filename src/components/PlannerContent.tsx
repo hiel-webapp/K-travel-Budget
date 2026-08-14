@@ -3177,21 +3177,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
 
                   {/* 3) 최종 예상 총액 */}
-                  <div className="space-y-2 pt-1">
+                  <div className="pt-1">
                     <div className="flex items-baseline justify-between">
                       <span className="text-sm font-extrabold text-[#0f172a]">{dict.planner.estimatedTotal}</span>
                       <span className="text-2xl font-extrabold tracking-tight text-[#0f172a]">
                         {formatKrw(finalGrandTotalKrw)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs text-slate-400">
-                      <span>{dict.planner.perTraveler}</span>
-                      <span className="font-sans tabular-nums font-bold text-slate-600">{formatKrw(finalPerTravelerTotalKrw)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-slate-400">
-                      <span>{dict.planner.dailyAverage}</span>
-                      <span className="font-sans tabular-nums font-bold text-slate-600">
-                        {formatKrw(Math.round(finalGrandTotalKrw / (adultCount * ((draft.totalNights || 1) + 1))))}
                       </span>
                     </div>
                   </div>

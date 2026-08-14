@@ -551,6 +551,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   }
 
   const { draft, preferences } = state;
+  const adultCount = draft.adultCount || 1;
+
+  // 쇼핑 예산 금액 산출 (1인 기준 옵션 × adultCount 또는 직접 입력)
+  const shoppingAmountKrw = (() => {
+    if (shoppingOption === "NONE") return 0;
+    if (shoppingOption === "BEAUTY") return 200000 * adultCount;
+    if (shoppingOption === "FASHION") return 300000 * adultCount;
+    if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
+    if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
+    return 0;
+  })();
 
   const activeEmergencyPct = preferences.emergencyFundPct !== undefined
     ? preferences.emergencyFundPct
@@ -567,9 +578,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     emergencyFundKrw: 0,
   });
 
-  const emergencyAdultCount = draft.adultCount || 1;
+  // 비상금 비율 계산 기준 총액 = (숙소 + 식비 + 교통 + 관광) + 쇼핑 예산
+  const baseEmergencyGrandTotal = basePlanForEmergency.grandTotalKrw + shoppingAmountKrw;
+  const emergencyAdultCount = adultCount;
   const computedEmergencyKrw = activeEmergencyPct !== undefined
-    ? Math.round(((basePlanForEmergency.grandTotalKrw / emergencyAdultCount) * activeEmergencyPct) / 1000) * 1000 * emergencyAdultCount
+    ? Math.round(((baseEmergencyGrandTotal / emergencyAdultCount) * activeEmergencyPct) / 1000) * 1000 * emergencyAdultCount
     : ((preferences.emergencyFundKrw || 0) * emergencyAdultCount);
 
   const perPersonEmergencyKrw = Math.round(computedEmergencyKrw / emergencyAdultCount);
@@ -1924,8 +1937,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               { pct: 0.10, label: "10%" },
                               { pct: 0.15, label: "15%" },
                             ].map((preset) => {
-                              const adultCount = draft.adultCount || 1;
-                              const basePerPerson = Math.round(basePlanForEmergency.grandTotalKrw / adultCount);
+                              const basePerPerson = Math.round(baseEmergencyGrandTotal / adultCount);
                               const calcValPerPerson = Math.round((basePerPerson * preset.pct) / 1000) * 1000;
                               const isSelected = activeEmergencyPct === preset.pct && emergencyManualInput === "";
 
@@ -1973,8 +1985,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </div>
 
                           {(() => {
-                            const adultCount = draft.adultCount || 1;
-                            const basePerPerson = Math.round(basePlanForEmergency.grandTotalKrw / adultCount);
+                            const basePerPerson = Math.round(baseEmergencyGrandTotal / adultCount);
                             const pctPct = Math.round((activeEmergencyPct || 0.10) * 100);
 
                             const formulaText = emergencyManualInput !== "" && emergencyManualInput !== "0"
@@ -2945,16 +2956,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
         {/* ================= RIGHT STICKY SMART RECEIPT (40%) ================= */}
         {(() => {
-          const adultCount = draft.adultCount || 1;
-          const shoppingAmountKrw = (() => {
-            if (shoppingOption === "NONE") return 0;
-            if (shoppingOption === "BEAUTY") return 200000 * adultCount;
-            if (shoppingOption === "FASHION") return 300000 * adultCount;
-            if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
-            if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
-            return 0;
-          })();
-
           const finalGrandTotalKrw = plan.grandTotalKrw + shoppingAmountKrw;
           const finalPerTravelerTotalKrw = Math.round(finalGrandTotalKrw / adultCount);
 

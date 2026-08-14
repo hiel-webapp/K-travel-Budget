@@ -188,7 +188,7 @@ export default function TransportPlannerPanel({
           )}
         </div>
 
-        {/* 여행 개요 탭과 동일한 2열 그리드 규격의 도시 카드 드래그 앤 드롭 목록 */}
+        {/* 웹 화면에서는 1줄(auto-cols-fr), 모바일에서는 2열로 배치되는 도시 카드 드래그 앤 드롭 목록 */}
         {isMultiCity && (
           <div
             onDragOver={(e) => {
@@ -196,7 +196,7 @@ export default function TransportPlannerPanel({
               e.dataTransfer.dropEffect = "move";
             }}
             onDrop={handleDrop}
-            className="grid grid-cols-2 gap-3"
+            className="grid grid-cols-2 sm:grid-flow-col sm:auto-cols-fr gap-2.5 sm:gap-3"
           >
             {displayCities.map((city, idx) => {
               const isBeingDragged = dragCity === city;

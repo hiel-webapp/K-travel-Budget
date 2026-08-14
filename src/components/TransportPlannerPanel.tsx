@@ -226,19 +226,15 @@ export default function TransportPlannerPanel({
                     </div>
 
                     {/* Dynamic Step Number Badge */}
-                    <span className="w-5 h-5 rounded-full bg-[#0f172a] text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
+                    <span className="w-6 h-6 rounded-md bg-[#0f172a] text-white font-extrabold text-xs flex items-center justify-center shrink-0">
                       {idx + 1}
                     </span>
 
-                    {/* City Name - 여행 개요 탭과 동일한 폰트 크기 및 웨이트 */}
+                    {/* City Name - 여행 개요 탭과 100% 동일한 폰트 크기 및 웨이트 */}
                     <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">
                       {getCityName(city)}
                     </span>
                   </div>
-
-                  <span className="text-[11px] font-bold text-slate-400 shrink-0">
-                    {locale === "ko" ? `${idx + 1}번째` : `#${idx + 1}`}
-                  </span>
                 </div>
               );
             })}

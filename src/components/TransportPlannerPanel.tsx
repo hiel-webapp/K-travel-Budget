@@ -230,8 +230,8 @@ export default function TransportPlannerPanel({
                       {idx + 1}
                     </span>
 
-                    {/* City Name - 여행 개요 탭과 100% 동일한 폰트 크기 및 웨이트 */}
-                    <span className="text-xs sm:text-sm font-extrabold text-slate-900 whitespace-nowrap">
+                    {/* City Name - 여행 개요 탭과 100% 동일한 폰트 규격: text-xs sm:text-sm font-extrabold text-[#0f172a] */}
+                    <span className="text-xs sm:text-sm font-extrabold text-[#0f172a] whitespace-nowrap">
                       {getCityName(city)}
                     </span>
                   </div>

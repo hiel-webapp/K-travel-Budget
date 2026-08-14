@@ -225,8 +225,8 @@ export default function TransportPlannerPanel({
                       <span>⋮</span>
                     </div>
 
-                    {/* Dynamic Step Number Badge */}
-                    <span className="w-6 h-6 rounded-md bg-[#0f172a] text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                    {/* Dynamic Step Number Badge (10px 폰트 크기) */}
+                    <span className="w-5 h-5 rounded-md bg-[#0f172a] text-white font-extrabold text-[10px] flex items-center justify-center shrink-0">
                       {idx + 1}
                     </span>
 

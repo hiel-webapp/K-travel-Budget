@@ -2,6 +2,10 @@ import { MOCK_PLACES } from "./mock-places";
 import { PlaceFilterOptions, PlaceItem } from "./types";
 import { supabaseFetch } from "../supabase/client";
 import { DbPlace, DbPlaceTranslation } from "../supabase/types";
+import { fetchKtoApi, extractKtoItemsAndCount } from "../kto/client";
+import { CITY_TO_KTO_AREA_CODE, KTO_CONTENT_TYPE, KTO_ENDPOINTS } from "../kto/constants";
+import { normalizeKtoPlace } from "../kto/normalizer";
+import { KtoAreaBasedListItem } from "../kto/types";
 
 export interface IPlacesService {
   getPlaces(options?: PlaceFilterOptions): Promise<PlaceItem[]>;
@@ -12,6 +16,7 @@ export class PlacesService implements IPlacesService {
   async getPlaces(options: PlaceFilterOptions = {}): Promise<PlaceItem[]> {
     const { city = "ALL", category = "ALL", query = "", locale = "ko" } = options;
 
+    // 1단계: Supabase DB 조회 시도
     try {
       if (process.env.SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
         let endpoint = `places?select=*,place_translations(*)`;
@@ -85,10 +90,112 @@ export class PlacesService implements IPlacesService {
         }
       }
     } catch {
-      // Supabase fetch error -> Fallback
+      // Supabase fetch error -> Fallthrough to KTO API
     }
 
+    // 2단계: KTO TourAPI 4.0 실시간 프록시 조회 시도
+    if (process.env.KTO_API_KEY) {
+      try {
+        const liveKtoPlaces = await this.fetchLiveKtoPlaces(options);
+        if (liveKtoPlaces.length > 0) {
+          return liveKtoPlaces;
+        }
+      } catch {
+        // KTO API 호출 실패 시 3단계 Fallback 진행
+      }
+    }
+
+    // 3단계: MOCK_PLACES 안전 Fallback
     return listPlaces(options);
+  }
+
+  /**
+   * KTO TourAPI 4.0 실시간 조회 및 정규화
+   */
+  private async fetchLiveKtoPlaces(options: PlaceFilterOptions): Promise<PlaceItem[]> {
+    const { city = "ALL", category = "ALL", query = "", locale = "ko" } = options;
+    const ktoLocale = locale === "en" ? "en" : "ko";
+
+    const params: Record<string, string | number> = {
+      numOfRows: 30,
+      pageNo: 1,
+    };
+
+    if (city !== "ALL" && CITY_TO_KTO_AREA_CODE[city]) {
+      params.areaCode = CITY_TO_KTO_AREA_CODE[city];
+    }
+
+    if (category !== "ALL") {
+      let contentTypeId: string | undefined = undefined;
+      if (category === "ACCOMMODATION") contentTypeId = KTO_CONTENT_TYPE.KOR.ACCOMMODATION;
+      else if (category === "ATTRACTION") contentTypeId = KTO_CONTENT_TYPE.KOR.ATTRACTION;
+      else if (category === "CULTURE") contentTypeId = KTO_CONTENT_TYPE.KOR.CULTURE;
+      else if (category === "RESTAURANT" || category === "CAFE") contentTypeId = KTO_CONTENT_TYPE.KOR.RESTAURANT;
+
+      if (contentTypeId) {
+        params.contentTypeId = contentTypeId;
+      }
+    }
+
+    let endpoint: string = KTO_ENDPOINTS.AREA_BASED_LIST;
+    if (query.trim().length > 0) {
+      endpoint = KTO_ENDPOINTS.SEARCH_KEYWORD;
+      params.keyword = query.trim();
+    }
+
+    const apiRes = await fetchKtoApi<KtoAreaBasedListItem>({
+      locale: ktoLocale,
+      endpoint,
+      params,
+    });
+
+    const parsed = extractKtoItemsAndCount<KtoAreaBasedListItem>(apiRes.response?.body);
+    if (!parsed.rawItems || parsed.rawItems.length === 0) {
+      return [];
+    }
+
+    const items: PlaceItem[] = [];
+    for (const raw of parsed.rawItems) {
+      const normalized = normalizeKtoPlace(raw, {
+        locale: ktoLocale,
+        overrideCity: city !== "ALL" ? city : undefined,
+      });
+
+      if (!normalized) continue;
+
+      const transKo = normalized.translations.find((t) => t.locale === "ko") || normalized.translations[0];
+      const transEn = normalized.translations.find((t) => t.locale === "en") || transKo;
+
+      items.push({
+        id: normalized.contentId,
+        contentId: normalized.contentId,
+        city: normalized.city,
+        category: normalized.category,
+        translations: {
+          ko: {
+            title: transKo?.title || normalized.contentId,
+            description: transKo?.description,
+            address: transKo?.address || normalized.address,
+          },
+          en: {
+            title: transEn?.title || transKo?.title || normalized.contentId,
+            description: transEn?.description || transKo?.description,
+            address: transEn?.address || transKo?.address || normalized.address,
+          },
+        },
+        latitude: normalized.latitude,
+        longitude: normalized.longitude,
+        repImageUrl: normalized.repImageUrl,
+        rawUpdatedAt: normalized.rawUpdatedAt,
+        qualityStatus: normalized.qualityStatus,
+        tags: [normalized.city, normalized.category],
+        sourceName: "KTO",
+        priceStatus: "NEEDS_CHECK",
+        priceKrw: 0,
+      });
+    }
+
+    return items;
   }
 
   async getPlaceById(id: string): Promise<PlaceItem | null> {

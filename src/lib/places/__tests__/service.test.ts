@@ -1,11 +1,22 @@
-import { describe, it, expect } from "vitest";
-import { listPlaces, getPlaceById } from "../service";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { listPlaces, getPlaceById, PlacesService, getPlacesService } from "../service";
 import { MOCK_PLACES } from "../mock-places";
 import { generateInitialBudgetPlan } from "../../../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../../../features/budget/catalog/mock-catalog";
 import { DEFAULT_TRIP_DRAFT } from "../../trip-domain";
 
 describe("Place Candidate Data & Service Layer Unit Tests", () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+    vi.restoreAllMocks();
+  });
+
   it("should contain at least 24 total mock places for Seoul and Busan", () => {
     expect(MOCK_PLACES.length).toBeGreaterThanOrEqual(24);
   });
@@ -89,5 +100,23 @@ describe("Place Candidate Data & Service Layer Unit Tests", () => {
     expect(getCandidateUrl("SEOUL", "ACCOMMODATION", "ko")).toBe("/ko/places?city=SEOUL&category=ACCOMMODATION");
     expect(getCandidateUrl("BUSAN", "RESTAURANT", "en")).toBe("/en/places?city=BUSAN&category=RESTAURANT");
     expect(getCandidateUrl("SEOUL", "ATTRACTION", "ko")).toBe("/ko/places?city=SEOUL&category=ATTRACTION");
+  });
+
+  it("should fallback gracefully to mock places when no DB and no KTO API keys are configured", async () => {
+    delete process.env.SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    delete process.env.KTO_API_KEY;
+
+    const service = new PlacesService();
+    const places = await service.getPlaces({ city: "SEOUL", category: "ACCOMMODATION" });
+
+    expect(places.length).toBeGreaterThan(0);
+    expect(places.every((p) => p.city === "SEOUL" && p.category === "ACCOMMODATION")).toBe(true);
+  });
+
+  it("should return singleton instance through getPlacesService", () => {
+    const service1 = getPlacesService();
+    const service2 = getPlacesService();
+    expect(service1).toBe(service2);
   });
 });

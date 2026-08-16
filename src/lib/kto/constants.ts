@@ -7,6 +7,7 @@ export const KTO_BASE_URL_ENG = "https://apis.data.go.kr/B551011/EngService2";
 export const KTO_ENDPOINTS = {
   AREA_CODE: "/areaCode2",
   AREA_BASED_LIST: "/areaBasedList2",
+  SEARCH_KEYWORD: "/searchKeyword2",
   DETAIL_COMMON: "/detailCommon2",
   DETAIL_INTRO: "/detailIntro2",
   DETAIL_IMAGE: "/detailImage2",

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { Locale } from "../lib/i18n/locales";
-import { listPlaces, getPlaceById, PlaceItem } from "../lib/places";
-import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES } from "../lib/trip-domain";
+import { PlaceItem } from "../lib/places";
+import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 import { PlaceCategory } from "../lib/kto/types";
 import { loadSavedPlaceIds, toggleSavedPlaceId } from "../lib/storage-helper";
 
@@ -57,10 +57,16 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       : "ALL"
   );
   const [searchQuery, setSearchQuery] = useState<string>(paramQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState<string>(paramQuery);
   const [showSavedOnly, setShowSavedOnly] = useState<boolean>(paramSavedOnly);
   const [expandedPlaceId, setExpandedPlaceId] = useState<string | null>(null);
 
-  // Saved place candidate IDs state (Initial state [] matches SSR, hydrated in useEffect)
+  // Places fetched from API
+  const [places, setPlaces] = useState<PlaceItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Saved place candidate IDs state
   const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -70,6 +76,45 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     });
     return () => cancelAnimationFrame(handle);
   }, []);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch places from API
+  const fetchPlaces = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMsg(null);
+    try {
+      const params = new URLSearchParams();
+      if (selectedCity !== "ALL") params.set("city", selectedCity);
+      if (selectedCategory !== "ALL") params.set("category", selectedCategory);
+      if (debouncedQuery.trim()) params.set("query", debouncedQuery.trim());
+      params.set("locale", locale);
+
+      const res = await fetch(`/api/places?${params.toString()}`);
+      const json = await res.json();
+
+      if (json.success && Array.isArray(json.data)) {
+        setPlaces(json.data);
+      } else {
+        setPlaces([]);
+        if (json.error) setErrorMsg(json.error);
+      }
+    } catch {
+      setErrorMsg("Failed to load places data.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedCity, selectedCategory, debouncedQuery, locale]);
+
+  useEffect(() => {
+    fetchPlaces();
+  }, [fetchPlaces]);
 
   // Update URL Query Parameters
   const updateQueryParams = (
@@ -120,26 +165,11 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Filtered Places Result
-  const filteredPlaces = useMemo(() => {
-    const list = listPlaces({
-      city: selectedCity,
-      category: selectedCategory,
-      query: searchQuery,
-      locale,
-    });
-
-    if (!showSavedOnly) return list;
-
-    return list.filter((p) => savedPlaceIds.includes(p.id));
-  }, [selectedCity, selectedCategory, searchQuery, locale, showSavedOnly, savedPlaceIds]);
-
-  // Saved place IDs that are not present in current provider
-  const unavailableSavedIds = useMemo(() => {
-    if (!showSavedOnly) return [];
-    return savedPlaceIds.filter((id) => !getPlaceById(id));
-  }, [showSavedOnly, savedPlaceIds]);
-
+  // Filtered Places by saved status
+  const displayedPlaces = useMemo(() => {
+    if (!showSavedOnly) return places;
+    return places.filter((p) => savedPlaceIds.includes(p.id) || savedPlaceIds.includes(p.contentId));
+  }, [places, showSavedOnly, savedPlaceIds]);
 
   const categories: Array<{ id: PlaceCategory | "ALL"; label: string }> = [
     { id: "ALL", label: dict.places.allCategories },
@@ -169,6 +199,14 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
           <p className="mt-1 text-xs sm:text-sm text-slate-500">
             {dict.places.pageSubtitle}
           </p>
+        </div>
+
+        {/* Live KTO & DB Status Badge */}
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            {locale === "ko" ? "한국관광공사 TourAPI 4.0 실시간 결합" : "Live KTO TourAPI 4.0 Connected"}
+          </span>
         </div>
       </div>
 
@@ -260,7 +298,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
           </div>
         </div>
 
-        {/* Quick Category Buttons for Mobile/Desktop */}
+        {/* Quick Category Buttons */}
         <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
           {categories.map((c) => {
             const isSelected = selectedCategory === c.id && !showSavedOnly;
@@ -302,15 +340,26 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       {/* Result Count Banner */}
       <div className="flex items-center justify-between px-1">
         <span className="text-xs sm:text-sm font-extrabold text-slate-700">
-          {dict.places.countResult.replace("{count}", String(filteredPlaces.length))}
+          {dict.places.countResult.replace("{count}", String(displayedPlaces.length))}
         </span>
         <span className="text-xs text-slate-400">
           {dict.places.dataSourceNotice}
         </span>
       </div>
 
-      {/* Places Cards Grid */}
-      {filteredPlaces.length === 0 && unavailableSavedIds.length === 0 ? (
+      {/* Loading Skeleton */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-white rounded-2xl border border-slate-200/70 p-4 space-y-3 animate-pulse">
+              <div className="h-44 bg-slate-200 rounded-xl w-full"></div>
+              <div className="h-5 bg-slate-200 rounded w-3/4"></div>
+              <div className="h-4 bg-slate-100 rounded w-full"></div>
+              <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+            </div>
+          ))}
+        </div>
+      ) : displayedPlaces.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200/70 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl font-bold">
             ?
@@ -319,36 +368,45 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
             {dict.places.noResultsTitle}
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            {dict.places.noResultsDesc}
+            {errorMsg || dict.places.noResultsDesc}
           </p>
+          {(searchQuery || selectedCity !== "ALL" || selectedCategory !== "ALL" || showSavedOnly) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCity("ALL");
+                setSelectedCategory("ALL");
+                setSearchQuery("");
+                setShowSavedOnly(false);
+                updateQueryParams("ALL", "ALL", "", false);
+              }}
+              className="mt-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-colors"
+            >
+              필터 초기화
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPlaces.map((place) => (
-            <PlaceCard
-              key={place.id}
-              place={place}
-              locale={locale}
-              dict={dict}
-              isSaved={savedPlaceIds.includes(place.id)}
-              onToggleSave={() => handleToggleSavePlace(place.id)}
-              isExpanded={expandedPlaceId === place.id}
-              onToggleExpand={() =>
-                setExpandedPlaceId(expandedPlaceId === place.id ? null : place.id)
-              }
-            />
-          ))}
-          {unavailableSavedIds.map((_, idx) => (
-            <div
-              key={`unavailable-${idx}`}
-              className="bg-slate-50 rounded-2xl border border-slate-200 p-6 flex flex-col items-center justify-center text-center space-y-2"
-            >
-              <span className="text-amber-500 text-lg font-bold">⚠️</span>
-              <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                {dict.places.unavailablePlaceNotice}
-              </p>
-            </div>
-          ))}
+          {displayedPlaces.map((place) => {
+            const isSaved = savedPlaceIds.includes(place.id) || savedPlaceIds.includes(place.contentId);
+            return (
+              <PlaceCard
+                key={place.id || place.contentId}
+                place={place}
+                locale={locale}
+                dict={dict}
+                isSaved={isSaved}
+                onToggleSave={() => handleToggleSavePlace(place.id || place.contentId)}
+                isExpanded={expandedPlaceId === (place.id || place.contentId)}
+                onToggleExpand={() =>
+                  setExpandedPlaceId(
+                    expandedPlaceId === (place.id || place.contentId) ? null : place.id || place.contentId
+                  )
+                }
+              />
+            );
+          })}
         </div>
       )}
 
@@ -461,6 +519,11 @@ function PlaceCard({
       {/* Content Area */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-[#e25c5c] border border-rose-100">
+              ★ Curated
+            </span>
+          </div>
           <h2 className="text-base font-extrabold text-[#0f172a] line-clamp-1">
             {trans.title}
           </h2>
@@ -471,7 +534,7 @@ function PlaceCard({
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1">
-          {place.tags.map((tag) => (
+          {place.tags && place.tags.map((tag) => (
             <span
               key={tag}
               className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded"

@@ -1,5 +1,10 @@
+import dotenv from "dotenv";
+import path from "path";
 import { ingestKtoPlaces, KtoIngestOptions } from "../src/lib/kto/ingestor";
 import { SupportedCity } from "../src/lib/trip-domain";
+
+// Load .env.local
+dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
 async function main() {
   const envDryRun = process.env.KTO_INGEST_DRY_RUN;
@@ -8,7 +13,7 @@ async function main() {
 
   const dryRun = envDryRun === "true" || envDryRun === "1";
   const city: SupportedCity | "ALL" =
-    envCity === "BUSAN" || envCity === "ALL" ? envCity : "SEOUL";
+    envCity === "BUSAN" || envCity === "ALL" ? envCity : "ALL";
 
   let limitPerCategory = 10;
   if (envLimit) {
@@ -57,7 +62,7 @@ async function main() {
       console.log("Ingestion Completed Partially (with warnings/failures).");
     } else if (result.allCategoriesZeroWarning || result.totalFetched === 0) {
       console.warn("Ingestion Completed (No items returned from KTO API).");
-      console.warn("WARNING: 모든 서울 카테고리에서 0건이 반환되었습니다. 요청 파라미터·API 승인 상태·응답 구조를 확인하세요.");
+      console.warn("WARNING: 모든 카테고리에서 0건이 반환되었습니다. 요청 파라미터·API 승인 상태·응답 구조를 확인하세요.");
     } else {
       console.log("Ingestion Completed Successfully.");
     }

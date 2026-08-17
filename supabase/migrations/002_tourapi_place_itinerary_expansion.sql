@@ -2,10 +2,10 @@
 -- Supabase PostgreSQL 전용 스키마 정의
 
 -- 1. places 테이블 확장 (10개 주요 도시 지원 및 가격 상태 태그 추가)
--- 1.1 city 제약 조건 유연화 (서울, 부산, 인천, 제주, 경주, 전주, 강릉, 여수, 안동, 대구 등 지원)
+-- 1.1 city 제약 조건 유연화 (서울, 부산, 인천, 제주, 경주, 전주, 강릉, 여수, 수원, 속초 등 10대 지원 도시)
 ALTER TABLE places DROP CONSTRAINT IF EXISTS places_city_check;
 ALTER TABLE places ADD CONSTRAINT places_city_check CHECK (
-    city IN ('SEOUL', 'BUSAN', 'INCHEON', 'JEJU', 'GYEONGJU', 'JEONJU', 'GANGNEUNG', 'YEOSU', 'ANDONG', 'DAEGU')
+    city IN ('SEOUL', 'BUSAN', 'JEJU', 'INCHEON', 'SUWON', 'JEONJU', 'GYEONGJU', 'GANGNEUNG', 'SOKCHO', 'YEOSU')
 );
 
 -- 1.2 가격 정보 및 가격 상태 컬럼 추가 (무료 / 공식 금액 / 확인 필요)

@@ -137,19 +137,20 @@ export const CURATED_PLACE_SEEDS: CuratedSeedItem[] = [
     featured: true,
   },
   {
-    name: "우래옥",
-    searchKeyword: "우래옥",
+    name: "후추네 (샤로수길 일식당)",
+    searchKeyword: "후추네",
     city: "SEOUL",
     category: "RESTAURANT",
     curationReason: {
-      ko: "진하고 깊은 순우육 육수의 정통 평양냉면과 한우 불고기를 선보이는 대한민국 냉면의 정점",
-      en: "The zenith of authentic Pyongyang-style cold noodles and prime Hanwoo bulgogi with deep beef broth.",
+      ko: "서울대입구 샤로수길에 위치한 아늑한 분위기의 일식당 & 이자카야로, 유린기·스키야키 등 정갈한 요리와 하이볼이 매력적인 트렌디 맛집",
+      en: "A cozy Japanese dining pub (Izakaya) located in Sharosu-gil near Seoul National Univ. Station, famous for crisp yurin-gi, sukiyaki, and refreshing highballs.",
     },
-    tags: ["평양냉면", "한우불고기", "미쉐린", "전통노포"],
-    priceTier: "PREMIUM",
-    estimatedPriceKrw: 35000,
-    featured: false,
+    tags: ["샤로수길", "일식당", "이자카야", "서울대입구", "하이볼", "분위기맛집"],
+    priceTier: "STANDARD",
+    estimatedPriceKrw: 25000,
+    featured: true,
   },
+
 
   // ==========================================
   // SEOUL - 숙소 (ACCOMMODATION)

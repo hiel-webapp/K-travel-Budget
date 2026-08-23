@@ -519,10 +519,15 @@ function PlaceCard({
       {/* Content Area */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
+          <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-[#e25c5c] border border-rose-100">
-              ★ Curated
+              ★ Curated Spot
             </span>
+            {place.priceKrw !== undefined && place.priceKrw > 0 && (
+              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                ₩{place.priceKrw.toLocaleString()}
+              </span>
+            )}
           </div>
           <h2 className="text-base font-extrabold text-[#0f172a] line-clamp-1">
             {trans.title}
@@ -569,12 +574,46 @@ function PlaceCard({
               </strong>
               <span>{trans.address || "-"}</span>
             </div>
-            {place.rawUpdatedAt && (
+            {place.tel && (
               <div>
                 <strong className="block text-slate-500 font-bold text-[11px]">
-                  {dict.places.updatedAt}
+                  전화번호
                 </strong>
-                <span>{place.rawUpdatedAt}</span>
+                <span>{place.tel}</span>
+              </div>
+            )}
+            {place.useTime && (
+              <div>
+                <strong className="block text-slate-500 font-bold text-[11px]">
+                  영업시간 / 이용정보
+                </strong>
+                <span>{place.useTime}</span>
+              </div>
+            )}
+            {place.priceKrw !== undefined && place.priceKrw > 0 && (
+              <div>
+                <strong className="block text-slate-500 font-bold text-[11px]">
+                  1인 예상 예산
+                </strong>
+                <span className="font-bold text-[#e25c5c]">₩{place.priceKrw.toLocaleString()}</span>
+              </div>
+            )}
+            {place.officialLink && (
+              <div className="pt-2 border-t border-slate-200/50">
+                <a
+                  href={place.officialLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
+                >
+                  <span>🗺️ 네이버 지도 바로가기</span>
+                  <span>↗</span>
+                </a>
+              </div>
+            )}
+            {place.rawUpdatedAt && (
+              <div className="pt-1 text-[10px] text-slate-400">
+                {dict.places.updatedAt}: {place.rawUpdatedAt}
               </div>
             )}
             <div className="pt-1.5 border-t border-slate-200/50 text-[10px] text-amber-800 leading-tight">

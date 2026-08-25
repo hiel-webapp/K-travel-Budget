@@ -138,14 +138,25 @@ export const K_GUIDE_FAQS: GuideFAQ[] = [
     },
   },
   {
-    id: "faq-water-free",
+    id: "faq-arex-express-vs-allstop",
     question: {
-      ko: "식당에서 물은 유료인가요?",
-      en: "Is drinking water free at restaurants in Korea?",
+      ko: "AREX 공항철도 직통열차와 일반열차는 어떻게 다른가요?",
+      en: "What is the difference between AREX Express and All-Stop Train?",
     },
     answer: {
-      ko: "아닙니다, 한국의 식당에서는 물과 정수기 차가 기본적으로 무료 제공됩니다. 물병이나 셀프 정수기를 이용하시면 됩니다.",
-      en: "No, drinking water is completely free at virtually all restaurants in Korea, either brought to your table or self-service.",
+      ko: "직통열차는 인천공항에서 서울역까지 43분 만에 무정차 직행(11,000원, 지정좌석, 전용 승차권 발권 필요, 서울역 도심공항터미널 이용 가능)하며, 일반열차는 14개 역에 모두 정차(4,450원, 약 59분, T-money/WOWPASS 즉시 태그 가능)합니다.",
+      en: "The Express Train runs non-stop between Incheon Airport and Seoul Station in 43 mins (₩11,000, reserved seat, requires dedicated ticket, free City Airport check-in). The All-Stop Train stops at all 14 stations (₩4,450, ~59 mins, tap directly with T-Money/WOWPASS).",
+    },
+  },
+  {
+    id: "faq-arex-tmoney-express",
+    question: {
+      ko: "T-money 교통카드로 직통열차를 바로 탈 수 있나요?",
+      en: "Can I tap a T-money card to ride the AREX Express Train?",
+    },
+    answer: {
+      ko: "아닙니다. 직통열차는 지정좌석제이므로 공항철도 전용 승차권(온라인 QR 승차권 또는 역 발권기)을 별도로 발권하셔야 합니다. 반면 일반열차는 개찰구에 T-money를 바로 태그하여 탑승하실 수 있습니다.",
+      en: "No. The Express Train has reserved seating and requires a separate dedicated ticket (online QR or station kiosk). Only the All-Stop Train allows direct tapping with T-Money.",
     },
   },
 ];
@@ -181,6 +192,36 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       ],
       imageUrl: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?q=80&w=800&auto=format&fit=crop",
       isHero: true,
+    },
+    {
+      id: "arex-express-vs-allstop",
+      title: "AREX 공항철도 완벽 가이드: 직통열차 vs 일반열차 비교 및 선택법",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통·공항",
+        en: "Transit & Airport",
+      },
+      subTag: {
+        ko: "공항 이동 필수",
+        en: "Airport Essential",
+      },
+      subTagType: "TRANSIT",
+      readTime: "3분 읽기",
+      updatedDate: "2026년 8월",
+      overview: "인천공항에서 서울 도심으로 이동할 때 직통열차(43분/11,000원)와 일반열차(59분/4,450원) 중 내 숙소와 일정에 맞는 최적의 열차를 확인하세요.",
+      checklist: [
+        "직통열차: 43분 논스톱 / ₩11,000 / 지정좌석제",
+        "일반열차: 59분 (14개역 정차) / ₩4,450 / 교통카드 태그",
+        "서울역 도심공항터미널: 직통 승차권 소지자 무료 이용",
+        "홍대/공덕 숙소: 일반열차가 환승 없이 직행 가능",
+      ],
+      details: [
+        "⚡ 직통열차 (Express Train): 인천공항(T1/T2) ↔ 서울역을 무정차 직행합니다. KTX급 지정좌석, 무료 Wi-Fi, 수하물 보관 공간이 완비되어 있습니다. 특히 서울역 도심공항터미널에서 당일 항공권 사전 탑승수속(체크인)과 수하물 위탁, 출국심사를 무료로 마칠 수 있어 귀국날 매우 편리합니다. (T-money 바로 태그 불가, 전용 승차권 발권 필요)",
+        "🚇 일반열차 (All-Stop Train): 김포공항, 디지털미디어시티, 홍대입구, 공덕 등 14개 모든 역에 정차하는 통근형 지하철입니다. T-money, WOWPASS로 개찰구에 바로 태그하여 탑승할 수 있으며, 숙소가 홍대나 공덕 부근인 경우 직통열차보다 환승 없이 더 빠르게 도착할 수 있습니다.",
+        "💡 공식 운임 안내 링크: 직통열차 운임 안내 (https://www.airportrailroad.com/train/express/introduce) | 일반열차 운임 안내 (https://www.airportrailroad.com/train/normal/fare)",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800&auto=format&fit=crop",
+      officialChannelNotice: "공항철도 실시간 시간표 및 열차 예매는 AREX 공식 홈페이지(airportrailroad.com)에서 확인하실 수 있습니다.",
     },
     {
       id: "arrival-transit",
@@ -321,6 +362,36 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       ],
       imageUrl: "https://images.unsplash.com/photo-1541544741938-0af808871cc0?q=80&w=800&auto=format&fit=crop",
       isHero: true,
+    },
+    {
+      id: "arex-express-vs-allstop",
+      title: "AREX Airport Railroad: Express vs. All-Stop Train Guide",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통·공항",
+        en: "Transit & Airport",
+      },
+      subTag: {
+        ko: "공항 이동 필수",
+        en: "Airport Essential",
+      },
+      subTagType: "TRANSIT",
+      readTime: "3 min read",
+      updatedDate: "August 2026",
+      overview: "Traveling from Incheon Airport to downtown Seoul? Compare the Non-stop Express Train (43 mins / ₩11,000) and Commuter All-Stop Train (59 mins / ₩4,450) to pick the best option.",
+      checklist: [
+        "Express: 43 mins Non-stop / ₩11,000 / Reserved seating",
+        "All-Stop: 59 mins (14 stops) / ₩4,450 / Tap T-Money",
+        "City Airport Terminal: Free early check-in at Seoul Station for Express ticket holders",
+        "Hongdae/Gongdeok hotel: All-Stop train takes you directly without subway transfer",
+      ],
+      details: [
+        "⚡ Express Train: Runs non-stop between Incheon Airport (T1/T2) and Seoul Station. Features high-speed KTX-style reserved seating, complimentary Wi-Fi, and spacious luggage racks. Bonus: Enjoy free early flight check-in and immigration clearance at the Seoul Station City Airport Terminal on your departure day. (Requires dedicated ticket; T-Money cannot be tapped directly at turnstiles).",
+        "🚇 All-Stop Train: A commuter subway stopping at all 14 stations including Gimpo Airport, Digital Media City, Hongik Univ. (Hongdae), and Gongdeok. Seamlessly tap with your T-money or WOWPASS card. If your hotel is located in Hongdae or Mapo, this is often faster than transferring from Seoul Station.",
+        "💡 Official Fare & Information Links: AREX Express Train Fare Guide (https://www.airportrailroad.com/train/express/introduce) | AREX All-Stop Train Fare Guide (https://www.airportrailroad.com/train/normal/fare)",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800&auto=format&fit=crop",
+      officialChannelNotice: "Real-time timetables and ticket reservations are accessible via the official AREX website (airportrailroad.com).",
     },
     {
       id: "arrival-transit",

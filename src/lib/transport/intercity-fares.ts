@@ -80,6 +80,22 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     { mode: "KTX", nameKo: "KTX 고속철도", nameEn: "KTX Train", oneWayPriceKrw: 52000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true },
     { mode: "EXPRESS_BUS", nameKo: "고속버스", nameEn: "Express Bus", oneWayPriceKrw: 34000, durationTextKo: "4시간 00분", durationTextEn: "4h 00m" },
   ],
+  // 인천(공항) - 전주 (지방 첫 목적지 직행)
+  "INCHEON-JEONJU": [
+    { mode: "EXPRESS_BUS", nameKo: "공항 직행 우등 리무진", nameEn: "Direct Airport Limousine Bus", oneWayPriceKrw: 33000, durationTextKo: "3시간 20분", durationTextEn: "3h 20m", isDefault: true, badgeTextKo: "환승없음", badgeTextEn: "Non-stop" },
+    { mode: "KTX", nameKo: "AREX + KTX (용산역 환승)", nameEn: "AREX + KTX via Yongsan", oneWayPriceKrw: 45600, durationTextKo: "2시간 40분", durationTextEn: "2h 40m", badgeTextKo: "빠른도착", badgeTextEn: "Fastest" },
+  ],
+  // 전주 - 부산 (영호남 횡단)
+  "JEONJU-BUSAN": [
+    { mode: "EXPRESS_BUS", nameKo: "시외 우등 고속버스", nameEn: "Intercity Express Bus", oneWayPriceKrw: 26000, durationTextKo: "3시간 10분", durationTextEn: "3h 10m", isDefault: true, badgeTextKo: "직통추천", badgeTextEn: "Direct" },
+    { mode: "KTX", nameKo: "KTX (오송역 환승)", nameEn: "KTX via Osong", oneWayPriceKrw: 58000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m" },
+  ],
+  // 인천(공항) - 부산
+  "INCHEON-BUSAN": [
+    { mode: "KTX", nameKo: "AREX + KTX (서울역 환승)", nameEn: "AREX + KTX via Seoul", oneWayPriceKrw: 70800, durationTextKo: "3시간 20분", durationTextEn: "3h 20m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+    { mode: "EXPRESS_BUS", nameKo: "공항 직행 우등 고속버스", nameEn: "Direct Airport Bus", oneWayPriceKrw: 48000, durationTextKo: "5시간 00분", durationTextEn: "5h 00m" },
+    { mode: "FLIGHT", nameKo: "국내선 항공 (김포-김해)", nameEn: "Domestic Flight", oneWayPriceKrw: 85000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m" },
+  ],
   // 제주 포함 주요 노선
   "SEOUL-JEJU": [
     { mode: "FLIGHT", nameKo: "국내선 항공 (김포-제주)", nameEn: "Domestic Flight", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "항공필수", badgeTextEn: "Flight Required" },

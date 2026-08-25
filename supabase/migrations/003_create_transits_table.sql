@@ -80,3 +80,38 @@ VALUES (
     price_krw = EXCLUDED.price_krw,
     duration_mins = EXCLUDED.duration_mins,
     official_url = EXCLUDED.official_url;
+
+-- 4.3 인천공항 ↔ 전주 직행 리무진
+INSERT INTO transits (code, category, billing_type, city, price_krw, duration_mins, official_url, tags, is_featured)
+VALUES (
+    'AIRPORT_BUS_ICN_JEONJU',
+    'AIRPORT_BUS',
+    'PER_TRIP',
+    'JEONJU',
+    33000,
+    200,
+    'https://txbus.t-money.co.kr',
+    ARRAY['전주직행', '공항리무진', '환승없음', '전주여행', '추천경로'],
+    true
+) ON CONFLICT (code) DO UPDATE SET
+    price_krw = EXCLUDED.price_krw,
+    duration_mins = EXCLUDED.duration_mins,
+    official_url = EXCLUDED.official_url;
+
+-- 4.4 용산역/서울역 ↔ 전주역 KTX
+INSERT INTO transits (code, category, billing_type, city, price_krw, duration_mins, official_url, tags, is_featured)
+VALUES (
+    'KTX_YONGSAN_JEONJU',
+    'INTERCITY_TRAIN',
+    'PER_TRIP',
+    'JEONJU',
+    34600,
+    95,
+    'https://www.letskorail.com',
+    ARRAY['KTX', '전주역', '용산역', '고속열차', '한옥마을'],
+    true
+) ON CONFLICT (code) DO UPDATE SET
+    price_krw = EXCLUDED.price_krw,
+    duration_mins = EXCLUDED.duration_mins,
+    official_url = EXCLUDED.official_url;
+

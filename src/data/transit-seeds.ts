@@ -173,38 +173,136 @@ export const TRANSIT_SEEDS: TransitItem[] = [
   },
 
   // ==========================================
-  // KTX INTERCITY
+  // REGIONAL ENTRY TRANSIT (INCHEON TO REGIONS)
   // ==========================================
   {
-    id: "transit-ktx-seoul-busan",
-    code: "KTX_SEOUL_BUSAN",
-    category: "INTERCITY_TRAIN",
+    id: "transit-icn-to-jeonju-limousine",
+    code: "AIRPORT_BUS_ICN_JEONJU",
+    category: "AIRPORT_BUS",
     billingType: "PER_TRIP",
-    city: "ALL",
-    priceKrw: 59800,
-    durationMins: 135,
-    officialUrl: "https://www.letskorail.com",
+    city: "JEONJU",
+    priceKrw: 33000,
+    durationMins: 200,
+    officialUrl: "https://txbus.t-money.co.kr",
     translations: {
       ko: {
-        name: "KTX 고속철도 (서울역 ↔ 부산역)",
-        routeInfo: "서울역 ↔ 부산역 (일반실 기준, 약 2시간 15분)",
-        description: "한국의 수도 서울과 제2의 도시 부산을 최고 시속 305km로 가장 빠르고 안전하게 연결하는 고속열차.",
+        name: "인천공항 ↔ 전주 직행 리무진 버스",
+        routeInfo: "인천공항 T1/T2 ↔ 전주 시외버스 터미널 (직행, 약 3시간 20분)",
+        description: "인천공항에서 환승 없이 전주까지 가장 편안하게 직행하는 우등 리무진 버스. 무거운 짐이 있는 입국 첫날 최적의 선택.",
         tips: [
-          "코레일 톡(Korail Talk) 앱 또는 레츠코레일 공식 웹사이트에서 1개월 전부터 예매 가능",
-          "주말 및 공휴일 티켓은 조기 매진되므로 사전 예매 필수",
+          "입국장 버스 매표소 또는 티머니GO(TmoneyGO) / 버스타고 앱에서 사전 예매 가능",
+          "공항 1층 9번~10번 게이트 앞 지방행 버스 승차장에서 탑승",
+          "심야 우등 요금: 약 ₩39,600 (22시 이후 출발)",
         ],
       },
       en: {
-        name: "KTX High-Speed Rail (Seoul Station ↔ Busan Station)",
-        routeInfo: "Seoul Station ↔ Busan Station (Standard Class, ~2 hrs 15 mins)",
-        description: "Bullet train running at speeds up to 305 km/h, connecting Korea's capital Seoul and Busan comfortably and swiftly.",
+        name: "Incheon Airport ↔ Jeonju Direct Limousine Bus",
+        routeInfo: "Incheon Airport T1/T2 ↔ Jeonju Bus Terminal (Non-Stop, ~3 hrs 20 mins)",
+        description: "Direct premium limousine bus connecting Incheon Airport directly to Jeonju without train transfers. The most convenient route with heavy luggage.",
         tips: [
-          "Bookable up to 1 month in advance via official Korail website (letskorail.com) or Korail Talk app",
-          "Weekend and holiday seats sell out rapidly; advance booking strongly recommended",
+          "Purchase tickets at the 1F Arrival Hall bus counters or via the TmoneyGO app",
+          "Departs from Regional Bus Platforms (near Gates 9-10 at T1)",
+          "Late-night premium fare: ~₩39,600 (Departures after 22:00)",
         ],
       },
     },
-    tags: ["KTX", "고속철도", "서울부산", "코레일", "필수이동"],
+    tags: ["전주직행", "공항리무진", "환승없음", "전주여행", "추천경로"],
     featured: true,
+  },
+  {
+    id: "transit-ktx-yongsan-jeonju",
+    code: "KTX_YONGSAN_JEONJU",
+    category: "INTERCITY_TRAIN",
+    billingType: "PER_TRIP",
+    city: "JEONJU",
+    priceKrw: 34600,
+    durationMins: 95,
+    officialUrl: "https://www.letskorail.com",
+    translations: {
+      ko: {
+        name: "KTX 전라선 (용산역/서울역 ↔ 전주역)",
+        routeInfo: "용산역/서울역 ↔ 전주역 (일반실 기준, 약 1시간 35분)",
+        description: "서울 도심에서 전주 한옥마을의 관문 전주역까지 가장 빠르고 정시성을 보장하는 고속열차.",
+        tips: [
+          "인천공항에서 AREX 일반열차 탑승 후 공덕역/용산역에서 환승하면 편리",
+          "전라선 KTX는 주로 용산역에서 출발하므로 출발역 확인 필수",
+        ],
+      },
+      en: {
+        name: "KTX Jeolla Line (Yongsan/Seoul Station ↔ Jeonju Station)",
+        routeInfo: "Yongsan/Seoul Station ↔ Jeonju Station (Standard Class, ~1 hr 35 mins)",
+        description: "The fastest high-speed train connecting downtown Seoul to Jeonju Station, the gateway to Jeonju Hanok Village.",
+        tips: [
+          "Take the AREX commuter train from Incheon Airport and transfer easily at Gongdeok or Yongsan",
+          "Most Jeolla Line KTX trains depart from Yongsan Station rather than Seoul Station",
+        ],
+      },
+    },
+    tags: ["KTX", "전주역", "용산역", "고속열차", "한옥마을"],
+    featured: true,
+  },
+  {
+    id: "transit-icn-to-gwangmyeong-6770",
+    code: "AIRPORT_BUS_ICN_GWANGMYEONG",
+    category: "AIRPORT_BUS",
+    billingType: "PER_TRIP",
+    city: "ALL",
+    priceKrw: 16000,
+    durationMins: 50,
+    officialUrl: "https://www.letskorail.com",
+    translations: {
+      ko: {
+        name: "인천공항 ↔ KTX 광명역 KTX 공항셔틀버스 (6770번)",
+        routeInfo: "인천공항 T1/T2 ↔ KTX 광명역 (직행 고속 셔틀, 약 50분)",
+        description: "서울 도심을 거치지 않고 인천공항에서 바로 남행(부산/전주/경주/광주) KTX를 탈 수 있는 KORAIL 공식 고속 셔틀.",
+        tips: [
+          "KTX 승차권과 6770번 버스를 함께 예매 시 KTX 마일리지 적립 혜택",
+          "광명역 도착 후 3분 만에 KTX 승강장으로 직결 환승 가능",
+        ],
+      },
+      en: {
+        name: "Incheon Airport ↔ KTX Gwangmyeong Station Shuttle Bus (No. 6770)",
+        routeInfo: "Incheon Airport T1/T2 ↔ KTX Gwangmyeong Station (Express Shuttle, ~50 mins)",
+        description: "Direct airport shuttle enabling travelers to bypass downtown Seoul and catch southbound KTX trains (Busan, Jeonju, Gyeongju) immediately.",
+        tips: [
+          "Seamless 3-minute direct transfer from the bus bay to KTX platforms at Gwangmyeong Station",
+          "Can be booked together with KTX rail tickets on Korail website",
+        ],
+      },
+    },
+    tags: ["광명역", "KTX셔틀", "6770번", "지방직행", "빠른환승"],
+    featured: false,
+  },
+  {
+    id: "transit-bus-jeonju-busan",
+    code: "INTERCITY_JEONJU_BUSAN",
+    category: "CITY_BUS",
+    billingType: "PER_TRIP",
+    city: "ALL",
+    priceKrw: 26000,
+    durationMins: 190,
+    officialUrl: "https://www.kobus.co.kr",
+    translations: {
+      ko: {
+        name: "전주 ↔ 부산 시외고속버스 (우등)",
+        routeInfo: "전주 고속버스터미널 ↔ 부산 노포/사상 터미널 (약 3시간 10분)",
+        description: "전주에서 부산으로 이동할 때 환승 없이 한 번에 이동할 수 있는 편안한 우등 고속버스.",
+        tips: [
+          "코버스(KOBUS) 또는 티머니GO 앱에서 사전 좌석 지정 예매 권장",
+          "중간 인삼랜드 휴게소에서 15분간 정차 휴식 제공",
+        ],
+      },
+      en: {
+        name: "Jeonju ↔ Busan Intercity Express Bus (Premium)",
+        routeInfo: "Jeonju Bus Terminal ↔ Busan Terminal (Direct, ~3 hrs 10 mins)",
+        description: "Comfortable intercity premium express bus connecting Jeonju directly to Busan without rail transfers.",
+        tips: [
+          "Book advance seats via the KOBUS or TmoneyGO mobile portal",
+          "Includes a 15-minute scenic rest stop midway",
+        ],
+      },
+    },
+    tags: ["전주부산", "고속버스", "도시간이동", "우등버스"],
+    featured: false,
   },
 ];

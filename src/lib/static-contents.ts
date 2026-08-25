@@ -224,6 +224,36 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       officialChannelNotice: "공항철도 실시간 시간표 및 열차 예매는 AREX 공식 홈페이지(airportrailroad.com)에서 확인하실 수 있습니다.",
     },
     {
+      id: "incheon-to-regional-cities",
+      title: "인천공항에서 서울을 거치지 않고 지방 도시(전주·부산·강릉) 바로 가기",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통·공항",
+        en: "Transit & Airport",
+      },
+      subTag: {
+        ko: "지방 여행 팁",
+        en: "Regional Route",
+      },
+      subTagType: "TRANSIT",
+      readTime: "4분 읽기",
+      updatedDate: "2026년 8월",
+      overview: "첫 여행지가 서울이 아닌 전주, 부산, 강릉, 경주일 때, 서울 시내를 거치지 않고 공항에서 직행 리무진이나 KTX로 빠르게 이동하는 3가지 현실적인 경로입니다.",
+      checklist: [
+        "전주 직행: 인천공항 1층 9~10번 홈 직행 리무진 (환승 없이 3시간 20분 / ₩33,000)",
+        "KTX 환승: AREX(공덕/서울역) ➔ 용산역 KTX 전라선 (2시간 40분 / ₩45,600)",
+        "광명역 우회 셔틀: 6770번 버스(50분) ➔ KTX 광명역 ➔ 전주/부산 KTX (도심 정체 우회)",
+        "티켓 예매: 티머니GO(시외버스) 및 레츠코레일(KTX) 사전 예매 권장",
+      ],
+      details: [
+        "1. 직행 공항 리무진 버스 (추천 1순위): 인천공항 제1·2터미널 1층 지방행 버스 승차장에서 전주, 강릉, 대전, 광주 등으로 환승 없이 바로 이동할 수 있습니다. 짐이 많고 피로한 입국 첫날 가장 편안한 이동 수단입니다. (전주행 기준 약 3시간 20분 소요, ₩33,000)",
+        "2. AREX + 용산/서울역 KTX 환승 (정시성 최고): 공항철도 탑승 후 서울역이나 용산역(전라선 전주행 KTX 전용 출발역)으로 이동하여 KTX로 환승합니다. 도로 정체 없이 정확한 도착 시간을 보장합니다. (AREX ₩11,000 + KTX ₩34,600 = 약 ₩45,600)",
+        "3. KTX 광명역 고속 셔틀(6770번): 인천공항에서 서울 도심을 진입하지 않고 KTX 광명역으로 50분 만에 직행한 뒤, 광명역에서 전주/부산행 하행 KTX를 바로 탑승하는 스마트 우회 경로입니다.",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=800&auto=format&fit=crop",
+      officialChannelNotice: "지방행 공항버스 시간표는 인천국제공항 공식 포털(airport.kr) 교통안내 페이지에서 확인하실 수 있습니다.",
+    },
+    {
       id: "arrival-transit",
       title: "교통카드 구매와 충전 및 지하철 환승",
       category: "TRANSIT",
@@ -392,6 +422,36 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       ],
       imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800&auto=format&fit=crop",
       officialChannelNotice: "Real-time timetables and ticket reservations are accessible via the official AREX website (airportrailroad.com).",
+    },
+    {
+      id: "incheon-to-regional-cities",
+      title: "Traveling Directly from Incheon Airport to Regional Cities (Jeonju, Busan, Gangneung)",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통·공항",
+        en: "Transit & Airport",
+      },
+      subTag: {
+        ko: "지방 여행 팁",
+        en: "Regional Route",
+      },
+      subTagType: "TRANSIT",
+      readTime: "4 min read",
+      updatedDate: "August 2026",
+      overview: "If your first travel destination is not Seoul but a regional gem like Jeonju, Busan, or Gangneung, here are the 3 most practical ways to travel directly from Incheon Airport.",
+      checklist: [
+        "Direct Bus to Jeonju: Departs from 1F Regional Bus Platforms (Non-stop in 3h 20m / ₩33,000)",
+        "KTX Transfer: AREX to Gongdeok/Seoul ➔ Yongsan Station KTX Jeolla Line (2h 40m / ₩45,600)",
+        "Gwangmyeong Shuttle: Bus No. 6770 (50m) ➔ KTX Gwangmyeong ➔ Southbound KTX",
+        "Advance Tickets: TmoneyGO app (Buses) & letskorail.com (KTX)",
+      ],
+      details: [
+        "1. Direct Airport Limousine Bus (Top Recommendation): Board regional buses directly at the 1F Arrival Hall of T1/T2 to cities like Jeonju, Gangneung, Daejeon, and Gwangju. The most stress-free option with heavy luggage without navigating train transfers. (~3 hrs 20 mins to Jeonju, ₩33,000)",
+        "2. AREX + Yongsan/Seoul Station KTX (Fastest & Guaranteed Schedule): Take the AREX train into Seoul and transfer to a KTX train at Yongsan Station (dedicated departure terminal for Jeonju/Jeolla line) or Seoul Station. Completely immune to highway traffic. (AREX ₩11,000 + KTX ₩34,600 = ~₩45,600)",
+        "3. KTX Gwangmyeong Station Shuttle (Route 6770): An express shuttle linking Incheon Airport to KTX Gwangmyeong Station in 50 minutes, letting you bypass central Seoul congestion and catch southbound KTX bullet trains immediately.",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=800&auto=format&fit=crop",
+      officialChannelNotice: "Check regional airport bus timetables directly on the Incheon International Airport portal (airport.kr).",
     },
     {
       id: "arrival-transit",

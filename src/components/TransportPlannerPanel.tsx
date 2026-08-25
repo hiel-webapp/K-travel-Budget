@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, sortCitiesByStandardOrder } from "../lib/trip-domain";
-import { IntercityTransportMode, IntercityFareInfo, getIntercityFareOptions, getAirportTransitOptions } from "../lib/transport/intercity-fares";
+import { IntercityTransportMode, IntercityFareInfo, getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } from "../lib/transport/intercity-fares";
 import { formatKrw } from "../features/budget/presentation/formatters";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
@@ -41,7 +41,9 @@ export default function TransportPlannerPanel({
 
   // Custom airport selector state (default: Incheon)
   const [entryAirport, setEntryAirport] = useState<"INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT">("INCHEON");
+  const [exitAirport, setExitAirport] = useState<"INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT">("INCHEON");
   const [showCustomAirportToggle, setShowCustomAirportToggle] = useState<boolean>(false);
+  const [showExitAirportToggle, setShowExitAirportToggle] = useState<boolean>(false);
 
   // Keep state in sync with props when not dragging
   useEffect(() => {
@@ -56,6 +58,11 @@ export default function TransportPlannerPanel({
     return locale === "ko"
       ? CITY_KOREAN_NAMES[city] || city
       : CITY_ENGLISH_NAMES[city] || city;
+  };
+
+  const getAirportDisplayName = (airportKey: string) => {
+    const info = AIRPORT_INFO_MAP[airportKey] || AIRPORT_INFO_MAP.INCHEON;
+    return locale === "ko" ? `${info.nameKo} (${info.code})` : `${info.nameEn} (${info.code})`;
   };
 
   // 최적 동선 자동 정렬
@@ -136,22 +143,37 @@ export default function TransportPlannerPanel({
   const displayCities = dragCity !== null ? activeCities : selectedCities;
 
   // 1. Entry Airport Transit Options
-  const entryRouteKey = `ENTRY_AIRPORT-${firstCity}`;
+  const entryRouteKey = `ENTRY_${entryAirport}-${firstCity}`;
   const entryOptions = getAirportTransitOptions(entryAirport, firstCity);
-  const currentEntryOverride = intercityOverrides[entryRouteKey] || intercityOverrides[`INCHEON-${firstCity}`];
+  const currentEntryOverride = intercityOverrides[entryRouteKey] || intercityOverrides[`ENTRY_AIRPORT-${firstCity}`] || intercityOverrides[`INCHEON-${firstCity}`];
   const activeEntryOption = (currentEntryOverride && entryOptions.find((o) => o.mode === currentEntryOverride))
     || entryOptions.find((o) => o.isDefault)
     || entryOptions[0];
   const entryTotalKrw = activeEntryOption.oneWayPriceKrw * adultCount;
 
   // 2. Exit Airport Transit Options
-  const exitRouteKey = `EXIT_${lastCity}-AIRPORT`;
-  const exitOptions = getAirportTransitOptions("INCHEON", lastCity);
-  const currentExitOverride = intercityOverrides[exitRouteKey] || intercityOverrides[`${lastCity}-INCHEON`];
+  const exitRouteKey = `EXIT_${lastCity}-${exitAirport}`;
+  const exitOptions = getAirportTransitOptions(exitAirport, lastCity);
+  const currentExitOverride = intercityOverrides[exitRouteKey] || intercityOverrides[`EXIT_${lastCity}-AIRPORT`] || intercityOverrides[`${lastCity}-INCHEON`];
   const activeExitOption = (currentExitOverride && exitOptions.find((o) => o.mode === currentExitOverride))
     || exitOptions.find((o) => o.isDefault)
     || exitOptions[0];
   const exitTotalKrw = activeExitOption.oneWayPriceKrw * adultCount;
+
+  // 공항 선택 핸들러: 공항 변경 시 즉시 새 공항의 1순위 추천 옵션으로 오버라이드 갱신
+  const handleSelectEntryAirport = (newAirport: "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT") => {
+    setEntryAirport(newAirport);
+    const newOptions = getAirportTransitOptions(newAirport, firstCity);
+    const defaultMode = newOptions.find((o) => o.isDefault)?.mode || newOptions[0].mode;
+    onSelectIntercityOverride(`ENTRY_${newAirport}-${firstCity}`, defaultMode);
+  };
+
+  const handleSelectExitAirport = (newAirport: "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT") => {
+    setExitAirport(newAirport);
+    const newOptions = getAirportTransitOptions(newAirport, lastCity);
+    const defaultMode = newOptions.find((o) => o.isDefault)?.mode || newOptions[0].mode;
+    onSelectIntercityOverride(`EXIT_${lastCity}-${newAirport}`, defaultMode);
+  };
 
   return (
     <div className="space-y-6">
@@ -214,7 +236,7 @@ export default function TransportPlannerPanel({
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
           <span className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0">
             <span>🛫</span>
-            <span>{locale === "ko" ? "인천공항(ICN)" : "Incheon Airport"}</span>
+            <span>{getAirportDisplayName(entryAirport)}</span>
           </span>
           <span className="text-slate-400">➔</span>
 
@@ -242,7 +264,7 @@ export default function TransportPlannerPanel({
           <span className="text-slate-400">➔</span>
           <span className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0">
             <span>🛫</span>
-            <span>{locale === "ko" ? "인천공항(귀국)" : "Incheon Airport"}</span>
+            <span>{getAirportDisplayName(exitAirport)}</span>
           </span>
         </div>
       </div>
@@ -255,7 +277,7 @@ export default function TransportPlannerPanel({
               {locale === "ko" ? "입국 첫날" : "Day 1 Arrival"}
             </span>
             <div className="flex items-center gap-1.5 font-extrabold text-[#0f172a] text-sm">
-              <span>🛫 {locale === "ko" ? "인천국제공항(ICN)" : "Incheon Airport (ICN)"}</span>
+              <span>🛫 {getAirportDisplayName(entryAirport)}</span>
               <span className="text-slate-400 font-normal">──►</span>
               <span className="text-[#e25c5c]">{getCityName(firstCity)}</span>
             </div>
@@ -283,23 +305,24 @@ export default function TransportPlannerPanel({
             <button
               type="button"
               onClick={() => setShowCustomAirportToggle(!showCustomAirportToggle)}
-              className="text-[10px] text-slate-400 hover:text-slate-600 underline cursor-pointer"
+              className="text-[11px] font-bold text-[#e25c5c] hover:underline cursor-pointer flex items-center gap-1"
             >
-              {locale === "ko" ? "다른 공항으로 입국하시나요? ▾" : "Arriving at another airport? ▾"}
+              <span>⚙</span>
+              <span>{locale === "ko" ? "다른 공항으로 입국하시나요? ▾" : "Arriving at another airport? ▾"}</span>
             </button>
           </div>
 
           {showCustomAirportToggle && (
-            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center gap-2 mb-2">
-              <span className="font-bold text-slate-600">{locale === "ko" ? "입국 공항 선택:" : "Arrival Gateway:"}</span>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex flex-wrap items-center gap-2.5 mb-2">
+              <span className="font-extrabold text-slate-700">{locale === "ko" ? "입국 공항 변경:" : "Change Arrival Gateway:"}</span>
               <select
                 value={entryAirport}
-                onChange={(e) => setEntryAirport(e.target.value as any)}
-                className="px-2 py-1 bg-white border border-slate-300 rounded-md font-bold text-slate-800 text-xs"
+                onChange={(e) => handleSelectEntryAirport(e.target.value as any)}
+                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs shadow-2xs focus:ring-2 focus:ring-[#0f172a] outline-hidden cursor-pointer"
               >
-                <option value="INCHEON">{locale === "ko" ? "인천국제공항 (ICN, 기본)" : "Incheon Int'l Airport (ICN, Default)"}</option>
-                <option value="GIMPO">{locale === "ko" ? "김포국제공항 (GMP, 서울)" : "Gimpo Int'l Airport (GMP, Seoul)"}</option>
-                <option value="GIMHAE">{locale === "ko" ? "김해국제공항 (PUS, 부산)" : "Gimhae Int'l Airport (PUS, Busan)"}</option>
+                <option value="INCHEON">{locale === "ko" ? "인천국제공항 (ICN, 수도권/전국)" : "Incheon Int'l Airport (ICN, Default)"}</option>
+                <option value="GIMPO">{locale === "ko" ? "김포국제공항 (GMP, 서울 도심 직결)" : "Gimpo Int'l Airport (GMP, Seoul)"}</option>
+                <option value="GIMHAE">{locale === "ko" ? "김해국제공항 (PUS, 부산/동남권)" : "Gimhae Int'l Airport (PUS, Busan)"}</option>
                 <option value="JEJU_AIRPORT">{locale === "ko" ? "제주국제공항 (CJU, 제주)" : "Jeju Int'l Airport (CJU, Jeju)"}</option>
               </select>
             </div>
@@ -467,7 +490,7 @@ export default function TransportPlannerPanel({
         </div>
       )}
 
-      {/* SECTION 3: 🛫 마지막 목적지 ➔ 인천공항 귀국 이동 */}
+      {/* SECTION 3: 🛫 마지막 목적지 ➔ 공항 귀국 이동 */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5 hover:border-slate-300 transition-all">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
           <div className="flex items-center gap-2">
@@ -477,7 +500,7 @@ export default function TransportPlannerPanel({
             <div className="flex items-center gap-1.5 font-extrabold text-[#0f172a] text-sm">
               <span className="text-[#0f172a]">{getCityName(lastCity)}</span>
               <span className="text-slate-400 font-normal">──►</span>
-              <span className="text-[#e25c5c]">🛫 {locale === "ko" ? "인천국제공항(ICN)" : "Incheon Airport (ICN)"}</span>
+              <span className="text-[#e25c5c]">🛫 {getAirportDisplayName(exitAirport)}</span>
             </div>
           </div>
 
@@ -495,9 +518,36 @@ export default function TransportPlannerPanel({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[11px] font-bold text-slate-500 block">
-            {locale === "ko" ? "마지막 여행지에서 공항 복귀 수단" : "Select Airport Departure Transit Mode"}
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-bold text-slate-500 block">
+              {locale === "ko" ? "마지막 여행지에서 공항 복귀 수단" : "Select Airport Departure Transit Mode"}
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowExitAirportToggle(!showExitAirportToggle)}
+              className="text-[11px] font-bold text-[#e25c5c] hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <span>⚙</span>
+              <span>{locale === "ko" ? "다른 공항으로 출국하시나요? ▾" : "Departing from another airport? ▾"}</span>
+            </button>
+          </div>
+
+          {showExitAirportToggle && (
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex flex-wrap items-center gap-2.5 mb-2">
+              <span className="font-extrabold text-slate-700">{locale === "ko" ? "출국 공항 변경:" : "Change Departure Gateway:"}</span>
+              <select
+                value={exitAirport}
+                onChange={(e) => handleSelectExitAirport(e.target.value as any)}
+                className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-bold text-slate-800 text-xs shadow-2xs focus:ring-2 focus:ring-[#0f172a] outline-hidden cursor-pointer"
+              >
+                <option value="INCHEON">{locale === "ko" ? "인천국제공항 (ICN, 수도권/전국)" : "Incheon Int'l Airport (ICN, Default)"}</option>
+                <option value="GIMPO">{locale === "ko" ? "김포국제공항 (GMP, 서울 도심 직결)" : "Gimpo Int'l Airport (GMP, Seoul)"}</option>
+                <option value="GIMHAE">{locale === "ko" ? "김해국제공항 (PUS, 부산/동남권)" : "Gimhae Int'l Airport (PUS, Busan)"}</option>
+                <option value="JEJU_AIRPORT">{locale === "ko" ? "제주국제공항 (CJU, 제주)" : "Jeju Int'l Airport (CJU, Jeju)"}</option>
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {exitOptions.map((opt) => {
               const isSelected = activeExitOption.nameKo === opt.nameKo;

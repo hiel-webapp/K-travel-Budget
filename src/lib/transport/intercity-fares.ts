@@ -172,6 +172,13 @@ export function getIntercityFareOptions(from: SupportedCity | "INCHEON", to: Sup
   ];
 }
 
+export const AIRPORT_INFO_MAP: Record<string, { nameKo: string; nameEn: string; code: string }> = {
+  INCHEON: { nameKo: "인천국제공항", nameEn: "Incheon Int'l Airport", code: "ICN" },
+  GIMPO: { nameKo: "김포국제공항", nameEn: "Gimpo Int'l Airport", code: "GMP" },
+  GIMHAE: { nameKo: "김해국제공항 (부산)", nameEn: "Gimhae Int'l Airport (Busan)", code: "PUS" },
+  JEJU_AIRPORT: { nameKo: "제주국제공항", nameEn: "Jeju Int'l Airport", code: "CJU" },
+};
+
 /**
  * 인천국제공항(ICN) 및 주요 공항에서 목적지 도시로의 공항 이동 옵션을 반환합니다.
  */
@@ -186,16 +193,87 @@ export function getAirportTransitOptions(
   if (airportCode === "GIMPO") {
     if (targetCity === "SEOUL") {
       return [
-        { mode: "SRT", nameKo: "지하철 5호선 / 9호선 / 공항철도", nameEn: "Subway Lines 5/9/AREX", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true, badgeTextKo: "지하철직행", badgeTextEn: "Subway" },
-        { mode: "EXPRESS_BUS", nameKo: "시내 리무진 버스", nameEn: "City Limousine Bus", oneWayPriceKrw: 9000, durationTextKo: "40분", durationTextEn: "40m" },
+        { mode: "SRT", nameKo: "지하철 5·9호선 / 공항철도", nameEn: "Subway Lines 5/9/AREX", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true, badgeTextKo: "지하철직행", badgeTextEn: "Subway" },
+        { mode: "EXPRESS_BUS", nameKo: "도심 리무진 버스 (6000번대)", nameEn: "City Limousine Bus", oneWayPriceKrw: 9000, durationTextKo: "40분", durationTextEn: "40m" },
       ];
     }
+    if (targetCity === "JEJU") {
+      return [
+        { mode: "FLIGHT", nameKo: "국내선 항공 (김포 ➔ 제주)", nameEn: "Domestic Flight to Jeju", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "항공직항", badgeTextEn: "Direct" },
+      ];
+    }
+    if (targetCity === "BUSAN") {
+      return [
+        { mode: "FLIGHT", nameKo: "국내선 항공 (김포 ➔ 김해)", nameEn: "Domestic Flight to Busan", oneWayPriceKrw: 78000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "빠른항공", badgeTextEn: "Flight" },
+        { mode: "KTX", nameKo: "공항철도 ➔ 서울역 KTX", nameEn: "AREX + Seoul KTX", oneWayPriceKrw: 61400, durationTextKo: "3시간 10분", durationTextEn: "3h 10m" },
+      ];
+    }
+    if (targetCity === "JEONJU") {
+      return [
+        { mode: "KTX", nameKo: "공항철도 ➔ 용산역 KTX", nameEn: "AREX + Yongsan KTX", oneWayPriceKrw: 36200, durationTextKo: "2시간 10분", durationTextEn: "2h 10m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
+        { mode: "EXPRESS_BUS", nameKo: "시외 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 21700, durationTextKo: "3시간 00분", durationTextEn: "3h 00m" },
+      ];
+    }
+    // 기타 도시는 서울역/용산역 KTX 연계
+    return [
+      { mode: "KTX", nameKo: "공항철도 ➔ 서울역/용산역 KTX", nameEn: "AREX + KTX via Seoul", oneWayPriceKrw: 42000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true, badgeTextKo: "KTX연계", badgeTextEn: "KTX Link" },
+      { mode: "EXPRESS_BUS", nameKo: "고속 / 시외버스", nameEn: "Express Bus", oneWayPriceKrw: 25000, durationTextKo: "3시간 30분", durationTextEn: "3h 30m" },
+    ];
   }
 
-  if (airportCode === "GIMHAE" && targetCity === "BUSAN") {
+  if (airportCode === "GIMHAE") {
+    if (targetCity === "BUSAN") {
+      return [
+        { mode: "SRT", nameKo: "김해 경전철 + 부산 지하철", nameEn: "Light Rail + Busan Metro", oneWayPriceKrw: 2100, durationTextKo: "45분", durationTextEn: "45m", isDefault: true, badgeTextKo: "가성비", badgeTextEn: "Budget" },
+        { mode: "EXPRESS_BUS", nameKo: "공항 리무진 버스 (해운대/서면)", nameEn: "Airport Limousine Bus", oneWayPriceKrw: 8500, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", badgeTextKo: "직통", badgeTextEn: "Direct" },
+      ];
+    }
+    if (targetCity === "GYEONGJU") {
+      return [
+        { mode: "EXPRESS_BUS", nameKo: "공항 직행 리무진 버스 (경주행)", nameEn: "Direct Bus to Gyeongju", oneWayPriceKrw: 11000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "직통추천", badgeTextEn: "Direct" },
+        { mode: "KTX", nameKo: "부산역 이동 ➔ 신경주 KTX", nameEn: "Busan Metro + KTX", oneWayPriceKrw: 15100, durationTextKo: "1시간 20분", durationTextEn: "1h 20m" },
+      ];
+    }
+    if (targetCity === "SEOUL") {
+      return [
+        { mode: "FLIGHT", nameKo: "국내선 항공 (김해 ➔ 김포)", nameEn: "Domestic Flight to Gimpo", oneWayPriceKrw: 78000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "빠른항공", badgeTextEn: "Flight" },
+        { mode: "KTX", nameKo: "부산역 이동 ➔ 서울 KTX", nameEn: "Busan Metro + Seoul KTX", oneWayPriceKrw: 61900, durationTextKo: "3시간 15분", durationTextEn: "3h 15m" },
+      ];
+    }
+    if (targetCity === "JEONJU") {
+      return [
+        { mode: "EXPRESS_BUS", nameKo: "사상터미널 환승 ➔ 전주고속", nameEn: "Intercity Bus via Sasang", oneWayPriceKrw: 28100, durationTextKo: "3시간 30분", durationTextEn: "3h 30m", isDefault: true, badgeTextKo: "직통버스", badgeTextEn: "Bus" },
+      ];
+    }
+    if (targetCity === "JEJU") {
+      return [
+        { mode: "FLIGHT", nameKo: "국내선 항공 (김해 ➔ 제주)", nameEn: "Domestic Flight to Jeju", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "항공추천", badgeTextEn: "Flight" },
+      ];
+    }
     return [
-      { mode: "SRT", nameKo: "김해 경전철 + 부산 지하철", nameEn: "Light Rail + Busan Metro", oneWayPriceKrw: 2100, durationTextKo: "45분", durationTextEn: "45m", isDefault: true, badgeTextKo: "추천", badgeTextEn: "Recommended" },
-      { mode: "EXPRESS_BUS", nameKo: "공항 리무진 버스 (해운대행)", nameEn: "Airport Limousine to Haeundae", oneWayPriceKrw: 8500, durationTextKo: "1시간 10분", durationTextEn: "1h 10m" },
+      { mode: "EXPRESS_BUS", nameKo: "시외 우등 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 24000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true },
+    ];
+  }
+
+  if (airportCode === "JEJU_AIRPORT") {
+    if (targetCity === "JEJU") {
+      return [
+        { mode: "SRT", nameKo: "제주 급행 / 간선 시내버스", nameEn: "Jeju Express/City Bus", oneWayPriceKrw: 1500, durationTextKo: "25분", durationTextEn: "25m", isDefault: true, badgeTextKo: "대중교통", badgeTextEn: "Public" },
+        { mode: "EXPRESS_BUS", nameKo: "공항 리무진 버스 (600번/800번)", nameEn: "Jeju Limousine (600/800)", oneWayPriceKrw: 5500, durationTextKo: "50분", durationTextEn: "50m", badgeTextKo: "중문/서귀포", badgeTextEn: "Direct" },
+      ];
+    }
+    if (targetCity === "SEOUL") {
+      return [
+        { mode: "FLIGHT", nameKo: "국내선 항공 (제주 ➔ 김포)", nameEn: "Domestic Flight to Gimpo", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "항공필수", badgeTextEn: "Flight" },
+      ];
+    }
+    if (targetCity === "BUSAN") {
+      return [
+        { mode: "FLIGHT", nameKo: "국내선 항공 (제주 ➔ 김해)", nameEn: "Domestic Flight to Gimhae", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "항공추천", badgeTextEn: "Flight" },
+      ];
+    }
+    return [
+      { mode: "FLIGHT", nameKo: "국내선 항공 연계", nameEn: "Domestic Flight Connection", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true },
     ];
   }
 

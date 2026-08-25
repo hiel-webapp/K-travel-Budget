@@ -21,7 +21,7 @@ import {
 } from "../catalog/mock-catalog";
 import { applyFoodReplacements, applyFoodAddOns } from "./food-engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
-import { getIntercityFareOptions } from "../../../lib/transport/intercity-fares";
+import { getIntercityFareOptions, getAirportTransitOptions } from "../../../lib/transport/intercity-fares";
 
 /**
  * TripDraft 입력을 기준으로 초기 BudgetPlan을 생성하는 순수 계산 엔진
@@ -273,8 +273,48 @@ export function generateInitialBudgetPlan(
     };
   }
 
-  // 3. 도시 간 교통 섹션 연산
+  // 3. 도시 간 및 공항 이동 교통 섹션 연산
   const intercityLineItems: BudgetLineItem[] = [];
+  const firstCity = selectedCities[0];
+  const lastCity = selectedCities[selectedCities.length - 1];
+
+  const category: BudgetCategory = "INTERCITY_TRANSPORT";
+  const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
+  const basket = catalog.find(
+    (b) => b.category === category && b.id === basketId && b.isActive
+  ) || catalog.find(
+    (b) => b.category === category && b.isActive
+  ) || catalog[0];
+
+  // 3.1 🛫 입국 공항 이동 (인천공항 ➔ 첫 도시)
+  if (firstCity) {
+    const entryRouteKey = `ENTRY_AIRPORT-${firstCity}`;
+    const entryOptions = getAirportTransitOptions("INCHEON", firstCity);
+    const userEntryOverride = overrides?.intercityTransportOverrides?.[entryRouteKey] || overrides?.intercityTransportOverrides?.[`INCHEON-${firstCity}`];
+    const selectedEntryOption = (userEntryOverride && entryOptions.find((o) => o.mode === userEntryOverride))
+      || entryOptions.find((o) => o.isDefault)
+      || entryOptions[0];
+
+    const entryItem = calculateLineItem({
+      basket: selectedEntryOption
+        ? {
+            ...basket,
+            representativePriceKrw: selectedEntryOption.oneWayPriceKrw,
+            sourceLabel: `${selectedEntryOption.nameKo} (공항입국➔${firstCity})`,
+          }
+        : basket,
+      cityCode: null,
+      route: entryRouteKey,
+      adultCount,
+      duration: 1,
+      cityCount: selectedCities.length,
+    });
+
+    intercityLineItems.push(entryItem);
+    lineItems.push(entryItem);
+  }
+
+  // 3.2 🚆 도시 간 이동 (다중 도시일 때)
   if (selectedCities.length >= 2) {
     for (let i = 0; i < selectedCities.length - 1; i++) {
       const fromCity = selectedCities[i];
@@ -286,14 +326,6 @@ export function generateInitialBudgetPlan(
       const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
         || options.find((o) => o.isDefault)
         || options[0];
-
-      const category: BudgetCategory = "INTERCITY_TRANSPORT";
-      const basketId = BUDGET_TIER_DEFAULT_BASKETS[budgetTier][category];
-      const basket = catalog.find(
-        (b) => b.category === category && b.id === basketId && b.isActive
-      ) || catalog.find(
-        (b) => b.category === category && b.isActive
-      ) || catalog[0];
 
       const item = calculateLineItem({
         basket: selectedOption
@@ -315,11 +347,40 @@ export function generateInitialBudgetPlan(
     }
   }
 
+  // 3.3 🛫 출국 공항 이동 (마지막 도시 ➔ 인천공항)
+  if (lastCity) {
+    const exitRouteKey = `EXIT_${lastCity}-AIRPORT`;
+    const exitOptions = getAirportTransitOptions("INCHEON", lastCity);
+    const userExitOverride = overrides?.intercityTransportOverrides?.[exitRouteKey] || overrides?.intercityTransportOverrides?.[`${lastCity}-INCHEON`];
+    const selectedExitOption = (userExitOverride && exitOptions.find((o) => o.mode === userExitOverride))
+      || exitOptions.find((o) => o.isDefault)
+      || exitOptions[0];
+
+    const exitItem = calculateLineItem({
+      basket: selectedExitOption
+        ? {
+            ...basket,
+            representativePriceKrw: selectedExitOption.oneWayPriceKrw,
+            sourceLabel: `${selectedExitOption.nameKo} (${lastCity}➔공항출국)`,
+          }
+        : basket,
+      cityCode: null,
+      route: exitRouteKey,
+      adultCount,
+      duration: 1,
+      cityCount: selectedCities.length,
+    });
+
+    intercityLineItems.push(exitItem);
+    lineItems.push(exitItem);
+  }
+
   const intercitySubtotalKrw = intercityLineItems.reduce((sum, item) => sum + item.lineTotalKrw, 0);
   const intercitySection: IntercityBudgetSection = {
     lineItems: intercityLineItems,
     subtotalKrw: intercitySubtotalKrw,
   };
+
 
   // 4. 전체 공통 비용 섹션 연산
   const tripWideLineItems: BudgetLineItem[] = [];

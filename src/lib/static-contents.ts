@@ -159,6 +159,17 @@ export const K_GUIDE_FAQS: GuideFAQ[] = [
       en: "No. The Express Train has reserved seating and requires a separate dedicated ticket (online QR or station kiosk). Only the All-Stop Train allows direct tapping with T-Money.",
     },
   },
+  {
+    id: "faq-kobus-freepass",
+    question: {
+      ko: "외국인도 고속버스 프리패스(KOBUS)를 구매할 수 있나요?",
+      en: "Can foreign tourists purchase the KOBUS Express Bus Free Pass?",
+    },
+    answer: {
+      ko: "네, 외국인도 이용 가능합니다. 단, 오프라인 터미널 매표소에서는 프리패스를 판매하지 않으므로 코버스(kobus.co.kr) 공식 사이트 또는 앱에서 온라인 신용카드로 구매하셔야 합니다. 동일 구간은 편도 1회만 탑승 가능하므로 전국 순환 여행(서울➔전주➔부산➔서울) 시 극도의 가성비를 누릴 수 있습니다.",
+      en: "Yes, foreign tourists can use it. However, the Free Pass cannot be purchased at terminal ticket counters—you must purchase it online via Kobus (kobus.co.kr) or the mobile app with a credit card. Since each route is limited to one-way per direction, it is best suited for nationwide circular itineraries (e.g., Seoul ➔ Jeonju ➔ Busan ➔ Seoul).",
+    },
+  },
 ];
 
 export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
@@ -252,6 +263,38 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       ],
       imageUrl: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=800&auto=format&fit=crop",
       officialChannelNotice: "지방행 공항버스 시간표는 인천국제공항 공식 포털(airport.kr) 교통안내 페이지에서 확인하실 수 있습니다.",
+    },
+    {
+      id: "kobus-express-bus-freepass",
+      title: "전국 고속버스 무제한 자유이용권: 코버스(KOBUS) 프리패스 완벽 가이드",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통·패스",
+        en: "Transit & Pass",
+      },
+      subTag: {
+        ko: "장거리 알뜰 패스",
+        en: "Express Bus Pass",
+      },
+      subTagType: "TRANSIT",
+      readTime: "4분 읽기",
+      updatedDate: "2026년 8월",
+      overview: "서울, 부산, 전주, 여수, 경주 등 전국을 장거리로 순회할 때 우등·일반 고속버스를 정해진 기간 동안 무제한 이용할 수 있는 코버스(KOBUS) 프리패스(3/4/5/7일권) 총정리입니다.",
+      checklist: [
+        "3일권 (주말포함): ₩88,000 / 4일권 (주중전용): ₩81,000",
+        "5일권 (주말포함): ₩110,000 / 7일권 (주말포함): ₩132,000",
+        "이용 등급: 우등고속 및 일반고속 무제한 (프리미엄 고속 제외)",
+        "동일 노선 편도 1회 제한: 서울 ➔ 전주 ➔ 부산 ➔ 서울 등 '전국 순환 코스'에 최적화",
+        "구매 방법: 코버스(kobus.co.kr) 홈페이지/앱에서 온라인 신용카드 결제 (터미널 창구 구매 불가)",
+      ],
+      details: [
+        "🎫 패스 종류 및 요금: 3일권(₩88,000, 주말포함), 4일권(₩81,000, 월~목 주중 전용), 5일권(₩110,000, 주말포함), 7일권(₩132,000, 주말포함). 편도 3.5만~4만 원에 달하는 서울-부산/여수 우등버스를 왕복 1회 이상 탑승하고 중간 도시를 경유하면 개별 발권 대비 매우 경제적입니다.",
+        "⚠️ 핵심 이용 규칙 (동일 노선 편도 1회): 유효기간 내 동일 구간은 편도 1회(왕복 1회)만 이용할 수 있습니다. (예: 서울➔부산 1회 탑승 후 동일한 서울➔부산 재탑승 불가, 부산➔서울 복귀 편도는 1회 가능). 따라서 단일 도시 단순 왕복보다는 여러 도시를 거치는 순환형 여행에 적합합니다.",
+        "🏢 적용 운송사 및 터미널 유의: 8대 고속버스 회사(금호, 동부, 동양, 삼화, 속리산, 중앙, 천일, 한일) 운행 차량에만 적용됩니다. 한국은 시외버스터미널과 고속버스터미널이 분리된 도시가 많으므로, 코버스(Kobus) 예매 노선인지 반드시 확인 후 탑승하세요.",
+        "💡 공식 프리패스 안내 링크: 코버스 고속버스 프리패스 안내 (https://www.kobus.co.kr/adtnprdnew/frps/frpsPrchGd.do)",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800&auto=format&fit=crop",
+      officialChannelNotice: "프리패스 잔여 좌석 조회 및 실시간 예매는 코버스(kobus.co.kr) 공식 사이트에서만 가능합니다.",
     },
     {
       id: "arrival-transit",
@@ -452,6 +495,38 @@ export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = {
       ],
       imageUrl: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?q=80&w=800&auto=format&fit=crop",
       officialChannelNotice: "Check regional airport bus timetables directly on the Incheon International Airport portal (airport.kr).",
+    },
+    {
+      id: "kobus-express-bus-freepass",
+      title: "Nationwide Unlimited Express Bus Travel: KOBUS Free Pass Guide",
+      category: "TRANSIT",
+      categoryLabel: {
+        ko: "교통·패스",
+        en: "Transit & Pass",
+      },
+      subTag: {
+        ko: "장거리 알뜰 패스",
+        en: "Express Bus Pass",
+      },
+      subTagType: "TRANSIT",
+      readTime: "4 min read",
+      updatedDate: "August 2026",
+      overview: "Travel across Korea (Seoul, Busan, Jeonju, Yeosu, Gyeongju) with unlimited rides on Superior (우등) and Standard (일반) Express Buses using the KOBUS Free Pass (3, 4, 5, or 7 Days).",
+      checklist: [
+        "3-Day Pass (All Days): ₩88,000 / 4-Day Pass (Weekday Only): ₩81,000",
+        "5-Day Pass (All Days): ₩110,000 / 7-Day Pass (All Days): ₩132,000",
+        "Valid Classes: Unlimited rides on Superior & Standard Express buses (Excludes Premium)",
+        "One-way per route limit: Ideal for circular routes (Seoul ➔ Jeonju ➔ Busan ➔ Seoul)",
+        "Online booking required: Purchase & reserve seats via Kobus (kobus.co.kr) website/app",
+      ],
+      details: [
+        "🎫 Pass Types & Fares: 3-Day (₩88,000, incl. weekends), 4-Day (₩81,000, Mon-Thu weekdays only), 5-Day (₩110,000), 7-Day (₩132,000). Highly cost-effective when combining long-distance trips like Seoul-Busan or Seoul-Yeosu (regular ~₩35,000-40,000 one-way each).",
+        "⚠️ One-Way Per Route Rule: You can only travel once per direction on the same route during the pass validity (e.g., you cannot take Seoul ➔ Busan twice, but you can take Busan ➔ Seoul once). Designed specifically for multi-city circular travel rather than daily point-to-point commuting.",
+        "🏢 8 Participating Companies: Valid only on buses operated by the 8 major express bus carriers (Kumho, Dongbu, Dongyang, Samhwa, Songnisan, Jungang, Cheonil, and Hanil). Always verify departure terminal (Express vs. Intercity).",
+        "💡 Official Pass Guide Link: KOBUS Express Bus Free Pass Guide (https://www.kobus.co.kr/adtnprdnew/frps/frpsPrchGd.do)",
+      ],
+      imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=800&auto=format&fit=crop",
+      officialChannelNotice: "Seat reservations and real-time pass issuance are supported exclusively through the official Kobus portal (kobus.co.kr).",
     },
     {
       id: "arrival-transit",

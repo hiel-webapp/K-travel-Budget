@@ -1,5 +1,65 @@
 import { BudgetTier, SupportedCity } from "../../../lib/trip-domain";
-import { BudgetBasketDefinition, BudgetBasketId, BudgetCategory, MealSlot, FoodWishlistCollection, FoodItem, FoodAddOnItem } from "../domain/types";
+import { BudgetBasketDefinition, BudgetBasketId, BudgetCategory, MealSlot, FoodWishlistCollection, FoodItem, FoodAddOnItem, LocalTransitStyle } from "../domain/types";
+
+export interface LocalTransitOptionDef {
+  style: LocalTransitStyle;
+  nameKo: string;
+  nameEn: string;
+  pricePerDayKrw: number;
+  subwayTripsPerDay: number;
+  taxiTripsPerDay: number;
+  descriptionKo: string;
+  descriptionEn: string;
+  evidenceKo: string;
+  evidenceEn: string;
+  badgeKo?: string;
+  badgeEn?: string;
+}
+
+export const LOCAL_TRANSIT_OPTIONS: LocalTransitOptionDef[] = [
+  {
+    style: "SUBWAY_BUS",
+    nameKo: "대중교통 알뜰형",
+    nameEn: "Subway & Bus Only",
+    pricePerDayKrw: 6000,
+    subwayTripsPerDay: 4,
+    taxiTripsPerDay: 0,
+    descriptionKo: "지하철과 시내버스로 서울/지방 주요 명소를 이동합니다.",
+    descriptionEn: "Explore cities efficiently using subways and city buses.",
+    evidenceKo: "1일 평균 관광 4회 이동 기준 (기본요금 ₩1,450 × 4 = ₩5,800). 서울 기후동행카드(3일권 ₩10,000) 구매 시 1일 ₩3,333 무제한.",
+    evidenceEn: "Based on 4 tourist trips/day (₩1,450 × 4 = ₩5,800). Climate Card (₩10,000 for 3 days) offers unlimited rides at ₩3,333/day.",
+    badgeKo: "가성비 최고",
+    badgeEn: "Best Value",
+  },
+  {
+    style: "STANDARD_MIX",
+    nameKo: "대중교통 + 택시 혼합형",
+    nameEn: "Metro + Occasional Taxi",
+    pricePerDayKrw: 9000,
+    subwayTripsPerDay: 3,
+    taxiTripsPerDay: 1,
+    descriptionKo: "기본 이동은 지하철을 이용하고, 짐이 있거나 피로할 때 단거리 택시를 1회 탑승합니다.",
+    descriptionEn: "Use metro for main travel, take a short taxi ride when tired or carrying bags.",
+    evidenceKo: "지하철 3회(₩4,350) + 기본거리 택시 1회(약 ₩5,000, 2인 탑승 시 1인 분할 기준).",
+    evidenceEn: "3 subway rides (₩4,350) + 1 short taxi trip (~₩5,000, split between 2 travelers).",
+    badgeKo: "가장 추천",
+    badgeEn: "Recommended",
+  },
+  {
+    style: "COMFORT_TAXI",
+    nameKo: "택시/우버 편안형",
+    nameEn: "Comfort Taxi & Uber Heavy",
+    pricePerDayKrw: 22000,
+    subwayTripsPerDay: 1,
+    taxiTripsPerDay: 2,
+    descriptionKo: "카카오T, Uber, 일반 택시를 주로 이용하여 환승 없이 편안하게 문 앞까지 이동합니다.",
+    descriptionEn: "Door-to-door comfort using Kakao T, Uber, and local taxis.",
+    evidenceKo: "기본요금 ₩4,800 + 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 탑승 기준 1인당 약 ₩22,000).",
+    evidenceEn: "Base fare ₩4,800 + average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
+    badgeKo: "편안함",
+    badgeEn: "Max Comfort",
+  },
+];
 
 export const MOCK_CATALOG_VERSION = "mock-v1";
 export const MOCK_CATALOG_UPDATE_DATE = "2026-07-01";

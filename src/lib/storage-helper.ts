@@ -18,6 +18,7 @@ import {
   PlannerPreferencesV2,
   FoodOverrides,
   FoodAddOnOverrides,
+  LocalTransitStyle,
 } from "../features/budget/domain/types";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { IntercityTransportMode } from "./transport/intercity-fares";
@@ -557,6 +558,8 @@ export interface SavePlannerPreferencesInput {
   emergencyFundKrw?: number;
   emergencyFundPct?: number;
   intercityTransportOverrides?: Record<string, IntercityTransportMode>;
+  localTransitStyle?: LocalTransitStyle;
+  isKobusPassApplied?: boolean;
   draft: TripDraft;
 }
 
@@ -595,6 +598,8 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : 0,
       emergencyFundPct: typeof input.emergencyFundPct === "number" ? input.emergencyFundPct : undefined,
       intercityTransportOverrides: input.intercityTransportOverrides,
+      localTransitStyle: input.localTransitStyle,
+      isKobusPassApplied: input.isKobusPassApplied,
     };
 
     const envelope: PlannerPreferencesEnvelope = {

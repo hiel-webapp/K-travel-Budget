@@ -167,6 +167,8 @@ export type AttractionSelectionsByCity = Partial<Record<SupportedCity, Attractio
 
 import { IntercityTransportMode } from "../../../lib/transport/intercity-fares";
 
+export type LocalTransitStyle = "SUBWAY_BUS" | "STANDARD_MIX" | "COMFORT_TAXI";
+
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
   foodTier?: BudgetTier;
@@ -177,6 +179,8 @@ export interface BudgetPlanOverrides {
   attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
   intercityTransportOverrides?: Record<string, IntercityTransportMode>;
+  localTransitStyle?: LocalTransitStyle;
+  isKobusPassApplied?: boolean;
 }
 
 export type FoodCollectionId = "ESSENTIALS" | "INTERNATIONAL" | "TRENDING" | "SPECIALTIES";
@@ -346,6 +350,8 @@ export interface PlannerPreferences {
   emergencyFundKrw?: number;
   emergencyFundPct?: number;
   intercityTransportOverrides?: Record<string, IntercityTransportMode>;
+  localTransitStyle?: LocalTransitStyle;
+  isKobusPassApplied?: boolean;
 }
 
 export interface PlannerPreferencesEnvelope {

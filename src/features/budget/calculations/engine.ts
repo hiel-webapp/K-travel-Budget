@@ -18,6 +18,7 @@ import {
   BUDGET_TIER_DEFAULT_BASKETS,
   MOCK_CATALOG_VERSION,
   MOCK_MEAL_SLOT_PRICES,
+  LOCAL_TRANSIT_OPTIONS,
 } from "../catalog/mock-catalog";
 import { applyFoodReplacements, applyFoodAddOns } from "./food-engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
@@ -218,6 +219,31 @@ export function generateInitialBudgetPlan(
           item = accPlaceOverrideItem;
         } else if (attractionOverrideItem) {
           item = attractionOverrideItem;
+        } else if (category === "CITY_TRANSPORT" && overrides?.localTransitStyle) {
+          const transitOpt = LOCAL_TRANSIT_OPTIONS.find((o) => o.style === overrides.localTransitStyle) || LOCAL_TRANSIT_OPTIONS[0];
+          const unitPrice = transitOpt.pricePerDayKrw;
+          const lineTotalKrw = unitPrice * adultCount * nights;
+          const basket = findBasket(catalog, basketId, category, city) || catalog.find((b) => b.category === "CITY_TRANSPORT");
+
+          item = {
+            id: `${city}_CITY_TRANSPORT_CUSTOM`.toUpperCase(),
+            basketId: (basket?.id || "BASIC_CITY_TRANSPORT") as BudgetBasketId,
+            category: "CITY_TRANSPORT",
+            scope: "CITY",
+            cityCode: city,
+            route: null,
+            unitPriceKrw: unitPrice,
+            pricingUnit: "PERSON_DAY",
+            quantity: adultCount,
+            participantCount: adultCount,
+            durationCount: nights,
+            lineTotalKrw,
+            priceMinKrw: lineTotalKrw,
+            priceMaxKrw: lineTotalKrw,
+            confidence: "OFFICIAL",
+            updatedAt: "2026-08-01",
+            sourceLabel: `${transitOpt.nameKo} (1일 4회 이동 기준)`,
+          };
         } else {
           const basket = findBasket(catalog, basketId, category, city);
 
@@ -316,34 +342,59 @@ export function generateInitialBudgetPlan(
 
   // 3.2 🚆 도시 간 이동 (다중 도시일 때)
   if (selectedCities.length >= 2) {
-    for (let i = 0; i < selectedCities.length - 1; i++) {
-      const fromCity = selectedCities[i];
-      const toCity = selectedCities[i + 1];
-      const routeKey = `${fromCity}-${toCity}`;
-      const options = getIntercityFareOptions(fromCity, toCity);
-
-      const userOverrideMode = overrides?.intercityTransportOverrides?.[routeKey] || overrides?.intercityTransportOverrides?.[`${toCity}-${fromCity}`];
-      const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
-        || options.find((o) => o.isDefault)
-        || options[0];
-
-      const item = calculateLineItem({
-        basket: selectedOption
-          ? {
-              ...basket,
-              representativePriceKrw: selectedOption.oneWayPriceKrw,
-              sourceLabel: `${selectedOption.nameKo} (${fromCity}➔${toCity})`,
-            }
-          : basket,
+    if (overrides?.isKobusPassApplied) {
+      // 고속버스 프리패스 3일권 일괄 적용
+      const kobusPassItem: BudgetLineItem = {
+        id: `INTERCITY_KOBUS_FREE_PASS`,
+        basketId: "KTX_STANDARD" as BudgetBasketId,
+        category: "INTERCITY_TRANSPORT",
+        scope: "INTERCITY",
         cityCode: null,
-        route: routeKey,
-        adultCount,
-        duration: 1,
-        cityCount: selectedCities.length,
-      });
+        route: "KOBUS_FREE_PASS_3DAYS",
+        unitPriceKrw: 88000,
+        pricingUnit: "PER_PERSON",
+        quantity: adultCount,
+        participantCount: adultCount,
+        durationCount: 1,
+        lineTotalKrw: 88000 * adultCount,
+        priceMinKrw: 88000 * adultCount,
+        priceMaxKrw: 88000 * adultCount,
+        confidence: "OFFICIAL",
+        updatedAt: "2026-08-01",
+        sourceLabel: "코버스 고속버스 프리패스 (3일권 전구간 무제한)",
+      };
+      intercityLineItems.push(kobusPassItem);
+      lineItems.push(kobusPassItem);
+    } else {
+      for (let i = 0; i < selectedCities.length - 1; i++) {
+        const fromCity = selectedCities[i];
+        const toCity = selectedCities[i + 1];
+        const routeKey = `${fromCity}-${toCity}`;
+        const options = getIntercityFareOptions(fromCity, toCity);
 
-      intercityLineItems.push(item);
-      lineItems.push(item);
+        const userOverrideMode = overrides?.intercityTransportOverrides?.[routeKey] || overrides?.intercityTransportOverrides?.[`${toCity}-${fromCity}`];
+        const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
+          || options.find((o) => o.isDefault)
+          || options[0];
+
+        const item = calculateLineItem({
+          basket: selectedOption
+            ? {
+                ...basket,
+                representativePriceKrw: selectedOption.oneWayPriceKrw,
+                sourceLabel: `${selectedOption.nameKo} (${fromCity}➔${toCity})`,
+              }
+            : basket,
+          cityCode: null,
+          route: routeKey,
+          adultCount,
+          duration: 1,
+          cityCount: selectedCities.length,
+        });
+
+        intercityLineItems.push(item);
+        lineItems.push(item);
+      }
     }
   }
 

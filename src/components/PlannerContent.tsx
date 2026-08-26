@@ -6,7 +6,7 @@ import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft } from "../lib/storage-helper";
 
-import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection } from "../features/budget/domain/types";
+import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset } from "../features/budget/catalog/attraction-spots";
@@ -302,6 +302,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     savePlannerPreferences({
       draft: state.draft,
       accommodationByCity: nextPrefs.accommodationByCity,
+      foodTier: nextPrefs.foodTier,
       foodOverrides: nextPrefs.foodOverrides,
       foodAddOnOverrides: nextPrefs.addOnSelections,
       attractionByCity: nextPrefs.attractionByCity,
@@ -310,6 +311,66 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       emergencyFundKrw: nextPrefs.emergencyFundKrw,
       emergencyFundPct: nextPrefs.emergencyFundPct,
       intercityTransportOverrides: updatedOverrides,
+      localTransitStyle: nextPrefs.localTransitStyle,
+      isKobusPassApplied: nextPrefs.isKobusPassApplied,
+    });
+
+    setState({
+      ...state,
+      preferences: nextPrefs,
+    });
+  };
+
+  const handleSelectLocalTransitStyle = (style: LocalTransitStyle) => {
+    if (state.status !== "ready") return;
+    const nextPrefs: PlannerPreferences = {
+      ...state.preferences,
+      localTransitStyle: style,
+    };
+
+    savePlannerPreferences({
+      draft: state.draft,
+      accommodationByCity: nextPrefs.accommodationByCity,
+      foodTier: nextPrefs.foodTier,
+      foodOverrides: nextPrefs.foodOverrides,
+      foodAddOnOverrides: nextPrefs.addOnSelections,
+      attractionByCity: nextPrefs.attractionByCity,
+      attractionSelections: nextPrefs.attractionSelections,
+      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
+      emergencyFundKrw: nextPrefs.emergencyFundKrw,
+      emergencyFundPct: nextPrefs.emergencyFundPct,
+      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
+      localTransitStyle: style,
+      isKobusPassApplied: nextPrefs.isKobusPassApplied,
+    });
+
+    setState({
+      ...state,
+      preferences: nextPrefs,
+    });
+  };
+
+  const handleToggleKobusPass = (applied: boolean) => {
+    if (state.status !== "ready") return;
+    const nextPrefs: PlannerPreferences = {
+      ...state.preferences,
+      isKobusPassApplied: applied,
+    };
+
+    savePlannerPreferences({
+      draft: state.draft,
+      accommodationByCity: nextPrefs.accommodationByCity,
+      foodTier: nextPrefs.foodTier,
+      foodOverrides: nextPrefs.foodOverrides,
+      foodAddOnOverrides: nextPrefs.addOnSelections,
+      attractionByCity: nextPrefs.attractionByCity,
+      attractionSelections: nextPrefs.attractionSelections,
+      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
+      emergencyFundKrw: nextPrefs.emergencyFundKrw,
+      emergencyFundPct: nextPrefs.emergencyFundPct,
+      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
+      localTransitStyle: nextPrefs.localTransitStyle,
+      isKobusPassApplied: applied,
     });
 
     setState({
@@ -596,6 +657,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     attractionSelections: preferences.attractionSelections,
     attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
     emergencyFundKrw: computedEmergencyKrw,
+    intercityTransportOverrides: preferences.intercityTransportOverrides,
+    localTransitStyle: preferences.localTransitStyle,
+    isKobusPassApplied: preferences.isKobusPassApplied,
   });
 
   const handleCopySummary = () => {
@@ -1001,8 +1065,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       setSaveError(true);
     }
   };
-
-
 
   const handleSaveTripPlan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2145,6 +2207,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 intercityOverrides={preferences.intercityTransportOverrides || {}}
                 onSelectIntercityOverride={handleSelectIntercityOverride}
                 onReorderCities={handleReorderCities}
+                localTransitStyle={preferences.localTransitStyle || "STANDARD_MIX"}
+                onSelectLocalTransitStyle={handleSelectLocalTransitStyle}
+                isKobusPassApplied={preferences.isKobusPassApplied || false}
+                onToggleKobusPass={handleToggleKobusPass}
                 locale={locale}
                 dict={dict}
               />

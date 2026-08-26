@@ -382,8 +382,11 @@ export function getCalculationExpression(
     }
     case "PERSON_ONE_WAY": {
       const personLabel = locale === "ko" ? "명" : item.participantCount === 1 ? "person" : "people";
-      const tripLabel = locale === "ko" ? "회 이동" : item.quantity === 1 ? "segment" : "segments";
-      return `${formattedPrice} × ${item.participantCount}${personLabel} × ${item.quantity}${tripLabel}`;
+      if (item.quantity > 1) {
+        const tripLabel = locale === "ko" ? "회 이동" : "segments";
+        return `${formattedPrice} × ${item.participantCount}${personLabel} × ${item.quantity}${tripLabel}`;
+      }
+      return `${formattedPrice} × ${item.participantCount}${personLabel}`;
     }
     case "PER_PERSON": {
       const personLabel = locale === "ko" ? "명" : item.participantCount === 1 ? "person" : "people";

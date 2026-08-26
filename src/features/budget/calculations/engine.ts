@@ -600,8 +600,8 @@ export function calculateLineItem({
       break;
     }
     case "PERSON_ONE_WAY": {
-      // 도시 간 교통: adultCount * (도시 개수 - 1)
-      const trips = Math.max(0, cityCount - 1);
+      // 1개 개별 구간당 편도 이동: adultCount * 1구간
+      const trips = 1;
       quantity = trips;
       durationCount = 1;
       lineTotalKrw = unitPrice * adultCount * trips;

@@ -240,7 +240,7 @@ export default function TransportPlannerPanel({
         </div>
 
         {/* 방문 도시 순서 (드래그 앤 드롭) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold text-slate-700 overflow-x-auto no-scrollbar py-0.5">
+        <div className="flex flex-wrap items-center gap-x-1.5 sm:gap-x-2 gap-y-2 text-xs font-bold text-slate-700 py-0.5">
           <span className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0 text-[11px] sm:text-xs font-extrabold shadow-2xs">
             <span>🛫</span>
             <span className="whitespace-nowrap">{getAirportDisplayName(entryAirport)}</span>

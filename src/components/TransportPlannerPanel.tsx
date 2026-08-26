@@ -240,12 +240,12 @@ export default function TransportPlannerPanel({
         </div>
 
         {/* 방문 도시 순서 (드래그 앤 드롭) */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
-          <span className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-bold text-slate-700 overflow-x-auto no-scrollbar py-0.5">
+          <span className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0 text-[11px] sm:text-xs font-extrabold shadow-2xs">
             <span>🛫</span>
-            <span>{getAirportDisplayName(entryAirport)}</span>
+            <span className="whitespace-nowrap">{getAirportDisplayName(entryAirport)}</span>
           </span>
-          <span className="text-slate-400">➔</span>
+          <span className="text-slate-300 shrink-0 text-[11px]">➔</span>
 
           {displayCities.map((city, idx) => (
             <React.Fragment key={city}>
@@ -255,23 +255,23 @@ export default function TransportPlannerPanel({
                 onDragOver={(e) => handleDragOverCard(e, city)}
                 onDrop={handleDrop}
                 onDragEnd={handleDragEnd}
-                className="px-3 py-1 rounded-lg bg-white border border-slate-200 shadow-2xs flex items-center gap-1.5 cursor-grab active:cursor-grabbing"
+                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200/90 shadow-2xs flex items-center gap-1.5 cursor-grab active:cursor-grabbing shrink-0 text-[11px] sm:text-xs font-extrabold hover:border-slate-300 transition-all"
               >
-                <span className="w-4 h-4 rounded-full bg-rose-100 text-[#e25c5c] text-[10px] font-extrabold flex items-center justify-center">
+                <span className="w-3.5 h-3.5 rounded-full bg-rose-100 text-[#e25c5c] text-[9px] font-black flex items-center justify-center shrink-0">
                   {idx + 1}
                 </span>
-                <span>{getCityName(city)}</span>
+                <span className="whitespace-nowrap">{getCityName(city)}</span>
               </div>
               {idx < displayCities.length - 1 && (
-                <span className="text-slate-400">➔</span>
+                <span className="text-slate-300 shrink-0 text-[11px]">➔</span>
               )}
             </React.Fragment>
           ))}
 
-          <span className="text-slate-400">➔</span>
-          <span className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0">
+          <span className="text-slate-300 shrink-0 text-[11px]">➔</span>
+          <span className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0 text-[11px] sm:text-xs font-extrabold shadow-2xs">
             <span>🛫</span>
-            <span>{getAirportDisplayName(exitAirport)}</span>
+            <span className="whitespace-nowrap">{getAirportDisplayName(exitAirport)}</span>
           </span>
         </div>
       </div>

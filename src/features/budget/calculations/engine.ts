@@ -350,61 +350,36 @@ export function generateInitialBudgetPlan(
 
   // 3.2 🚆 도시 간 이동 (다중 도시일 때)
   if (selectedCities.length >= 2) {
-    if (overrides?.isKobusPassApplied) {
-      // 고속버스 프리패스 3일권 일괄 적용
-      const kobusPassItem: BudgetLineItem = {
-        id: `INTERCITY_KOBUS_FREE_PASS`,
-        basketId: "KTX_STANDARD" as BudgetBasketId,
-        category: "INTERCITY_TRANSPORT",
-        scope: "INTERCITY",
+    for (let i = 0; i < selectedCities.length - 1; i++) {
+      const fromCity = selectedCities[i];
+      const toCity = selectedCities[i + 1];
+      const fromCityName = CITY_KOREAN_NAMES[fromCity] || fromCity;
+      const toCityName = CITY_KOREAN_NAMES[toCity] || toCity;
+      const routeKey = `${fromCity}-${toCity}`;
+      const options = getIntercityFareOptions(fromCity, toCity);
+
+      const userOverrideMode = allOverrides[routeKey] || allOverrides[`${toCity}-${fromCity}`];
+      const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
+        || options.find((o) => o.isDefault)
+        || options[0];
+
+      const item = calculateLineItem({
+        basket: selectedOption
+          ? {
+              ...basket,
+              representativePriceKrw: selectedOption.oneWayPriceKrw,
+              sourceLabel: `[도시 간] ${selectedOption.nameKo} (${fromCityName} ➔ ${toCityName})`,
+            }
+          : basket,
         cityCode: null,
-        route: "KOBUS_FREE_PASS_3DAYS",
-        unitPriceKrw: 88000,
-        pricingUnit: "PER_PERSON",
-        quantity: adultCount,
-        participantCount: adultCount,
-        durationCount: 1,
-        lineTotalKrw: 88000 * adultCount,
-        priceMinKrw: 88000 * adultCount,
-        priceMaxKrw: 88000 * adultCount,
-        confidence: "OFFICIAL",
-        updatedAt: "2026-08-01",
-        sourceLabel: "[도시 간] 코버스 고속버스 프리패스 (3일권 전구간 무제한)",
-      };
-      intercityLineItems.push(kobusPassItem);
-      lineItems.push(kobusPassItem);
-    } else {
-      for (let i = 0; i < selectedCities.length - 1; i++) {
-        const fromCity = selectedCities[i];
-        const toCity = selectedCities[i + 1];
-        const fromCityName = CITY_KOREAN_NAMES[fromCity] || fromCity;
-        const toCityName = CITY_KOREAN_NAMES[toCity] || toCity;
-        const routeKey = `${fromCity}-${toCity}`;
-        const options = getIntercityFareOptions(fromCity, toCity);
+        route: routeKey,
+        adultCount,
+        duration: 1,
+        cityCount: selectedCities.length,
+      });
 
-        const userOverrideMode = allOverrides[routeKey] || allOverrides[`${toCity}-${fromCity}`];
-        const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
-          || options.find((o) => o.isDefault)
-          || options[0];
-
-        const item = calculateLineItem({
-          basket: selectedOption
-            ? {
-                ...basket,
-                representativePriceKrw: selectedOption.oneWayPriceKrw,
-                sourceLabel: `[도시 간] ${selectedOption.nameKo} (${fromCityName} ➔ ${toCityName})`,
-              }
-            : basket,
-          cityCode: null,
-          route: routeKey,
-          adultCount,
-          duration: 1,
-          cityCount: selectedCities.length,
-        });
-
-        intercityLineItems.push(item);
-        lineItems.push(item);
-      }
+      intercityLineItems.push(item);
+      lineItems.push(item);
     }
   }
 

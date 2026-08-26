@@ -350,35 +350,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   };
 
-  const handleToggleKobusPass = (applied: boolean) => {
-    if (state.status !== "ready") return;
-    const nextPrefs: PlannerPreferences = {
-      ...state.preferences,
-      isKobusPassApplied: applied,
-    };
-
-    savePlannerPreferences({
-      draft: state.draft,
-      accommodationByCity: nextPrefs.accommodationByCity,
-      foodTier: nextPrefs.foodTier,
-      foodOverrides: nextPrefs.foodOverrides,
-      foodAddOnOverrides: nextPrefs.addOnSelections,
-      attractionByCity: nextPrefs.attractionByCity,
-      attractionSelections: nextPrefs.attractionSelections,
-      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
-      emergencyFundKrw: nextPrefs.emergencyFundKrw,
-      emergencyFundPct: nextPrefs.emergencyFundPct,
-      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
-      localTransitStyle: nextPrefs.localTransitStyle,
-      isKobusPassApplied: applied,
-    });
-
-    setState({
-      ...state,
-      preferences: nextPrefs,
-    });
-  };
-
   const handleReorderCities = (newCities: SupportedCity[]) => {
     if (state.status !== "ready") return;
     const nextDraft: TripDraft = {
@@ -2209,8 +2180,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 onReorderCities={handleReorderCities}
                 localTransitStyle={preferences.localTransitStyle || "STANDARD_MIX"}
                 onSelectLocalTransitStyle={handleSelectLocalTransitStyle}
-                isKobusPassApplied={preferences.isKobusPassApplied || false}
-                onToggleKobusPass={handleToggleKobusPass}
                 locale={locale}
                 dict={dict}
               />

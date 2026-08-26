@@ -16,8 +16,6 @@ interface TransportPlannerPanelProps {
   onReorderCities?: (newCities: SupportedCity[]) => void;
   localTransitStyle?: LocalTransitStyle;
   onSelectLocalTransitStyle?: (style: LocalTransitStyle) => void;
-  isKobusPassApplied?: boolean;
-  onToggleKobusPass?: (applied: boolean) => void;
   locale: Locale;
   dict: Dictionary;
 }
@@ -29,8 +27,6 @@ export default function TransportPlannerPanel({
   onReorderCities,
   localTransitStyle = "STANDARD_MIX",
   onSelectLocalTransitStyle,
-  isKobusPassApplied = false,
-  onToggleKobusPass,
   locale,
   dict,
 }: TransportPlannerPanelProps) {
@@ -185,23 +181,6 @@ export default function TransportPlannerPanel({
     const defaultMode = newOptions.find((o) => o.isDefault)?.mode || newOptions[0].mode;
     onSelectIntercityOverride(`EXIT_${lastCity}-${newAirport}`, defaultMode);
   };
-
-  // 3. 고속버스 프리패스 절약 금액 계산
-  let totalIntercityBusCostKrw = 0;
-  if (selectedCities.length >= 2) {
-    for (let i = 0; i < selectedCities.length - 1; i++) {
-      const fromCity = selectedCities[i];
-      const toCity = selectedCities[i + 1];
-      const routeKey = `${fromCity}-${toCity}`;
-      const options = getIntercityFareOptions(fromCity, toCity);
-      const busOpt = options.find((o) => o.mode === "EXPRESS_BUS") || options.find((o) => o.isDefault) || options[0];
-      totalIntercityBusCostKrw += busOpt.oneWayPriceKrw * adultCount;
-    }
-  }
-
-  const kobusPass3DaysPrice = 88000 * adultCount;
-  const isKobusPassEligible = selectedCities.length >= 3 && totalIntercityBusCostKrw > kobusPass3DaysPrice;
-  const kobusPassSavingsKrw = totalIntercityBusCostKrw - kobusPass3DaysPrice;
 
   return (
     <div className="space-y-6">
@@ -418,53 +397,6 @@ export default function TransportPlannerPanel({
             </div>
           </div>
 
-          {/* 💡 고속버스 프리패스 스마트 절약 알림 카드 */}
-          {isKobusPassEligible && (
-            <div className={`p-4 rounded-2xl border transition-all ${
-              isKobusPassApplied
-                ? "bg-emerald-50/90 border-emerald-300 text-emerald-950"
-                : "bg-amber-50/90 border-amber-300 text-amber-950 shadow-xs"
-            }`}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
-                      isKobusPassApplied ? "bg-emerald-600 text-white" : "bg-amber-600 text-white"
-                    }`}>
-                      {isKobusPassApplied
-                        ? locale === "ko" ? "프리패스 적용 완료" : "Pass Applied"
-                        : locale === "ko" ? "스마트 절약 추천" : "Smart Savings Tip"}
-                    </span>
-                    <strong className="text-xs sm:text-sm font-extrabold">
-                      {locale === "ko" ? "코버스(KOBUS) 고속버스 프리패스 (3일권)" : "KOBUS Express Bus Free Pass (3-Day)"}
-                    </strong>
-                  </div>
-                  <p className="text-xs leading-relaxed opacity-90">
-                    {locale === "ko"
-                      ? `선택하신 ${selectedCities.length}개 도시 버스 이동 시, 프리패스(₩88,000/인)를 이용하시면 개별 발권(${formatKrw(totalIntercityBusCostKrw)}) 대비 약 ${formatKrw(kobusPassSavingsKrw)} 절약됩니다!`
-                      : `Save ${formatKrw(kobusPassSavingsKrw)} by applying the 3-day KOBUS Pass (₩88,000/person) instead of individual tickets (${formatKrw(totalIntercityBusCostKrw)}).`}
-                  </p>
-                </div>
-
-                {onToggleKobusPass && (
-                  <button
-                    type="button"
-                    onClick={() => onToggleKobusPass(!isKobusPassApplied)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-2xs shrink-0 ${
-                      isKobusPassApplied
-                        ? "bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-100"
-                        : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-sm"
-                    }`}
-                  >
-                    {isKobusPassApplied
-                      ? locale === "ko" ? "개별 발권으로 변경 ↩" : "Revert to Individual ↩"
-                      : locale === "ko" ? "⚡ 프리패스 요금 적용하기" : "⚡ Apply Free Pass"}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
           <div className="grid gap-4">
             {Array.from({ length: selectedCities.length - 1 }).map((_, idx) => {
               const fromCity = selectedCities[idx];
@@ -477,14 +409,12 @@ export default function TransportPlannerPanel({
                 || options.find((o) => o.isDefault)
                 || options[0];
 
-              const totalSegmentKrw = isKobusPassApplied ? 0 : activeOption.oneWayPriceKrw * adultCount;
+              const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
 
               return (
                 <div
                   key={routeKey}
-                  className={`p-4 rounded-xl bg-white border shadow-2xs space-y-3 transition-all ${
-                    isKobusPassApplied ? "border-emerald-200 bg-emerald-50/20" : "border-slate-200/90 hover:border-slate-300"
-                  }`}
+                  className="p-4 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs space-y-3 transition-all"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div className="flex items-center gap-2 font-black text-[#0f172a] text-sm">
@@ -495,80 +425,71 @@ export default function TransportPlannerPanel({
                       <span className="px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs">
                         {getCityName(toCity)}
                       </span>
-                      {isKobusPassApplied && (
-                        <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black">
-                          {locale === "ko" ? "프리패스 포함" : "Pass Covered"}
-                        </span>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs">
                       <span className="text-slate-500 font-medium">
                         {locale === "ko" ? "구간 소계:" : "Segment Subtotal:"}
                       </span>
-                      <strong className={isKobusPassApplied ? "text-emerald-700 font-black text-sm" : "text-[#e25c5c] font-black text-sm"}>
-                        {isKobusPassApplied ? (locale === "ko" ? "패스 포함 (₩0)" : "Covered (₩0)") : formatKrw(totalSegmentKrw)}
+                      <strong className="text-[#e25c5c] font-black text-sm">
+                        {formatKrw(totalSegmentKrw)}
                       </strong>
-                      {!isKobusPassApplied && (
-                        <span className="text-[11px] text-slate-400">
-                          ({formatKrw(activeOption.oneWayPriceKrw)} × {adultCount}{locale === "ko" ? "명" : ""})
-                        </span>
-                      )}
+                      <span className="text-[11px] text-slate-400">
+                        ({formatKrw(activeOption.oneWayPriceKrw)} × {adultCount}{locale === "ko" ? "명" : ""})
+                      </span>
                     </div>
                   </div>
 
-                  {!isKobusPassApplied && (
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-500 block">
-                        {locale === "ko" ? "이동 수단 선택" : "Select Transit Mode"}
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {options.map((opt) => {
-                          const isSelected = activeOption.mode === opt.mode;
-                          const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-500 block">
+                      {locale === "ko" ? "이동 수단 선택" : "Select Transit Mode"}
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {options.map((opt) => {
+                        const isSelected = activeOption.mode === opt.mode;
+                        const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;
 
-                          return (
-                            <button
-                              key={opt.mode}
-                              type="button"
-                              onClick={() => onSelectIntercityOverride(routeKey, opt.mode)}
-                              className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
-                                isSelected
-                                  ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs ring-1 ring-[#0f172a]"
-                                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="font-extrabold text-xs">
-                                  {locale === "ko" ? opt.nameKo : opt.nameEn}
+                        return (
+                          <button
+                            key={opt.mode}
+                            type="button"
+                            onClick={() => onSelectIntercityOverride(routeKey, opt.mode)}
+                            className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+                              isSelected
+                                ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs ring-1 ring-[#0f172a]"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="font-extrabold text-xs">
+                                {locale === "ko" ? opt.nameKo : opt.nameEn}
+                              </span>
+                              {badgeText && (
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-tight ${
+                                    isSelected
+                                      ? "bg-[#e25c5c] text-white"
+                                      : "bg-slate-100 text-[#0f172a] border border-slate-200 font-bold"
+                                  }`}
+                                >
+                                  {badgeText}
                                 </span>
-                                {badgeText && (
-                                  <span
-                                    className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-tight ${
-                                      isSelected
-                                        ? "bg-[#e25c5c] text-white"
-                                        : "bg-slate-100 text-[#0f172a] border border-slate-200 font-bold"
-                                    }`}
-                                  >
-                                    {badgeText}
-                                  </span>
-                                )}
-                              </div>
+                              )}
+                            </div>
 
-                              <div className="flex items-center justify-between text-[11px] font-medium opacity-90">
-                                <span className={isSelected ? "text-slate-300" : "text-slate-500"}>
-                                  ⏱ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
-                                </span>
-                                <strong className={isSelected ? "text-amber-300 font-black text-xs" : "text-[#0f172a] font-extrabold text-xs"}>
-                                  {formatKrw(opt.oneWayPriceKrw)}
-                                </strong>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
+                            <div className="flex items-center justify-between text-[11px] font-medium opacity-90">
+                              <span className={isSelected ? "text-slate-300" : "text-slate-500"}>
+                                ⏱ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
+                              </span>
+                              <strong className={isSelected ? "text-amber-300 font-black text-xs" : "text-[#0f172a] font-extrabold text-xs"}>
+                                {formatKrw(opt.oneWayPriceKrw)}
+                              </strong>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}

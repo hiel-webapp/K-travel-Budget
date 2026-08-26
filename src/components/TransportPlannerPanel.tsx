@@ -61,7 +61,7 @@ export default function TransportPlannerPanel({
   }, [selectedCities, dragCity]);
 
   const getCityName = (city: SupportedCity | "INCHEON") => {
-    if (city === "INCHEON") return locale === "ko" ? "인천국제공항(ICN)" : "Incheon Int'l Airport (ICN)";
+    if (city === "INCHEON") return locale === "ko" ? "인천국제공항" : "Incheon Int'l Airport";
     return locale === "ko"
       ? CITY_KOREAN_NAMES[city] || city
       : CITY_ENGLISH_NAMES[city] || city;
@@ -69,7 +69,7 @@ export default function TransportPlannerPanel({
 
   const getAirportDisplayName = (airportKey: string) => {
     const info = AIRPORT_INFO_MAP[airportKey] || AIRPORT_INFO_MAP.INCHEON;
-    return locale === "ko" ? `${info.nameKo} (${info.code})` : `${info.nameEn} (${info.code})`;
+    return locale === "ko" ? info.nameKo : `${info.nameEn} (${info.code})`;
   };
 
   // 최적 동선 자동 정렬

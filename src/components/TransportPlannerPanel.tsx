@@ -335,7 +335,7 @@ export default function TransportPlannerPanel({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {entryOptions.map((opt) => {
               const isSelected = activeEntryOption.nameKo === opt.nameKo;
               const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;
@@ -444,7 +444,7 @@ export default function TransportPlannerPanel({
                     <label className="text-[11px] font-bold text-slate-500 block">
                       {locale === "ko" ? "이동 수단 선택" : "Select Transit Mode"}
                     </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       {options.map((opt) => {
                         const isSelected = activeOption.mode === opt.mode;
                         const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;
@@ -555,7 +555,7 @@ export default function TransportPlannerPanel({
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {exitOptions.map((opt) => {
               const isSelected = activeExitOption.nameKo === opt.nameKo;
               const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;

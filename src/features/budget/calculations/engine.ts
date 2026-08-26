@@ -1,4 +1,4 @@
-import { SupportedCity, TripDraft, validateTripDraft, BudgetTier } from "../../../lib/trip-domain";
+import { SupportedCity, TripDraft, validateTripDraft, BudgetTier, CITY_KOREAN_NAMES } from "../../../lib/trip-domain";
 import {
   BudgetCategory,
   BudgetBasketDefinition,
@@ -22,7 +22,7 @@ import {
 } from "../catalog/mock-catalog";
 import { applyFoodReplacements, applyFoodAddOns } from "./food-engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
-import { getIntercityFareOptions, getAirportTransitOptions } from "../../../lib/transport/intercity-fares";
+import { getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } from "../../../lib/transport/intercity-fares";
 
 /**
  * TripDraft 입력을 기준으로 초기 BudgetPlan을 생성하는 순수 계산 엔진
@@ -219,11 +219,12 @@ export function generateInitialBudgetPlan(
           item = accPlaceOverrideItem;
         } else if (attractionOverrideItem) {
           item = attractionOverrideItem;
-        } else if (category === "CITY_TRANSPORT" && overrides?.localTransitStyle) {
-          const transitOpt = LOCAL_TRANSIT_OPTIONS.find((o) => o.style === overrides.localTransitStyle) || LOCAL_TRANSIT_OPTIONS[0];
+        } else if (category === "CITY_TRANSPORT") {
+          const transitOpt = (overrides?.localTransitStyle && LOCAL_TRANSIT_OPTIONS.find((o) => o.style === overrides.localTransitStyle)) || LOCAL_TRANSIT_OPTIONS[0];
           const unitPrice = transitOpt.pricePerDayKrw;
           const lineTotalKrw = unitPrice * adultCount * nights;
           const basket = findBasket(catalog, basketId, category, city) || catalog.find((b) => b.category === "CITY_TRANSPORT");
+          const cityName = CITY_KOREAN_NAMES[city] || city;
 
           item = {
             id: `${city}_CITY_TRANSPORT_CUSTOM`.toUpperCase(),
@@ -242,7 +243,7 @@ export function generateInitialBudgetPlan(
             priceMaxKrw: lineTotalKrw,
             confidence: "OFFICIAL",
             updatedAt: "2026-08-01",
-            sourceLabel: `${transitOpt.nameKo} (1일 4회 이동 기준)`,
+            sourceLabel: `[시내 교통] ${transitOpt.nameKo} (${cityName} ${nights}일 / 1일 4회 기준)`,
           };
         } else {
           const basket = findBasket(catalog, basketId, category, city);
@@ -312,11 +313,18 @@ export function generateInitialBudgetPlan(
     (b) => b.category === category && b.isActive
   ) || catalog[0];
 
-  // 3.1 🛫 입국 공항 이동 (인천공항 ➔ 첫 도시)
+  const allOverrides = overrides?.intercityTransportOverrides || {};
+
+  // 3.1 🛫 입국 공항 이동 (공항 ➔ 첫 도시)
   if (firstCity) {
-    const entryRouteKey = `ENTRY_AIRPORT-${firstCity}`;
-    const entryOptions = getAirportTransitOptions("INCHEON", firstCity);
-    const userEntryOverride = overrides?.intercityTransportOverrides?.[entryRouteKey] || overrides?.intercityTransportOverrides?.[`INCHEON-${firstCity}`];
+    const entryKey = Object.keys(allOverrides).find((k) => k.startsWith("ENTRY_")) || `ENTRY_INCHEON-${firstCity}`;
+    const parts = entryKey.replace("ENTRY_", "").split("-");
+    const entryAirport = (parts[0] || "INCHEON") as "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT";
+    const entryAirportInfo = AIRPORT_INFO_MAP[entryAirport] || AIRPORT_INFO_MAP.INCHEON;
+    const firstCityName = CITY_KOREAN_NAMES[firstCity] || firstCity;
+
+    const entryOptions = getAirportTransitOptions(entryAirport, firstCity);
+    const userEntryOverride = allOverrides[entryKey] || allOverrides[`ENTRY_AIRPORT-${firstCity}`] || allOverrides[`${entryAirport}-${firstCity}`];
     const selectedEntryOption = (userEntryOverride && entryOptions.find((o) => o.mode === userEntryOverride))
       || entryOptions.find((o) => o.isDefault)
       || entryOptions[0];
@@ -326,11 +334,11 @@ export function generateInitialBudgetPlan(
         ? {
             ...basket,
             representativePriceKrw: selectedEntryOption.oneWayPriceKrw,
-            sourceLabel: `${selectedEntryOption.nameKo} (공항입국➔${firstCity})`,
+            sourceLabel: `[입국 공항] ${selectedEntryOption.nameKo} (${entryAirportInfo.nameKo} ➔ ${firstCityName})`,
           }
         : basket,
       cityCode: null,
-      route: entryRouteKey,
+      route: entryKey,
       adultCount,
       duration: 1,
       cityCount: selectedCities.length,
@@ -361,7 +369,7 @@ export function generateInitialBudgetPlan(
         priceMaxKrw: 88000 * adultCount,
         confidence: "OFFICIAL",
         updatedAt: "2026-08-01",
-        sourceLabel: "코버스 고속버스 프리패스 (3일권 전구간 무제한)",
+        sourceLabel: "[도시 간] 코버스 고속버스 프리패스 (3일권 전구간 무제한)",
       };
       intercityLineItems.push(kobusPassItem);
       lineItems.push(kobusPassItem);
@@ -369,10 +377,12 @@ export function generateInitialBudgetPlan(
       for (let i = 0; i < selectedCities.length - 1; i++) {
         const fromCity = selectedCities[i];
         const toCity = selectedCities[i + 1];
+        const fromCityName = CITY_KOREAN_NAMES[fromCity] || fromCity;
+        const toCityName = CITY_KOREAN_NAMES[toCity] || toCity;
         const routeKey = `${fromCity}-${toCity}`;
         const options = getIntercityFareOptions(fromCity, toCity);
 
-        const userOverrideMode = overrides?.intercityTransportOverrides?.[routeKey] || overrides?.intercityTransportOverrides?.[`${toCity}-${fromCity}`];
+        const userOverrideMode = allOverrides[routeKey] || allOverrides[`${toCity}-${fromCity}`];
         const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
           || options.find((o) => o.isDefault)
           || options[0];
@@ -382,7 +392,7 @@ export function generateInitialBudgetPlan(
             ? {
                 ...basket,
                 representativePriceKrw: selectedOption.oneWayPriceKrw,
-                sourceLabel: `${selectedOption.nameKo} (${fromCity}➔${toCity})`,
+                sourceLabel: `[도시 간] ${selectedOption.nameKo} (${fromCityName} ➔ ${toCityName})`,
               }
             : basket,
           cityCode: null,
@@ -398,11 +408,16 @@ export function generateInitialBudgetPlan(
     }
   }
 
-  // 3.3 🛫 출국 공항 이동 (마지막 도시 ➔ 인천공항)
+  // 3.3 🛫 출국 공항 이동 (마지막 도시 ➔ 공항)
   if (lastCity) {
-    const exitRouteKey = `EXIT_${lastCity}-AIRPORT`;
-    const exitOptions = getAirportTransitOptions("INCHEON", lastCity);
-    const userExitOverride = overrides?.intercityTransportOverrides?.[exitRouteKey] || overrides?.intercityTransportOverrides?.[`${lastCity}-INCHEON`];
+    const exitKey = Object.keys(allOverrides).find((k) => k.startsWith("EXIT_")) || `EXIT_${lastCity}-INCHEON`;
+    const parts = exitKey.replace("EXIT_", "").split("-");
+    const exitAirport = (parts[1] || "INCHEON") as "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT";
+    const exitAirportInfo = AIRPORT_INFO_MAP[exitAirport] || AIRPORT_INFO_MAP.INCHEON;
+    const lastCityName = CITY_KOREAN_NAMES[lastCity] || lastCity;
+
+    const exitOptions = getAirportTransitOptions(exitAirport, lastCity);
+    const userExitOverride = allOverrides[exitKey] || allOverrides[`EXIT_${lastCity}-AIRPORT`] || allOverrides[`${lastCity}-${exitAirport}`];
     const selectedExitOption = (userExitOverride && exitOptions.find((o) => o.mode === userExitOverride))
       || exitOptions.find((o) => o.isDefault)
       || exitOptions[0];
@@ -412,11 +427,11 @@ export function generateInitialBudgetPlan(
         ? {
             ...basket,
             representativePriceKrw: selectedExitOption.oneWayPriceKrw,
-            sourceLabel: `${selectedExitOption.nameKo} (${lastCity}➔공항출국)`,
+            sourceLabel: `[출국 공항] ${selectedExitOption.nameKo} (${lastCityName} ➔ ${exitAirportInfo.nameKo})`,
           }
         : basket,
       cityCode: null,
-      route: exitRouteKey,
+      route: exitKey,
       adultCount,
       duration: 1,
       cityCount: selectedCities.length,

@@ -602,7 +602,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     <div key={item.id} className="space-y-1">
                       <div className="flex justify-between items-start text-xs gap-4">
                         <div>
-                          <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}</span>
+                          <span className="text-slate-700 font-medium block">
+                            {item.sourceLabel || getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}
+                          </span>
                           <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
                         </div>
                         <span className="font-sans tabular-nums font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>
@@ -637,7 +639,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                 {plan.intercitySection.lineItems.map((item) => (
                   <div key={item.id} className="flex justify-between items-start text-xs gap-4">
                     <div>
-                      <span className="text-slate-600 block">{getBasketLabel(item.basketId, dict, locale)}</span>
+                      <span className="text-slate-700 font-medium block">
+                        {item.sourceLabel || getBasketLabel(item.basketId, dict, locale)}
+                      </span>
                       <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
                     </div>
                     <span className="font-sans tabular-nums font-semibold text-slate-700 whitespace-nowrap">{formatKrw(item.lineTotalKrw)}</span>

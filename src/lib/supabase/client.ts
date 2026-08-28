@@ -87,8 +87,17 @@ export async function supabaseFetch<T>(
       return [] as unknown as T;
     }
 
-    const data: T = await response.json();
-    return data;
+    const text = await response.text();
+    if (!text || text.trim() === "") {
+      return [] as unknown as T;
+    }
+
+    try {
+      const data: T = JSON.parse(text);
+      return data;
+    } catch {
+      return [] as unknown as T;
+    }
   } catch (err: unknown) {
     if (err instanceof Error && err.message.startsWith("[SUPABASE_")) {
       throw err;

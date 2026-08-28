@@ -100,6 +100,9 @@ export async function upsertAllFaresToDb(
     await supabaseFetch<any>("intercity_transport_fares", {
       method: "POST",
       prefer: "resolution=merge-duplicates",
+      query: {
+        on_conflict: "route_key,mode,name_ko",
+      },
       headers: {
         "Content-Type": "application/json",
       },

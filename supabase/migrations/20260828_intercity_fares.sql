@@ -29,6 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_intercity_fares_cities ON intercity_transport_far
 -- RLS (Row Level Security) 설정: 전 세계 누구나 읽기 가능(Public Read), Service Role만 쓰기 가능
 ALTER TABLE intercity_transport_fares ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow public read access on intercity_transport_fares" ON intercity_transport_fares;
 CREATE POLICY "Allow public read access on intercity_transport_fares"
   ON intercity_transport_fares
   FOR SELECT

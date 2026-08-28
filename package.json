@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "sync:fares": "tsx scripts/sync-tago-fares.ts",
-    "export:csv": "tsx scripts/export-fares-csv.ts"
+    "sync:fares": "npx -y tsx scripts/sync-tago-fares.ts",
+    "export:csv": "npx -y tsx scripts/export-fares-csv.ts"
   },
   "dependencies": {
     "next": "16.2.10",

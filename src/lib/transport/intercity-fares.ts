@@ -327,16 +327,6 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "isDefault": true,
       "badgeTextKo": "직항추천",
       "badgeTextEn": "Fast Flight"
-    },
-    {
-      "mode": "FERRY",
-      "nameKo": "여수엑스포항 쾌속선 (골드스텔라)",
-      "nameEn": "Jeju-Yeosu Express Ferry",
-      "oneWayPriceKrw": 42000,
-      "durationTextKo": "2시간 40분",
-      "durationTextEn": "2h 40m",
-      "badgeTextKo": "해상쾌속선",
-      "badgeTextEn": "Sea Ferry"
     }
   ],
   "JEJU-SOKCHO": [

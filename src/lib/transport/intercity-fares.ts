@@ -93,7 +93,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "EXPRESS_BUS",
       "nameKo": "우등 고속버스 (센트럴시티)",
       "nameEn": "Express Bus (Central City)",
-      "oneWayPriceKrw": 20100,
+      "oneWayPriceKrw": 22000,
       "durationTextKo": "2시간 40분",
       "durationTextEn": "2h 40m",
       "badgeTextKo": "가성비",
@@ -106,8 +106,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "nameKo": "KTX 고속철도 (신경주역)",
       "nameEn": "KTX Express (Singyeongju)",
       "oneWayPriceKrw": 49300,
-      "durationTextKo": "2시간 10분",
-      "durationTextEn": "2h 10m",
+      "durationTextKo": "2시간 2분",
+      "durationTextEn": "2h 2m",
       "isDefault": true,
       "badgeTextKo": "추천",
       "badgeTextEn": "Recommended"
@@ -127,8 +127,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "nameKo": "KTX-이음 (서울/청량리역)",
       "nameEn": "KTX-Eum (Seoul/Cheongnyangni)",
       "oneWayPriceKrw": 27600,
-      "durationTextKo": "2시간 00분",
-      "durationTextEn": "2h 00m",
+      "durationTextKo": "1시간 57분",
+      "durationTextEn": "1h 57m",
       "isDefault": true,
       "badgeTextKo": "추천",
       "badgeTextEn": "Recommended"
@@ -158,7 +158,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "EXPRESS_BUS",
       "nameKo": "우등 고속버스 (센트럴시티)",
       "nameEn": "Express Bus (Central City)",
-      "oneWayPriceKrw": 33200,
+      "oneWayPriceKrw": 36400,
       "durationTextKo": "4시간 15분",
       "durationTextEn": "4h 15m"
     }
@@ -371,8 +371,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "nameKo": "KTX 고속철도 (부산역 ➔ 신경주역)",
       "nameEn": "KTX Train (Busan ➔ Singyeongju)",
       "oneWayPriceKrw": 11000,
-      "durationTextKo": "30분",
-      "durationTextEn": "30m",
+      "durationTextKo": "27분",
+      "durationTextEn": "27m",
       "isDefault": true,
       "badgeTextKo": "초고속",
       "badgeTextEn": "Fastest"
@@ -414,9 +414,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "EXPRESS_BUS",
       "nameKo": "시외 우등버스 (사상터미널)",
       "nameEn": "Intercity Express Bus",
-      "oneWayPriceKrw": 18000,
-      "durationTextKo": "2시간 20분",
-      "durationTextEn": "2h 20m",
+      "oneWayPriceKrw": 23600,
+      "durationTextKo": "3시간 50분",
+      "durationTextEn": "3h 50m",
       "isDefault": true,
       "badgeTextKo": "직통추천",
       "badgeTextEn": "Direct Bus"
@@ -522,9 +522,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "KTX (오송역 환승)",
       "nameEn": "KTX via Osong Transfer",
-      "oneWayPriceKrw": 62000,
-      "durationTextKo": "2시간 10분",
-      "durationTextEn": "2h 10m"
+      "oneWayPriceKrw": 25800,
+      "durationTextKo": "1시간 1분",
+      "durationTextEn": "1h 1m"
     }
   ],
   "JEONJU-GANGNEUNG": [
@@ -585,9 +585,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "동해선 ITX-마음 직통열차",
       "nameEn": "Donghae Line Train",
-      "oneWayPriceKrw": 29000,
-      "durationTextKo": "2시간 50분",
-      "durationTextEn": "2h 50m",
+      "oneWayPriceKrw": 34300,
+      "durationTextKo": "2시간 44분",
+      "durationTextEn": "2h 44m",
       "isDefault": true,
       "badgeTextKo": "철도직통",
       "badgeTextEn": "Direct Rail"
@@ -728,9 +728,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "EXPRESS_BUS",
       "nameKo": "우등 고속버스",
       "nameEn": "Express Bus",
-      "oneWayPriceKrw": 29000,
-      "durationTextKo": "4시간 00분",
-      "durationTextEn": "4h 00m"
+      "oneWayPriceKrw": 36000,
+      "durationTextKo": "4시간 40분",
+      "durationTextEn": "4h 40m"
     }
   ],
   "YEOSU-SOKCHO": [

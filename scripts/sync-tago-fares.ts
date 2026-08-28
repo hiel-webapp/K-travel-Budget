@@ -4,14 +4,14 @@ import fs from "fs";
 import { fetchTrainSchedule, fetchExpBusSchedule, formatDurationTexts } from "../src/lib/tago/client";
 import { CITY_TRAIN_STATION_MAP, CITY_BUS_TERMINAL_MAP } from "../src/lib/tago/constants";
 import { SupportedCity } from "../src/lib/trip-domain";
-import { INTERCITY_FARE_TABLE } from "../src/lib/transport/intercity-fares";
+import { INTERCITY_FARE_TABLE, IntercityFareInfo } from "../src/lib/transport/intercity-fares";
 
 // Load .env.local
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
 async function runTagoFareSync() {
   console.log("==========================================================");
-  console.log("🚄 국토교통부(TAGO) 공식 열차 & 고속버스 요금 자동 동기화");
+  console.log("🚄 국토교통부(TAGO) 공식 열차 & 고속버스 요금 수집 및 파일 영구 반영");
   console.log("==========================================================");
 
   const cityPairs: [SupportedCity, SupportedCity][] = [
@@ -41,6 +41,7 @@ async function runTagoFareSync() {
     ["SUWON", "SOKCHO"],
   ];
 
+  const fareTableCopy: Record<string, IntercityFareInfo[]> = { ...INTERCITY_FARE_TABLE };
   let updatedCount = 0;
 
   for (const [fromCity, toCity] of cityPairs) {
@@ -77,8 +78,7 @@ async function runTagoFareSync() {
 
             console.log(`  🚄 [${targetTrain.traingradename}] ${fStn.name}➔${tStn.name} : ₩${fare.toLocaleString()} (${durationMin}분)`);
             
-            // 기존 테이블의 KTX 옵션 업데이트
-            const existingOptions = INTERCITY_FARE_TABLE[routeKey];
+            const existingOptions = fareTableCopy[routeKey];
             if (existingOptions) {
               const ktxOpt = existingOptions.find((o) => o.mode === "KTX");
               if (ktxOpt) {
@@ -125,7 +125,7 @@ async function runTagoFareSync() {
 
             console.log(`  🚌 [${targetBus.gradeNm || "고속"}] ${fTrm.name}➔${tTrm.name} : ₩${fare.toLocaleString()} (${durationMin}분)`);
             
-            const existingOptions = INTERCITY_FARE_TABLE[routeKey];
+            const existingOptions = fareTableCopy[routeKey];
             if (existingOptions) {
               const busOpt = existingOptions.find((o) => o.mode === "EXPRESS_BUS");
               if (busOpt) {
@@ -143,6 +143,21 @@ async function runTagoFareSync() {
         }
       }
     }
+  }
+
+  // intercity-fares.ts 파일에 수집된 요금 테이블 덮어쓰기
+  const targetFilePath = path.resolve(process.cwd(), "src/lib/transport/intercity-fares.ts");
+  let fileContent = fs.readFileSync(targetFilePath, "utf8");
+
+  const tableJson = JSON.stringify(fareTableCopy, null, 2);
+  const updatedCode = `export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = ${tableJson};\n`;
+
+  // 정규식으로 INTERCITY_FARE_TABLE 정의 부분 교체
+  const regex = /export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo\[\]> = \{[\s\S]*?\n\};\n/;
+  if (regex.test(fileContent)) {
+    fileContent = fileContent.replace(regex, updatedCode);
+    fs.writeFileSync(targetFilePath, fileContent, "utf8");
+    console.log(`\n💾 [파일 저장 완료] src/lib/transport/intercity-fares.ts 파일에 최신 TAGO 공식 요금이 영구 반영되었습니다.`);
   }
 
   console.log("\n==========================================================");

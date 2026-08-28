@@ -281,7 +281,7 @@ export default function TransportPlannerPanel({
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-black tracking-tight uppercase">
-              {locale === "ko" ? "입국 첫날" : "Day 1 Arrival"}
+              {locale === "ko" ? "입국 첫날" : "Arrival Day"}
             </span>
             <div className="flex items-center gap-1.5 font-extrabold text-[#0f172a] text-sm">
               <span>🛫 {getAirportDisplayName(entryAirport)}</span>
@@ -292,14 +292,16 @@ export default function TransportPlannerPanel({
 
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-slate-500 font-medium">
-              {locale === "ko" ? "입국 교통비:" : "Entry Transit Cost:"}
+              {locale === "ko" ? "1인 편도:" : "1-Person Fare:"}
             </span>
-            <strong className="text-[#e25c5c] font-black text-sm">
-              {formatKrw(entryTotalKrw)}
+            <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
+              {formatKrw(activeEntryOption.oneWayPriceKrw)}
             </strong>
-            <span className="text-[11px] text-slate-400">
-              ({formatKrw(activeEntryOption.oneWayPriceKrw)} × {adultCount}{locale === "ko" ? "명" : ""})
-            </span>
+            {adultCount > 1 && (
+              <span className="text-[11px] text-slate-400 font-medium ml-1">
+                ({locale === "ko" ? `총 ${formatKrw(entryTotalKrw)} / ${adultCount}명` : `Total ${formatKrw(entryTotalKrw)} / ${adultCount}p`})
+              </span>
+            )}
           </div>
         </div>
 
@@ -444,24 +446,21 @@ export default function TransportPlannerPanel({
                     </div>
                   </div>
 
-                  {/* 우측: [1줄: 소계 / 2줄: 1인 단가] */}
+                  {/* 우측: [1줄: 1인 단가 (메인) / 2줄: 소계 (서브)] */}
                   <div className="space-y-0.5 text-right shrink-0">
                     <div className="text-xs sm:text-[13px]">
                       <span className="text-slate-500 font-medium mr-1.5">
-                        {locale === "ko" ? "소계:" : "Subtotal:"}
+                        {locale === "ko" ? "1인 편도:" : "1-Person:"}
                       </span>
                       <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
-                        {formatKrw(totalSegmentKrw)}
+                        {formatKrw(activeOption.oneWayPriceKrw)}
                       </strong>
-                      {adultCount > 1 && (
-                        <span className="text-[11px] text-slate-400 font-medium ml-1">
-                          ({adultCount}{locale === "ko" ? "명" : "p"})
-                        </span>
-                      )}
                     </div>
-                    <div className="text-[11px] text-slate-400 font-medium">
-                      (1인 {formatKrw(activeOption.oneWayPriceKrw)})
-                    </div>
+                    {adultCount > 1 && (
+                      <div className="text-[11px] text-slate-400 font-medium">
+                        {locale === "ko" ? "총" : "Total"} {formatKrw(totalSegmentKrw)} ({adultCount}{locale === "ko" ? "명" : "p"})
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -486,14 +485,16 @@ export default function TransportPlannerPanel({
 
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-slate-500 font-medium">
-              {locale === "ko" ? "귀국 교통비:" : "Departure Transit Cost:"}
+              {locale === "ko" ? "1인 편도:" : "1-Person Fare:"}
             </span>
-            <strong className="text-[#e25c5c] font-black text-sm">
-              {formatKrw(exitTotalKrw)}
+            <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
+              {formatKrw(activeExitOption.oneWayPriceKrw)}
             </strong>
-            <span className="text-[11px] text-slate-400">
-              ({formatKrw(activeExitOption.oneWayPriceKrw)} × {adultCount}{locale === "ko" ? "명" : ""})
-            </span>
+            {adultCount > 1 && (
+              <span className="text-[11px] text-slate-400 font-medium ml-1">
+                ({locale === "ko" ? `총 ${formatKrw(exitTotalKrw)} / ${adultCount}명` : `Total ${formatKrw(exitTotalKrw)} / ${adultCount}p`})
+              </span>
+            )}
           </div>
         </div>
 

@@ -151,7 +151,7 @@ export default function TransportPlannerPanel({
 
   // 1. Entry Airport Transit Options
   const entryRouteKey = `ENTRY_${entryAirport}-${firstCity}`;
-  const entryOptions = getAirportTransitOptions(entryAirport, firstCity);
+  const entryOptions = getAirportTransitOptions(entryAirport, firstCity, "ENTRY");
   const currentEntryOverride = intercityOverrides[entryRouteKey] || intercityOverrides[`ENTRY_AIRPORT-${firstCity}`] || intercityOverrides[`INCHEON-${firstCity}`];
   const activeEntryOption = (currentEntryOverride && entryOptions.find((o) => o.mode === currentEntryOverride))
     || entryOptions.find((o) => o.isDefault)
@@ -160,7 +160,7 @@ export default function TransportPlannerPanel({
 
   // 2. Exit Airport Transit Options
   const exitRouteKey = `EXIT_${lastCity}-${exitAirport}`;
-  const exitOptions = getAirportTransitOptions(exitAirport, lastCity);
+  const exitOptions = getAirportTransitOptions(exitAirport, lastCity, "EXIT");
   const currentExitOverride = intercityOverrides[exitRouteKey] || intercityOverrides[`EXIT_${lastCity}-AIRPORT`] || intercityOverrides[`${lastCity}-INCHEON`];
   const activeExitOption = (currentExitOverride && exitOptions.find((o) => o.mode === currentExitOverride))
     || exitOptions.find((o) => o.isDefault)
@@ -170,14 +170,14 @@ export default function TransportPlannerPanel({
   // 공항 선택 핸들러
   const handleSelectEntryAirport = (newAirport: "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT") => {
     setEntryAirport(newAirport);
-    const newOptions = getAirportTransitOptions(newAirport, firstCity);
+    const newOptions = getAirportTransitOptions(newAirport, firstCity, "ENTRY");
     const defaultMode = newOptions.find((o) => o.isDefault)?.mode || newOptions[0].mode;
     onSelectIntercityOverride(`ENTRY_${newAirport}-${firstCity}`, defaultMode);
   };
 
   const handleSelectExitAirport = (newAirport: "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT") => {
     setExitAirport(newAirport);
-    const newOptions = getAirportTransitOptions(newAirport, lastCity);
+    const newOptions = getAirportTransitOptions(newAirport, lastCity, "EXIT");
     const defaultMode = newOptions.find((o) => o.isDefault)?.mode || newOptions[0].mode;
     onSelectIntercityOverride(`EXIT_${lastCity}-${newAirport}`, defaultMode);
   };
@@ -414,9 +414,7 @@ export default function TransportPlannerPanel({
               const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
               const modeIcon = activeOption.mode === "FLIGHT" ? "🛫" : activeOption.mode === "EXPRESS_BUS" ? "🚌" : "🚄";
 
-              // 괄호 안의 중복된 출발➔도착지 경로 제거 (예: "동해선 ITX-마음 직통열차 (부산 ➔ 강릉)" -> "동해선 ITX-마음 직통열차")
-              const rawName = locale === "ko" ? activeOption.nameKo : activeOption.nameEn;
-              const cleanName = rawName.replace(/\s*\([^)]*?(➔|->)[^)]*?\)/g, "").trim();
+              const displayName = locale === "ko" ? activeOption.nameKo : activeOption.nameEn;
 
               return (
                 <div
@@ -438,7 +436,7 @@ export default function TransportPlannerPanel({
                     <div className="space-y-0.5 min-w-0">
                       <div className="font-extrabold text-slate-900 text-xs sm:text-[13px] flex items-center gap-1 truncate">
                         <span className="shrink-0">{modeIcon}</span>
-                        <span className="truncate">{cleanName}</span>
+                        <span className="truncate">{displayName}</span>
                       </div>
                       <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
                         <span>⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>

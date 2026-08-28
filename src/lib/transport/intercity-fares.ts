@@ -14,504 +14,830 @@ export interface IntercityFareInfo {
   badgeTextEn?: string;
 }
 
-export interface RouteFareMapping {
-  from: SupportedCity;
-  to: SupportedCity;
-  options: IntercityFareInfo[];
-}
-
 /**
- * 대한민국 10대 여행 도시 간 최적 추천 1개 이동 수단 및 인천공항 게이트웨이 옵션 테이블
- * (원칙: 도시 간 이동은 외국인에게 가장 안전하고 빠른 1개 최적 수단 단일 노출,
- *        공항 입출국은 AREX/철도 vs 직행 공항리무진 2개 옵션 제공)
+ * 대한민국 10대 여행 도시 간 최적 추천 1개 이동 수단 및 공항 게이트웨이 옵션 테이블
+ * [표기 규칙: 출발지(역/터미널) ➔ 도착지(역/공항) (탑승 수단)]
  */
 export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "SEOUL-BUSAN": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (서울역 ➔ 부산역)",
-      "nameEn": "KTX Express Train (Seoul ➔ Busan)",
+      "nameKo": "서울역 ➔ 부산역 (KTX 고속철도)",
+      "nameEn": "Seoul Stn ➔ Busan Stn (KTX Express)",
       "oneWayPriceKrw": 59800,
       "durationTextKo": "2시간 37분",
       "durationTextEn": "2h 37m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Best Choice"
+      "isDefault": true
+    }
+  ],
+  "BUSAN-SEOUL": [
+    {
+      "mode": "KTX",
+      "nameKo": "부산역 ➔ 서울역 (KTX 고속철도)",
+      "nameEn": "Busan Stn ➔ Seoul Stn (KTX Express)",
+      "oneWayPriceKrw": 59800,
+      "durationTextKo": "2시간 37분",
+      "durationTextEn": "2h 37m",
+      "isDefault": true
     }
   ],
   "SEOUL-JEJU": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공 (김포공항 ➔ 제주공항)",
-      "nameEn": "Domestic Flight (GMP ➔ CJU)",
+      "nameKo": "김포공항 ➔ 제주공항 (국내선 항공)",
+      "nameEn": "Gimpo Airport ➔ Jeju Airport (Flight)",
       "oneWayPriceKrw": 75000,
       "durationTextKo": "1시간 10분",
       "durationTextEn": "1h 10m",
-      "isDefault": true,
-      "badgeTextKo": "항공직항",
-      "badgeTextEn": "Direct Flight"
+      "isDefault": true
+    }
+  ],
+  "JEJU-SEOUL": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "제주공항 ➔ 김포공항 (국내선 항공)",
+      "nameEn": "Jeju Airport ➔ Gimpo Airport (Flight)",
+      "oneWayPriceKrw": 75000,
+      "durationTextKo": "1시간 10분",
+      "durationTextEn": "1h 10m",
+      "isDefault": true
     }
   ],
   "SEOUL-JEONJU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (용산역 ➔ 전주역)",
-      "nameEn": "KTX Express (Yongsan ➔ Jeonju)",
+      "nameKo": "용산역 ➔ 전주역 (KTX 고속철도)",
+      "nameEn": "Yongsan Stn ➔ Jeonju Stn (KTX Express)",
       "oneWayPriceKrw": 23700,
       "durationTextKo": "59분",
       "durationTextEn": "59m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Best Choice"
+      "isDefault": true
+    }
+  ],
+  "JEONJU-SEOUL": [
+    {
+      "mode": "KTX",
+      "nameKo": "전주역 ➔ 용산역 (KTX 고속철도)",
+      "nameEn": "Jeonju Stn ➔ Yongsan Stn (KTX Express)",
+      "oneWayPriceKrw": 34600,
+      "durationTextKo": "1시간 40분",
+      "durationTextEn": "1h 40m",
+      "isDefault": true
     }
   ],
   "SEOUL-GYEONGJU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (서울역 ➔ 신경주역)",
-      "nameEn": "KTX Express (Seoul ➔ Singyeongju)",
+      "nameKo": "서울역 ➔ 신경주역 (KTX 고속철도)",
+      "nameEn": "Seoul Stn ➔ Singyeongju Stn (KTX Express)",
       "oneWayPriceKrw": 49300,
       "durationTextKo": "2시간 2분",
       "durationTextEn": "2h 2m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Best Choice"
+      "isDefault": true
+    }
+  ],
+  "GYEONGJU-SEOUL": [
+    {
+      "mode": "KTX",
+      "nameKo": "신경주역 ➔ 서울역 (KTX 고속철도)",
+      "nameEn": "Singyeongju Stn ➔ Seoul Stn (KTX Express)",
+      "oneWayPriceKrw": 49300,
+      "durationTextKo": "2시간 02분",
+      "durationTextEn": "2h 02m",
+      "isDefault": true
     }
   ],
   "SEOUL-GANGNEUNG": [
     {
       "mode": "KTX",
-      "nameKo": "KTX-이음 고속철도 (서울/청량리 ➔ 강릉)",
-      "nameEn": "KTX-Eum (Seoul/Cheongnyangni ➔ Gangneung)",
+      "nameKo": "서울/청량리역 ➔ 강릉역 (KTX-이음)",
+      "nameEn": "Seoul/Cheongnyangni ➔ Gangneung (KTX-Eum)",
       "oneWayPriceKrw": 27600,
       "durationTextKo": "1시간 57분",
       "durationTextEn": "1h 57m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Best Choice"
+      "isDefault": true
+    }
+  ],
+  "GANGNEUNG-SEOUL": [
+    {
+      "mode": "KTX",
+      "nameKo": "강릉역 ➔ 서울/청량리역 (KTX-이음)",
+      "nameEn": "Gangneung ➔ Seoul/Cheongnyangni (KTX-Eum)",
+      "oneWayPriceKrw": 27600,
+      "durationTextKo": "1시간 57분",
+      "durationTextEn": "1h 57m",
+      "isDefault": true
     }
   ],
   "SEOUL-YEOSU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (용산역 ➔ 여수엑스포역)",
-      "nameEn": "KTX Express (Yongsan ➔ Yeosu Expo)",
+      "nameKo": "용산역 ➔ 여수엑스포역 (KTX 고속철도)",
+      "nameEn": "Yongsan Stn ➔ Yeosu Expo Stn (KTX Express)",
       "oneWayPriceKrw": 47200,
       "durationTextKo": "3시간 00분",
       "durationTextEn": "3h 00m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Best Choice"
+      "isDefault": true
+    }
+  ],
+  "YEOSU-SEOUL": [
+    {
+      "mode": "KTX",
+      "nameKo": "여수엑스포역 ➔ 용산역 (KTX 고속철도)",
+      "nameEn": "Yeosu Expo Stn ➔ Yongsan Stn (KTX Express)",
+      "oneWayPriceKrw": 47200,
+      "durationTextKo": "3시간 00분",
+      "durationTextEn": "3h 00m",
+      "isDefault": true
     }
   ],
   "SEOUL-SUWON": [
     {
       "mode": "KTX",
-      "nameKo": "KTX / ITX-새마을 (서울역 ➔ 수원역)",
-      "nameEn": "KTX / Fast Train (Seoul ➔ Suwon)",
+      "nameKo": "서울역 ➔ 수원역 (KTX / ITX-새마을)",
+      "nameEn": "Seoul Stn ➔ Suwon Stn (KTX / Train)",
       "oneWayPriceKrw": 8400,
       "durationTextKo": "30분",
       "durationTextEn": "30m",
-      "isDefault": true,
-      "badgeTextKo": "철도직통",
-      "badgeTextEn": "Fast Train"
+      "isDefault": true
+    }
+  ],
+  "SUWON-SEOUL": [
+    {
+      "mode": "KTX",
+      "nameKo": "수원역 ➔ 서울역 (KTX / ITX-새마을)",
+      "nameEn": "Suwon Stn ➔ Seoul Stn (KTX / Train)",
+      "oneWayPriceKrw": 8400,
+      "durationTextKo": "30분",
+      "durationTextEn": "30m",
+      "isDefault": true
     }
   ],
   "SEOUL-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "우등 고속버스 (서울경부/동서울 ➔ 속초)",
-      "nameEn": "Express Bus (Seoul ➔ Sokcho)",
+      "nameKo": "서울경부터미널 ➔ 속초고속터미널 (우등 고속버스)",
+      "nameEn": "Seoul Terminal ➔ Sokcho Terminal (Express Bus)",
       "oneWayPriceKrw": 22300,
       "durationTextKo": "2시간 20분",
       "durationTextEn": "2h 20m",
-      "isDefault": true,
-      "badgeTextKo": "직통추천",
-      "badgeTextEn": "Direct Bus"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-SEOUL": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초고속터미널 ➔ 서울경부터미널 (우등 고속버스)",
+      "nameEn": "Sokcho Terminal ➔ Seoul Terminal (Express Bus)",
+      "oneWayPriceKrw": 22300,
+      "durationTextKo": "2시간 20분",
+      "durationTextEn": "2h 20m",
+      "isDefault": true
     }
   ],
   "JEJU-SUWON": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공(제주➔김포) + 수원 리무진 버스(4300번)",
-      "nameEn": "Flight (CJU➔GMP) + Airport Limousine (4300)",
+      "nameKo": "제주공항 ➔ 김포공항 ➔ 수원 (국내선 항공 + 4300번 버스)",
+      "nameEn": "Jeju Airport ➔ Gimpo Airport ➔ Suwon (Flight + Bus 4300)",
       "oneWayPriceKrw": 83000,
       "durationTextKo": "2시간 00분",
       "durationTextEn": "2h 00m",
-      "isDefault": true,
-      "badgeTextKo": "현실추천",
-      "badgeTextEn": "Recommended"
+      "isDefault": true
+    }
+  ],
+  "SUWON-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "수원 ➔ 김포공항 ➔ 제주공항 (4300번 버스 + 국내선 항공)",
+      "nameEn": "Suwon ➔ Gimpo Airport ➔ Jeju Airport (Bus 4300 + Flight)",
+      "oneWayPriceKrw": 83000,
+      "durationTextKo": "2시간 00분",
+      "durationTextEn": "2h 00m",
+      "isDefault": true
     }
   ],
   "JEJU-BUSAN": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공 (제주공항 ➔ 김해공항)",
-      "nameEn": "Domestic Flight (CJU ➔ PUS)",
+      "nameKo": "제주공항 ➔ 김해공항 (국내선 항공)",
+      "nameEn": "Jeju Airport ➔ Gimhae Airport (Flight)",
       "oneWayPriceKrw": 65000,
       "durationTextKo": "1시간 00분",
       "durationTextEn": "1h 00m",
-      "isDefault": true,
-      "badgeTextKo": "항공직항",
-      "badgeTextEn": "Direct Flight"
+      "isDefault": true
+    }
+  ],
+  "BUSAN-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "김해공항 ➔ 제주공항 (국내선 항공)",
+      "nameEn": "Gimhae Airport ➔ Jeju Airport (Flight)",
+      "oneWayPriceKrw": 65000,
+      "durationTextKo": "1시간 00분",
+      "durationTextEn": "1h 00m",
+      "isDefault": true
     }
   ],
   "JEJU-JEONJU": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공(군산공항) + 전주 시외버스",
-      "nameEn": "Flight to Gunsan + Jeonju Bus",
+      "nameKo": "제주공항 ➔ 군산공항 ➔ 전주 (국내선 항공 + 시외버스)",
+      "nameEn": "Jeju Airport ➔ Gunsan Airport ➔ Jeonju (Flight + Bus)",
       "oneWayPriceKrw": 72000,
       "durationTextKo": "1시간 40분",
       "durationTextEn": "1h 40m",
-      "isDefault": true,
-      "badgeTextKo": "직항추천",
-      "badgeTextEn": "Recommended"
+      "isDefault": true
+    }
+  ],
+  "JEONJU-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "전주 ➔ 군산공항 ➔ 제주공항 (시외버스 + 국내선 항공)",
+      "nameEn": "Jeonju ➔ Gunsan Airport ➔ Jeju Airport (Bus + Flight)",
+      "oneWayPriceKrw": 72000,
+      "durationTextKo": "1시간 40분",
+      "durationTextEn": "1h 40m",
+      "isDefault": true
     }
   ],
   "JEJU-GYEONGJU": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공(김해공항) + 경주 직행 리무진",
-      "nameEn": "Flight to Gimhae + Gyeongju Limousine",
+      "nameKo": "제주공항 ➔ 김해공항 ➔ 경주 (국내선 항공 + 공항리무진)",
+      "nameEn": "Jeju Airport ➔ Gimhae Airport ➔ Gyeongju (Flight + Bus)",
       "oneWayPriceKrw": 76000,
       "durationTextKo": "2시간 10분",
       "durationTextEn": "2h 10m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Recommended"
+      "isDefault": true
+    }
+  ],
+  "GYEONGJU-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "경주 ➔ 김해공항 ➔ 제주공항 (공항리무진 + 국내선 항공)",
+      "nameEn": "Gyeongju ➔ Gimhae Airport ➔ Jeju Airport (Bus + Flight)",
+      "oneWayPriceKrw": 76000,
+      "durationTextKo": "2시간 10분",
+      "durationTextEn": "2h 10m",
+      "isDefault": true
     }
   ],
   "JEJU-GANGNEUNG": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공(김포공항) + 서울역 KTX-이음",
-      "nameEn": "Flight to Gimpo + KTX-Eum to Gangneung",
+      "nameKo": "제주공항 ➔ 김포공항 ➔ 강릉역 (국내선 항공 + 서울역 KTX)",
+      "nameEn": "Jeju Airport ➔ Gimpo Airport ➔ Gangneung (Flight + KTX)",
       "oneWayPriceKrw": 102600,
       "durationTextKo": "3시간 20분",
       "durationTextEn": "3h 20m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Recommended"
+      "isDefault": true
+    }
+  ],
+  "GANGNEUNG-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "강릉역 ➔ 서울역 ➔ 김포공항 ➔ 제주공항 (KTX + 국내선 항공)",
+      "nameEn": "Gangneung ➔ Seoul Stn ➔ Gimpo Airport ➔ Jeju (KTX + Flight)",
+      "oneWayPriceKrw": 102600,
+      "durationTextKo": "3시간 20분",
+      "durationTextEn": "3h 20m",
+      "isDefault": true
     }
   ],
   "JEJU-YEOSU": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공 (제주공항 ➔ 여수공항 직항)",
-      "nameEn": "Domestic Flight (CJU ➔ RSU Direct)",
+      "nameKo": "제주공항 ➔ 여수공항 (국내선 직항 항공)",
+      "nameEn": "Jeju Airport ➔ Yeosu Airport (Direct Flight)",
       "oneWayPriceKrw": 68000,
       "durationTextKo": "50분",
       "durationTextEn": "50m",
-      "isDefault": true,
-      "badgeTextKo": "직항추천",
-      "badgeTextEn": "Fast Flight"
+      "isDefault": true
+    }
+  ],
+  "YEOSU-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "여수공항 ➔ 제주공항 (국내선 직항 항공)",
+      "nameEn": "Yeosu Airport ➔ Jeju Airport (Direct Flight)",
+      "oneWayPriceKrw": 68000,
+      "durationTextKo": "50분",
+      "durationTextEn": "50m",
+      "isDefault": true
     }
   ],
   "JEJU-SOKCHO": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공(김포공항) + 속초 고속버스",
-      "nameEn": "Flight to Gimpo + Sokcho Express Bus",
+      "nameKo": "제주공항 ➔ 김포공항 ➔ 속초 (국내선 항공 + 고속버스)",
+      "nameEn": "Jeju Airport ➔ Gimpo Airport ➔ Sokcho (Flight + Bus)",
       "oneWayPriceKrw": 98000,
       "durationTextKo": "3시간 30분",
       "durationTextEn": "3h 30m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Recommended"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "속초 ➔ 김포공항 ➔ 제주공항 (고속버스 + 국내선 항공)",
+      "nameEn": "Sokcho ➔ Gimpo Airport ➔ Jeju Airport (Bus + Flight)",
+      "oneWayPriceKrw": 98000,
+      "durationTextKo": "3시간 30분",
+      "durationTextEn": "3h 30m",
+      "isDefault": true
     }
   ],
   "JEJU-INCHEON": [
     {
       "mode": "FLIGHT",
-      "nameKo": "국내선 항공(김포공항) + 공항철도(인천)",
-      "nameEn": "Flight to Gimpo + AREX to Incheon",
+      "nameKo": "제주공항 ➔ 김포공항 ➔ 인천공항 (국내선 항공 + 공항철도)",
+      "nameEn": "Jeju Airport ➔ Gimpo Airport ➔ Incheon Airport (Flight + AREX)",
       "oneWayPriceKrw": 77500,
       "durationTextKo": "1시간 40분",
       "durationTextEn": "1h 40m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Recommended"
+      "isDefault": true
+    }
+  ],
+  "INCHEON-JEJU": [
+    {
+      "mode": "FLIGHT",
+      "nameKo": "인천공항 ➔ 김포공항 ➔ 제주공항 (공항철도 + 국내선 항공)",
+      "nameEn": "Incheon Airport ➔ Gimpo Airport ➔ Jeju Airport (AREX + Flight)",
+      "oneWayPriceKrw": 77500,
+      "durationTextKo": "1시간 40분",
+      "durationTextEn": "1h 40m",
+      "isDefault": true
     }
   ],
   "BUSAN-GYEONGJU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (부산역 ➔ 신경주역)",
-      "nameEn": "KTX Train (Busan ➔ Singyeongju)",
+      "nameKo": "부산역 ➔ 신경주역 (KTX 고속철도)",
+      "nameEn": "Busan Stn ➔ Singyeongju Stn (KTX Express)",
       "oneWayPriceKrw": 11000,
       "durationTextKo": "27분",
       "durationTextEn": "27m",
-      "isDefault": true,
-      "badgeTextKo": "초고속",
-      "badgeTextEn": "Fastest"
+      "isDefault": true
+    }
+  ],
+  "GYEONGJU-BUSAN": [
+    {
+      "mode": "KTX",
+      "nameKo": "신경주역 ➔ 부산역 (KTX 고속철도)",
+      "nameEn": "Singyeongju Stn ➔ Busan Stn (KTX Express)",
+      "oneWayPriceKrw": 11000,
+      "durationTextKo": "27분",
+      "durationTextEn": "27m",
+      "isDefault": true
     }
   ],
   "BUSAN-JEONJU": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (부산사상 ➔ 전주)",
-      "nameEn": "Intercity Express Bus (Sasang ➔ Jeonju)",
+      "nameKo": "부산사상터미널 ➔ 전주시외터미널 (시외 우등버스)",
+      "nameEn": "Busan Sasang ➔ Jeonju Terminal (Intercity Bus)",
       "oneWayPriceKrw": 28900,
       "durationTextKo": "3시간 00분",
       "durationTextEn": "3h 00m",
-      "isDefault": true,
-      "badgeTextKo": "직통추천",
-      "badgeTextEn": "Direct Bus"
+      "isDefault": true
+    }
+  ],
+  "JEONJU-BUSAN": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "전주시외터미널 ➔ 부산사상터미널 (시외 우등버스)",
+      "nameEn": "Jeonju Terminal ➔ Busan Sasang (Intercity Bus)",
+      "oneWayPriceKrw": 28900,
+      "durationTextKo": "3시간 00분",
+      "durationTextEn": "3h 00m",
+      "isDefault": true
     }
   ],
   "BUSAN-YEOSU": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (부산사상 ➔ 여수)",
-      "nameEn": "Intercity Express Bus (Sasang ➔ Yeosu)",
+      "nameKo": "부산사상터미널 ➔ 여수종합터미널 (시외 우등버스)",
+      "nameEn": "Busan Sasang ➔ Yeosu Terminal (Intercity Bus)",
       "oneWayPriceKrw": 23600,
       "durationTextKo": "3시간 50분",
       "durationTextEn": "3h 50m",
-      "isDefault": true,
-      "badgeTextKo": "직통추천",
-      "badgeTextEn": "Direct Bus"
+      "isDefault": true
+    }
+  ],
+  "YEOSU-BUSAN": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "여수종합터미널 ➔ 부산사상터미널 (시외 우등버스)",
+      "nameEn": "Yeosu Terminal ➔ Busan Sasang (Intercity Bus)",
+      "oneWayPriceKrw": 23600,
+      "durationTextKo": "3시간 50분",
+      "durationTextEn": "3h 50m",
+      "isDefault": true
     }
   ],
   "BUSAN-GANGNEUNG": [
     {
       "mode": "KTX",
-      "nameKo": "동해선 ITX-마음 직통열차 (부산 ➔ 강릉)",
-      "nameEn": "Donghae Line Train (Busan ➔ Gangneung)",
+      "nameKo": "부산역 ➔ 강릉역 (동해선 ITX-마음 직통열차)",
+      "nameEn": "Busan Stn ➔ Gangneung Stn (Donghae Line Train)",
       "oneWayPriceKrw": 38000,
       "durationTextKo": "3시간 40분",
       "durationTextEn": "3h 40m",
-      "isDefault": true,
-      "badgeTextKo": "해안철도",
-      "badgeTextEn": "Coastal Rail"
+      "isDefault": true
+    }
+  ],
+  "GANGNEUNG-BUSAN": [
+    {
+      "mode": "KTX",
+      "nameKo": "강릉역 ➔ 부산역 (동해선 ITX-마음 직통열차)",
+      "nameEn": "Gangneung Stn ➔ Busan Stn (Donghae Line Train)",
+      "oneWayPriceKrw": 38000,
+      "durationTextKo": "3시간 40분",
+      "durationTextEn": "3h 40m",
+      "isDefault": true
     }
   ],
   "BUSAN-SUWON": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (부산역 ➔ 수원역 직통)",
-      "nameEn": "KTX Train (Busan ➔ Suwon Direct)",
+      "nameKo": "부산역 ➔ 수원역 (KTX 고속철도 직통)",
+      "nameEn": "Busan Stn ➔ Suwon Stn (KTX Express Direct)",
       "oneWayPriceKrw": 52000,
       "durationTextKo": "2시간 30분",
       "durationTextEn": "2h 30m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Best Choice"
+      "isDefault": true
+    }
+  ],
+  "SUWON-BUSAN": [
+    {
+      "mode": "KTX",
+      "nameKo": "수원역 ➔ 부산역 (KTX 고속철도 직통)",
+      "nameEn": "Suwon Stn ➔ Busan Stn (KTX Express Direct)",
+      "oneWayPriceKrw": 52000,
+      "durationTextKo": "2시간 30분",
+      "durationTextEn": "2h 30m",
+      "isDefault": true
     }
   ],
   "BUSAN-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (동해선 직행)",
-      "nameEn": "Direct Intercity Bus (Busan ➔ Sokcho)",
+      "nameKo": "부산종합터미널 ➔ 속초고속터미널 (동해선 시외버스)",
+      "nameEn": "Busan Terminal ➔ Sokcho Terminal (Intercity Bus)",
       "oneWayPriceKrw": 42000,
       "durationTextKo": "5시간 00분",
       "durationTextEn": "5h 00m",
-      "isDefault": true,
-      "badgeTextKo": "직통",
-      "badgeTextEn": "Direct"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-BUSAN": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초고속터미널 ➔ 부산종합터미널 (동해선 시외버스)",
+      "nameEn": "Sokcho Terminal ➔ Busan Terminal (Intercity Bus)",
+      "oneWayPriceKrw": 42000,
+      "durationTextKo": "5시간 00분",
+      "durationTextEn": "5h 00m",
+      "isDefault": true
     }
   ],
   "JEONJU-YEOSU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX / ITX-새마을 (전주역 ➔ 여수엑스포역)",
-      "nameEn": "KTX / Fast Train (Jeonju ➔ Yeosu)",
+      "nameKo": "전주역 ➔ 여수엑스포역 (KTX / ITX-새마을)",
+      "nameEn": "Jeonju Stn ➔ Yeosu Expo Stn (KTX / Train)",
       "oneWayPriceKrw": 14200,
       "durationTextKo": "1시간 20분",
       "durationTextEn": "1h 20m",
-      "isDefault": true,
-      "badgeTextKo": "철도직통",
-      "badgeTextEn": "Direct Train"
+      "isDefault": true
+    }
+  ],
+  "YEOSU-JEONJU": [
+    {
+      "mode": "KTX",
+      "nameKo": "여수엑스포역 ➔ 전주역 (KTX / ITX-새마을)",
+      "nameEn": "Yeosu Expo Stn ➔ Jeonju Stn (KTX / Train)",
+      "oneWayPriceKrw": 14200,
+      "durationTextKo": "1시간 20분",
+      "durationTextEn": "1h 20m",
+      "isDefault": true
     }
   ],
   "JEONJU-GYEONGJU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (전주역 ➔ 신경주역)",
-      "nameEn": "KTX (Jeonju ➔ Singyeongju)",
+      "nameKo": "전주역 ➔ 오송역 ➔ 신경주역 (KTX 고속철도)",
+      "nameEn": "Jeonju Stn ➔ Osong ➔ Singyeongju (KTX Express)",
       "oneWayPriceKrw": 25800,
       "durationTextKo": "1시간 1분",
       "durationTextEn": "1h 1m",
-      "isDefault": true,
-      "badgeTextKo": "고속철도",
-      "badgeTextEn": "Fast Train"
+      "isDefault": true
+    }
+  ],
+  "GYEONGJU-JEONJU": [
+    {
+      "mode": "KTX",
+      "nameKo": "신경주역 ➔ 오송역 ➔ 전주역 (KTX 고속철도)",
+      "nameEn": "Singyeongju ➔ Osong ➔ Jeonju Stn (KTX Express)",
+      "oneWayPriceKrw": 25800,
+      "durationTextKo": "1시간 01분",
+      "durationTextEn": "1h 01m",
+      "isDefault": true
     }
   ],
   "JEONJU-GANGNEUNG": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (전주 ➔ 강릉 직통)",
-      "nameEn": "Intercity Bus (Jeonju ➔ Gangneung)",
+      "nameKo": "전주시외터미널 ➔ 강릉시외터미널 (시외 우등버스)",
+      "nameEn": "Jeonju Terminal ➔ Gangneung Terminal (Intercity Bus)",
       "oneWayPriceKrw": 34000,
       "durationTextKo": "4시간 00분",
       "durationTextEn": "4h 00m",
-      "isDefault": true,
-      "badgeTextKo": "직통버스",
-      "badgeTextEn": "Direct Bus"
+      "isDefault": true
+    }
+  ],
+  "GANGNEUNG-JEONJU": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "강릉시외터미널 ➔ 전주시외터미널 (시외 우등버스)",
+      "nameEn": "Gangneung Terminal ➔ Jeonju Terminal (Intercity Bus)",
+      "oneWayPriceKrw": 34000,
+      "durationTextKo": "4시간 00분",
+      "durationTextEn": "4h 00m",
+      "isDefault": true
     }
   ],
   "JEONJU-SUWON": [
     {
       "mode": "KTX",
-      "nameKo": "KTX / ITX-새마을 (전주역 ➔ 수원역 직통)",
-      "nameEn": "KTX / Fast Train (Jeonju ➔ Suwon)",
+      "nameKo": "전주역 ➔ 수원역 (KTX / ITX-새마을 직통)",
+      "nameEn": "Jeonju Stn ➔ Suwon Stn (KTX / Train Direct)",
       "oneWayPriceKrw": 24500,
       "durationTextKo": "1시간 45분",
       "durationTextEn": "1h 45m",
-      "isDefault": true,
-      "badgeTextKo": "철도직통",
-      "badgeTextEn": "Direct Train"
+      "isDefault": true
+    }
+  ],
+  "SUWON-JEONJU": [
+    {
+      "mode": "KTX",
+      "nameKo": "수원역 ➔ 전주역 (KTX / ITX-새마을 직통)",
+      "nameEn": "Suwon Stn ➔ Jeonju Stn (KTX / Train Direct)",
+      "oneWayPriceKrw": 24500,
+      "durationTextKo": "1시간 45분",
+      "durationTextEn": "1h 45m",
+      "isDefault": true
     }
   ],
   "JEONJU-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 고속버스 (전주 ➔ 속초 환승연계)",
-      "nameEn": "Intercity Bus to Sokcho",
+      "nameKo": "전주시외터미널 ➔ 속초고속터미널 (시외버스)",
+      "nameEn": "Jeonju Terminal ➔ Sokcho Terminal (Intercity Bus)",
       "oneWayPriceKrw": 38000,
       "durationTextKo": "4시간 30분",
       "durationTextEn": "4h 30m",
-      "isDefault": true,
-      "badgeTextKo": "추천",
-      "badgeTextEn": "Recommended"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-JEONJU": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초고속터미널 ➔ 전주시외터미널 (시외버스)",
+      "nameEn": "Sokcho Terminal ➔ Jeonju Terminal (Intercity Bus)",
+      "oneWayPriceKrw": 38000,
+      "durationTextKo": "4시간 30분",
+      "durationTextEn": "4h 30m",
+      "isDefault": true
     }
   ],
   "GYEONGJU-GANGNEUNG": [
     {
       "mode": "KTX",
-      "nameKo": "KTX-이음 / ITX-마음 (신경주 ➔ 강릉)",
-      "nameEn": "Donghae Line Train (Gyeongju ➔ Gangneung)",
+      "nameKo": "신경주역 ➔ 강릉역 (동해선 ITX-마음 / KTX)",
+      "nameEn": "Singyeongju Stn ➔ Gangneung Stn (Donghae Line)",
       "oneWayPriceKrw": 34300,
       "durationTextKo": "2시간 44분",
       "durationTextEn": "2h 44m",
-      "isDefault": true,
-      "badgeTextKo": "철도직통",
-      "badgeTextEn": "Direct Rail"
+      "isDefault": true
+    }
+  ],
+  "GANGNEUNG-GYEONGJU": [
+    {
+      "mode": "KTX",
+      "nameKo": "강릉역 ➔ 신경주역 (동해선 ITX-마음 / KTX)",
+      "nameEn": "Gangneung Stn ➔ Singyeongju Stn (Donghae Line)",
+      "oneWayPriceKrw": 34300,
+      "durationTextKo": "2시간 44분",
+      "durationTextEn": "2h 44m",
+      "isDefault": true
     }
   ],
   "GYEONGJU-YEOSU": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (경주 ➔ 여수)",
-      "nameEn": "Intercity Bus (Gyeongju ➔ Yeosu)",
+      "nameKo": "경주시외터미널 ➔ 여수종합터미널 (시외 우등버스)",
+      "nameEn": "Gyeongju Terminal ➔ Yeosu Terminal (Intercity Bus)",
       "oneWayPriceKrw": 26000,
       "durationTextKo": "3시간 10분",
       "durationTextEn": "3h 10m",
-      "isDefault": true,
-      "badgeTextKo": "직통",
-      "badgeTextEn": "Direct"
+      "isDefault": true
+    }
+  ],
+  "YEOSU-GYEONGJU": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "여수종합터미널 ➔ 경주시외터미널 (시외 우등버스)",
+      "nameEn": "Yeosu Terminal ➔ Gyeongju Terminal (Intercity Bus)",
+      "oneWayPriceKrw": 26000,
+      "durationTextKo": "3시간 10분",
+      "durationTextEn": "3h 10m",
+      "isDefault": true
     }
   ],
   "GYEONGJU-SUWON": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (신경주역 ➔ 수원역)",
-      "nameEn": "KTX (Singyeongju ➔ Suwon)",
+      "nameKo": "신경주역 ➔ 수원역 (KTX 고속철도)",
+      "nameEn": "Singyeongju Stn ➔ Suwon Stn (KTX Express)",
       "oneWayPriceKrw": 41000,
       "durationTextKo": "2시간 10분",
       "durationTextEn": "2h 10m",
-      "isDefault": true,
-      "badgeTextKo": "추천 1위",
-      "badgeTextEn": "Best Choice"
+      "isDefault": true
+    }
+  ],
+  "SUWON-GYEONGJU": [
+    {
+      "mode": "KTX",
+      "nameKo": "수원역 ➔ 신경주역 (KTX 고속철도)",
+      "nameEn": "Suwon Stn ➔ Singyeongju Stn (KTX Express)",
+      "oneWayPriceKrw": 41000,
+      "durationTextKo": "2시간 10분",
+      "durationTextEn": "2h 10m",
+      "isDefault": true
     }
   ],
   "GYEONGJU-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (동해선 직행)",
-      "nameEn": "Intercity Bus (Gyeongju ➔ Sokcho)",
+      "nameKo": "경주시외터미널 ➔ 속초고속터미널 (동해선 시외버스)",
+      "nameEn": "Gyeongju Terminal ➔ Sokcho Terminal (Intercity Bus)",
       "oneWayPriceKrw": 36000,
       "durationTextKo": "4시간 10분",
       "durationTextEn": "4h 10m",
-      "isDefault": true,
-      "badgeTextKo": "직통",
-      "badgeTextEn": "Direct"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-GYEONGJU": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초고속터미널 ➔ 경주시외터미널 (동해선 시외버스)",
+      "nameEn": "Sokcho Terminal ➔ Gyeongju Terminal (Intercity Bus)",
+      "oneWayPriceKrw": 36000,
+      "durationTextKo": "4시간 10분",
+      "durationTextEn": "4h 10m",
+      "isDefault": true
     }
   ],
   "GANGNEUNG-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "동해안 시외 직행버스 (강릉 ➔ 속초)",
-      "nameEn": "Coastal Intercity Bus (Gangneung ➔ Sokcho)",
+      "nameKo": "강릉시외터미널 ➔ 속초시외터미널 (동해안 직행버스)",
+      "nameEn": "Gangneung Terminal ➔ Sokcho Terminal (Direct Bus)",
       "oneWayPriceKrw": 7500,
       "durationTextKo": "50분",
       "durationTextEn": "50m",
-      "isDefault": true,
-      "badgeTextKo": "직통 50분",
-      "badgeTextEn": "Direct 50m"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-GANGNEUNG": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초시외터미널 ➔ 강릉시외터미널 (동해안 직행버스)",
+      "nameEn": "Sokcho Terminal ➔ Gangneung Terminal (Direct Bus)",
+      "oneWayPriceKrw": 7500,
+      "durationTextKo": "50분",
+      "durationTextEn": "50m",
+      "isDefault": true
     }
   ],
   "GANGNEUNG-SUWON": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (강릉 ➔ 수원 직통)",
-      "nameEn": "Express Bus (Gangneung ➔ Suwon)",
+      "nameKo": "강릉시외터미널 ➔ 수원버스터미널 (시외 우등버스)",
+      "nameEn": "Gangneung Terminal ➔ Suwon Terminal (Express Bus)",
       "oneWayPriceKrw": 24500,
       "durationTextKo": "2시간 50분",
       "durationTextEn": "2h 50m",
-      "isDefault": true,
-      "badgeTextKo": "직통버스",
-      "badgeTextEn": "Direct Bus"
+      "isDefault": true
+    }
+  ],
+  "SUWON-GANGNEUNG": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "수원버스터미널 ➔ 강릉시외터미널 (시외 우등버스)",
+      "nameEn": "Suwon Terminal ➔ Gangneung Terminal (Express Bus)",
+      "oneWayPriceKrw": 24500,
+      "durationTextKo": "2시간 50분",
+      "durationTextEn": "2h 50m",
+      "isDefault": true
     }
   ],
   "GANGNEUNG-YEOSU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (강릉 ➔ 서울역 환승 ➔ 여수)",
-      "nameEn": "KTX via Seoul Transfer (Gangneung ➔ Yeosu)",
+      "nameKo": "강릉역 ➔ 서울역 ➔ 여수엑스포역 (KTX 고속철도 환승)",
+      "nameEn": "Gangneung Stn ➔ Seoul ➔ Yeosu Expo (KTX via Seoul)",
       "oneWayPriceKrw": 68000,
       "durationTextKo": "4시간 20분",
       "durationTextEn": "4h 20m",
-      "isDefault": true,
-      "badgeTextKo": "KTX연계",
-      "badgeTextEn": "KTX Link"
+      "isDefault": true
+    }
+  ],
+  "YEOSU-GANGNEUNG": [
+    {
+      "mode": "KTX",
+      "nameKo": "여수엑스포역 ➔ 서울역 ➔ 강릉역 (KTX 고속철도 환승)",
+      "nameEn": "Yeosu Expo ➔ Seoul ➔ Gangneung Stn (KTX via Seoul)",
+      "oneWayPriceKrw": 68000,
+      "durationTextKo": "4시간 20분",
+      "durationTextEn": "4h 20m",
+      "isDefault": true
     }
   ],
   "SUWON-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 우등 고속버스 (수원 ➔ 속초 직통)",
-      "nameEn": "Express Bus (Suwon ➔ Sokcho)",
+      "nameKo": "수원버스터미널 ➔ 속초고속터미널 (시외 우등버스)",
+      "nameEn": "Suwon Terminal ➔ Sokcho Terminal (Express Bus)",
       "oneWayPriceKrw": 24500,
       "durationTextKo": "2시간 50분",
       "durationTextEn": "2h 50m",
-      "isDefault": true,
-      "badgeTextKo": "직통버스",
-      "badgeTextEn": "Direct Bus"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-SUWON": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초고속터미널 ➔ 수원버스터미널 (시외 우등버스)",
+      "nameEn": "Sokcho Terminal ➔ Suwon Terminal (Express Bus)",
+      "oneWayPriceKrw": 24500,
+      "durationTextKo": "2시간 50분",
+      "durationTextEn": "2h 50m",
+      "isDefault": true
     }
   ],
   "SUWON-YEOSU": [
     {
       "mode": "KTX",
-      "nameKo": "KTX 고속철도 (수원역 ➔ 여수엑스포역 직통)",
-      "nameEn": "KTX Train (Suwon ➔ Yeosu Direct)",
+      "nameKo": "수원역 ➔ 여수엑스포역 (KTX 고속철도 직통)",
+      "nameEn": "Suwon Stn ➔ Yeosu Expo Stn (KTX Express)",
       "oneWayPriceKrw": 43000,
       "durationTextKo": "2시간 50분",
       "durationTextEn": "2h 50m",
-      "isDefault": true,
-      "badgeTextKo": "철도직통",
-      "badgeTextEn": "Direct Rail"
+      "isDefault": true
+    }
+  ],
+  "YEOSU-SUWON": [
+    {
+      "mode": "KTX",
+      "nameKo": "여수엑스포역 ➔ 수원역 (KTX 고속철도 직통)",
+      "nameEn": "Yeosu Expo Stn ➔ Suwon Stn (KTX Express)",
+      "oneWayPriceKrw": 43000,
+      "durationTextKo": "2시간 50분",
+      "durationTextEn": "2h 50m",
+      "isDefault": true
     }
   ],
   "YEOSU-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "시외 고속버스 (여수 ➔ 서울 환승 ➔ 속초)",
-      "nameEn": "Intercity Bus via Seoul (Yeosu ➔ Sokcho)",
+      "nameKo": "여수종합터미널 ➔ 서울 ➔ 속초고속터미널 (고속버스 연계)",
+      "nameEn": "Yeosu Terminal ➔ Seoul ➔ Sokcho (Express Bus via Seoul)",
       "oneWayPriceKrw": 48000,
       "durationTextKo": "6시간 00분",
       "durationTextEn": "6h 00m",
-      "isDefault": true,
-      "badgeTextKo": "환승연계",
-      "badgeTextEn": "Transfer Link"
+      "isDefault": true
+    }
+  ],
+  "SOKCHO-YEOSU": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초고속터미널 ➔ 서울 ➔ 여수종합터미널 (고속버스 연계)",
+      "nameEn": "Sokcho ➔ Seoul ➔ Yeosu Terminal (Express Bus via Seoul)",
+      "oneWayPriceKrw": 48000,
+      "durationTextKo": "6시간 00분",
+      "durationTextEn": "6h 00m",
+      "isDefault": true
     }
   ],
   "INCHEON-SEOUL": [
     {
       "mode": "KTX",
-      "nameKo": "AREX 직통열차 (인천공항 ➔ 서울역 논스톱)",
-      "nameEn": "AREX Express Train (Airport ➔ Seoul Stn)",
+      "nameKo": "인천공항 ➔ 서울역 (AREX 직통열차 논스톱)",
+      "nameEn": "Incheon Airport ➔ Seoul Stn (AREX Non-stop)",
       "oneWayPriceKrw": 11000,
       "durationTextKo": "43분",
       "durationTextEn": "43m",
@@ -521,8 +847,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 리무진 버스 (6000번대 호텔 직행)",
-      "nameEn": "Airport Limousine Bus (To Hotels)",
+      "nameKo": "인천공항 ➔ 도심/호텔 (공항 리무진 6000번대)",
+      "nameEn": "Incheon Airport ➔ Hotels (Limousine Bus 6000)",
       "oneWayPriceKrw": 17000,
       "durationTextKo": "1시간 10분",
       "durationTextEn": "1h 10m",
@@ -533,8 +859,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "INCHEON-SUWON": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 리무진 버스 (4100번 직통)",
-      "nameEn": "Airport Limousine Bus (4100 Direct)",
+      "nameKo": "인천공항 ➔ 수원버스터미널 (공항 리무진 4100번 직통)",
+      "nameEn": "Incheon Airport ➔ Suwon (Limousine 4100 Direct)",
       "oneWayPriceKrw": 13500,
       "durationTextKo": "1시간 10분",
       "durationTextEn": "1h 10m",
@@ -544,8 +870,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "KTX",
-      "nameKo": "AREX + 서울역 KTX/지하철 연계",
-      "nameEn": "AREX + Train via Seoul",
+      "nameKo": "인천공항 ➔ 서울역 ➔ 수원역 (AREX + KTX/지하철)",
+      "nameEn": "Incheon Airport ➔ Seoul ➔ Suwon (AREX + Train)",
       "oneWayPriceKrw": 12850,
       "durationTextKo": "1시간 20분",
       "durationTextEn": "1h 20m",
@@ -556,8 +882,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "INCHEON-JEONJU": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 직행 우등 리무진 버스 (전주행)",
-      "nameEn": "Direct Airport Limousine Bus to Jeonju",
+      "nameKo": "인천공항 ➔ 전주시외터미널 (직행 우등 리무진 버스)",
+      "nameEn": "Incheon Airport ➔ Jeonju (Direct Limousine Bus)",
       "oneWayPriceKrw": 33000,
       "durationTextKo": "3시간 20분",
       "durationTextEn": "3h 20m",
@@ -567,8 +893,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "KTX",
-      "nameKo": "AREX + 용산역 KTX 환승",
-      "nameEn": "AREX + KTX via Yongsan",
+      "nameKo": "인천공항 ➔ 서울/용산역 ➔ 전주역 (AREX + KTX 고속철도)",
+      "nameEn": "Incheon Airport ➔ Seoul/Yongsan ➔ Jeonju (AREX + KTX)",
       "oneWayPriceKrw": 45600,
       "durationTextKo": "2시간 40분",
       "durationTextEn": "2h 40m",
@@ -579,8 +905,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "INCHEON-BUSAN": [
     {
       "mode": "KTX",
-      "nameKo": "AREX + 서울역 KTX 고속철도 (부산행)",
-      "nameEn": "AREX + KTX to Busan via Seoul",
+      "nameKo": "인천공항 ➔ 서울역 ➔ 부산역 (AREX + KTX 고속철도)",
+      "nameEn": "Incheon Airport ➔ Seoul Stn ➔ Busan (AREX + KTX)",
       "oneWayPriceKrw": 70800,
       "durationTextKo": "3시간 20분",
       "durationTextEn": "3h 20m",
@@ -590,8 +916,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 직행 우등 고속버스 (부산행)",
-      "nameEn": "Direct Airport Bus to Busan",
+      "nameKo": "인천공항 ➔ 부산종합터미널 (직행 우등 고속버스)",
+      "nameEn": "Incheon Airport ➔ Busan (Direct Express Bus)",
       "oneWayPriceKrw": 48000,
       "durationTextKo": "5시간 00분",
       "durationTextEn": "5h 00m",
@@ -602,8 +928,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "INCHEON-GANGNEUNG": [
     {
       "mode": "KTX",
-      "nameKo": "AREX + 서울역 KTX-이음 환승 (강릉행)",
-      "nameEn": "AREX + KTX-Eum to Gangneung",
+      "nameKo": "인천공항 ➔ 서울역 ➔ 강릉역 (AREX + KTX-이음 고속철도)",
+      "nameEn": "Incheon Airport ➔ Seoul Stn ➔ Gangneung (AREX + KTX-Eum)",
       "oneWayPriceKrw": 38600,
       "durationTextKo": "2시간 50분",
       "durationTextEn": "2h 50m",
@@ -613,8 +939,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 직행 시외 고속버스 (강릉행)",
-      "nameEn": "Direct Airport Bus to Gangneung",
+      "nameKo": "인천공항 ➔ 강릉시외터미널 (직행 시외 고속버스)",
+      "nameEn": "Incheon Airport ➔ Gangneung (Direct Express Bus)",
       "oneWayPriceKrw": 30000,
       "durationTextKo": "3시간 30분",
       "durationTextEn": "3h 30m",
@@ -625,8 +951,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "INCHEON-GYEONGJU": [
     {
       "mode": "KTX",
-      "nameKo": "AREX + 서울역 KTX 환승 (신경주행)",
-      "nameEn": "AREX + KTX to Gyeongju via Seoul",
+      "nameKo": "인천공항 ➔ 서울역 ➔ 신경주역 (AREX + KTX 고속철도)",
+      "nameEn": "Incheon Airport ➔ Seoul Stn ➔ Gyeongju (AREX + KTX)",
       "oneWayPriceKrw": 60300,
       "durationTextKo": "3시간 00분",
       "durationTextEn": "3h 00m",
@@ -636,8 +962,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 직행 우등 고속버스 (경주행)",
-      "nameEn": "Direct Airport Bus to Gyeongju",
+      "nameKo": "인천공항 ➔ 경주시외터미널 (직행 우등 고속버스)",
+      "nameEn": "Incheon Airport ➔ Gyeongju (Direct Express Bus)",
       "oneWayPriceKrw": 44000,
       "durationTextKo": "4시간 30분",
       "durationTextEn": "4h 30m",
@@ -648,8 +974,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "INCHEON-YEOSU": [
     {
       "mode": "KTX",
-      "nameKo": "AREX + 용산역 KTX 환승 (여수행)",
-      "nameEn": "AREX + KTX to Yeosu via Yongsan",
+      "nameKo": "인천공항 ➔ 용산역 ➔ 여수엑스포역 (AREX + KTX 고속철도)",
+      "nameEn": "Incheon Airport ➔ Yongsan Stn ➔ Yeosu (AREX + KTX)",
       "oneWayPriceKrw": 58200,
       "durationTextKo": "3시간 50분",
       "durationTextEn": "3h 50m",
@@ -659,8 +985,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 직행 우등 고속버스 (여수행)",
-      "nameEn": "Direct Airport Bus to Yeosu",
+      "nameKo": "인천공항 ➔ 여수종합터미널 (직행 우등 고속버스)",
+      "nameEn": "Incheon Airport ➔ Yeosu (Direct Express Bus)",
       "oneWayPriceKrw": 42000,
       "durationTextKo": "4시간 40분",
       "durationTextEn": "4h 40m",
@@ -671,8 +997,182 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "INCHEON-SOKCHO": [
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "공항 직행 시외버스 (속초행)",
-      "nameEn": "Direct Airport Bus to Sokcho",
+      "nameKo": "인천공항 ➔ 속초시외터미널 (직행 시외버스)",
+      "nameEn": "Incheon Airport ➔ Sokcho (Direct Intercity Bus)",
+      "oneWayPriceKrw": 32000,
+      "durationTextKo": "3시간 10분",
+      "durationTextEn": "3h 10m",
+      "isDefault": true,
+      "badgeTextKo": "직통버스",
+      "badgeTextEn": "Direct Bus"
+    }
+  ],
+  "SEOUL-INCHEON": [
+    {
+      "mode": "KTX",
+      "nameKo": "서울역 ➔ 인천공항 (AREX 직통열차 논스톱)",
+      "nameEn": "Seoul Stn ➔ Incheon Airport (AREX Non-stop)",
+      "oneWayPriceKrw": 11000,
+      "durationTextKo": "43분",
+      "durationTextEn": "43m",
+      "isDefault": true,
+      "badgeTextKo": "논스톱 직행",
+      "badgeTextEn": "Non-stop"
+    },
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "도심/호텔 ➔ 인천공항 (공항 리무진 6000번대)",
+      "nameEn": "Hotels ➔ Incheon Airport (Limousine Bus 6000)",
+      "oneWayPriceKrw": 17000,
+      "durationTextKo": "1시간 10분",
+      "durationTextEn": "1h 10m",
+      "badgeTextKo": "호텔문앞",
+      "badgeTextEn": "Hotel Door"
+    }
+  ],
+  "SUWON-INCHEON": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "수원버스터미널 ➔ 인천공항 (공항 리무진 4100번 직통)",
+      "nameEn": "Suwon ➔ Incheon Airport (Limousine 4100 Direct)",
+      "oneWayPriceKrw": 13500,
+      "durationTextKo": "1시간 10분",
+      "durationTextEn": "1h 10m",
+      "isDefault": true,
+      "badgeTextKo": "직통추천",
+      "badgeTextEn": "Direct Bus"
+    },
+    {
+      "mode": "KTX",
+      "nameKo": "수원역 ➔ 서울역 ➔ 인천공항 (KTX/지하철 + AREX)",
+      "nameEn": "Suwon ➔ Seoul ➔ Incheon Airport (Train + AREX)",
+      "oneWayPriceKrw": 12850,
+      "durationTextKo": "1시간 20분",
+      "durationTextEn": "1h 20m",
+      "badgeTextKo": "철도연계",
+      "badgeTextEn": "Rail Link"
+    }
+  ],
+  "JEONJU-INCHEON": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "전주시외터미널 ➔ 인천공항 (직행 우등 리무진 버스)",
+      "nameEn": "Jeonju ➔ Incheon Airport (Direct Limousine Bus)",
+      "oneWayPriceKrw": 33000,
+      "durationTextKo": "3시간 20분",
+      "durationTextEn": "3h 20m",
+      "isDefault": true,
+      "badgeTextKo": "환승없음",
+      "badgeTextEn": "Non-stop"
+    },
+    {
+      "mode": "KTX",
+      "nameKo": "전주역 ➔ 용산/서울역 ➔ 인천공항 (KTX 고속철도 + AREX)",
+      "nameEn": "Jeonju ➔ Yongsan/Seoul ➔ Incheon Airport (KTX + AREX)",
+      "oneWayPriceKrw": 45600,
+      "durationTextKo": "2시간 40분",
+      "durationTextEn": "2h 40m",
+      "badgeTextKo": "빠른도착",
+      "badgeTextEn": "Fastest"
+    }
+  ],
+  "BUSAN-INCHEON": [
+    {
+      "mode": "KTX",
+      "nameKo": "부산역 ➔ 서울역 ➔ 인천공항 (KTX 고속철도 + AREX)",
+      "nameEn": "Busan ➔ Seoul Stn ➔ Incheon Airport (KTX + AREX)",
+      "oneWayPriceKrw": 70800,
+      "durationTextKo": "3시간 20분",
+      "durationTextEn": "3h 20m",
+      "isDefault": true,
+      "badgeTextKo": "추천 1위",
+      "badgeTextEn": "Best Choice"
+    },
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "부산종합터미널 ➔ 인천공항 (직행 우등 고속버스)",
+      "nameEn": "Busan ➔ Incheon Airport (Direct Express Bus)",
+      "oneWayPriceKrw": 48000,
+      "durationTextKo": "5시간 00분",
+      "durationTextEn": "5h 00m",
+      "badgeTextKo": "환승없음",
+      "badgeTextEn": "Non-stop"
+    }
+  ],
+  "GANGNEUNG-INCHEON": [
+    {
+      "mode": "KTX",
+      "nameKo": "강릉역 ➔ 서울역 ➔ 인천공항 (KTX-이음 고속철도 + AREX)",
+      "nameEn": "Gangneung ➔ Seoul Stn ➔ Incheon Airport (KTX-Eum + AREX)",
+      "oneWayPriceKrw": 38600,
+      "durationTextKo": "2시간 50분",
+      "durationTextEn": "2h 50m",
+      "isDefault": true,
+      "badgeTextKo": "KTX연계",
+      "badgeTextEn": "KTX Link"
+    },
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "강릉시외터미널 ➔ 인천공항 (직행 시외 고속버스)",
+      "nameEn": "Gangneung ➔ Incheon Airport (Direct Express Bus)",
+      "oneWayPriceKrw": 30000,
+      "durationTextKo": "3시간 30분",
+      "durationTextEn": "3h 30m",
+      "badgeTextKo": "환승없음",
+      "badgeTextEn": "Non-stop"
+    }
+  ],
+  "GYEONGJU-INCHEON": [
+    {
+      "mode": "KTX",
+      "nameKo": "신경주역 ➔ 서울역 ➔ 인천공항 (KTX 고속철도 + AREX)",
+      "nameEn": "Gyeongju ➔ Seoul Stn ➔ Incheon Airport (KTX + AREX)",
+      "oneWayPriceKrw": 60300,
+      "durationTextKo": "3시간 00분",
+      "durationTextEn": "3h 00m",
+      "isDefault": true,
+      "badgeTextKo": "추천 1위",
+      "badgeTextEn": "Best Choice"
+    },
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "경주시외터미널 ➔ 인천공항 (직행 우등 고속버스)",
+      "nameEn": "Gyeongju ➔ Incheon Airport (Direct Express Bus)",
+      "oneWayPriceKrw": 44000,
+      "durationTextKo": "4시간 30분",
+      "durationTextEn": "4h 30m",
+      "badgeTextKo": "환승없음",
+      "badgeTextEn": "Non-stop"
+    }
+  ],
+  "YEOSU-INCHEON": [
+    {
+      "mode": "KTX",
+      "nameKo": "여수엑스포역 ➔ 용산역 ➔ 인천공항 (KTX 고속철도 + AREX)",
+      "nameEn": "Yeosu ➔ Yongsan Stn ➔ Incheon Airport (KTX + AREX)",
+      "oneWayPriceKrw": 58200,
+      "durationTextKo": "3시간 50분",
+      "durationTextEn": "3h 50m",
+      "isDefault": true,
+      "badgeTextKo": "KTX연계",
+      "badgeTextEn": "KTX Link"
+    },
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "여수종합터미널 ➔ 인천공항 (직행 우등 고속버스)",
+      "nameEn": "Yeosu ➔ Incheon Airport (Direct Express Bus)",
+      "oneWayPriceKrw": 42000,
+      "durationTextKo": "4시간 40분",
+      "durationTextEn": "4h 40m",
+      "badgeTextKo": "환승없음",
+      "badgeTextEn": "Non-stop"
+    }
+  ],
+  "SOKCHO-INCHEON": [
+    {
+      "mode": "EXPRESS_BUS",
+      "nameKo": "속초시외터미널 ➔ 인천공항 (직행 시외버스)",
+      "nameEn": "Sokcho ➔ Incheon Airport (Direct Intercity Bus)",
       "oneWayPriceKrw": 32000,
       "durationTextKo": "3시간 10분",
       "durationTextEn": "3h 10m",
@@ -684,7 +1184,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
 };
 
 /**
- * 두 도시 간의 요금 옵션 목록을 반환합니다. (양방향 대칭 및 지능형 매핑)
+ * 두 도시 간의 요금 옵션 목록을 반환합니다. (방향성 100% 보장)
  */
 export function getIntercityFareOptions(from: SupportedCity | "INCHEON", to: SupportedCity | "INCHEON"): IntercityFareInfo[] {
   const directKey = `${from}-${to}`;
@@ -694,20 +1194,24 @@ export function getIntercityFareOptions(from: SupportedCity | "INCHEON", to: Sup
 
   const reverseKey = `${to}-${from}`;
   if (INTERCITY_FARE_TABLE[reverseKey]) {
-    return INTERCITY_FARE_TABLE[reverseKey];
+    // 역방향일 경우 명칭 방향성을 자동 역전하여 생성
+    return INTERCITY_FARE_TABLE[reverseKey].map((opt) => ({
+      ...opt,
+      nameKo: `${from} ➔ ${to} (${opt.mode === "KTX" ? "KTX 고속철도" : opt.mode === "FLIGHT" ? "국내선 항공" : "고속/시외버스"})`,
+      nameEn: `${from} ➔ ${to} (${opt.mode === "KTX" ? "KTX Express" : opt.mode === "FLIGHT" ? "Flight" : "Express Bus"})`,
+    }));
   }
 
   // 제주 관련 등록되지 않은 지선 (항공 + 공항 연계)
   if (from === "JEJU" || to === "JEJU") {
-    const otherCity = from === "JEJU" ? to : from;
     return [
-      { mode: "FLIGHT", nameKo: `국내선 항공 + ${otherCity} 연계 교통`, nameEn: "Domestic Flight + Ground Transit", oneWayPriceKrw: 85000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true, badgeTextKo: "항공연계", badgeTextEn: "Flight Link" },
+      { mode: "FLIGHT", nameKo: `${from} ➔ ${to} (국내선 항공 + 연계 교통)`, nameEn: `${from} ➔ ${to} (Flight + Ground Transit)`, oneWayPriceKrw: 85000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true },
     ];
   }
 
   // 육지 도시 간 기본 현실 폴백 (KTX 고속철도)
   return [
-    { mode: "KTX", nameKo: "KTX / K-철도 고속이동", nameEn: "KTX / Rail Transit", oneWayPriceKrw: 38000, durationTextKo: "2시간 10분", durationTextEn: "2h 10m", isDefault: true, badgeTextKo: "추천 1위", badgeTextEn: "Recommended" },
+    { mode: "KTX", nameKo: `${from} ➔ ${to} (KTX 고속철도)`, nameEn: `${from} ➔ ${to} (KTX Express Rail)`, oneWayPriceKrw: 38000, durationTextKo: "2시간 10분", durationTextEn: "2h 10m", isDefault: true },
   ];
 }
 
@@ -719,91 +1223,92 @@ export const AIRPORT_INFO_MAP: Record<string, { nameKo: string; nameEn: string; 
 };
 
 /**
- * 주요 게이트웨이 공항에서 목적지 도시로의 현실적 공항 이동 옵션을 반환합니다.
+ * 주요 게이트웨이 공항에서 목적지 도시로(입국), 또는 목적지 도시에서 공항으로(출국)의 공항 이동 옵션을 반환합니다.
  */
 export function getAirportTransitOptions(
   airportCode: "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT" = "INCHEON",
-  targetCity: SupportedCity
+  targetCity: SupportedCity,
+  direction: "ENTRY" | "EXIT" = "ENTRY"
 ): IntercityFareInfo[] {
   if (airportCode === "INCHEON") {
-    return getIntercityFareOptions("INCHEON", targetCity);
+    if (direction === "ENTRY") {
+      return getIntercityFareOptions("INCHEON", targetCity);
+    } else {
+      return getIntercityFareOptions(targetCity, "INCHEON");
+    }
   }
 
   if (airportCode === "GIMPO") {
     if (targetCity === "SEOUL") {
-      return [
-        { mode: "SRT", nameKo: "지하철 5·9호선 / 공항철도", nameEn: "Subway Lines 5/9/AREX", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true, badgeTextKo: "지하철직행", badgeTextEn: "Subway" },
-        { mode: "EXPRESS_BUS", nameKo: "도심 리무진 버스 (6000번대)", nameEn: "City Limousine Bus", oneWayPriceKrw: 9000, durationTextKo: "40분", durationTextEn: "40m" },
-      ];
+      return direction === "ENTRY"
+        ? [
+            { mode: "SRT", nameKo: "김포공항 ➔ 서울 도심 (지하철 5·9호선/공항철도)", nameEn: "Gimpo Airport ➔ Seoul (Subway 5/9/AREX)", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
+            { mode: "EXPRESS_BUS", nameKo: "김포공항 ➔ 도심/호텔 (공항 리무진 6000번대)", nameEn: "Gimpo Airport ➔ Hotels (Limousine 6000)", oneWayPriceKrw: 9000, durationTextKo: "40분", durationTextEn: "40m" },
+          ]
+        : [
+            { mode: "SRT", nameKo: "서울 도심 ➔ 김포공항 (지하철 5·9호선/공항철도)", nameEn: "Seoul ➔ Gimpo Airport (Subway 5/9/AREX)", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
+            { mode: "EXPRESS_BUS", nameKo: "도심/호텔 ➔ 김포공항 (공항 리무진 6000번대)", nameEn: "Hotels ➔ Gimpo Airport (Limousine 6000)", oneWayPriceKrw: 9000, durationTextKo: "40분", durationTextEn: "40m" },
+          ];
     }
     if (targetCity === "SUWON") {
-      return [
-        { mode: "EXPRESS_BUS", nameKo: "김포공항 리무진 버스 (4300번 직통)", nameEn: "Airport Limousine (4300)", oneWayPriceKrw: 8000, durationTextKo: "50분", durationTextEn: "50m", isDefault: true, badgeTextKo: "직통추천", badgeTextEn: "Direct" },
-      ];
+      return direction === "ENTRY"
+        ? [{ mode: "EXPRESS_BUS", nameKo: "김포공항 ➔ 수원버스터미널 (공항 리무진 4300번 직통)", nameEn: "Gimpo Airport ➔ Suwon (Limousine 4300)", oneWayPriceKrw: 8000, durationTextKo: "50분", durationTextEn: "50m", isDefault: true }]
+        : [{ mode: "EXPRESS_BUS", nameKo: "수원버스터미널 ➔ 김포공항 (공항 리무진 4300번 직통)", nameEn: "Suwon ➔ Gimpo Airport (Limousine 4300)", oneWayPriceKrw: 8000, durationTextKo: "50분", durationTextEn: "50m", isDefault: true }];
     }
     if (targetCity === "JEJU") {
-      return [
-        { mode: "FLIGHT", nameKo: "국내선 항공 (김포 ➔ 제주)", nameEn: "Domestic Flight to Jeju", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "항공직항", badgeTextEn: "Direct Flight" },
-      ];
+      return direction === "ENTRY"
+        ? [{ mode: "FLIGHT", nameKo: "김포공항 ➔ 제주공항 (국내선 항공)", nameEn: "Gimpo Airport ➔ Jeju (Flight)", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }]
+        : [{ mode: "FLIGHT", nameKo: "제주공항 ➔ 김포공항 (국내선 항공)", nameEn: "Jeju ➔ Gimpo Airport (Flight)", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }];
     }
     if (targetCity === "BUSAN") {
-      return [
-        { mode: "FLIGHT", nameKo: "국내선 항공 (김포 ➔ 김해)", nameEn: "Domestic Flight to Busan", oneWayPriceKrw: 78000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "빠른항공", badgeTextEn: "Flight" },
-      ];
+      return direction === "ENTRY"
+        ? [{ mode: "FLIGHT", nameKo: "김포공항 ➔ 김해공항 (국내선 항공)", nameEn: "Gimpo Airport ➔ Gimhae Airport (Flight)", oneWayPriceKrw: 78000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }]
+        : [{ mode: "FLIGHT", nameKo: "김해공항 ➔ 김포공항 (국내선 항공)", nameEn: "Gimhae Airport ➔ Gimpo Airport (Flight)", oneWayPriceKrw: 78000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }];
     }
-    return [
-      { mode: "KTX", nameKo: "공항철도 ➔ 서울역/용산역 KTX", nameEn: "AREX + KTX via Seoul", oneWayPriceKrw: 42000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true, badgeTextKo: "KTX연계", badgeTextEn: "KTX Link" },
-    ];
+    return direction === "ENTRY"
+      ? [{ mode: "KTX", nameKo: `김포공항 ➔ 서울역 ➔ ${targetCity} (공항철도 + KTX)`, nameEn: `Gimpo ➔ Seoul ➔ ${targetCity} (AREX + KTX)`, oneWayPriceKrw: 42000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true }]
+      : [{ mode: "KTX", nameKo: `${targetCity} ➔ 서울역 ➔ 김포공항 (KTX + 공항철도)`, nameEn: `${targetCity} ➔ Seoul ➔ Gimpo (KTX + AREX)`, oneWayPriceKrw: 42000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true }];
   }
 
   if (airportCode === "GIMHAE") {
     if (targetCity === "BUSAN") {
-      return [
-        { mode: "SRT", nameKo: "김해 경전철 + 부산 지하철", nameEn: "Light Rail + Busan Metro", oneWayPriceKrw: 2100, durationTextKo: "45분", durationTextEn: "45m", isDefault: true, badgeTextKo: "가성비", badgeTextEn: "Budget" },
-        { mode: "EXPRESS_BUS", nameKo: "공항 리무진 버스 (해운대/서면)", nameEn: "Airport Limousine Bus", oneWayPriceKrw: 8500, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", badgeTextKo: "직통", badgeTextEn: "Direct" },
-      ];
+      return direction === "ENTRY"
+        ? [
+            { mode: "SRT", nameKo: "김해공항 ➔ 부산 도심 (김해경전철 + 부산지하철)", nameEn: "Gimhae Airport ➔ Busan (Light Rail + Metro)", oneWayPriceKrw: 2100, durationTextKo: "45분", durationTextEn: "45m", isDefault: true },
+            { mode: "EXPRESS_BUS", nameKo: "김해공항 ➔ 해운대/서면 (공항 리무진 버스)", nameEn: "Gimhae Airport ➔ Haeundae (Limousine Bus)", oneWayPriceKrw: 8500, durationTextKo: "1시간 00분", durationTextEn: "1h 00m" },
+          ]
+        : [
+            { mode: "SRT", nameKo: "부산 도심 ➔ 김해공항 (부산지하철 + 김해경전철)", nameEn: "Busan ➔ Gimhae Airport (Metro + Light Rail)", oneWayPriceKrw: 2100, durationTextKo: "45분", durationTextEn: "45m", isDefault: true },
+            { mode: "EXPRESS_BUS", nameKo: "해운대/서면 ➔ 김해공항 (공항 리무진 버스)", nameEn: "Haeundae ➔ Gimhae Airport (Limousine Bus)", oneWayPriceKrw: 8500, durationTextKo: "1시간 00분", durationTextEn: "1h 00m" },
+          ];
     }
     if (targetCity === "GYEONGJU") {
-      return [
-        { mode: "EXPRESS_BUS", nameKo: "공항 직행 리무진 버스 (경주행)", nameEn: "Direct Bus to Gyeongju", oneWayPriceKrw: 11000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "직통추천", badgeTextEn: "Direct" },
-      ];
+      return direction === "ENTRY"
+        ? [{ mode: "EXPRESS_BUS", nameKo: "김해공항 ➔ 경주시외터미널 (직행 공항리무진)", nameEn: "Gimhae Airport ➔ Gyeongju (Direct Limousine)", oneWayPriceKrw: 11000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }]
+        : [{ mode: "EXPRESS_BUS", nameKo: "경주시외터미널 ➔ 김해공항 (직행 공항리무진)", nameEn: "Gyeongju ➔ Gimhae Airport (Direct Limousine)", oneWayPriceKrw: 11000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }];
     }
     if (targetCity === "JEJU") {
-      return [
-        { mode: "FLIGHT", nameKo: "국내선 항공 (김해 ➔ 제주)", nameEn: "Domestic Flight to Jeju", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "항공추천", badgeTextEn: "Flight" },
-      ];
+      return direction === "ENTRY"
+        ? [{ mode: "FLIGHT", nameKo: "김해공항 ➔ 제주공항 (국내선 항공)", nameEn: "Gimhae Airport ➔ Jeju (Flight)", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }]
+        : [{ mode: "FLIGHT", nameKo: "제주공항 ➔ 김해공항 (국내선 항공)", nameEn: "Jeju ➔ Gimhae Airport (Flight)", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }];
     }
-    return [
-      { mode: "EXPRESS_BUS", nameKo: "시외 우등 고속버스", nameEn: "Express Bus", oneWayPriceKrw: 24000, durationTextKo: "2시간 30분", durationTextEn: "2h 30m", isDefault: true },
-    ];
   }
 
   if (airportCode === "JEJU_AIRPORT") {
     if (targetCity === "JEJU") {
-      return [
-        { mode: "SRT", nameKo: "제주 급행 / 간선 시내버스", nameEn: "Jeju Express/City Bus", oneWayPriceKrw: 1500, durationTextKo: "25분", durationTextEn: "25m", isDefault: true, badgeTextKo: "대중교통", badgeTextEn: "Public" },
-        { mode: "EXPRESS_BUS", nameKo: "공항 리무진 버스 (600번/800번)", nameEn: "Jeju Limousine (600/800)", oneWayPriceKrw: 5500, durationTextKo: "50분", durationTextEn: "50m", badgeTextKo: "중문/서귀포", badgeTextEn: "Direct" },
-      ];
+      return direction === "ENTRY"
+        ? [
+            { mode: "SRT", nameKo: "제주공항 ➔ 제주시내 (급행/간선 시내버스)", nameEn: "Jeju Airport ➔ Jeju City (Express Bus)", oneWayPriceKrw: 1500, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
+            { mode: "EXPRESS_BUS", nameKo: "제주공항 ➔ 중문/서귀포 (공항 리무진 600번)", nameEn: "Jeju Airport ➔ Jungmun (Limousine 600)", oneWayPriceKrw: 5500, durationTextKo: "50분", durationTextEn: "50m" },
+          ]
+        : [
+            { mode: "SRT", nameKo: "제주시내 ➔ 제주공항 (급행/간선 시내버스)", nameEn: "Jeju City ➔ Jeju Airport (Express Bus)", oneWayPriceKrw: 1500, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
+            { mode: "EXPRESS_BUS", nameKo: "중문/서귀포 ➔ 제주공항 (공항 리무진 600번)", nameEn: "Jungmun ➔ Jeju Airport (Limousine 600)", oneWayPriceKrw: 5500, durationTextKo: "50분", durationTextEn: "50m" },
+          ];
     }
-    if (targetCity === "SEOUL") {
-      return [
-        { mode: "FLIGHT", nameKo: "국내선 항공 (제주 ➔ 김포)", nameEn: "Domestic Flight to Gimpo", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, badgeTextKo: "항공필수", badgeTextEn: "Flight" },
-      ];
-    }
-    if (targetCity === "SUWON") {
-      return [
-        { mode: "FLIGHT", nameKo: "국내선 항공(김포) + 수원 리무진 버스", nameEn: "Flight to Gimpo + Suwon Limousine", oneWayPriceKrw: 83000, durationTextKo: "2시간 00분", durationTextEn: "2h 00m", isDefault: true, badgeTextKo: "현실추천", badgeTextEn: "Recommended" },
-      ];
-    }
-    if (targetCity === "BUSAN") {
-      return [
-        { mode: "FLIGHT", nameKo: "국내선 항공 (제주 ➔ 김해)", nameEn: "Domestic Flight to Gimhae", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, badgeTextKo: "항공추천", badgeTextEn: "Flight" },
-      ];
-    }
-    return [
-      { mode: "FLIGHT", nameKo: "국내선 항공 연계", nameEn: "Domestic Flight Connection", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true },
-    ];
   }
 
-  return getIntercityFareOptions("INCHEON", targetCity);
+  return direction === "ENTRY"
+    ? getIntercityFareOptions("INCHEON", targetCity)
+    : getIntercityFareOptions(targetCity, "INCHEON");
 }

@@ -323,7 +323,7 @@ export function generateInitialBudgetPlan(
     const entryAirportInfo = AIRPORT_INFO_MAP[entryAirport] || AIRPORT_INFO_MAP.INCHEON;
     const firstCityName = CITY_KOREAN_NAMES[firstCity] || firstCity;
 
-    const entryOptions = getAirportTransitOptions(entryAirport, firstCity);
+    const entryOptions = getAirportTransitOptions(entryAirport, firstCity, "ENTRY");
     const userEntryOverride = allOverrides[entryKey] || allOverrides[`ENTRY_AIRPORT-${firstCity}`] || allOverrides[`${entryAirport}-${firstCity}`];
     const selectedEntryOption = (userEntryOverride && entryOptions.find((o) => o.mode === userEntryOverride))
       || entryOptions.find((o) => o.isDefault)
@@ -334,7 +334,7 @@ export function generateInitialBudgetPlan(
         ? {
             ...basket,
             representativePriceKrw: selectedEntryOption.oneWayPriceKrw,
-            sourceLabel: `[입국 공항] ${selectedEntryOption.nameKo} (${entryAirportInfo.nameKo} ➔ ${firstCityName})`,
+            sourceLabel: `[입국 공항] ${selectedEntryOption.nameKo}`,
           }
         : basket,
       cityCode: null,
@@ -353,8 +353,6 @@ export function generateInitialBudgetPlan(
     for (let i = 0; i < selectedCities.length - 1; i++) {
       const fromCity = selectedCities[i];
       const toCity = selectedCities[i + 1];
-      const fromCityName = CITY_KOREAN_NAMES[fromCity] || fromCity;
-      const toCityName = CITY_KOREAN_NAMES[toCity] || toCity;
       const routeKey = `${fromCity}-${toCity}`;
       const options = getIntercityFareOptions(fromCity, toCity);
 
@@ -368,7 +366,7 @@ export function generateInitialBudgetPlan(
           ? {
               ...basket,
               representativePriceKrw: selectedOption.oneWayPriceKrw,
-              sourceLabel: `[도시 간] ${selectedOption.nameKo} (${fromCityName} ➔ ${toCityName})`,
+              sourceLabel: `[도시 간] ${selectedOption.nameKo}`,
             }
           : basket,
         cityCode: null,
@@ -388,10 +386,8 @@ export function generateInitialBudgetPlan(
     const exitKey = Object.keys(allOverrides).find((k) => k.startsWith("EXIT_")) || `EXIT_${lastCity}-INCHEON`;
     const parts = exitKey.replace("EXIT_", "").split("-");
     const exitAirport = (parts[1] || "INCHEON") as "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT";
-    const exitAirportInfo = AIRPORT_INFO_MAP[exitAirport] || AIRPORT_INFO_MAP.INCHEON;
-    const lastCityName = CITY_KOREAN_NAMES[lastCity] || lastCity;
 
-    const exitOptions = getAirportTransitOptions(exitAirport, lastCity);
+    const exitOptions = getAirportTransitOptions(exitAirport, lastCity, "EXIT");
     const userExitOverride = allOverrides[exitKey] || allOverrides[`EXIT_${lastCity}-AIRPORT`] || allOverrides[`${lastCity}-${exitAirport}`];
     const selectedExitOption = (userExitOverride && exitOptions.find((o) => o.mode === userExitOverride))
       || exitOptions.find((o) => o.isDefault)
@@ -402,7 +398,7 @@ export function generateInitialBudgetPlan(
         ? {
             ...basket,
             representativePriceKrw: selectedExitOption.oneWayPriceKrw,
-            sourceLabel: `[출국 공항] ${selectedExitOption.nameKo} (${lastCityName} ➔ ${exitAirportInfo.nameKo})`,
+            sourceLabel: `[출국 공항] ${selectedExitOption.nameKo}`,
           }
         : basket,
       cityCode: null,

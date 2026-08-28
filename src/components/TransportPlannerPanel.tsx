@@ -357,10 +357,10 @@ export default function TransportPlannerPanel({
                     </span>
                     {badgeText && (
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-tight ${
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-tight ${
                           isSelected
-                            ? "bg-[#e25c5c] text-white"
-                            : "bg-slate-100 text-[#0f172a] border border-slate-200 font-bold"
+                            ? "bg-slate-800 text-slate-200 border border-slate-700"
+                            : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}
                       >
                         {badgeText}
@@ -385,11 +385,11 @@ export default function TransportPlannerPanel({
 
       {/* SECTION 2: 🚆 도시 간 이동 구간 (다중 도시일 때) */}
       {isMultiCity && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
             <div className="flex items-center gap-2">
               <h4 className="text-sm font-extrabold text-[#0f172a]">
-                {locale === "ko" ? "도시 간 이동 구간" : "Intercity Transit Segments"}
+                {locale === "ko" ? "도시 간 이동 구간" : "Intercity Transit"}
               </h4>
               <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/60">
                 {`${selectedCities.length - 1}${locale === "ko" ? "개 구간" : " segments"}`}
@@ -397,7 +397,7 @@ export default function TransportPlannerPanel({
             </div>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-2.5">
             {Array.from({ length: selectedCities.length - 1 }).map((_, idx) => {
               const fromCity = selectedCities[idx];
               const toCity = selectedCities[idx + 1];
@@ -410,85 +410,53 @@ export default function TransportPlannerPanel({
                 || options[0];
 
               const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
+              const modeIcon = activeOption.mode === "FLIGHT" ? "🛫" : activeOption.mode === "EXPRESS_BUS" ? "🚌" : "🚄";
 
               return (
                 <div
                   key={routeKey}
-                  className="p-4 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs space-y-3 transition-all"
+                  className="p-3.5 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
                 >
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                    <div className="flex items-center gap-2 font-black text-[#0f172a] text-sm">
-                      <span className="px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs">
+                  {/* 좌측: 도시 이동 경로 + 교통수단명 + 소요시간 */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3.5">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs">
                         {getCityName(fromCity)}
                       </span>
-                      <span className="text-slate-400 font-normal">──►</span>
-                      <span className="px-2.5 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-800 font-extrabold text-xs">
+                      <span className="text-slate-400 font-bold text-xs">➔</span>
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs">
                         {getCityName(toCity)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs">
-                      <span className="text-slate-500 font-medium">
-                        {locale === "ko" ? "구간 소계:" : "Segment Subtotal:"}
+                    <div className="flex items-center gap-2 text-xs flex-wrap">
+                      <span className="font-extrabold text-slate-900 flex items-center gap-1">
+                        <span>{modeIcon}</span>
+                        <span>{locale === "ko" ? activeOption.nameKo : activeOption.nameEn}</span>
                       </span>
-                      <strong className="text-[#e25c5c] font-black text-sm">
-                        {formatKrw(totalSegmentKrw)}
-                      </strong>
-                      <span className="text-[11px] text-slate-400">
-                        ({formatKrw(activeOption.oneWayPriceKrw)} × {adultCount}{locale === "ko" ? "명" : ""})
+                      <span className="text-slate-300">·</span>
+                      <span className="text-slate-500 font-medium whitespace-nowrap">
+                        ⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}
                       </span>
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-500 block">
-                      {locale === "ko" ? "이동 수단 선택" : "Select Transit Mode"}
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {options.map((opt) => {
-                        const isSelected = activeOption.mode === opt.mode;
-                        const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;
-
-                        return (
-                          <button
-                            key={opt.mode}
-                            type="button"
-                            onClick={() => onSelectIntercityOverride(routeKey, opt.mode)}
-                            className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
-                              isSelected
-                                ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs ring-1 ring-[#0f172a]"
-                                : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="font-extrabold text-xs">
-                                {locale === "ko" ? opt.nameKo : opt.nameEn}
-                              </span>
-                              {badgeText && (
-                                <span
-                                  className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-tight ${
-                                    isSelected
-                                      ? "bg-[#e25c5c] text-white"
-                                      : "bg-slate-100 text-[#0f172a] border border-slate-200 font-bold"
-                                  }`}
-                                >
-                                  {badgeText}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center justify-between text-[11px] font-medium opacity-90">
-                              <span className={isSelected ? "text-slate-300" : "text-slate-500"}>
-                                ⏱ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
-                              </span>
-                              <strong className={isSelected ? "text-amber-300 font-black text-xs" : "text-[#0f172a] font-extrabold text-xs"}>
-                                {formatKrw(opt.oneWayPriceKrw)}
-                              </strong>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                  {/* 우측: 1인 요금 + 총 소계 */}
+                  <div className="flex items-center justify-between sm:justify-end gap-2 text-xs shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                    <span className="text-[11px] text-slate-400">
+                      (1인 {formatKrw(activeOption.oneWayPriceKrw)})
+                    </span>
+                    <span className="text-slate-500 font-medium">
+                      {locale === "ko" ? "소계:" : "Subtotal:"}
+                    </span>
+                    <strong className="text-[#e25c5c] font-black text-sm">
+                      {formatKrw(totalSegmentKrw)}
+                    </strong>
+                    {adultCount > 1 && (
+                      <span className="text-[11px] text-slate-400 font-medium">
+                        ({adultCount}{locale === "ko" ? "명" : "p"})
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -577,10 +545,10 @@ export default function TransportPlannerPanel({
                     </span>
                     {badgeText && (
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-tight ${
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-tight ${
                           isSelected
-                            ? "bg-[#e25c5c] text-white"
-                            : "bg-slate-100 text-[#0f172a] border border-slate-200 font-bold"
+                            ? "bg-slate-800 text-slate-200 border border-slate-700"
+                            : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}
                       >
                         {badgeText}

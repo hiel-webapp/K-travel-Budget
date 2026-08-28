@@ -38,7 +38,7 @@
 부산,강릉,BUSAN-GANGNEUNG,KTX,"동해선 ITX-마음 / 누리로 직통","Donghae Line Train",38000,3시간 40분,3h 40m,추천,해안철도,코레일(레츠코레일),https://www.letskorail.com
 부산,강릉,BUSAN-GANGNEUNG,EXPRESS_BUS,"시외 우등 고속버스","Intercity Express Bus",39000,4시간 30분,4h 30m,선택,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 부산,수원,BUSAN-SUWON,KTX,"KTX 고속철도 (수원역 경유/직통)","KTX Train (to Suwon)",52000,2시간 30분,2h 30m,추천,추천,코레일(레츠코레일),https://www.letskorail.com
-부산,수원,BUSAN-SUWON,EXPRESS_BUS,"우등 고속버스","Express Bus",34000,4시간 00분,4h 00m,선택,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
+부산,수원,BUSAN-SUWON,EXPRESS_BUS,"시외 우등버스 (부산종합 ➔ 수원)","Intercity Bus (Busan ➔ Suwon)",36200,4시간 20분,4h 20m,선택,시외버스,버스타고(시외버스),https://www.bustago.or.kr
 부산,속초,BUSAN-SOKCHO,EXPRESS_BUS,"시외 우등 고속버스 (동해선 직행)","Direct Intercity Bus",42000,5시간 00분,5h 00m,추천,직통,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 전주,여수,JEONJU-YEOSU,KTX,"KTX / 무궁화호 (전라선 직통)","KTX / Train (Direct)",14200,1시간 20분,1h 20m,추천,직통추천,코레일(레츠코레일),https://www.letskorail.com
 전주,여수,JEONJU-YEOSU,EXPRESS_BUS,"시외 고속버스","Intercity Bus",13500,1시간 50분,1h 50m,선택,,KOBUS(고속버스통합예매),https://www.kobus.co.kr

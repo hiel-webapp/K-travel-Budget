@@ -455,11 +455,13 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "EXPRESS_BUS",
-      "nameKo": "우등 고속버스",
-      "nameEn": "Express Bus",
-      "oneWayPriceKrw": 34000,
-      "durationTextKo": "4시간 00분",
-      "durationTextEn": "4h 00m"
+      "nameKo": "시외 우등버스 (부산종합 ➔ 수원)",
+      "nameEn": "Intercity Bus (Busan ➔ Suwon)",
+      "oneWayPriceKrw": 36200,
+      "durationTextKo": "4시간 20분",
+      "durationTextEn": "4h 20m",
+      "badgeTextKo": "시외버스",
+      "badgeTextEn": "Intercity"
     }
   ],
   "BUSAN-SOKCHO": [

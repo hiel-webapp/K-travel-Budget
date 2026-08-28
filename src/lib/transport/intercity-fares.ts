@@ -728,9 +728,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "EXPRESS_BUS",
       "nameKo": "강릉시외터미널 ➔ 수원버스터미널 (시외 우등버스)",
       "nameEn": "Gangneung Terminal ➔ Suwon Terminal (Express Bus)",
-      "oneWayPriceKrw": 24500,
-      "durationTextKo": "2시간 50분",
-      "durationTextEn": "2h 50m",
+      "oneWayPriceKrw": 22800,
+      "durationTextKo": "3시간 10분",
+      "durationTextEn": "3h 10m",
       "isDefault": true
     }
   ],
@@ -739,9 +739,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "EXPRESS_BUS",
       "nameKo": "수원버스터미널 ➔ 강릉시외터미널 (시외 우등버스)",
       "nameEn": "Suwon Terminal ➔ Gangneung Terminal (Express Bus)",
-      "oneWayPriceKrw": 24500,
-      "durationTextKo": "2시간 50분",
-      "durationTextEn": "2h 50m",
+      "oneWayPriceKrw": 22800,
+      "durationTextKo": "3시간 10분",
+      "durationTextEn": "3h 10m",
       "isDefault": true
     }
   ],

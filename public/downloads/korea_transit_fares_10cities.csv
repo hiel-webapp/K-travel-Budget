@@ -63,8 +63,8 @@
 속초,경주,SOKCHO-GYEONGJU,EXPRESS_BUS,"속초고속터미널 ➔ 경주시외터미널 (동해선 시외버스)","Sokcho Terminal ➔ Gyeongju Terminal (Intercity Bus)",36000,4시간 10분,4h 10m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 강릉,속초,GANGNEUNG-SOKCHO,EXPRESS_BUS,"강릉시외터미널 ➔ 속초시외터미널 (동해안 직행버스)","Gangneung Terminal ➔ Sokcho Terminal (Direct Bus)",7500,50분,50m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 속초,강릉,SOKCHO-GANGNEUNG,EXPRESS_BUS,"속초시외터미널 ➔ 강릉시외터미널 (동해안 직행버스)","Sokcho Terminal ➔ Gangneung Terminal (Direct Bus)",7500,50분,50m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
-강릉,수원,GANGNEUNG-SUWON,EXPRESS_BUS,"강릉시외터미널 ➔ 수원버스터미널 (시외 우등버스)","Gangneung Terminal ➔ Suwon Terminal (Express Bus)",24500,2시간 50분,2h 50m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
-수원,강릉,SUWON-GANGNEUNG,EXPRESS_BUS,"수원버스터미널 ➔ 강릉시외터미널 (시외 우등버스)","Suwon Terminal ➔ Gangneung Terminal (Express Bus)",24500,2시간 50분,2h 50m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
+강릉,수원,GANGNEUNG-SUWON,EXPRESS_BUS,"강릉시외터미널 ➔ 수원버스터미널 (시외 우등버스)","Gangneung Terminal ➔ Suwon Terminal (Express Bus)",22800,3시간 10분,3h 10m,추천,,버스타고(시외버스),https://www.bustago.or.kr
+수원,강릉,SUWON-GANGNEUNG,EXPRESS_BUS,"수원버스터미널 ➔ 강릉시외터미널 (시외 우등버스)","Suwon Terminal ➔ Gangneung Terminal (Express Bus)",22800,3시간 10분,3h 10m,추천,,버스타고(시외버스),https://www.bustago.or.kr
 강릉,여수,GANGNEUNG-YEOSU,KTX,"강릉역 ➔ 서울역 ➔ 여수엑스포역 (KTX 고속철도 환승)","Gangneung Stn ➔ Seoul ➔ Yeosu Expo (KTX via Seoul)",68000,4시간 20분,4h 20m,추천,,코레일(레츠코레일),https://www.letskorail.com
 여수,강릉,YEOSU-GANGNEUNG,KTX,"여수엑스포역 ➔ 서울역 ➔ 강릉역 (KTX 고속철도 환승)","Yeosu Expo ➔ Seoul ➔ Gangneung Stn (KTX via Seoul)",68000,4시간 20분,4h 20m,추천,,코레일(레츠코레일),https://www.letskorail.com
 수원,속초,SUWON-SOKCHO,EXPRESS_BUS,"수원버스터미널 ➔ 속초고속터미널 (시외 우등버스)","Suwon Terminal ➔ Sokcho Terminal (Express Bus)",24500,2시간 50분,2h 50m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr

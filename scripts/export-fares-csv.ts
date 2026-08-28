@@ -47,6 +47,12 @@ export function getTransitSourceInfo(routeKey: string, opt: IntercityFareInfo): 
         sourceUrl: "https://www.bustago.or.kr",
       };
     }
+    if ((from === "GANGNEUNG" && to === "SUWON") || (from === "SUWON" && to === "GANGNEUNG")) {
+      return {
+        sourceName: "버스타고(시외버스)",
+        sourceUrl: "https://www.bustago.or.kr",
+      };
+    }
     if (from === "BUSAN" && to === "JEONJU") {
       return {
         sourceName: "티머니 시외버스",

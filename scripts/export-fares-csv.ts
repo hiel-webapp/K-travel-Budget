@@ -1,10 +1,71 @@
 import fs from "fs";
 import path from "path";
-import { INTERCITY_FARE_TABLE } from "../src/lib/transport/intercity-fares";
+import { INTERCITY_FARE_TABLE, IntercityFareInfo } from "../src/lib/transport/intercity-fares";
 
-async function exportTransitFaresCsv() {
-  console.log("=== Google Sheets 호환 CSV 생성 시작 ===");
+export interface TransitSourceInfo {
+  sourceName: string;
+  sourceUrl: string;
+}
 
+export function getTransitSourceInfo(routeKey: string, opt: IntercityFareInfo): TransitSourceInfo {
+  const [from, to] = routeKey.split("-");
+
+  if (opt.mode === "KTX") {
+    return {
+      sourceName: "코레일(레츠코레일)",
+      sourceUrl: "https://www.letskorail.com",
+    };
+  }
+  if (opt.mode === "SRT") {
+    if (routeKey.includes("INCHEON") || opt.nameKo.includes("일반열차")) {
+      return {
+        sourceName: "공항철도(AREX)",
+        sourceUrl: "https://www.arex.or.kr",
+      };
+    }
+    return {
+      sourceName: "에스알(SRT)",
+      sourceUrl: "https://etk.srail.kr",
+    };
+  }
+  if (opt.mode === "EXPRESS_BUS") {
+    if (opt.nameKo.includes("4100") || opt.nameKo.includes("4300")) {
+      return {
+        sourceName: "경기공항리무진",
+        sourceUrl: "http://www.ggairportbus.co.kr",
+      };
+    }
+    if (opt.nameKo.includes("6000") || opt.nameKo.includes("리무진")) {
+      return {
+        sourceName: "서울공항리무진",
+        sourceUrl: "https://www.seoulairbus.com",
+      };
+    }
+    if (from === "BUSAN" && to === "JEONJU") {
+      return {
+        sourceName: "티머니 시외버스",
+        sourceUrl: "https://txbus.t-money.co.kr",
+      };
+    }
+    return {
+      sourceName: "KOBUS(고속버스통합예매)",
+      sourceUrl: "https://www.kobus.co.kr",
+    };
+  }
+  if (opt.mode === "FLIGHT") {
+    return {
+      sourceName: "한국공항공사(KAC)",
+      sourceUrl: "https://www.airport.co.kr",
+    };
+  }
+
+  return {
+    sourceName: "국토교통부 TAGO",
+    sourceUrl: "https://www.data.go.kr",
+  };
+}
+
+export async function generateTransitFaresCsv(fareTable: Record<string, IntercityFareInfo[]>) {
   const headers = [
     "출발도시",
     "도착도시",
@@ -17,10 +78,9 @@ async function exportTransitFaresCsv() {
     "소요시간(영문)",
     "추천여부",
     "라벨",
-    "검증기준처",
+    "검증기준처_기관명",
+    "공식_예매처_URL",
   ];
-
-  const rows: string[][] = [headers];
 
   const cityKoreanNames: Record<string, string> = {
     SEOUL: "서울",
@@ -35,16 +95,15 @@ async function exportTransitFaresCsv() {
     INCHEON: "인천공항",
   };
 
-  for (const [routeKey, options] of Object.entries(INTERCITY_FARE_TABLE)) {
+  const rows: string[][] = [headers];
+
+  for (const [routeKey, options] of Object.entries(fareTable)) {
     const [from, to] = routeKey.split("-");
     const fromName = cityKoreanNames[from] || from;
     const toName = cityKoreanNames[to] || to;
 
     for (const opt of options) {
-      let sourceName = "공식 전산망";
-      if (opt.mode === "KTX" || opt.mode === "SRT") sourceName = "코레일/SRT 공식운임";
-      else if (opt.mode === "EXPRESS_BUS") sourceName = "KOBUS/티머니 공식운임";
-      else if (opt.mode === "FLIGHT") sourceName = "국내선 공시운임(공항세 포함)";
+      const source = getTransitSourceInfo(routeKey, opt);
 
       rows.push([
         fromName,
@@ -58,12 +117,13 @@ async function exportTransitFaresCsv() {
         opt.durationTextEn,
         opt.isDefault ? "추천" : "선택",
         opt.badgeTextKo || "",
-        sourceName,
+        source.sourceName,
+        source.sourceUrl,
       ]);
     }
   }
 
-  // UTF-8 with BOM (\uFEFF) for perfect Google Sheets & Excel compatibility
+  // UTF-8 with BOM (\uFEFF)
   const csvContent = "\uFEFF" + rows.map((r) => r.join(",")).join("\r\n");
 
   const outputDir = path.resolve(process.cwd(), "public/downloads");
@@ -75,7 +135,9 @@ async function exportTransitFaresCsv() {
   fs.writeFileSync(outputPath, csvContent, "utf8");
 
   console.log(`✅ CSV 파일 생성 완료: ${outputPath}`);
-  console.log(`총 ${rows.length - 1}개 교통 옵션 데이터가 Google Sheets 호환 규격으로 저장되었습니다.`);
+  console.log(`총 ${rows.length - 1}개 교통 옵션 (공식 출처 사이트 및 URL 링크 포함) 저장 완료.`);
 }
 
-exportTransitFaresCsv();
+if (process.argv[1]?.endsWith("export-fares-csv.ts")) {
+  generateTransitFaresCsv(INTERCITY_FARE_TABLE);
+}

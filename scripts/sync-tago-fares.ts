@@ -6,6 +6,7 @@ import { CITY_TRAIN_STATION_MAP, CITY_BUS_TERMINAL_MAP } from "../src/lib/tago/c
 import { SupportedCity } from "../src/lib/trip-domain";
 import { INTERCITY_FARE_TABLE, IntercityFareInfo } from "../src/lib/transport/intercity-fares";
 import { upsertAllFaresToDb } from "../src/lib/supabase/fares";
+import { generateTransitFaresCsv } from "./export-fares-csv";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
@@ -150,21 +151,10 @@ async function runTagoFareSync() {
     console.log(`\n💾 [1] 로컬 초고속 캐시 파일(src/lib/transport/intercity-fares.ts) 갱신 완료.`);
   }
 
-  // 2. Google Sheets 호환 CSV 파일 자동 생성
-  const headers = ["출발도시", "도착도시", "구간코드", "교통수단", "한글명칭", "영문명칭", "편도요금(KRW)", "소요시간(한글)", "추천여부", "라벨"];
-  const rows: string[][] = [headers];
-  for (const [routeKey, options] of Object.entries(fareTableCopy)) {
-    const [from, to] = routeKey.split("-");
-    for (const opt of options) {
-      rows.push([from, to, routeKey, opt.mode, `"${opt.nameKo.replace(/"/g, '""')}"`, `"${opt.nameEn.replace(/"/g, '""')}"`, String(opt.oneWayPriceKrw), opt.durationTextKo, opt.isDefault ? "추천" : "선택", opt.badgeTextKo || ""]);
-    }
-  }
-  const csvContent = "\uFEFF" + rows.map((r) => r.join(",")).join("\r\n");
-  const csvPath = path.resolve(process.cwd(), "public/downloads/korea_transit_fares_10cities.csv");
-  fs.writeFileSync(csvPath, csvContent, "utf8");
-  console.log(`💾 [2] Google Sheets용 CSV 파일(public/downloads/korea_transit_fares_10cities.csv) 갱신 완료.`);
+  // 2. Google Sheets 호환 CSV 파일 자동 생성 (공식 출처 사이트 및 URL 포함)
+  await generateTransitFaresCsv(fareTableCopy);
 
-  // 3. Supabase DB 저장 시도
+  // 3. Supabase DB 저장
   const dbRes = await upsertAllFaresToDb(fareTableCopy);
   if (dbRes.success) {
     console.log(`💾 [3] Supabase DB (intercity_transport_fares)에 ${dbRes.count}개 항목 UPSERT 성공!`);
@@ -173,7 +163,7 @@ async function runTagoFareSync() {
   }
 
   console.log("\n==========================================================================");
-  console.log(`✅ TAGO 정기 배치 및 DB 동기화 파이프라인 가동 완료!`);
+  console.log(`✅ TAGO 정기 배치, DB 동기화 및 Google Sheets CSV 생성 완료!`);
   console.log("==========================================================================");
 }
 

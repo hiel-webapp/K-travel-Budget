@@ -3136,30 +3136,83 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     );
                   })}
 
-                  {plan.intercitySection.lineItems.length > 0 && (
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                      <div className="flex justify-between items-baseline">
-                        <h4 className="text-sm font-extrabold text-[#0f172a]">
-                          {dict.planner.intercityTransportation}
-                        </h4>
-                        <span className="text-xs font-extrabold text-slate-800">{formatKrw(plan.intercitySection.subtotalKrw)}</span>
-                      </div>
+                  {plan.intercitySection.lineItems.length > 0 && (() => {
+                    const allTransitItems = plan.intercitySection.lineItems;
+                    const entryItems = allTransitItems.filter((i) => (i.route && i.route.startsWith("ENTRY_")) || (i.sourceLabel && i.sourceLabel.includes("[입국 공항]")));
+                    const exitItems = allTransitItems.filter((i) => (i.route && i.route.startsWith("EXIT_")) || (i.sourceLabel && i.sourceLabel.includes("[출국 공항]")));
+                    const transitItems = allTransitItems.filter((i) => !entryItems.includes(i) && !exitItems.includes(i));
 
-                      <div className="space-y-2 pl-1.5 border-l border-slate-100">
-                        {plan.intercitySection.lineItems.map((item) => (
-                          <div key={item.id} className="flex justify-between items-start text-xs">
-                            <div>
-                              <span className="text-slate-700 font-medium block">
-                                {item.sourceLabel || getBasketLabel(item.basketId, dict, locale)}
+                    const cleanLabel = (rawLabel: string) => {
+                      return rawLabel
+                        .replace(/\[입국 공항\]|\[도시 간\]|\[출국 공항\]/g, "")
+                        .replace(/\s*\([^)]*?(➔|->)[^)]*?\)/g, "")
+                        .trim();
+                    };
+
+                    return (
+                      <div className="space-y-3 pt-2.5 border-t border-slate-100">
+                        <div className="flex justify-between items-baseline">
+                          <h4 className="text-sm font-extrabold text-[#0f172a]">
+                            {dict.planner.intercityTransportation}
+                          </h4>
+                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(plan.intercitySection.subtotalKrw)}</span>
+                        </div>
+
+                        <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
+                          {/* 1. [입국 공항] */}
+                          {entryItems.length > 0 && (
+                            <div className="space-y-1">
+                              <span className="text-[11px] font-extrabold text-slate-400 block">
+                                {locale === "ko" ? "[입국 공항]" : "[Arrival Gateway]"}
                               </span>
-                              <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
+                              {entryItems.map((item) => (
+                                <div key={item.id} className="flex justify-between items-start text-xs pl-1">
+                                  <span className="text-slate-700 font-medium">
+                                    {cleanLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}
+                                  </span>
+                                  <span className="font-sans tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
+                                </div>
+                              ))}
                             </div>
-                            <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
-                          </div>
-                        ))}
+                          )}
+
+                          {/* 2. [도시 간 이동] */}
+                          {transitItems.length > 0 && (
+                            <div className="space-y-1">
+                              <span className="text-[11px] font-extrabold text-slate-400 block">
+                                {locale === "ko" ? "[도시 간 이동]" : "[Intercity Transit]"}
+                              </span>
+                              {transitItems.map((item) => (
+                                <div key={item.id} className="flex justify-between items-start text-xs pl-1">
+                                  <span className="text-slate-700 font-medium">
+                                    {cleanLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}
+                                  </span>
+                                  <span className="font-sans tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* 3. [출국 공항] */}
+                          {exitItems.length > 0 && (
+                            <div className="space-y-1">
+                              <span className="text-[11px] font-extrabold text-slate-400 block">
+                                {locale === "ko" ? "[출국 공항]" : "[Departure Gateway]"}
+                              </span>
+                              {exitItems.map((item) => (
+                                <div key={item.id} className="flex justify-between items-start text-xs pl-1">
+                                  <span className="text-slate-700 font-medium">
+                                    {cleanLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}
+                                  </span>
+                                  <span className="font-sans tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Shopping & Daily Allowance Group in Receipt */}
                   {(shoppingAmountKrw > 0 || plan.categoryTotals.ATTRACTION > 0) && (

@@ -412,51 +412,56 @@ export default function TransportPlannerPanel({
               const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
               const modeIcon = activeOption.mode === "FLIGHT" ? "🛫" : activeOption.mode === "EXPRESS_BUS" ? "🚌" : "🚄";
 
+              // 괄호 안의 중복된 출발➔도착지 경로 제거 (예: "동해선 ITX-마음 직통열차 (부산 ➔ 강릉)" -> "동해선 ITX-마음 직통열차")
+              const rawName = locale === "ko" ? activeOption.nameKo : activeOption.nameEn;
+              const cleanName = rawName.replace(/\s*\([^)]*?(➔|->)[^)]*?\)/g, "").trim();
+
               return (
                 <div
                   key={routeKey}
-                  className="p-3.5 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all"
+                  className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs flex items-center justify-between gap-4 transition-all"
                 >
-                  {/* 좌측: 도시 이동 경로 + 교통수단명 + 소요시간 */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3.5">
+                  {/* 좌측: 도시 경로 + [1줄: 명칭 / 2줄: 소요시간] */}
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs whitespace-nowrap">
                         {getCityName(fromCity)}
                       </span>
                       <span className="text-slate-400 font-bold text-xs">➔</span>
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs whitespace-nowrap">
                         {getCityName(toCity)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs flex-wrap">
-                      <span className="font-extrabold text-slate-900 flex items-center gap-1">
-                        <span>{modeIcon}</span>
-                        <span>{locale === "ko" ? activeOption.nameKo : activeOption.nameEn}</span>
-                      </span>
-                      <span className="text-slate-300">·</span>
-                      <span className="text-slate-500 font-medium whitespace-nowrap">
-                        ⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}
-                      </span>
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="font-extrabold text-slate-900 text-xs sm:text-[13px] flex items-center gap-1 truncate">
+                        <span className="shrink-0">{modeIcon}</span>
+                        <span className="truncate">{cleanName}</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+                        <span>⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* 우측: 1인 요금 + 총 소계 */}
-                  <div className="flex items-center justify-between sm:justify-end gap-2 text-xs shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                    <span className="text-[11px] text-slate-400">
-                      (1인 {formatKrw(activeOption.oneWayPriceKrw)})
-                    </span>
-                    <span className="text-slate-500 font-medium">
-                      {locale === "ko" ? "소계:" : "Subtotal:"}
-                    </span>
-                    <strong className="text-[#e25c5c] font-black text-sm">
-                      {formatKrw(totalSegmentKrw)}
-                    </strong>
-                    {adultCount > 1 && (
-                      <span className="text-[11px] text-slate-400 font-medium">
-                        ({adultCount}{locale === "ko" ? "명" : "p"})
+                  {/* 우측: [1줄: 소계 / 2줄: 1인 단가] */}
+                  <div className="space-y-0.5 text-right shrink-0">
+                    <div className="text-xs sm:text-[13px]">
+                      <span className="text-slate-500 font-medium mr-1.5">
+                        {locale === "ko" ? "소계:" : "Subtotal:"}
                       </span>
-                    )}
+                      <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
+                        {formatKrw(totalSegmentKrw)}
+                      </strong>
+                      {adultCount > 1 && (
+                        <span className="text-[11px] text-slate-400 font-medium ml-1">
+                          ({adultCount}{locale === "ko" ? "명" : "p"})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 font-medium">
+                      (1인 {formatKrw(activeOption.oneWayPriceKrw)})
+                    </div>
                   </div>
                 </div>
               );

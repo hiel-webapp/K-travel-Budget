@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
-import { fetchTrainSchedule, fetchExpBusSchedule, formatDurationTexts } from "../src/lib/tago/client";
+import { fetchTrainSchedule, fetchExpBusSchedule, fetchBusScheduleWithFallback, formatDurationTexts } from "../src/lib/tago/client";
 import { CITY_TRAIN_STATION_MAP, CITY_BUS_TERMINAL_MAP } from "../src/lib/tago/constants";
 import { SupportedCity } from "../src/lib/trip-domain";
 import { INTERCITY_FARE_TABLE, IntercityFareInfo } from "../src/lib/transport/intercity-fares";
@@ -93,16 +93,16 @@ async function runTagoFareSync() {
       if (found) break;
     }
 
-    // 2. 고속버스 요금 조회
+    // 2. 버스 요금 조회 (고속버스 KOBUS ➔ 시외버스 BUSTAGO 2단계 자동 폴백)
     const fromTerminals = CITY_BUS_TERMINAL_MAP[fromCity] || [];
     const toTerminals = CITY_BUS_TERMINAL_MAP[toCity] || [];
 
     for (const fTrm of fromTerminals) {
       let found = false;
       for (const tTrm of toTerminals) {
-        const buses = await fetchExpBusSchedule(fTrm.id, tTrm.id);
+        const { items: buses, networkType } = await fetchBusScheduleWithFallback(fTrm.id, tTrm.id);
         if (buses.length > 0) {
-          const targetBus = buses.find((b) => b.gradeNm === "우등") || buses[0];
+          const targetBus = buses.find((b) => b.gradeNm?.includes("우등")) || buses[0];
           const fare = Number(targetBus.charge);
 
           if (fare > 0) {
@@ -127,6 +127,7 @@ async function runTagoFareSync() {
                 busOpt.durationTextKo = formatted.ko;
                 busOpt.durationTextEn = formatted.en;
                 updatedCount++;
+                console.log(`[${networkType}] ${fromCity} ➔ ${toCity}: ₩${fare} (${formatted.ko})`);
               }
             }
             found = true;

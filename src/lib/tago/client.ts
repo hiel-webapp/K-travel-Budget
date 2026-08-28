@@ -64,7 +64,6 @@ export async function fetchExpBusSchedule(
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      console.warn(`[TAGO ExpBus] HTTP 오류 ${res.status} for ${depTerminalId} -> ${arrTerminalId}`);
       return [];
     }
 
@@ -77,9 +76,76 @@ export async function fetchExpBusSchedule(
     if (!rawItems) return [];
     return Array.isArray(rawItems) ? rawItems : [rawItems];
   } catch (err: any) {
-    console.warn(`[TAGO ExpBus] 조회 실패 (${depTerminalId} ➔ ${arrTerminalId}):`, err.message);
     return [];
   }
+}
+
+/**
+ * 출발 터미널 ID와 도착 터미널 ID를 기반으로 시외버스(SuburbsBus) 스케줄 및 공식 요금 목록을 조회합니다.
+ */
+export async function fetchSuburbsBusSchedule(
+  depTerminalId: string,
+  arrTerminalId: string,
+  depPlandTime?: string // YYYYMMDD (생략 시 오늘)
+): Promise<TagoExpBusItem[]> {
+  const serviceKey = getApiKey();
+  let url = `${TAGO_BASE_URL}/SuburbsBusInfoService/getStrtpntAlocFndSubrbBusInfo?serviceKey=${serviceKey}&depTerminalId=${depTerminalId}&arrTerminalId=${arrTerminalId}&_type=json&numOfRows=50`;
+
+  if (depPlandTime) {
+    url += `&depPlandTime=${depPlandTime}`;
+  }
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      return [];
+    }
+
+    const data = await res.json();
+    if (data.response?.header?.resultCode !== "00") {
+      return [];
+    }
+
+    const rawItems = data.response?.body?.items?.item;
+    if (!rawItems) return [];
+    const list = Array.isArray(rawItems) ? rawItems : [rawItems];
+    return list.map((i: any) => ({
+      routeId: i.routeId || `${depTerminalId}-${arrTerminalId}`,
+      depPlaceNm: i.depPlaceNm || i.depTerminalNm || "",
+      arrPlaceNm: i.arrPlaceNm || i.arrTerminalNm || "",
+      depPlandTime: i.depPlandTime,
+      arrPlandTime: i.arrPlandTime,
+      charge: i.charge || i.adultCharge || 0,
+      gradeNm: i.gradeNm || "시외우등",
+    }));
+  } catch (err: any) {
+    return [];
+  }
+}
+
+/**
+ * 2단계 버스 배차 통합 폴백 조회:
+ * 1) 고속버스(KOBUS) 배차 조회 (배차 건수 > 0 이면 채택)
+ * 2) 고속버스 배차가 0건이면 시외버스(SuburbsBus) 전산망 자동 폴백 조회
+ */
+export async function fetchBusScheduleWithFallback(
+  depTerminalId: string,
+  arrTerminalId: string,
+  depPlandTime?: string
+): Promise<{ items: TagoExpBusItem[]; networkType: "KOBUS" | "BUSTAGO" }> {
+  // 1단계: 고속버스(KOBUS) 조회
+  const expItems = await fetchExpBusSchedule(depTerminalId, arrTerminalId, depPlandTime);
+  if (expItems.length > 0) {
+    return { items: expItems, networkType: "KOBUS" };
+  }
+
+  // 2단계: 시외버스(SuburbsBus) 폴백 조회
+  const subrbItems = await fetchSuburbsBusSchedule(depTerminalId, arrTerminalId, depPlandTime);
+  if (subrbItems.length > 0) {
+    return { items: subrbItems, networkType: "BUSTAGO" };
+  }
+
+  return { items: [], networkType: "KOBUS" };
 }
 
 /**

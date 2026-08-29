@@ -37,7 +37,7 @@ export interface IntercityFareInfo {
 
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
- * (인천공항 공식 사이트 airport.kr, AREX 공식 13,000원, 버스타고, 경기공항리무진 최신 인가 요금 전수 반영)
+ * (코레일 공식 예매 운임, 인천공항 airport.kr, 버스타고, 경기공항리무진 최신 인가 요금 전수 반영)
  */
 export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "SEOUL-BUSAN": [
@@ -105,7 +105,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "전주역 ➔ 용산역 (KTX 고속철도)",
       "nameEn": "Jeonju Stn ➔ Yongsan Stn (KTX Express)",
-      "oneWayPriceKrw": 34600,
+      "oneWayPriceKrw": 34400,
       "durationTextKo": "1시간 40분",
       "durationTextEn": "1h 40m",
       "isDefault": true,
@@ -446,11 +446,11 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     },
     {
       "mode": "TRANSFER",
-      "nameKo": "제주공항 ➔ 광주공항 ➔ 전주 (국내선 항공 + KTX/시외버스)",
-      "nameEn": "Jeju ➔ Gwangju Airport ➔ Jeonju (Flight + KTX/Bus)",
-      "oneWayPriceKrw": 74500,
-      "durationTextKo": "2시간 00분",
-      "durationTextEn": "2h 00m",
+      "nameKo": "제주공항 ➔ 광주공항 ➔ 전주 (국내선 항공 + KTX/ITX)",
+      "nameEn": "Jeju ➔ Gwangju Airport ➔ Jeonju (Flight + KTX/ITX)",
+      "oneWayPriceKrw": 81000,
+      "durationTextKo": "1시간 50분",
+      "durationTextEn": "1h 50m",
       "optionType": "COMFORT",
       "badgeTextKo": "배차다수",
       "badgeTextEn": "Frequent Flights",
@@ -475,15 +475,31 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "legOrder": 2,
           "fromHubNameKo": "광주송정역",
           "fromHubNameEn": "Gwangju Songjeong",
-          "toHubNameKo": "전주역",
-          "toHubNameEn": "Jeonju Stn",
+          "toHubNameKo": "익산역",
+          "toHubNameEn": "Iksan Stn",
           "mode": "KTX",
           "modeIcon": "🚄",
           "transitNameKo": "KTX 고속철도",
           "transitNameEn": "KTX Rail",
-          "fareKrw": 12500,
-          "durationTextKo": "40분",
-          "durationTextEn": "40m",
+          "fareKrw": 14200,
+          "durationTextKo": "35분",
+          "durationTextEn": "35m",
+          "bookingPlatform": "KORAIL",
+          "bookingUrl": "https://www.letskorail.com"
+        },
+        {
+          "legOrder": 3,
+          "fromHubNameKo": "익산역",
+          "fromHubNameEn": "Iksan Stn",
+          "toHubNameKo": "전주역",
+          "toHubNameEn": "Jeonju Stn",
+          "mode": "KTX",
+          "modeIcon": "🚄",
+          "transitNameKo": "ITX-새마을 / 마음",
+          "transitNameEn": "ITX Train",
+          "fareKrw": 4800,
+          "durationTextKo": "14분",
+          "durationTextEn": "14m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         }
@@ -680,11 +696,11 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "JEJU-GANGNEUNG": [
     {
       "mode": "TRANSFER",
-      "nameKo": "제주공항 ➔ 원주공항 ➔ 강릉 (국내선 항공 + 시외버스/KTX)",
-      "nameEn": "Jeju ➔ Wonju Airport ➔ Gangneung (Flight + Bus/KTX)",
-      "oneWayPriceKrw": 82000,
-      "durationTextKo": "2시간 30분",
-      "durationTextEn": "2h 30m",
+      "nameKo": "제주공항 ➔ 원주(만종) ➔ 강릉 (국내선 항공 + KTX-이음)",
+      "nameEn": "Jeju ➔ Wonju(Manjong) ➔ Gangneung (Flight + KTX-Eum)",
+      "oneWayPriceKrw": 86300,
+      "durationTextKo": "2시간 00분",
+      "durationTextEn": "2h 00m",
       "isDefault": true,
       "optionType": "FASTEST",
       "badgeTextKo": "강원도내공항",
@@ -708,17 +724,17 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
         },
         {
           "legOrder": 2,
-          "fromHubNameKo": "원주공항/만종역",
-          "fromHubNameEn": "Wonju/Manjong",
-          "toHubNameKo": "강릉역/터미널",
+          "fromHubNameKo": "만종(원주)역",
+          "fromHubNameEn": "Manjong/Wonju Stn",
+          "toHubNameKo": "강릉역",
           "toHubNameEn": "Gangneung Stn",
           "mode": "KTX",
           "modeIcon": "🚄",
-          "transitNameKo": "KTX-이음 / 시외버스",
-          "transitNameEn": "KTX / Bus",
-          "fareKrw": 12000,
-          "durationTextKo": "50분",
-          "durationTextEn": "50m",
+          "transitNameKo": "KTX-이음 고속철도",
+          "transitNameEn": "KTX-Eum",
+          "fareKrw": 16300,
+          "durationTextKo": "44분",
+          "durationTextEn": "44m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         }
@@ -773,27 +789,27 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "GANGNEUNG-JEJU": [
     {
       "mode": "TRANSFER",
-      "nameKo": "강릉 ➔ 원주공항 ➔ 제주공항 (시외버스/KTX + 국내선 항공)",
-      "nameEn": "Gangneung ➔ Wonju Airport ➔ Jeju (Bus/KTX + Flight)",
-      "oneWayPriceKrw": 82000,
-      "durationTextKo": "2시간 30분",
-      "durationTextEn": "2h 30m",
+      "nameKo": "강릉역 ➔ 원주(만종) ➔ 제주공항 (KTX-이음 + 국내선 항공)",
+      "nameEn": "Gangneung ➔ Wonju(Manjong) ➔ Jeju (KTX-Eum + Flight)",
+      "oneWayPriceKrw": 86300,
+      "durationTextKo": "2시간 00분",
+      "durationTextEn": "2h 00m",
       "isDefault": true,
       "optionType": "FASTEST",
       "legs": [
         {
           "legOrder": 1,
-          "fromHubNameKo": "강릉역/터미널",
+          "fromHubNameKo": "강릉역",
           "fromHubNameEn": "Gangneung Stn",
-          "toHubNameKo": "원주공항/만종역",
-          "toHubNameEn": "Wonju/Manjong",
+          "toHubNameKo": "만종(원주)역",
+          "toHubNameEn": "Manjong/Wonju Stn",
           "mode": "KTX",
           "modeIcon": "🚄",
-          "transitNameKo": "KTX-이음 / 시외버스",
-          "transitNameEn": "KTX / Bus",
-          "fareKrw": 12000,
-          "durationTextKo": "50분",
-          "durationTextEn": "50m",
+          "transitNameKo": "KTX-이음 고속철도",
+          "transitNameEn": "KTX-Eum",
+          "fareKrw": 16300,
+          "durationTextKo": "44분",
+          "durationTextEn": "44m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         },
@@ -1086,9 +1102,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "BUSAN-GANGNEUNG": [
     {
       "mode": "KTX",
-      "nameKo": "부산역 ➔ 강릉역 (동해선 ITX-마음 직통열차)",
-      "nameEn": "Busan Stn ➔ Gangneung Stn (Donghae Line Train)",
-      "oneWayPriceKrw": 38000,
+      "nameKo": "부전역 ➔ 강릉역 (동해선 KTX-이음 직통열차)",
+      "nameEn": "Bujeon Stn ➔ Gangneung Stn (Donghae KTX-Eum)",
+      "oneWayPriceKrw": 46800,
       "durationTextKo": "3시간 40분",
       "durationTextEn": "3h 40m",
       "isDefault": true,
@@ -1100,9 +1116,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "GANGNEUNG-BUSAN": [
     {
       "mode": "KTX",
-      "nameKo": "강릉역 ➔ 부산역 (동해선 ITX-마음 직통열차)",
-      "nameEn": "Gangneung Stn ➔ Busan Stn (Donghae Line Train)",
-      "oneWayPriceKrw": 38000,
+      "nameKo": "강릉역 ➔ 부전역 (동해선 KTX-이음 직통열차)",
+      "nameEn": "Gangneung Stn ➔ Bujeon Stn (Donghae KTX-Eum)",
+      "oneWayPriceKrw": 46800,
       "durationTextKo": "3시간 40분",
       "durationTextEn": "3h 40m",
       "isDefault": true,
@@ -1116,7 +1132,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "부산역 ➔ 수원역 (KTX 고속철도 직통)",
       "nameEn": "Busan Stn ➔ Suwon Stn (KTX Express Direct)",
-      "oneWayPriceKrw": 52000,
+      "oneWayPriceKrw": 46300,
       "durationTextKo": "2시간 30분",
       "durationTextEn": "2h 30m",
       "isDefault": true,
@@ -1128,7 +1144,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "수원역 ➔ 부산역 (KTX 고속철도 직통)",
       "nameEn": "Suwon Stn ➔ Busan Stn (KTX Express Direct)",
-      "oneWayPriceKrw": 52000,
+      "oneWayPriceKrw": 46300,
       "durationTextKo": "2시간 30분",
       "durationTextEn": "2h 30m",
       "isDefault": true,
@@ -1141,8 +1157,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "nameKo": "부산역 ➔ 동대구역 ➔ 속초 (KTX + 우등 고속버스)",
       "nameEn": "Busan ➔ Dongdaegu ➔ Sokcho (KTX + Express Bus)",
       "oneWayPriceKrw": 49800,
-      "durationTextKo": "4시간 25분",
-      "durationTextEn": "4h 25m",
+      "durationTextKo": "4시간 10분",
+      "durationTextEn": "4h 10m",
       "isDefault": true,
       "optionType": "FASTEST",
       "badgeTextKo": "최단시간",
@@ -1159,8 +1175,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "transitNameKo": "KTX 고속철도",
           "transitNameEn": "KTX Express",
           "fareKrw": 17100,
-          "durationTextKo": "45분",
-          "durationTextEn": "45m",
+          "durationTextKo": "40분",
+          "durationTextEn": "40m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         },
@@ -1218,8 +1234,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "nameKo": "속초 ➔ 동대구역 ➔ 부산역 (우등 고속버스 + KTX)",
       "nameEn": "Sokcho ➔ Dongdaegu ➔ Busan (Express Bus + KTX)",
       "oneWayPriceKrw": 49800,
-      "durationTextKo": "4시간 25분",
-      "durationTextEn": "4h 25m",
+      "durationTextKo": "4시간 10분",
+      "durationTextEn": "4h 10m",
       "isDefault": true,
       "optionType": "FASTEST",
       "badgeTextKo": "최단시간",
@@ -1252,8 +1268,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "transitNameKo": "KTX 고속철도",
           "transitNameEn": "KTX Express",
           "fareKrw": 17100,
-          "durationTextKo": "45분",
-          "durationTextEn": "45m",
+          "durationTextKo": "40분",
+          "durationTextEn": "40m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         }
@@ -1263,9 +1279,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "JEONJU-YEOSU": [
     {
       "mode": "KTX",
-      "nameKo": "전주역 ➔ 여수엑스포역 (KTX / ITX-새마을)",
-      "nameEn": "Jeonju Stn ➔ Yeosu Expo Stn (KTX / Train)",
-      "oneWayPriceKrw": 14200,
+      "nameKo": "전주역 ➔ 여수엑스포역 (KTX 고속철도)",
+      "nameEn": "Jeonju Stn ➔ Yeosu Expo Stn (KTX Express)",
+      "oneWayPriceKrw": 16100,
       "durationTextKo": "1시간 20분",
       "durationTextEn": "1h 20m",
       "isDefault": true,
@@ -1275,9 +1291,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "YEOSU-JEONJU": [
     {
       "mode": "KTX",
-      "nameKo": "여수엑스포역 ➔ 전주역 (KTX / ITX-새마을)",
-      "nameEn": "Yeosu Expo Stn ➔ Jeonju Stn (KTX / Train)",
-      "oneWayPriceKrw": 14200,
+      "nameKo": "여수엑스포역 ➔ 전주역 (KTX 고속철도)",
+      "nameEn": "Yeosu Expo Stn ➔ Jeonju Stn (KTX Express)",
+      "oneWayPriceKrw": 16100,
       "durationTextKo": "1시간 20분",
       "durationTextEn": "1h 20m",
       "isDefault": true,
@@ -1289,9 +1305,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "TRANSFER",
       "nameKo": "전주역 ➔ 오송역 ➔ 신경주역 (KTX 고속철도 환승)",
       "nameEn": "Jeonju Stn ➔ Osong ➔ Singyeongju (KTX + KTX)",
-      "oneWayPriceKrw": 47800,
-      "durationTextKo": "2시간 00분",
-      "durationTextEn": "2h 00m",
+      "oneWayPriceKrw": 47300,
+      "durationTextKo": "2시간 10분",
+      "durationTextEn": "2h 10m",
       "isDefault": true,
       "optionType": "FASTEST",
       "badgeTextKo": "최단철도",
@@ -1307,9 +1323,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "modeIcon": "🚄",
           "transitNameKo": "KTX 호남선",
           "transitNameEn": "KTX Honam",
-          "fareKrw": 18500,
-          "durationTextKo": "45분",
-          "durationTextEn": "45m",
+          "fareKrw": 16600,
+          "durationTextKo": "50분",
+          "durationTextEn": "50m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         },
@@ -1323,9 +1339,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "modeIcon": "🚄",
           "transitNameKo": "KTX 경부선",
           "transitNameEn": "KTX Gyeongbu",
-          "fareKrw": 29300,
-          "durationTextKo": "55분",
-          "durationTextEn": "55m",
+          "fareKrw": 30700,
+          "durationTextKo": "1시간 20분",
+          "durationTextEn": "1h 20m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         }
@@ -1382,9 +1398,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "TRANSFER",
       "nameKo": "신경주역 ➔ 오송역 ➔ 전주역 (KTX 고속철도 환승)",
       "nameEn": "Singyeongju ➔ Osong ➔ Jeonju (KTX + KTX)",
-      "oneWayPriceKrw": 47800,
-      "durationTextKo": "2시간 00분",
-      "durationTextEn": "2h 00m",
+      "oneWayPriceKrw": 47300,
+      "durationTextKo": "2시간 10분",
+      "durationTextEn": "2h 10m",
       "isDefault": true,
       "optionType": "FASTEST",
       "legs": [
@@ -1398,9 +1414,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "modeIcon": "🚄",
           "transitNameKo": "KTX 경부선",
           "transitNameEn": "KTX Gyeongbu",
-          "fareKrw": 29300,
-          "durationTextKo": "55분",
-          "durationTextEn": "55m",
+          "fareKrw": 30700,
+          "durationTextKo": "1시간 20분",
+          "durationTextEn": "1h 20m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         },
@@ -1414,9 +1430,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "modeIcon": "🚄",
           "transitNameKo": "KTX 호남선",
           "transitNameEn": "KTX Honam",
-          "fareKrw": 18500,
-          "durationTextKo": "45분",
-          "durationTextEn": "45m",
+          "fareKrw": 16600,
+          "durationTextKo": "50분",
+          "durationTextEn": "50m",
           "bookingPlatform": "KORAIL",
           "bookingUrl": "https://www.letskorail.com"
         }
@@ -1440,7 +1456,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "TRANSFER",
       "nameKo": "전주역 ➔ 서울/청량리역 ➔ 강릉역 (KTX 고속철도 환승)",
       "nameEn": "Jeonju ➔ Seoul Stn ➔ Gangneung (KTX + KTX-Eum)",
-      "oneWayPriceKrw": 62200,
+      "oneWayPriceKrw": 62000,
       "durationTextKo": "4시간 10분",
       "durationTextEn": "4h 10m",
       "optionType": "COMFORT",
@@ -1457,7 +1473,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
           "modeIcon": "🚄",
           "transitNameKo": "KTX 고속철도",
           "transitNameEn": "KTX Express",
-          "fareKrw": 34600,
+          "fareKrw": 34400,
           "durationTextKo": "1시간 40분",
           "durationTextEn": "1h 40m",
           "bookingPlatform": "KORAIL",
@@ -1499,11 +1515,11 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "JEONJU-SUWON": [
     {
       "mode": "KTX",
-      "nameKo": "전주역 ➔ 수원역 (KTX / ITX-새마을 직통)",
-      "nameEn": "Jeonju Stn ➔ Suwon Stn (KTX / Train Direct)",
-      "oneWayPriceKrw": 24500,
-      "durationTextKo": "1시간 45분",
-      "durationTextEn": "1h 45m",
+      "nameKo": "전주역 ➔ 수원역 (ITX-새마을 / ITX-마음 직통)",
+      "nameEn": "Jeonju Stn ➔ Suwon Stn (ITX Train Direct)",
+      "oneWayPriceKrw": 22500,
+      "durationTextKo": "2시간 40분",
+      "durationTextEn": "2h 40m",
       "isDefault": true,
       "optionType": "DIRECT"
     }
@@ -1511,11 +1527,11 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "SUWON-JEONJU": [
     {
       "mode": "KTX",
-      "nameKo": "수원역 ➔ 전주역 (KTX / ITX-새마을 직통)",
-      "nameEn": "Suwon Stn ➔ Jeonju Stn (KTX / Train Direct)",
-      "oneWayPriceKrw": 24500,
-      "durationTextKo": "1시간 45분",
-      "durationTextEn": "1h 45m",
+      "nameKo": "수원역 ➔ 전주역 (ITX-새마을 / ITX-마음 직통)",
+      "nameEn": "Suwon Stn ➔ Jeonju Stn (ITX Train Direct)",
+      "oneWayPriceKrw": 22500,
+      "durationTextKo": "2시간 40분",
+      "durationTextEn": "2h 40m",
       "isDefault": true,
       "optionType": "DIRECT"
     }
@@ -1547,7 +1563,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "GYEONGJU-GANGNEUNG": [
     {
       "mode": "KTX",
-      "nameKo": "신경주역 ➔ 강릉역 (동해선 ITX-마음 / KTX)",
+      "nameKo": "신경주역 ➔ 강릉역 (동해선 KTX-이음 직통)",
       "nameEn": "Singyeongju Stn ➔ Gangneung Stn (Donghae Line)",
       "oneWayPriceKrw": 34300,
       "durationTextKo": "2시간 44분",
@@ -1559,7 +1575,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "GANGNEUNG-GYEONGJU": [
     {
       "mode": "KTX",
-      "nameKo": "강릉역 ➔ 신경주역 (동해선 ITX-마음 / KTX)",
+      "nameKo": "강릉역 ➔ 신경주역 (동해선 KTX-이음 직통)",
       "nameEn": "Gangneung Stn ➔ Singyeongju Stn (Donghae Line)",
       "oneWayPriceKrw": 34300,
       "durationTextKo": "2시간 44분",
@@ -1595,9 +1611,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "GYEONGJU-SUWON": [
     {
       "mode": "KTX",
-      "nameKo": "신경주역 ➔ 수원역 (KTX 고속철도)",
+      "nameKo": "신경주역 ➔ 수원역 (KTX 경부선 직통)",
       "nameEn": "Singyeongju Stn ➔ Suwon Stn (KTX Express)",
-      "oneWayPriceKrw": 41000,
+      "oneWayPriceKrw": 36600,
       "durationTextKo": "2시간 10분",
       "durationTextEn": "2h 10m",
       "isDefault": true,
@@ -1607,9 +1623,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "SUWON-GYEONGJU": [
     {
       "mode": "KTX",
-      "nameKo": "수원역 ➔ 신경주역 (KTX 고속철도)",
+      "nameKo": "수원역 ➔ 신경주역 (KTX 경부선 직통)",
       "nameEn": "Suwon Stn ➔ Singyeongju Stn (KTX Express)",
-      "oneWayPriceKrw": 41000,
+      "oneWayPriceKrw": 36600,
       "durationTextKo": "2시간 10분",
       "durationTextEn": "2h 10m",
       "isDefault": true,
@@ -1620,7 +1636,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     {
       "mode": "EXPRESS_BUS",
       "nameKo": "경주시외터미널 ➔ 속초고속터미널 (동해선 시외버스)",
-      "nameEn": "Gyeongju Terminal ➔ 속초 Terminal (Intercity Bus)",
+      "nameEn": "Gyeongju Terminal ➔ Sokcho Terminal (Intercity Bus)",
       "oneWayPriceKrw": 36000,
       "durationTextKo": "4시간 10분",
       "durationTextEn": "4h 10m",
@@ -1810,26 +1826,98 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   ],
   "SUWON-YEOSU": [
     {
-      "mode": "KTX",
-      "nameKo": "수원역 ➔ 여수엑스포역 (KTX 고속철도 직통)",
-      "nameEn": "Suwon Stn ➔ Yeosu Expo Stn (KTX Express)",
-      "oneWayPriceKrw": 43000,
-      "durationTextKo": "2시간 50분",
-      "durationTextEn": "2h 50m",
+      "mode": "TRANSFER",
+      "nameKo": "수원 ➔ 천안아산 ➔ 여수엑스포역 (1호선 + KTX 환승)",
+      "nameEn": "Suwon ➔ Cheonan-Asan ➔ Yeosu (Line 1 + KTX)",
+      "oneWayPriceKrw": 37950,
+      "durationTextKo": "3시간 27분",
+      "durationTextEn": "3h 27m",
       "isDefault": true,
-      "optionType": "DIRECT"
+      "optionType": "FASTEST",
+      "badgeTextKo": "최적환승",
+      "badgeTextEn": "Best Transfer",
+      "legs": [
+        {
+          "legOrder": 1,
+          "fromHubNameKo": "수원역",
+          "fromHubNameEn": "Suwon Stn",
+          "toHubNameKo": "천안아산역",
+          "toHubNameEn": "Cheonan-Asan Stn",
+          "mode": "SRT",
+          "modeIcon": "🚇",
+          "transitNameKo": "수도권 1호선 전철",
+          "transitNameEn": "Seoul Metro Line 1",
+          "fareKrw": 2750,
+          "durationTextKo": "1시간 04분",
+          "durationTextEn": "1h 04m",
+          "bookingPlatform": "TMONEY",
+          "bookingUrl": "https://txbus.t-money.co.kr"
+        },
+        {
+          "legOrder": 2,
+          "fromHubNameKo": "천안아산역",
+          "fromHubNameEn": "Cheonan-Asan Stn",
+          "toHubNameKo": "여수엑스포역",
+          "toHubNameEn": "Yeosu Expo",
+          "mode": "KTX",
+          "modeIcon": "🚄",
+          "transitNameKo": "KTX 전라선",
+          "transitNameEn": "KTX Express",
+          "fareKrw": 35200,
+          "durationTextKo": "2시간 23분",
+          "durationTextEn": "2h 23m",
+          "bookingPlatform": "KORAIL",
+          "bookingUrl": "https://www.letskorail.com"
+        }
+      ]
     }
   ],
   "YEOSU-SUWON": [
     {
-      "mode": "KTX",
-      "nameKo": "여수엑스포역 ➔ 수원역 (KTX 고속철도 직통)",
-      "nameEn": "Yeosu Expo Stn ➔ Suwon Stn (KTX Express)",
-      "oneWayPriceKrw": 43000,
-      "durationTextKo": "2시간 50분",
-      "durationTextEn": "2h 50m",
+      "mode": "TRANSFER",
+      "nameKo": "여수엑스포역 ➔ 천안아산 ➔ 수원 (KTX + 1호선 환승)",
+      "nameEn": "Yeosu ➔ Cheonan-Asan ➔ Suwon (KTX + Line 1)",
+      "oneWayPriceKrw": 37950,
+      "durationTextKo": "3시간 27분",
+      "durationTextEn": "3h 27m",
       "isDefault": true,
-      "optionType": "DIRECT"
+      "optionType": "FASTEST",
+      "badgeTextKo": "최적환승",
+      "badgeTextEn": "Best Transfer",
+      "legs": [
+        {
+          "legOrder": 1,
+          "fromHubNameKo": "여수엑스포역",
+          "fromHubNameEn": "Yeosu Expo",
+          "toHubNameKo": "천안아산역",
+          "toHubNameEn": "Cheonan-Asan Stn",
+          "mode": "KTX",
+          "modeIcon": "🚄",
+          "transitNameKo": "KTX 전라선",
+          "transitNameEn": "KTX Express",
+          "fareKrw": 35200,
+          "durationTextKo": "2시간 23분",
+          "durationTextEn": "2h 23m",
+          "bookingPlatform": "KORAIL",
+          "bookingUrl": "https://www.letskorail.com"
+        },
+        {
+          "legOrder": 2,
+          "fromHubNameKo": "천안아산역",
+          "fromHubNameEn": "Cheonan-Asan Stn",
+          "toHubNameKo": "수원역",
+          "toHubNameEn": "Suwon Stn",
+          "mode": "SRT",
+          "modeIcon": "🚇",
+          "transitNameKo": "수도권 1호선 전철",
+          "transitNameEn": "Seoul Metro Line 1",
+          "fareKrw": 2750,
+          "durationTextKo": "1시간 04분",
+          "durationTextEn": "1h 04m",
+          "bookingPlatform": "TMONEY",
+          "bookingUrl": "https://txbus.t-money.co.kr"
+        }
+      ]
     }
   ],
   "YEOSU-SOKCHO": [
@@ -1986,7 +2074,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 서울/용산역 ➔ 전주역 (AREX + KTX 고속철도)",
       "nameEn": "Incheon Airport ➔ Seoul/Yongsan ➔ Jeonju (AREX + KTX)",
-      "oneWayPriceKrw": 47600,
+      "oneWayPriceKrw": 47400,
       "durationTextKo": "2시간 40분",
       "durationTextEn": "2h 40m",
       "badgeTextKo": "빠른도착",
@@ -2160,7 +2248,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "전주역 ➔ 용산/서울역 ➔ 인천공항 (KTX 고속철도 + AREX)",
       "nameEn": "Jeonju ➔ Yongsan/Seoul ➔ Incheon Airport (KTX + AREX)",
-      "oneWayPriceKrw": 47600,
+      "oneWayPriceKrw": 47400,
       "durationTextKo": "2시간 40분",
       "durationTextEn": "2h 40m",
       "badgeTextKo": "빠른도착",
@@ -2217,7 +2305,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     {
       "mode": "EXPRESS_BUS",
       "nameKo": "경주시외터미널 ➔ 인천공항 (포항행 직행 우등버스)",
-      "nameEn": "Gyeongju ➔ Incheon Airport (via Pohang Route)",
+      "nameEn": "Gyeongju ➔ 인천공항 (via Pohang Route)",
       "oneWayPriceKrw": 50300,
       "durationTextKo": "4시간 30분",
       "durationTextEn": "4h 30m",

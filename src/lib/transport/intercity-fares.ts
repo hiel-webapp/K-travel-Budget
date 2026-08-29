@@ -37,7 +37,7 @@ export interface IntercityFareInfo {
 
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
- * (인천공항 공식 사이트 airport.kr 및 버스타고, 경기공항리무진 최신 인가 요금 전수 반영)
+ * (인천공항 공식 사이트 airport.kr, AREX 공식 13,000원, 버스타고, 경기공항리무진 최신 인가 요금 전수 반영)
  */
 export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   "SEOUL-BUSAN": [
@@ -1620,7 +1620,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     {
       "mode": "EXPRESS_BUS",
       "nameKo": "경주시외터미널 ➔ 속초고속터미널 (동해선 시외버스)",
-      "nameEn": "Gyeongju Terminal ➔ Sokcho Terminal (Intercity Bus)",
+      "nameEn": "Gyeongju Terminal ➔ 속초 Terminal (Intercity Bus)",
       "oneWayPriceKrw": 36000,
       "durationTextKo": "4시간 10분",
       "durationTextEn": "4h 10m",
@@ -1929,7 +1929,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 서울역 (AREX 직통열차 논스톱)",
       "nameEn": "Incheon Airport ➔ Seoul Stn (AREX Non-stop)",
-      "oneWayPriceKrw": 11000,
+      "oneWayPriceKrw": 13000,
       "durationTextKo": "43분",
       "durationTextEn": "43m",
       "isDefault": true,
@@ -1963,7 +1963,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 서울역 ➔ 수원역 (AREX + KTX/지하철)",
       "nameEn": "Incheon Airport ➔ Seoul ➔ Suwon (AREX + Train)",
-      "oneWayPriceKrw": 12850,
+      "oneWayPriceKrw": 14850,
       "durationTextKo": "1시간 20분",
       "durationTextEn": "1h 20m",
       "badgeTextKo": "철도연계",
@@ -1986,7 +1986,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 서울/용산역 ➔ 전주역 (AREX + KTX 고속철도)",
       "nameEn": "Incheon Airport ➔ Seoul/Yongsan ➔ Jeonju (AREX + KTX)",
-      "oneWayPriceKrw": 45600,
+      "oneWayPriceKrw": 47600,
       "durationTextKo": "2시간 40분",
       "durationTextEn": "2h 40m",
       "badgeTextKo": "빠른도착",
@@ -2009,7 +2009,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 서울역 ➔ 부산역 (AREX + KTX 고속철도)",
       "nameEn": "Incheon Airport ➔ Seoul Stn ➔ Busan (AREX + KTX)",
-      "oneWayPriceKrw": 70800,
+      "oneWayPriceKrw": 72800,
       "durationTextKo": "3시간 20분",
       "durationTextEn": "3h 20m",
       "badgeTextKo": "추천 1위",
@@ -2032,7 +2032,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 서울역 ➔ 강릉역 (AREX + KTX-이음 고속철도)",
       "nameEn": "Incheon Airport ➔ Seoul Stn ➔ Gangneung (AREX + KTX-Eum)",
-      "oneWayPriceKrw": 38600,
+      "oneWayPriceKrw": 40600,
       "durationTextKo": "2시간 50분",
       "durationTextEn": "2h 50m",
       "badgeTextKo": "KTX연계",
@@ -2055,7 +2055,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 서울역 ➔ 신경주역 (AREX + KTX 고속철도)",
       "nameEn": "Incheon Airport ➔ Seoul Stn ➔ Gyeongju (AREX + KTX)",
-      "oneWayPriceKrw": 60300,
+      "oneWayPriceKrw": 62300,
       "durationTextKo": "3시간 00분",
       "durationTextEn": "3h 00m",
       "badgeTextKo": "추천 1위",
@@ -2078,7 +2078,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "인천공항 ➔ 용산역 ➔ 여수엑스포역 (AREX + KTX 고속철도)",
       "nameEn": "Incheon Airport ➔ Yongsan Stn ➔ Yeosu (AREX + KTX)",
-      "oneWayPriceKrw": 58200,
+      "oneWayPriceKrw": 60200,
       "durationTextKo": "3시간 50분",
       "durationTextEn": "3h 50m",
       "badgeTextKo": "KTX연계",
@@ -2103,7 +2103,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "서울역 ➔ 인천공항 (AREX 직통열차 논스톱)",
       "nameEn": "Seoul Stn ➔ Incheon Airport (AREX Non-stop)",
-      "oneWayPriceKrw": 11000,
+      "oneWayPriceKrw": 13000,
       "durationTextKo": "43분",
       "durationTextEn": "43m",
       "isDefault": true,
@@ -2137,7 +2137,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "수원역 ➔ 서울역 ➔ 인천공항 (KTX/지하철 + AREX)",
       "nameEn": "Suwon ➔ Seoul ➔ Incheon Airport (Train + AREX)",
-      "oneWayPriceKrw": 12850,
+      "oneWayPriceKrw": 14850,
       "durationTextKo": "1시간 20분",
       "durationTextEn": "1h 20m",
       "badgeTextKo": "철도연계",
@@ -2160,7 +2160,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "전주역 ➔ 용산/서울역 ➔ 인천공항 (KTX 고속철도 + AREX)",
       "nameEn": "Jeonju ➔ Yongsan/Seoul ➔ Incheon Airport (KTX + AREX)",
-      "oneWayPriceKrw": 45600,
+      "oneWayPriceKrw": 47600,
       "durationTextKo": "2시간 40분",
       "durationTextEn": "2h 40m",
       "badgeTextKo": "빠른도착",
@@ -2183,7 +2183,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "부산역 ➔ 서울역 ➔ 인천공항 (KTX 고속철도 + AREX)",
       "nameEn": "Busan ➔ Seoul Stn ➔ Incheon Airport (KTX + AREX)",
-      "oneWayPriceKrw": 70800,
+      "oneWayPriceKrw": 72800,
       "durationTextKo": "3시간 20분",
       "durationTextEn": "3h 20m",
       "badgeTextKo": "추천 1위",
@@ -2206,7 +2206,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "강릉역 ➔ 서울역 ➔ 인천공항 (KTX-이음 고속철도 + AREX)",
       "nameEn": "Gangneung ➔ Seoul Stn ➔ Incheon Airport (KTX-Eum + AREX)",
-      "oneWayPriceKrw": 38600,
+      "oneWayPriceKrw": 40600,
       "durationTextKo": "2시간 50분",
       "durationTextEn": "2h 50m",
       "badgeTextKo": "KTX연계",
@@ -2229,7 +2229,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "신경주역 ➔ 서울역 ➔ 인천공항 (KTX 고속철도 + AREX)",
       "nameEn": "Gyeongju ➔ Seoul Stn ➔ Incheon Airport (KTX + AREX)",
-      "oneWayPriceKrw": 60300,
+      "oneWayPriceKrw": 62300,
       "durationTextKo": "3시간 00분",
       "durationTextEn": "3h 00m",
       "badgeTextKo": "추천 1위",
@@ -2252,7 +2252,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       "mode": "KTX",
       "nameKo": "여수엑스포역 ➔ 용산역 ➔ 인천공항 (KTX 고속철도 + AREX)",
       "nameEn": "Yeosu ➔ Yongsan Stn ➔ Incheon Airport (KTX + AREX)",
-      "oneWayPriceKrw": 58200,
+      "oneWayPriceKrw": 60200,
       "durationTextKo": "3시간 50분",
       "durationTextEn": "3h 50m",
       "badgeTextKo": "KTX연계",
@@ -2323,11 +2323,11 @@ export function getAirportTransitOptions(
     if (targetCity === "SEOUL") {
       return direction === "ENTRY"
         ? [
-            { mode: "SRT", nameKo: "김포공항 ➔ 서울 도심 (지하철 5·9호선/공항철도)", nameEn: "Gimpo Airport ➔ Seoul (Subway 5/9/AREX)", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
+            { mode: "SRT", nameKo: "김포공항 ➔ 서울 도심 (지하철 5·9호선/공항철도 일반)", nameEn: "Gimpo Airport ➔ Seoul (Subway 5/9/AREX Local)", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
             { mode: "EXPRESS_BUS", nameKo: "김포공항 ➔ 도심/호텔 (공항 리무진 6000번대)", nameEn: "Gimpo Airport ➔ Hotels (Limousine 6000)", oneWayPriceKrw: 9000, durationTextKo: "40분", durationTextEn: "40m" },
           ]
         : [
-            { mode: "SRT", nameKo: "서울 도심 ➔ 김포공항 (지하철 5·9호선/공항철도)", nameEn: "Seoul ➔ Gimpo Airport (Subway 5/9/AREX)", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
+            { mode: "SRT", nameKo: "서울 도심 ➔ 김포공항 (지하철 5·9호선/공항철도 일반)", nameEn: "Seoul ➔ Gimpo Airport (Subway 5/9/AREX Local)", oneWayPriceKrw: 1600, durationTextKo: "25분", durationTextEn: "25m", isDefault: true },
             { mode: "EXPRESS_BUS", nameKo: "도심/호텔 ➔ 김포공항 (공항 리무진 6000번대)", nameEn: "Hotels ➔ Gimpo Airport (Limousine 6000)", oneWayPriceKrw: 9000, durationTextKo: "40분", durationTextEn: "40m" },
           ];
     }

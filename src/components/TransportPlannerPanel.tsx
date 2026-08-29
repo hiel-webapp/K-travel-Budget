@@ -12,7 +12,7 @@ import type { Locale } from "../lib/i18n/locales";
 interface TransportPlannerPanelProps {
   draft: TripDraft;
   intercityOverrides: Record<string, IntercityTransportMode>;
-  onSelectIntercityOverride: (routeKey: string, mode: IntercityTransportMode) => void;
+  onSelectIntercityOverride: (routeKey: string, mode: IntercityTransportMode | string) => void;
   onReorderCities?: (newCities: SupportedCity[]) => void;
   localTransitStyle?: LocalTransitStyle;
   onSelectLocalTransitStyle?: (style: LocalTransitStyle) => void;
@@ -51,6 +51,11 @@ export default function TransportPlannerPanel({
   const [exitAirport, setExitAirport] = useState<"INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT">("INCHEON");
   const [showCustomAirportToggle, setShowCustomAirportToggle] = useState<boolean>(false);
   const [showExitAirportToggle, setShowExitAirportToggle] = useState<boolean>(false);
+  const [expandedSegments, setExpandedSegments] = useState<Record<string, boolean>>({});
+
+  const toggleSegmentDetails = (routeKey: string) => {
+    setExpandedSegments((prev) => ({ ...prev, [routeKey]: !prev[routeKey] }));
+  };
 
   // Keep state in sync with props when not dragging
   useEffect(() => {
@@ -399,67 +404,159 @@ export default function TransportPlannerPanel({
             </div>
           </div>
 
-          <div className="grid gap-2.5">
+          <div className="grid gap-3">
             {Array.from({ length: selectedCities.length - 1 }).map((_, idx) => {
               const fromCity = selectedCities[idx];
               const toCity = selectedCities[idx + 1];
               const routeKey = `${fromCity}-${toCity}`;
               const options = getIntercityFareOptions(fromCity, toCity);
 
-              const currentOverrideMode = intercityOverrides[routeKey] || intercityOverrides[`${toCity}-${fromCity}`];
-              const activeOption = (currentOverrideMode && options.find((o) => o.mode === currentOverrideMode))
+              const currentOverrideMode = (intercityOverrides[routeKey] || intercityOverrides[`${toCity}-${fromCity}`]) as string | undefined;
+              const activeOption = (currentOverrideMode && options.find((o) => (o.mode as string) === currentOverrideMode || (o.optionType as string) === currentOverrideMode || o.nameKo === currentOverrideMode))
                 || options.find((o) => o.isDefault)
                 || options[0];
 
               const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
-              const modeIcon = activeOption.mode === "FLIGHT" ? "🛫" : activeOption.mode === "EXPRESS_BUS" ? "🚌" : "🚄";
-
+              const modeIcon = activeOption.mode === "FLIGHT" ? "🛫" : activeOption.mode === "EXPRESS_BUS" ? "🚌" : activeOption.mode === "TRANSFER" ? "🔀" : "🚄";
               const displayName = locale === "ko" ? activeOption.nameKo : activeOption.nameEn;
+              const hasMultipleOptions = options.length > 1;
+              const isExpanded = !!expandedSegments[routeKey];
 
               return (
                 <div
                   key={routeKey}
-                  className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200/90 hover:border-slate-300 shadow-2xs flex items-center justify-between gap-4 transition-all"
+                  className="rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all overflow-hidden"
                 >
-                  {/* 좌측: 도시 경로 + [1줄: 명칭 / 2줄: 소요시간] */}
-                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs whitespace-nowrap">
-                        {getCityName(fromCity)}
+                  {/* 2-Way 옵션 선택 탭 (환승/다중 옵션 시 상단 노출) */}
+                  {hasMultipleOptions && (
+                    <div className="px-3.5 pt-2.5 pb-1.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-extrabold text-slate-500 flex items-center gap-1">
+                        <span>🔀</span>
+                        <span>{locale === "ko" ? "환승/이동 방식 선택:" : "Select Route Option:"}</span>
                       </span>
-                      <span className="text-slate-400 font-bold text-xs">➔</span>
-                      <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs whitespace-nowrap">
-                        {getCityName(toCity)}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {options.map((opt, optIdx) => {
+                          const isSelected = activeOption.nameKo === opt.nameKo;
+                          const optLabel = opt.badgeTextKo || (optIdx === 0 ? "⚡ 최단시간" : "💰 가성비/편의");
+                          return (
+                            <button
+                              key={opt.nameKo}
+                              type="button"
+                              onClick={() => onSelectIntercityOverride(routeKey, opt.nameKo)}
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold cursor-pointer transition-all ${
+                                isSelected
+                                  ? "bg-[#0f172a] text-white shadow-2xs"
+                                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                              }`}
+                            >
+                              {locale === "ko" ? optLabel : (opt.badgeTextEn || `Option ${optIdx + 1}`)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 메인 2줄 요약 카드 */}
+                  <div className="p-3.5 sm:p-4 flex items-center justify-between gap-4">
+                    {/* 좌측: 도시 경로 + [1줄: 명칭 / 2줄: 소요시간] */}
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs whitespace-nowrap">
+                          {getCityName(fromCity)}
+                        </span>
+                        <span className="text-slate-400 font-bold text-xs">➔</span>
+                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200/80 text-slate-800 font-extrabold text-xs whitespace-nowrap">
+                          {getCityName(toCity)}
+                        </span>
+                      </div>
+
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="font-extrabold text-slate-900 text-xs sm:text-[13px] flex items-center gap-1 truncate">
+                          <span className="shrink-0">{modeIcon}</span>
+                          <span className="truncate">{displayName}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-medium flex items-center gap-2">
+                          <span>⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>
+                          {activeOption.legs && activeOption.legs.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => toggleSegmentDetails(routeKey)}
+                              className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer flex items-center gap-0.5"
+                            >
+                              <span>{isExpanded ? "▲ 상세 닫기" : "▼ 상세 경로/예매처"}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-0.5 min-w-0">
-                      <div className="font-extrabold text-slate-900 text-xs sm:text-[13px] flex items-center gap-1 truncate">
-                        <span className="shrink-0">{modeIcon}</span>
-                        <span className="truncate">{displayName}</span>
+                    {/* 우측: [1줄: 1인 단가 (메인) / 2줄: 소계 (서브)] */}
+                    <div className="space-y-0.5 text-right shrink-0">
+                      <div className="text-xs sm:text-[13px]">
+                        <span className="text-slate-500 font-medium mr-1.5">
+                          {locale === "ko" ? "1인 편도:" : "1-Person:"}
+                        </span>
+                        <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
+                          {formatKrw(activeOption.oneWayPriceKrw)}
+                        </strong>
                       </div>
-                      <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
-                        <span>⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>
-                      </div>
+                      {adultCount > 1 && (
+                        <div className="text-[11px] text-slate-400 font-medium">
+                          {locale === "ko" ? "총" : "Total"} {formatKrw(totalSegmentKrw)} ({adultCount}{locale === "ko" ? "명" : "p"})
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* 우측: [1줄: 1인 단가 (메인) / 2줄: 소계 (서브)] */}
-                  <div className="space-y-0.5 text-right shrink-0">
-                    <div className="text-xs sm:text-[13px]">
-                      <span className="text-slate-500 font-medium mr-1.5">
-                        {locale === "ko" ? "1인 편도:" : "1-Person:"}
-                      </span>
-                      <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
-                        {formatKrw(activeOption.oneWayPriceKrw)}
-                      </strong>
-                    </div>
-                    {adultCount > 1 && (
-                      <div className="text-[11px] text-slate-400 font-medium">
-                        {locale === "ko" ? "총" : "Total"} {formatKrw(totalSegmentKrw)} ({adultCount}{locale === "ko" ? "명" : "p"})
+                  {/* 아코디언 상세 보기 (Legs & 예매처) */}
+                  {isExpanded && activeOption.legs && activeOption.legs.length > 0 && (
+                    <div className="px-4 pb-3.5 pt-2 bg-slate-50 border-t border-slate-100 space-y-2.5 text-xs">
+                      <div className="font-extrabold text-slate-700 flex items-center gap-1.5">
+                        <span>🗺</span>
+                        <span>{locale === "ko" ? "상세 환승 타임라인 및 공식 예매처" : "Transfer Timeline & Official Booking"}</span>
                       </div>
-                    )}
-                  </div>
+                      <div className="space-y-2">
+                        {activeOption.legs.map((leg, lIdx) => (
+                          <div
+                            key={leg.legOrder || lIdx}
+                            className="p-2.5 rounded-xl bg-white border border-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-2xs"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-black text-[10px] flex items-center justify-center shrink-0">
+                                {lIdx + 1}
+                              </span>
+                              <div>
+                                <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1">
+                                  <span>{leg.modeIcon}</span>
+                                  <span>{locale === "ko" ? leg.transitNameKo : leg.transitNameEn}</span>
+                                </div>
+                                <div className="text-[11px] text-slate-500">
+                                  {locale === "ko" ? leg.fromHubNameKo : leg.fromHubNameEn} ➔ {locale === "ko" ? leg.toHubNameKo : leg.toHubNameEn} (⏱ {locale === "ko" ? leg.durationTextKo : leg.durationTextEn})
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2.5">
+                              <span className="font-extrabold text-slate-800 text-xs">
+                                {formatKrw(leg.fareKrw)}
+                              </span>
+                              {leg.bookingUrl && (
+                                <a
+                                  href={leg.bookingUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-extrabold text-[10px] hover:bg-slate-800 transition-all flex items-center gap-1 shrink-0"
+                                >
+                                  <span>{leg.bookingPlatform} {locale === "ko" ? "예매" : "Book"}</span>
+                                  <span>↗</span>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

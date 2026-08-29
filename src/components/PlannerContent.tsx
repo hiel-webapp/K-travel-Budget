@@ -287,12 +287,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   };
 
-  const handleSelectIntercityOverride = (routeKey: string, mode: IntercityTransportMode) => {
+  const handleSelectIntercityOverride = (routeKey: string, mode: IntercityTransportMode | string) => {
     if (state.status !== "ready") return;
     const currentOverrides = state.preferences.intercityTransportOverrides || {};
     const updatedOverrides = {
       ...currentOverrides,
-      [routeKey]: mode,
+      [routeKey]: mode as any,
     };
     const nextPrefs: PlannerPreferences = {
       ...state.preferences,

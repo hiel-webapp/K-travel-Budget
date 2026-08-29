@@ -64,6 +64,18 @@ export function getTransitSourceInfo(routeKey: string, opt: IntercityFareInfo): 
       sourceUrl: "https://www.kobus.co.kr",
     };
   }
+  if (opt.mode === "INTERCITY_BUS") {
+    return {
+      sourceName: "버스타고(시외버스)",
+      sourceUrl: "https://www.bustago.or.kr",
+    };
+  }
+  if (opt.mode === "TRANSFER") {
+    return {
+      sourceName: "통합연계(코레일/버스타고/항공)",
+      sourceUrl: "https://www.letskorail.com",
+    };
+  }
   if (opt.mode === "FLIGHT") {
     return {
       sourceName: "한국공항공사(KAC)",

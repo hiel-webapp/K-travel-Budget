@@ -356,8 +356,8 @@ export function generateInitialBudgetPlan(
       const routeKey = `${fromCity}-${toCity}`;
       const options = getIntercityFareOptions(fromCity, toCity);
 
-      const userOverrideMode = allOverrides[routeKey] || allOverrides[`${toCity}-${fromCity}`];
-      const selectedOption = (userOverrideMode && options.find((o) => o.mode === userOverrideMode))
+      const userOverrideMode = (allOverrides[routeKey] || allOverrides[`${toCity}-${fromCity}`]) as string | undefined;
+      const selectedOption = (userOverrideMode && options.find((o) => (o.mode as string) === userOverrideMode || (o.optionType as string) === userOverrideMode || o.nameKo === userOverrideMode))
         || options.find((o) => o.isDefault)
         || options[0];
 
@@ -389,7 +389,7 @@ export function generateInitialBudgetPlan(
 
     const exitOptions = getAirportTransitOptions(exitAirport, lastCity, "EXIT");
     const userExitOverride = allOverrides[exitKey] || allOverrides[`EXIT_${lastCity}-AIRPORT`] || allOverrides[`${lastCity}-${exitAirport}`];
-    const selectedExitOption = (userExitOverride && exitOptions.find((o) => o.mode === userExitOverride))
+    const selectedExitOption = (userExitOverride && exitOptions.find((o) => o.mode === userExitOverride || o.nameKo === userExitOverride))
       || exitOptions.find((o) => o.isDefault)
       || exitOptions[0];
 

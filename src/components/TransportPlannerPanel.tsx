@@ -484,7 +484,7 @@ export default function TransportPlannerPanel({
                               onClick={() => toggleSegmentDetails(routeKey)}
                               className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer flex items-center gap-0.5"
                             >
-                              <span>{isExpanded ? "▲ 상세 닫기" : "▼ 상세 경로/예매처"}</span>
+                              <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close Details") : (locale === "ko" ? "▼ 상세 경로" : "▼ Route Details")}</span>
                             </button>
                           )}
                         </div>
@@ -509,48 +509,37 @@ export default function TransportPlannerPanel({
                     </div>
                   </div>
 
-                  {/* 아코디언 상세 보기 (Legs & 예매처) */}
+                  {/* 아코디언 상세 보기 (상세 환승 타임라인 전용) */}
                   {isExpanded && activeOption.legs && activeOption.legs.length > 0 && (
-                    <div className="px-4 pb-3.5 pt-2 bg-slate-50 border-t border-slate-100 space-y-2.5 text-xs">
+                    <div className="px-4 pb-3.5 pt-2.5 bg-slate-50 border-t border-slate-100 space-y-2.5 text-xs">
                       <div className="font-extrabold text-slate-700 flex items-center gap-1.5">
                         <span>🗺</span>
-                        <span>{locale === "ko" ? "상세 환승 타임라인 및 공식 예매처" : "Transfer Timeline & Official Booking"}</span>
+                        <span>{locale === "ko" ? "상세 환승 이동 경로" : "Detailed Transfer Route"}</span>
                       </div>
                       <div className="space-y-2">
                         {activeOption.legs.map((leg, lIdx) => (
                           <div
                             key={leg.legOrder || lIdx}
-                            className="p-2.5 rounded-xl bg-white border border-slate-200 flex flex-wrap items-center justify-between gap-2 shadow-2xs"
+                            className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-3 shadow-2xs"
                           >
-                            <div className="flex items-center gap-2.5">
+                            <div className="flex items-center gap-2.5 min-w-0">
                               <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-black text-[10px] flex items-center justify-center shrink-0">
                                 {lIdx + 1}
                               </span>
-                              <div>
-                                <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1">
+                              <div className="min-w-0">
+                                <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1 truncate">
                                   <span>{leg.modeIcon}</span>
                                   <span>{locale === "ko" ? leg.transitNameKo : leg.transitNameEn}</span>
                                 </div>
-                                <div className="text-[11px] text-slate-500">
+                                <div className="text-[11px] text-slate-500 truncate">
                                   {locale === "ko" ? leg.fromHubNameKo : leg.fromHubNameEn} ➔ {locale === "ko" ? leg.toHubNameKo : leg.toHubNameEn} (⏱ {locale === "ko" ? leg.durationTextKo : leg.durationTextEn})
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2.5">
+                            <div className="text-right shrink-0">
                               <span className="font-extrabold text-slate-800 text-xs">
                                 {formatKrw(leg.fareKrw)}
                               </span>
-                              {leg.bookingUrl && (
-                                <a
-                                  href={leg.bookingUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-extrabold text-[10px] hover:bg-slate-800 transition-all flex items-center gap-1 shrink-0"
-                                >
-                                  <span>{leg.bookingPlatform} {locale === "ko" ? "예매" : "Book"}</span>
-                                  <span>↗</span>
-                                </a>
-                              )}
                             </div>
                           </div>
                         ))}

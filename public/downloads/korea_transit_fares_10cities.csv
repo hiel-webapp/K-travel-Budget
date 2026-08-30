@@ -3,9 +3,9 @@
 부산,서울,BUSAN-SEOUL,KTX,"부산역 ➔ 서울역 (KTX 고속철도)","Busan Stn ➔ Seoul Stn (KTX Express)",59800,2시간 37분,2h 37m,추천,,코레일(레츠코레일),https://www.letskorail.com
 서울,제주,SEOUL-JEJU,FLIGHT,"김포공항 ➔ 제주공항 (국내선 항공 직항)","Gimpo Airport ➔ Jeju Airport (Flight)",75000,1시간 10분,1h 10m,추천,,한국공항공사(KAC),https://www.airport.co.kr
 제주,서울,JEJU-SEOUL,FLIGHT,"제주공항 ➔ 김포공항 (국내선 항공 직항)","Jeju Airport ➔ Gimpo Airport (Flight)",75000,1시간 10분,1h 10m,추천,,한국공항공사(KAC),https://www.airport.co.kr
-서울,전주,SEOUL-JEONJU,KTX,"용산역 ➔ 전주역 (KTX 고속철도)","Yongsan Stn ➔ Jeonju Stn (KTX Express)",23700,59분,59m,추천,,코레일(레츠코레일),https://www.letskorail.com
+서울,전주,SEOUL-JEONJU,KTX,"용산역 ➔ 전주역 (KTX 고속철도)","Yongsan Stn ➔ Jeonju Stn (KTX Express)",34400,1시간 40분,1h 40m,추천,,코레일(레츠코레일),https://www.letskorail.com
 전주,서울,JEONJU-SEOUL,KTX,"전주역 ➔ 용산역 (KTX 고속철도)","Jeonju Stn ➔ Yongsan Stn (KTX Express)",34400,1시간 40분,1h 40m,추천,,코레일(레츠코레일),https://www.letskorail.com
-서울,경주,SEOUL-GYEONGJU,KTX,"서울역 ➔ 신경주역 (KTX 고속철도)","Seoul Stn ➔ Singyeongju Stn (KTX Express)",49300,2시간 2분,2h 2m,추천,,코레일(레츠코레일),https://www.letskorail.com
+서울,경주,SEOUL-GYEONGJU,KTX,"서울역 ➔ 신경주역 (KTX 고속철도)","Seoul Stn ➔ Singyeongju Stn (KTX Express)",49300,2시간 02분,2h 02m,추천,,코레일(레츠코레일),https://www.letskorail.com
 경주,서울,GYEONGJU-SEOUL,KTX,"신경주역 ➔ 서울역 (KTX 고속철도)","Singyeongju Stn ➔ Seoul Stn (KTX Express)",49300,2시간 02분,2h 02m,추천,,코레일(레츠코레일),https://www.letskorail.com
 서울,강릉,SEOUL-GANGNEUNG,KTX,"서울/청량리역 ➔ 강릉역 (KTX-이음)","Seoul/Cheongnyangni ➔ Gangneung (KTX-Eum)",27600,1시간 57분,1h 57m,추천,,코레일(레츠코레일),https://www.letskorail.com
 강릉,서울,GANGNEUNG-SEOUL,KTX,"강릉역 ➔ 서울/청량리역 (KTX-이음)","Gangneung ➔ Seoul/Cheongnyangni (KTX-Eum)",27600,1시간 57분,1h 57m,추천,,코레일(레츠코레일),https://www.letskorail.com
@@ -46,9 +46,9 @@
 강릉,부산,GANGNEUNG-BUSAN,KTX,"강릉역 ➔ 부전역 (동해선 KTX-이음 직통열차)","Gangneung Stn ➔ Bujeon Stn (Donghae KTX-Eum)",46800,3시간 40분,3h 40m,추천,동해선직통,코레일(레츠코레일),https://www.letskorail.com
 부산,수원,BUSAN-SUWON,KTX,"부산역 ➔ 수원역 (KTX 고속철도 직통)","Busan Stn ➔ Suwon Stn (KTX Express Direct)",46300,2시간 30분,2h 30m,추천,,코레일(레츠코레일),https://www.letskorail.com
 수원,부산,SUWON-BUSAN,KTX,"수원역 ➔ 부산역 (KTX 고속철도 직통)","Suwon Stn ➔ Busan Stn (KTX Express Direct)",46300,2시간 30분,2h 30m,추천,,코레일(레츠코레일),https://www.letskorail.com
-부산,속초,BUSAN-SOKCHO,TRANSFER,"부산역 ➔ 동대구역 ➔ 속초 (KTX + 우등 고속버스)","Busan ➔ Dongdaegu ➔ Sokcho (KTX + Express Bus)",49800,4시간 10분,4h 10m,추천,최단시간,통합연계(코레일/버스타고/항공),https://www.letskorail.com
+부산,속초,BUSAN-SOKCHO,TRANSFER,"부산역 ➔ 대구 ➔ 속초 (KTX + 대구북부 시외직통)","Busan ➔ Daegu ➔ Sokcho (KTX + Intercity Bus)",59800,5시간 40분,5h 40m,추천,추천환승,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 부산,속초,BUSAN-SOKCHO,TRANSFER,"부산종합터미널 ➔ 포항/강릉 ➔ 속초 (동해선 직행 시외버스)","Busan Terminal ➔ Gangneung ➔ Sokcho (Intercity Bus)",42000,5시간 10분,5h 10m,선택,환승편의,통합연계(코레일/버스타고/항공),https://www.letskorail.com
-속초,부산,SOKCHO-BUSAN,TRANSFER,"속초 ➔ 동대구역 ➔ 부산역 (우등 고속버스 + KTX)","Sokcho ➔ Dongdaegu ➔ Busan (Express Bus + KTX)",49800,4시간 10분,4h 10m,추천,최단시간,통합연계(코레일/버스타고/항공),https://www.letskorail.com
+속초,부산,SOKCHO-BUSAN,TRANSFER,"속초 ➔ 대구 ➔ 부산역 (대구북부 시외직통 + KTX)","Sokcho ➔ Daegu ➔ Busan (Intercity Bus + KTX)",59800,5시간 40분,5h 40m,추천,추천환승,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 전주,여수,JEONJU-YEOSU,KTX,"전주역 ➔ 여수엑스포역 (KTX 고속철도)","Jeonju Stn ➔ Yeosu Expo Stn (KTX Express)",16100,1시간 20분,1h 20m,추천,,코레일(레츠코레일),https://www.letskorail.com
 여수,전주,YEOSU-JEONJU,KTX,"여수엑스포역 ➔ 전주역 (KTX 고속철도)","Yeosu Expo Stn ➔ Jeonju Stn (KTX Express)",16100,1시간 20분,1h 20m,추천,,코레일(레츠코레일),https://www.letskorail.com
 전주,경주,JEONJU-GYEONGJU,TRANSFER,"전주역 ➔ 오송역 ➔ 신경주역 (KTX 고속철도 환승)","Jeonju Stn ➔ Osong ➔ Singyeongju (KTX + KTX)",47300,2시간 10분,2h 10m,추천,최단철도,통합연계(코레일/버스타고/항공),https://www.letskorail.com
@@ -106,7 +106,7 @@
 부산,인천공항,BUSAN-INCHEON,KTX,"부산역 ➔ 서울역 ➔ 인천공항 (KTX 고속철도 + AREX)","Busan ➔ Seoul Stn ➔ Incheon Airport (KTX + AREX)",72800,3시간 20분,3h 20m,선택,추천 1위,코레일(레츠코레일),https://www.letskorail.com
 강릉,인천공항,GANGNEUNG-INCHEON,EXPRESS_BUS,"강릉시외터미널 ➔ 인천공항 (직행 시외 우등버스)","Gangneung ➔ Incheon Airport (Direct Intercity Bus)",37600,3시간 30분,3h 30m,추천,환승없음,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 강릉,인천공항,GANGNEUNG-INCHEON,KTX,"강릉역 ➔ 서울역 ➔ 인천공항 (KTX-이음 고속철도 + AREX)","Gangneung ➔ Seoul Stn ➔ Incheon Airport (KTX-Eum + AREX)",40600,2시간 50분,2h 50m,선택,KTX연계,코레일(레츠코레일),https://www.letskorail.com
-경주,인천공항,GYEONGJU-INCHEON,EXPRESS_BUS,"경주시외터미널 ➔ 인천공항 (포항행 직행 우등버스)","Gyeongju ➔ 인천공항 (via Pohang Route)",50300,4시간 30분,4h 30m,추천,환승없음,KOBUS(고속버스통합예매),https://www.kobus.co.kr
+경주,인천공항,GYEONGJU-INCHEON,EXPRESS_BUS,"경주시외터미널 ➔ 인천공항 (포항행 직행 우등버스)","Gyeongju ➔ Incheon Airport (via Pohang Route)",50300,4시간 30분,4h 30m,추천,환승없음,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 경주,인천공항,GYEONGJU-INCHEON,KTX,"신경주역 ➔ 서울역 ➔ 인천공항 (KTX 고속철도 + AREX)","Gyeongju ➔ Seoul Stn ➔ Incheon Airport (KTX + AREX)",62300,3시간 00분,3h 00m,선택,추천 1위,코레일(레츠코레일),https://www.letskorail.com
 여수,인천공항,YEOSU-INCHEON,EXPRESS_BUS,"여수종합터미널 ➔ 인천공항 (직행 우등 고속버스)","Yeosu ➔ Incheon Airport (Direct Express Bus)",50000,4시간 40분,4h 40m,추천,환승없음,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 여수,인천공항,YEOSU-INCHEON,KTX,"여수엑스포역 ➔ 용산역 ➔ 인천공항 (KTX 고속철도 + AREX)","Yeosu ➔ Yongsan Stn ➔ Incheon Airport (KTX + AREX)",60200,3시간 50분,3h 50m,선택,KTX연계,코레일(레츠코레일),https://www.letskorail.com

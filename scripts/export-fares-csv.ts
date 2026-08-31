@@ -41,22 +41,10 @@ export function getTransitSourceInfo(routeKey: string, opt: IntercityFareInfo): 
         sourceUrl: "https://www.seoulairbus.com",
       };
     }
-    if (from === "BUSAN" && to === "SUWON") {
+    if (opt.nameKo.includes("KOBUS")) {
       return {
-        sourceName: "버스타고(시외버스)",
-        sourceUrl: "https://www.bustago.or.kr",
-      };
-    }
-    if ((from === "GANGNEUNG" && to === "SUWON") || (from === "SUWON" && to === "GANGNEUNG")) {
-      return {
-        sourceName: "버스타고(시외버스)",
-        sourceUrl: "https://www.bustago.or.kr",
-      };
-    }
-    if (from === "BUSAN" && to === "JEONJU") {
-      return {
-        sourceName: "티머니 시외버스",
-        sourceUrl: "https://txbus.t-money.co.kr",
+        sourceName: "KOBUS(고속버스통합예매)",
+        sourceUrl: "https://www.kobus.co.kr",
       };
     }
     return {

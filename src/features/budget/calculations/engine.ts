@@ -28,12 +28,12 @@ import { getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } f
 /**
  * 지하철 및 광역 환승망이 촘촘한 대도시 목록
  */
-export const METRO_CONNECTED_CITIES: SupportedCity[] = ["SEOUL", "BUSAN", "SUWON"];
+export const METRO_CONNECTED_CITIES: SupportedCity[] = ["SEOUL", "BUSAN", "INCHEON", "SUWON"];
 
 /**
  * 도시별 스마트 기본 시내 교통 스타일 추천
- * - 서울/부산/수원: 대중교통 알뜰형 (지하철/버스 ₩6,000/일)
- * - 경주/전주/여수/강릉/속초/제주 등: 대중교통 + 택시 혼합형 (₩9,000/일)
+ * - 서울/부산/인천/수원: 대중교통 (지하철/버스 ₩6,000/일)
+ * - 경주/전주/여수/강릉/속초/제주 등: 대중교통+택시 (₩9,000/일)
  */
 export function getDefaultCityTransitStyle(city: SupportedCity): LocalTransitStyle {
   if (METRO_CONNECTED_CITIES.includes(city)) {
@@ -247,8 +247,9 @@ export function generateInitialBudgetPlan(
             LOCAL_TRANSIT_OPTIONS.find((o) => o.style === effectiveStyle) ||
             LOCAL_TRANSIT_OPTIONS[0];
 
+          const stayDays = Math.max(1, nights);
           const unitPrice = transitOpt.pricePerDayKrw;
-          const lineTotalKrw = unitPrice * adultCount * nights;
+          const lineTotalKrw = unitPrice * adultCount * stayDays;
           const basket = findBasket(catalog, basketId, category, city) || catalog.find((b) => b.category === "CITY_TRANSPORT");
           const cityName = CITY_KOREAN_NAMES[city] || city;
 
@@ -263,13 +264,13 @@ export function generateInitialBudgetPlan(
             pricingUnit: "PERSON_DAY",
             quantity: adultCount,
             participantCount: adultCount,
-            durationCount: nights,
+            durationCount: stayDays,
             lineTotalKrw,
             priceMinKrw: lineTotalKrw,
             priceMaxKrw: lineTotalKrw,
             confidence: "OFFICIAL",
             updatedAt: "2026-08-01",
-            sourceLabel: `[시내 교통] ${transitOpt.nameKo} (${cityName} ${nights}일 / 1일 4회 기준)`,
+            sourceLabel: `[시내 교통] ${transitOpt.nameKo} (${cityName} ${stayDays}일 / 1일 4회 기준)`,
           };
         } else {
           const basket = findBasket(catalog, basketId, category, city);

@@ -717,19 +717,19 @@ export default function TransportPlannerPanel({
         </div>
       </div>
 
-      {/* SECTION 4: 🚌 도시 내 시내 교통 스타일 선택 (도시별 스마트 기본값 + 원클릭 변경) */}
-      <div className="space-y-4 pt-2">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-2.5">
+      {/* SECTION 4: 🚌 도시 내 시내 교통 스타일 선택 (초슬림 간소화 디자인 + 스마트 기본값) */}
+      <div className="space-y-3 pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-200/80 pb-2">
           <div className="flex items-center gap-2">
             <h4 className="text-sm font-extrabold text-[#0f172a]">
               {locale === "ko" ? "도시 내 시내 이동 스타일" : "Local City Transit Style"}
             </h4>
             <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/60">
-              {locale === "ko" ? "1일 평균 4회 이동 기준" : "Based on 4 trips/day"}
+              {locale === "ko" ? "1일 4회 이동 기준" : "4 trips/day"}
             </span>
           </div>
 
-          {/* 전체 일괄 프리셋 버튼 */}
+          {/* 전체 일괄 프리셋 버튼 (간소화) */}
           <div className="flex items-center gap-1.5 text-xs">
             <span className="text-[11px] text-slate-400 font-bold hidden sm:inline">
               {locale === "ko" ? "전체 일괄 변경:" : "Apply to All:"}
@@ -739,39 +739,42 @@ export default function TransportPlannerPanel({
                 key={`all-${opt.style}`}
                 type="button"
                 onClick={() => onSelectLocalTransitStyle?.(opt.style)}
-                className="px-2 py-1 rounded-lg text-[10px] font-extrabold border bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors cursor-pointer flex items-center gap-1"
               >
-                {locale === "ko"
-                  ? `${opt.style === "SUBWAY_BUS" ? "🚇 알뜰" : opt.style === "STANDARD_MIX" ? "🔀 혼합" : "🚕 편안"} 전체`
-                  : `${opt.nameEn.split(" ")[0]} All`}
+                <span>{opt.style === "SUBWAY_BUS" ? "🚇" : opt.style === "STANDARD_MIX" ? "🔀" : "🚕"}</span>
+                <span>{locale === "ko" ? opt.nameKo : opt.nameEn}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* 도시별 개별 이동 스타일 카드 리스트 */}
-        <div className="space-y-3">
+        {/* 도시별 개별 이동 스타일 카드 리스트 (초슬림 간소화 디자인) */}
+        <div className="space-y-2.5">
           {selectedCities.map((city) => {
             const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
             const isMetro = METRO_CONNECTED_CITIES.includes(city);
             const cityNights = draft.cityNightAllocations[city] ?? 0;
+            const stayDays = Math.max(1, cityNights);
             const currentCityStyle = cityTransitStyles[city] || localTransitStyle || getDefaultCityTransitStyle(city);
+            const selectedOpt = LOCAL_TRANSIT_OPTIONS.find((o) => o.style === currentCityStyle) || LOCAL_TRANSIT_OPTIONS[0];
+            const totalCityTransit = selectedOpt.pricePerDayKrw * stayDays * adultCount;
+            const isTooltipOpen = showEvidenceTooltip === `${city}-active`;
 
             return (
               <div
                 key={city}
-                className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:border-slate-300 transition-all space-y-3"
+                className="p-3.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all space-y-2.5"
               >
-                {/* 상단: 도시명 + 체류 일수 + 스마트 추천 특성 뱃지 */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                {/* 상단 1줄: 도시명 + 체류 일수 + 스마트 추천 뱃지 */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-black text-slate-900">
+                    <span className="text-sm font-black text-slate-900">
                       {cityName}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold">
                       {cityNights === 0
                         ? (locale === "ko" ? "당일치기 (1일)" : "Day Trip (1d)")
-                        : `${cityNights}${locale === "ko" ? "박 " : "N "}${cityNights + 1}${locale === "ko" ? "일" : "D"}`}
+                        : `${cityNights}${locale === "ko" ? "박 " : "N "}${cityNights + 1}${locale === "ko" ? "일 (" : "D ("}${stayDays}${locale === "ko" ? "일 체류)" : "d stay)"}`}
                     </span>
                   </div>
 
@@ -780,143 +783,129 @@ export default function TransportPlannerPanel({
                     {isMetro ? (
                       <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-[10px] font-extrabold flex items-center gap-1">
                         <span>🚇</span>
-                        <span>{locale === "ko" ? "지하철/환승망 완비 (알뜰형 기본 추천)" : "Metro Network (Metro Default)"}</span>
+                        <span>{locale === "ko" ? "지하철 완비 (대중교통 추천)" : "Metro Available"}</span>
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200/70 text-[10px] font-extrabold flex items-center gap-1">
                         <span>🚕</span>
-                        <span>{locale === "ko" ? "관광명소 분산·지방도시 (혼합형 기본 추천)" : "Regional Tourist City (Taxi Mix Default)"}</span>
+                        <span>{locale === "ko" ? "관광지 분산 (대중교통+택시 추천)" : "Regional (Mix Recommended)"}</span>
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* 3대 스타일 선택 칩 (도시별) */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {/* 3대 스타일 선택 세그먼트 버튼 (초슬림 가로 배치) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {LOCAL_TRANSIT_OPTIONS.map((opt) => {
                     const isSelected = currentCityStyle === opt.style;
                     const badge = locale === "ko" ? opt.badgeKo : opt.badgeEn;
-                    const isTooltipOpen = showEvidenceTooltip === `${city}-${opt.style}`;
 
                     return (
-                      <div
+                      <button
                         key={opt.style}
+                        type="button"
                         onClick={() => onSelectCityTransitStyle?.(city, opt.style)}
-                        className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2 text-left relative ${
+                        className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
                           isSelected
-                            ? "bg-[#0f172a] text-white border-[#0f172a] shadow-sm ring-1 ring-[#0f172a]"
+                            ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs ring-1 ring-[#0f172a]"
                             : "bg-slate-50/70 text-slate-800 border-slate-200/80 hover:bg-white hover:border-slate-300"
                         }`}
                       >
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className={`font-black text-xs ${isSelected ? "text-white" : "text-[#0f172a]"}`}>
-                              {locale === "ko" ? opt.nameKo : opt.nameEn}
-                            </span>
-                            {badge && (
-                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-black ${
-                                isSelected
-                                  ? "bg-[#e25c5c] text-white"
-                                  : "bg-rose-50 text-[#e25c5c] border border-rose-200"
-                              }`}>
-                                {badge}
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-sm shrink-0">
+                            {opt.style === "SUBWAY_BUS" ? "🚇" : opt.style === "STANDARD_MIX" ? "🔀" : "🚕"}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1">
+                              <span className={`font-black text-xs truncate ${isSelected ? "text-white" : "text-[#0f172a]"}`}>
+                                {locale === "ko" ? opt.nameKo : opt.nameEn}
                               </span>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-1 text-[10px]">
-                            <span className={`px-1.5 py-0.5 rounded font-bold ${
-                              isSelected ? "bg-slate-800 text-slate-300" : "bg-white text-slate-600 border border-slate-200/60"
-                            }`}>
-                              🚇 {opt.subwayTripsPerDay}회
-                            </span>
-                            {opt.taxiTripsPerDay > 0 && (
-                              <span className={`px-1.5 py-0.5 rounded font-bold ${
-                                isSelected ? "bg-amber-900/60 text-amber-200" : "bg-amber-50 text-amber-800 border border-amber-200/60"
-                              }`}>
-                                🚕 {opt.taxiTripsPerDay}회
-                              </span>
-                            )}
+                              {badge && (
+                                <span className={`px-1 py-0.2 rounded text-[8px] font-black shrink-0 ${
+                                  isSelected
+                                    ? "bg-[#e25c5c] text-white"
+                                    : "bg-rose-50 text-[#e25c5c] border border-rose-200"
+                                }`}>
+                                  {badge}
+                                </span>
+                              )}
+                            </div>
+                            <div className={`text-[10px] ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+                              {opt.taxiTripsPerDay > 0
+                                ? `지하철 ${opt.subwayTripsPerDay}회 + 택시 ${opt.taxiTripsPerDay}회`
+                                : `지하철/버스 ${opt.subwayTripsPerDay}회`}
+                            </div>
                           </div>
                         </div>
 
-                        <div className="pt-1.5 border-t border-slate-200/20 flex items-center justify-between text-[11px]">
-                          <span className={isSelected ? "text-slate-300" : "text-slate-500"}>
-                            {locale === "ko" ? "1인 1일" : "Per Day"}
-                          </span>
-                          <strong className={`font-black text-xs ${isSelected ? "text-amber-300" : "text-[#0f172a]"}`}>
+                        <div className="text-right shrink-0">
+                          <strong className={`font-black text-xs block ${isSelected ? "text-amber-300" : "text-[#0f172a]"}`}>
                             {formatKrw(opt.pricePerDayKrw)}
                           </strong>
+                          <span className={`text-[9px] ${isSelected ? "text-slate-400" : "text-slate-400"}`}>
+                            1일/1인
+                          </span>
                         </div>
-                      </div>
+                      </button>
                     );
                   })}
                 </div>
 
-                {/* 하단: 선택된 스타일 설명 및 산출 근거 토글 */}
-                {(() => {
-                  const selectedOpt = LOCAL_TRANSIT_OPTIONS.find((o) => o.style === currentCityStyle) || LOCAL_TRANSIT_OPTIONS[0];
-                  const stayDays = Math.max(1, cityNights);
-                  const totalCityTransit = selectedOpt.pricePerDayKrw * stayDays * adultCount;
-                  const isTooltipOpen = showEvidenceTooltip === `${city}-active`;
+                {/* 하단 1줄: 설명 + 산출근거 + 해당 도시 합계 */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-slate-100 text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-slate-400 text-xs shrink-0">💡</span>
+                    <span className="text-[11px] text-slate-600 truncate">
+                      {locale === "ko" ? selectedOpt.descriptionKo : selectedOpt.descriptionEn}
+                    </span>
+                  </div>
 
-                  return (
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-400">💡</span>
-                        <span className="text-[11px] text-slate-600">
-                          {locale === "ko" ? selectedOpt.descriptionKo : selectedOpt.descriptionEn}
-                        </span>
-                      </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowEvidenceTooltip(isTooltipOpen ? null : `${city}-active`);
+                        }}
+                        className="text-[10px] font-bold text-slate-500 hover:text-slate-800 underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>ℹ</span>
+                        <span>{locale === "ko" ? "산출 근거" : "Evidence"}</span>
+                      </button>
 
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <button
-                            type="button"
+                      {isTooltipOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-30"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setShowEvidenceTooltip(isTooltipOpen ? null : `${city}-active`);
+                              setShowEvidenceTooltip(null);
                             }}
-                            className="text-[10px] font-bold text-slate-500 hover:text-slate-800 underline flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>ℹ</span>
-                            <span>{locale === "ko" ? "산출 근거" : "Evidence"}</span>
-                          </button>
-
-                          {isTooltipOpen && (
-                            <>
-                              <div
-                                className="fixed inset-0 z-30"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setShowEvidenceTooltip(null);
-                                }}
-                              />
-                              <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                                <p className="font-extrabold text-amber-300 text-[11px]">
-                                  {locale === "ko" ? "📊 일평균 4회 이동 통계 근거" : "📊 4-Trip Tourist Pattern"}
-                                </p>
-                                <p className="text-slate-200">
-                                  {locale === "ko" ? selectedOpt.evidenceKo : selectedOpt.evidenceEn}
-                                </p>
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        <div className="text-[11px] font-medium text-slate-700">
-                          <span>{locale === "ko" ? `${cityName} ${stayDays}일 합계:` : `${cityName} ${stayDays}d Total:`} </span>
-                          <strong className="font-extrabold text-slate-900 text-xs">
-                            {formatKrw(totalCityTransit)}
-                          </strong>
-                          {adultCount > 1 && (
-                            <span className="text-[10px] text-slate-400"> ({adultCount}인)</span>
-                          )}
-                        </div>
-                      </div>
+                          />
+                          <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                            <p className="font-extrabold text-amber-300 text-[11px]">
+                              {locale === "ko" ? "📊 1일 4회 이동 통계 근거" : "📊 4-Trip Pattern"}
+                            </p>
+                            <p className="text-slate-200">
+                              {locale === "ko" ? selectedOpt.evidenceKo : selectedOpt.evidenceEn}
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
-                  );
-                })()}
+
+                    <div className="text-[11px] font-medium text-slate-700">
+                      <span>{locale === "ko" ? `${cityName} ${stayDays}일 합계:` : `${cityName} ${stayDays}d Total:`} </span>
+                      <strong className="font-extrabold text-slate-900 text-xs">
+                        {formatKrw(totalCityTransit)}
+                      </strong>
+                      {adultCount > 1 && (
+                        <span className="text-[10px] text-slate-400"> ({adultCount}인 기준)</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             );
           })}

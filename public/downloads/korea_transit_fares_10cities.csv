@@ -28,7 +28,7 @@
 제주,전주,JEJU-JEONJU,TRANSFER,"제주공항 ➔ 광주공항 ➔ 전주 (국내선 항공 + KTX/ITX)","Jeju ➔ Gwangju Airport ➔ Jeonju (Flight + KTX/ITX)",104000,1시간 50분,1h 50m,선택,배차다수,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 전주,제주,JEONJU-JEJU,TRANSFER,"전주 ➔ 군산공항 ➔ 제주공항 (버스타고 시외버스 + 국내선 항공)","Jeju ➔ Gunsan Airport ➔ Jeonju (Intercity Bus + Flight)",94500,2시간 10분,2h 10m,추천,전북직결,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 제주,경주,JEJU-GYEONGJU,TRANSFER,"제주공항 ➔ 김해공항 ➔ 경주 (국내선 항공 + 공항 리무진)","Jeju ➔ Gimhae Airport ➔ Gyeongju (Flight + Limousine)",101500,2시간 10분,2h 10m,추천,배차풍부,통합연계(코레일/버스타고/항공),https://www.letskorail.com
-제주,경주,JEJU-GYEONGJU,TRANSFER,"제주공항 ➔ 포항경주공항 ➔ 경주 (국내선 항공 + 급행 1000번 버스)","Jeju ➔ Pohang Gyeongju Airport ➔ Gyeongju (Flight + Bus 1000)",69700,2시간 15분,2h 15m,선택,가성비급행,통합연계(코레일/버스타고/항공),https://www.letskorail.com
+제주,경주,JEJU-GYEONGJU,TRANSFER,"제주공항 ➔ 포항경주공항 ➔ 경주 (국내선 항공 + 급행 1000번 버스)","Jeju ➔ Pohang Gyeongju Airport ➔ Gyeongju (Flight + Bus 1000)",93100,2시간 15분,2h 15m,선택,가성비급행,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 경주,제주,GYEONGJU-JEJU,TRANSFER,"경주 ➔ 김해공항 ➔ 제주공항 (공항 리무진 + 국내선 항공)","Gyeongju ➔ Gimhae Airport ➔ Jeju (Limousine + Flight)",101500,2시간 10분,2h 20m,추천,,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 제주,강릉,JEJU-GANGNEUNG,TRANSFER,"제주공항 ➔ 원주(만종) ➔ 강릉 (국내선 항공 + KTX-이음)","Jeju ➔ Wonju(Manjong) ➔ Gangneung (Flight + KTX-Eum)",116800,2시간 00분,2h 00m,추천,강원도내공항,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 제주,강릉,JEJU-GANGNEUNG,TRANSFER,"제주공항 ➔ 김포공항 ➔ 강릉역 (국내선 항공 + 서울역 KTX)","Jeju ➔ Gimpo Airport ➔ Gangneung (Flight + KTX)",122600,3시간 20분,3h 20m,선택,정시성KTX,통합연계(코레일/버스타고/항공),https://www.letskorail.com

@@ -238,6 +238,36 @@ export const KWJ_CJU_FLIGHT_DATA: RouteFareInfo = {
   },
 };
 
+export const KPO_CJU_FLIGHT_DATA: RouteFareInfo = {
+  routeCode: "KPO-CJU",
+  routeName: "포항경주(KPO) ↔ 제주(CJU)",
+  duration: "1시간 05분",
+  tiers: {
+    discount: {
+      label: "특가 / 할인석 (실속형)",
+      subLabel: "오후 잔여 & 사전 예매",
+      priceRange: { min: 59000, max: 78000 },
+      averagePrice: 65000,
+      description: [
+        "진에어 할인석(59,200원~) 및 대한항공 공동운항 할인 운임(77,900원)",
+        "오후(14:00) 편 중심 실속 예매",
+        "일 2편 소수 운항으로 할인석 조기 마감 주의",
+      ],
+    },
+    standard: {
+      label: "일반석 (표준/정규형)",
+      subLabel: "오전 피크 & 정규 일반석",
+      priceRange: { min: 91000, max: 92000 },
+      averagePrice: 91400,
+      description: [
+        "진에어 정규 일반석 (91,400원 고정가 형성)",
+        "오전 첫 비행기(10:30) 및 전 시간대 정규 운임",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 확보",
+      ],
+    },
+  },
+};
+
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
  * (코레일, 버스타고, KOBUS, 인천공항 airport.kr, 경기공항리무진 사용자 검증 최신 인가 요금 전수 반영)
@@ -620,14 +650,14 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "제주공항 ➔ 포항경주공항 ➔ 경주 (국내선 항공 + 급행 1000번 버스)",
       nameEn: "Jeju ➔ Pohang Gyeongju Airport ➔ Gyeongju (Flight + Bus 1000)",
-      oneWayPriceKrw: 69700,
+      oneWayPriceKrw: 93100,
       durationTextKo: "2시간 15분",
       durationTextEn: "2h 15m",
       optionType: "BUDGET",
       badgeTextKo: "가성비급행",
       badgeTextEn: "Budget Express",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "포항경주공항", toHubNameEn: "Pohang Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔포항경주)", transitNameEn: "Domestic Flight", fareKrw: 68000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "포항경주공항", toHubNameEn: "Pohang Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔포항경주)", transitNameEn: "Domestic Flight", fareKrw: 91400, durationTextKo: "1시간 05분", durationTextEn: "1h 05m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
         { legOrder: 2, fromHubNameKo: "포항경주공항", fromHubNameEn: "Pohang Airport", toHubNameKo: "경주보문단지/시외터미널", toHubNameEn: "Gyeongju Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "공항 급행버스 (1000번)", transitNameEn: "Airport Express Bus (1000)", fareKrw: 1700, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "TMONEY", bookingUrl: "https://txbus.t-money.co.kr" },
       ]
     }

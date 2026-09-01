@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, sortCitiesByStandardOrder } from "../lib/trip-domain";
 import { IntercityTransportMode, IntercityFareInfo, getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } from "../lib/transport/intercity-fares";
-import { LOCAL_TRANSIT_OPTIONS, LocalTransitOptionDef } from "../features/budget/catalog/mock-catalog";
+import { LOCAL_TRANSIT_OPTIONS, LocalTransitOptionDef, getCityTransitEvidence } from "../features/budget/catalog/mock-catalog";
 import { LocalTransitStyle } from "../features/budget/domain/types";
 import { getDefaultCityTransitStyle, METRO_CONNECTED_CITIES } from "../features/budget/calculations/engine";
 import { formatKrw } from "../features/budget/presentation/formatters";
@@ -874,12 +874,19 @@ export default function TransportPlannerPanel({
                             }}
                           />
                           <div className="absolute right-0 bottom-full mb-2 w-72 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                            <p className="font-extrabold text-amber-300 text-[11px]">
-                              {locale === "ko" ? "📊 서울시 대중교통·택시 공식 인가요금 기준" : "📊 Seoul Official Public Transit & Taxi Fares"}
-                            </p>
-                            <p className="text-slate-200">
-                              {locale === "ko" ? selectedOpt.evidenceKo : selectedOpt.evidenceEn}
-                            </p>
+                            {(() => {
+                              const ev = getCityTransitEvidence(city, currentCityStyle, locale);
+                              return (
+                                <>
+                                  <p className="font-extrabold text-amber-300 text-[11px]">
+                                    {ev.title}
+                                  </p>
+                                  <p className="text-slate-200">
+                                    {ev.evidence}
+                                  </p>
+                                </>
+                              );
+                            })()}
                           </div>
                         </>
                       )}

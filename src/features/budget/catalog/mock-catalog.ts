@@ -26,8 +26,8 @@ export const LOCAL_TRANSIT_OPTIONS: LocalTransitOptionDef[] = [
     taxiTripsPerDay: 0,
     descriptionKo: "지하철과 시내버스로 주요 관광 명소를 이동합니다.",
     descriptionEn: "Explore cities efficiently using subways and city buses.",
-    evidenceKo: "서울시 공식 인가요금 기준: 지하철 기본 ₩1,550 / 시내버스 ₩1,500 × 1일 4회 이동 = ₩6,200. (서울 기후동행카드 3일권 ₩10,000 이용 시 1일 ₩3,333 무제한)",
-    evidenceEn: "Seoul official fares: Subway ₩1,550 / City Bus ₩1,500 × 4 rides/day = ₩6,200. (Climate Card 3-day pass ₩10,000 offers unlimited rides at ₩3,333/day)",
+    evidenceKo: "공식 인가요금 기준: 지하철 ₩1,550~₩1,600 / 시내버스 ₩1,500~₩1,550 × 1일 4회 이동 = 약 ₩6,200. (정기권/패스 이용 시 1일 ₩3,333~₩4,333 무제한)",
+    evidenceEn: "Official fares: Subway ₩1,550-₩1,600 / Bus ₩1,500-₩1,550 × 4 rides/day = ~₩6,200. (Transit pass offers unlimited rides at ₩3,333-₩4,333/day)",
   },
   {
     style: "STANDARD_MIX",
@@ -38,8 +38,8 @@ export const LOCAL_TRANSIT_OPTIONS: LocalTransitOptionDef[] = [
     taxiTripsPerDay: 1,
     descriptionKo: "기본 이동은 지하철/버스를 이용하고, 짐이 있거나 피로할 때 단거리 택시를 1회 탑승합니다.",
     descriptionEn: "Use metro for main travel, take a short taxi ride when tired or carrying bags.",
-    evidenceKo: "서울시 공식 요금 기준: 지하철 3회(₩4,650) + 중형택시 단거리 1회(기본 1.6km ₩4,800 + 131m당 100원 거리 가산, 약 5km 이동 ₩9,700 기준 2인 탑승 시 1인 ₩4,850 분할) = ₩9,500.",
-    evidenceEn: "Seoul official fares: 3 subway rides (₩4,650) + 1 short taxi trip (~5km ₩9,700, split ₩4,850/person for 2 travelers) = ₩9,500.",
+    evidenceKo: "공식 요금 기준: 지하철/버스 3회(약 ₩4,650~₩4,800) + 중형택시 단거리 1회(기본 ₩4,800 + 거리 가산, 약 5km 이동 ₩9,700 기준 2인 분할 ₩4,850) = ₩9,500.",
+    evidenceEn: "Official fares: 3 transit rides (~₩4,650-₩4,800) + 1 short taxi trip (~5km ₩9,700, split ₩4,850/person for 2 travelers) = ₩9,500.",
   },
   {
     style: "COMFORT_TAXI",
@@ -50,10 +50,89 @@ export const LOCAL_TRANSIT_OPTIONS: LocalTransitOptionDef[] = [
     taxiTripsPerDay: 2,
     descriptionKo: "카카오T, Uber, 일반 택시를 주로 이용하여 환승 없이 편안하게 문 앞까지 이동합니다.",
     descriptionEn: "Door-to-door comfort using Kakao T, Uber, and local taxis.",
-    evidenceKo: "서울시 공식 중형택시 요금 기준: 주간 기본 1.6km ₩4,800 + 거리(131m당 100원)·시간(30초당 100원) 병산. 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 탑승 기준 1인당 약 ₩22,000).",
-    evidenceEn: "Seoul official standard taxi: Base fare ₩4,800 (1.6km) + ₩100 per 131m & 30s. Average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
+    evidenceKo: "공식 중형택시 요금 기준: 주간 기본 ₩4,800(1.6~2.0km) + 거리·시간 병산. 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 탑승 기준 1인당 약 ₩22,000).",
+    evidenceEn: "Official standard taxi: Base fare ₩4,800 (1.6-2.0km) + distance/time charge. Average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
   },
 ];
+
+/**
+ * 도시별 공식 대중교통/택시 인가요금 상세 산출 근거 반환
+ */
+export function getCityTransitEvidence(city: SupportedCity, style: LocalTransitStyle, locale: "ko" | "en" = "ko"): { title: string; evidence: string } {
+  if (city === "BUSAN") {
+    if (style === "SUBWAY_BUS") {
+      return {
+        title: locale === "ko" ? "📊 부산시 대중교통 공식 인가요금 기준" : "📊 Busan Metro & Bus Official Fares",
+        evidence: locale === "ko"
+          ? "부산시 최신 인가요금 기준: 부산도시철도(휴메트로 2024.05.03 시행) 어른 교통카드 1구간 ₩1,600(2구간 ₩1,800) / 일반 시내버스(2023.10.06 시행) ₩1,550 × 1일 4회 = 약 ₩6,200~₩6,400. (휴메트로 1일권 ₩6,000 / 3일권 ₩13,000 구매 시 1일 ₩4,333 무제한)"
+          : "Busan official fares: Busan Metro (HuMetro 2024.05.03) Adult Transit Card 1-zone ₩1,600(2-zone ₩1,800) / City Bus (2023.10.06) ₩1,550 × 4 rides = ~₩6,200. (HuMetro 1-day pass ₩6,000 / 3-day pass ₩13,000 at ₩4,333/day)",
+      };
+    }
+    if (style === "STANDARD_MIX") {
+      return {
+        title: locale === "ko" ? "📊 부산시 대중교통·택시 공식 인가요금 기준" : "📊 Busan Transit & Taxi Official Fares",
+        evidence: locale === "ko"
+          ? "부산시 공식 요금 기준: 도시철도/버스 3회(₩4,800) + 중형택시(2023.06.01 시행: 기본 2.0km ₩4,800 + 132m당 100원, 약 5km 이동 시 ₩9,800 기준 2인 분할 ₩4,900) = 약 ₩9,500."
+          : "Busan official fares: Metro/Bus 3 rides (₩4,800) + Standard Taxi (2023.06.01: Base 2km ₩4,800 + ₩100/132m, ~5km trip ₩9,800 split ₩4,900/person for 2) = ~₩9,500.",
+      };
+    }
+    return {
+      title: locale === "ko" ? "📊 부산시 중형택시 공식 인가요금 기준" : "📊 Busan Standard Taxi Official Fares",
+      evidence: locale === "ko"
+        ? "부산시 공식 중형택시 기준(2023.06.01 시행): 주간 기본 2.0km ₩4,800 + 거리(132m당 100원)/시간(33초당 100원) 병산. 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 분할 1인당 약 ₩22,000)."
+        : "Busan standard taxi (2023.06.01): Base fare ₩4,800 (2.0km) + ₩100 per 132m & 33s. Average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
+    };
+  }
+
+  if (city === "SEOUL") {
+    if (style === "SUBWAY_BUS") {
+      return {
+        title: locale === "ko" ? "📊 서울시 대중교통 공식 인가요금 기준" : "📊 Seoul Public Transit Official Fares",
+        evidence: locale === "ko"
+          ? "서울시 공식 인가요금 기준: 지하철 기본 ₩1,550 / 시내버스(간·지선) ₩1,500 × 1일 4회 이동 = ₩6,200. (서울 기후동행카드 3일권 ₩10,000 이용 시 1일 ₩3,333 무제한)"
+          : "Seoul official fares: Subway ₩1,550 / City Bus ₩1,500 × 4 rides/day = ₩6,200. (Climate Card 3-day pass ₩10,000 offers unlimited rides at ₩3,333/day)",
+      };
+    }
+    if (style === "STANDARD_MIX") {
+      return {
+        title: locale === "ko" ? "📊 서울시 대중교통·택시 공식 인가요금 기준" : "📊 Seoul Transit & Taxi Official Fares",
+        evidence: locale === "ko"
+          ? "서울시 공식 요금 기준: 지하철 3회(₩4,650) + 중형택시 단거리 1회(2023.02.01 시행: 기본 1.6km ₩4,800 + 131m당 100원 거리 가산, 약 5km 이동 ₩9,700 기준 2인 분할 ₩4,850) = ₩9,500."
+          : "Seoul official fares: 3 subway rides (₩4,650) + 1 short taxi trip (Base 1.6km ₩4,800 + ₩100/131m, ~5km ₩9,700, split ₩4,850/person for 2 travelers) = ₩9,500.",
+      };
+    }
+    return {
+      title: locale === "ko" ? "📊 서울시 중형택시 공식 인가요금 기준" : "📊 Seoul Standard Taxi Official Fares",
+      evidence: locale === "ko"
+        ? "서울시 공식 중형택시 요금 기준(2023.02.01 시행): 주간 기본 1.6km ₩4,800 + 거리(131m당 100원)·시간(30초당 100원) 병산. 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 탑승 기준 1인당 약 ₩22,000)."
+        : "Seoul official standard taxi: Base fare ₩4,800 (1.6km) + ₩100 per 131m & 30s. Average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
+    };
+  }
+
+  // 전국 기타 지역 기본
+  if (style === "SUBWAY_BUS") {
+    return {
+      title: locale === "ko" ? "📊 대중교통 공식 인가요금 기준" : "📊 Public Transit Official Fares",
+      evidence: locale === "ko"
+        ? "지자체 공식 인가요금 기준: 시내버스/도시철도 기본 ₩1,500~₩1,700 × 1일 4회 이동 = 약 ₩6,200."
+        : "Official fares: Local bus/metro ₩1,500-₩1,700 × 4 rides/day = ~₩6,200.",
+    };
+  }
+  if (style === "STANDARD_MIX") {
+    return {
+      title: locale === "ko" ? "📊 대중교통·택시 공식 인가요금 기준" : "📊 Transit & Taxi Official Fares",
+      evidence: locale === "ko"
+        ? "공식 요금 기준: 시내버스 3회(₩4,650) + 중형택시 단거리 1회(기본 ₩4,800 + 거리 가산, 약 5km 이동 ₩9,700 기준 2인 분할 ₩4,850) = ₩9,500."
+        : "Official fares: 3 bus rides (₩4,650) + 1 short taxi trip (~5km ₩9,700, split ₩4,850/person for 2 travelers) = ₩9,500.",
+    };
+  }
+  return {
+    title: locale === "ko" ? "📊 중형택시 공식 인가요금 기준" : "📊 Standard Taxi Official Fares",
+    evidence: locale === "ko"
+      ? "공식 중형택시 요금 기준: 주간 기본 ₩4,800 + 거리·시간 병산. 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 탑승 기준 1인당 약 ₩22,000)."
+      : "Official standard taxi: Base fare ₩4,800 + distance/time charge. Average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
+  };
+}
 
 export const MOCK_CATALOG_VERSION = "mock-v1";
 export const MOCK_CATALOG_UPDATE_DATE = "2026-07-01";

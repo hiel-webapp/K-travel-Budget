@@ -478,13 +478,17 @@ export default function TransportPlannerPanel({
                         </div>
                         <div className="text-[11px] text-slate-500 font-medium flex items-center gap-2">
                           <span>⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>
-                          {activeOption.legs && activeOption.legs.length > 0 && (
+                          {( (activeOption.legs && activeOption.legs.length > 0) || (activeOption.tierDescriptionsKo && activeOption.tierDescriptionsKo.length > 0) || !!activeOption.priceRange ) && (
                             <button
                               type="button"
                               onClick={() => toggleSegmentDetails(routeKey)}
-                              className="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer flex items-center gap-0.5"
+                              className="text-[11px] font-extrabold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-0.5 transition-colors"
                             >
-                              <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close Details") : (locale === "ko" ? "▼ 상세 경로" : "▼ Route Details")}</span>
+                              {activeOption.legs && activeOption.legs.length > 0 ? (
+                                <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close Details") : (locale === "ko" ? "▼ 상세 경로" : "▼ Route Details")}</span>
+                              ) : (
+                                <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close Details") : (locale === "ko" ? "▼ 운임 기준 & 특징 안내" : "▼ Fare Details & Features")}</span>
+                              )}
                             </button>
                           )}
                         </div>
@@ -509,7 +513,7 @@ export default function TransportPlannerPanel({
                     </div>
                   </div>
 
-                  {/* 아코디언 상세 보기 (상세 환승 타임라인 전용) */}
+                  {/* 아코디언 상세 보기: 1) 상세 환승 타임라인 */}
                   {isExpanded && activeOption.legs && activeOption.legs.length > 0 && (
                     <div className="px-4 pb-3.5 pt-2.5 bg-slate-50 border-t border-slate-100 space-y-2.5 text-xs">
                       <div className="font-extrabold text-slate-700 flex items-center gap-1.5">
@@ -543,6 +547,54 @@ export default function TransportPlannerPanel({
                             </div>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 아코디언 상세 보기: 2) 항공권 운임 기준 및 좌석 특징 안내 */}
+                  {isExpanded && activeOption.tierDescriptionsKo && activeOption.tierDescriptionsKo.length > 0 && (
+                    <div className="px-4 pb-3.5 pt-3 bg-slate-50/90 border-t border-slate-100 space-y-3 text-xs">
+                      {/* 운임 범위 및 시간대 기준 요약 박스 */}
+                      <div className="p-3 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-2.5">
+                        <div className="space-y-0.5">
+                          <div className="text-[11px] font-bold text-slate-500">
+                            {locale === "ko" ? "⏱ 운임 적용 기준 시간대" : "⏱ Flight Time Window"}
+                          </div>
+                          <div className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-blue-500" />
+                            <span>{locale === "ko" ? (activeOption.subLabelKo || "선택된 좌석 기준") : (activeOption.subLabelEn || "Selected Seat Tier")}</span>
+                          </div>
+                        </div>
+
+                        {activeOption.priceRange && (
+                          <div className="text-right">
+                            <div className="text-[11px] font-bold text-slate-500">
+                              {locale === "ko" ? "예상 운임 변동 범위" : "Estimated Fare Range"}
+                            </div>
+                            <div className="text-xs font-black text-slate-900">
+                              {formatKrw(activeOption.priceRange.min)} ~ {formatKrw(activeOption.priceRange.max)}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 좌석 등급별 특징 & 주의사항 리스트 */}
+                      <div className="space-y-1.5">
+                        <div className="font-extrabold text-slate-700 flex items-center gap-1.5 text-xs">
+                          <span>📋</span>
+                          <span>{locale === "ko" ? "좌석 등급 특징 및 예약 안내" : "Seat Tier Features & Booking Notice"}</span>
+                        </div>
+                        <div className="grid gap-1.5">
+                          {(locale === "ko" ? activeOption.tierDescriptionsKo : (activeOption.tierDescriptionsEn || activeOption.tierDescriptionsKo)).map((desc, dIdx) => (
+                            <div
+                              key={dIdx}
+                              className="px-3 py-2 rounded-lg bg-white/80 border border-slate-200/60 text-slate-700 text-[11px] flex items-start gap-2 leading-relaxed"
+                            >
+                              <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
+                              <span>{desc}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}

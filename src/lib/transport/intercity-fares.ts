@@ -33,6 +33,11 @@ export interface IntercityFareInfo {
   legs?: TransitLegInfo[];
   summaryRouteKo?: string;
   summaryRouteEn?: string;
+  priceRange?: { min: number; max: number };
+  subLabelKo?: string;
+  subLabelEn?: string;
+  tierDescriptionsKo?: string[];
+  tierDescriptionsEn?: string[];
 }
 
 export interface RouteFareTier {
@@ -109,6 +114,19 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       optionType: "FASTEST",
       badgeTextKo: "일반석(표준)",
       badgeTextEn: "Standard Class",
+      priceRange: { min: 85000, max: 112000 },
+      subLabelKo: "오전 피크 & 주말/선호 시간대",
+      subLabelEn: "Peak Morning & Weekend Preferred Times",
+      tierDescriptionsKo: [
+        "오전 골든타임 및 주말 선호 시간대 기본 배정 운임",
+        "대형 항공사(FSC) 및 LCC 정규 운임 포함",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 높음",
+      ],
+      tierDescriptionsEn: [
+        "Standard regular fare for peak morning & weekend golden hours",
+        "Includes major FSC and regular LCC fares",
+        "Includes checked baggage with higher rescheduling/cancellation flexibility",
+      ],
     },
     {
       mode: "FLIGHT",
@@ -120,6 +138,19 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       optionType: "BUDGET",
       badgeTextKo: "특가/실속",
       badgeTextEn: "Discount Fare",
+      priceRange: { min: 32000, max: 68000 },
+      subLabelKo: "평일 낮/오후 & 사전 예매",
+      subLabelEn: "Weekday Daytime/Afternoon & Early Booking",
+      tierDescriptionsKo: [
+        "조기 예매 및 평일·오후 시간대 중심 최저가 운임",
+        "저비용 항공사(LCC) 위주 편성",
+        "예약 변경/취소 수수료 규정이 상대적으로 엄격함",
+      ],
+      tierDescriptionsEn: [
+        "Lowest fares focusing on early bookings and weekday afternoons",
+        "Primarily budget LCC carrier operations",
+        "Strict rules regarding schedule changes and cancellations",
+      ],
     },
   ],
   "JEJU-SEOUL": [
@@ -134,6 +165,19 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       optionType: "FASTEST",
       badgeTextKo: "일반석(표준)",
       badgeTextEn: "Standard Class",
+      priceRange: { min: 85000, max: 112000 },
+      subLabelKo: "오전 피크 & 주말/선호 시간대",
+      subLabelEn: "Peak Morning & Weekend Preferred Times",
+      tierDescriptionsKo: [
+        "오전 골든타임 및 주말 선호 시간대 기본 배정 운임",
+        "대형 항공사(FSC) 및 LCC 정규 운임 포함",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 높음",
+      ],
+      tierDescriptionsEn: [
+        "Standard regular fare for peak morning & weekend golden hours",
+        "Includes major FSC and regular LCC fares",
+        "Includes checked baggage with higher rescheduling/cancellation flexibility",
+      ],
     },
     {
       mode: "FLIGHT",
@@ -145,6 +189,19 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       optionType: "BUDGET",
       badgeTextKo: "특가/실속",
       badgeTextEn: "Discount Fare",
+      priceRange: { min: 32000, max: 68000 },
+      subLabelKo: "평일 낮/오후 & 사전 예매",
+      subLabelEn: "Weekday Daytime/Afternoon & Early Booking",
+      tierDescriptionsKo: [
+        "조기 예매 및 평일·오후 시간대 중심 최저가 운임",
+        "저비용 항공사(LCC) 위주 편성",
+        "예약 변경/취소 수수료 규정이 상대적으로 엄격함",
+      ],
+      tierDescriptionsEn: [
+        "Lowest fares focusing on early bookings and weekday afternoons",
+        "Primarily budget LCC carrier operations",
+        "Strict rules regarding schedule changes and cancellations",
+      ],
     },
   ],
   "SEOUL-JEONJU": [

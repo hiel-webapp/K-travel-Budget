@@ -118,6 +118,36 @@ export const PUS_CJU_FLIGHT_DATA: RouteFareInfo = {
   },
 };
 
+export const RSU_CJU_FLIGHT_DATA: RouteFareInfo = {
+  routeCode: "RSU-CJU",
+  routeName: "여수(RSU) ↔ 제주(CJU)",
+  duration: "55분",
+  tiers: {
+    discount: {
+      label: "특가 / 할인석 (실속형)",
+      subLabel: "낮/오후 잔여 & 사전 예매",
+      priceRange: { min: 58000, max: 82000 },
+      averagePrice: 65000,
+      description: [
+        "대한항공 특가석 및 아시아나항공 할인석 중심 실속 운임",
+        "운항 편수가 적어(일 4편 내외) 조기 마감 가능성 높음",
+        "취소 및 변경 규정 확인 필요",
+      ],
+    },
+    standard: {
+      label: "일반석 (표준/정규형)",
+      subLabel: "선호 시간대 & 정규 운임",
+      priceRange: { min: 73000, max: 119000 },
+      averagePrice: 85000,
+      description: [
+        "진에어 일반석(7.3만~) 및 대한항공·아시아나 정규 일반석",
+        "위탁 수하물 기본 포함 및 일정 변경 유연성 확보",
+        "잔여 좌석 여유가 있는 표준 예약 기준",
+      ],
+    },
+  },
+};
+
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
  * (코레일, 버스타고, KOBUS, 인천공항 airport.kr, 경기공항리무진 사용자 검증 최신 인가 요금 전수 반영)
@@ -578,10 +608,106 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     }
   ],
   "JEJU-YEOSU": [
-    { mode: "FLIGHT", nameKo: "제주공항 ➔ 여수공항 (국내선 항공 직항)", nameEn: "Jeju Airport ➔ Yeosu Airport (Direct Flight)", oneWayPriceKrw: 68000, durationTextKo: "50분", durationTextEn: "50m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "FLIGHT",
+      nameKo: "제주공항 ➔ 여수공항 (일반석 표준/정규형)",
+      nameEn: "Jeju ➔ Yeosu (Flight Standard Regular)",
+      oneWayPriceKrw: 85000,
+      durationTextKo: "55분",
+      durationTextEn: "55m",
+      isDefault: true,
+      optionType: "FASTEST",
+      badgeTextKo: "일반석(표준)",
+      badgeTextEn: "Standard Class",
+      priceRange: { min: 73000, max: 119000 },
+      subLabelKo: "선호 시간대 & 정규 운임",
+      subLabelEn: "Preferred Times & Regular Fares",
+      tierDescriptionsKo: [
+        "진에어 일반석(7.3만~) 및 대한항공·아시아나 정규 일반석",
+        "위탁 수하물 기본 포함 및 일정 변경 유연성 확보",
+        "잔여 좌석 여유가 있는 표준 예약 기준",
+      ],
+      tierDescriptionsEn: [
+        "Jin Air standard (from 73k) & FSC regular standard economy seats",
+        "Includes checked baggage with higher rescheduling flexibility",
+        "Standard booking rate with ample available seats",
+      ],
+    },
+    {
+      mode: "FLIGHT",
+      nameKo: "제주공항 ➔ 여수공항 (특가/할인석 실속형)",
+      nameEn: "Jeju ➔ Yeosu (Flight Discount Economy)",
+      oneWayPriceKrw: 65000,
+      durationTextKo: "55분",
+      durationTextEn: "55m",
+      optionType: "BUDGET",
+      badgeTextKo: "특가/실속",
+      badgeTextEn: "Discount Fare",
+      priceRange: { min: 58000, max: 82000 },
+      subLabelKo: "낮/오후 잔여 & 사전 예매",
+      subLabelEn: "Daytime/Afternoon & Early Booking",
+      tierDescriptionsKo: [
+        "대한항공 특가석 및 아시아나항공 할인석 중심 실속 운임",
+        "운항 편수가 적어(일 4편 내외) 조기 마감 가능성 높음",
+        "취소 및 변경 규정 확인 필요",
+      ],
+      tierDescriptionsEn: [
+        "FSC discount tickets and promotional early-bird fares",
+        "Limited daily flights (approx. 4 flights/day) with high sell-out rate",
+        "Strict rules regarding schedule changes and cancellations",
+      ],
+    },
   ],
   "YEOSU-JEJU": [
-    { mode: "FLIGHT", nameKo: "여수공항 ➔ 제주공항 (국내선 항공 직항)", nameEn: "Yeosu Airport ➔ Jeju Airport (Direct Flight)", oneWayPriceKrw: 68000, durationTextKo: "50분", durationTextEn: "50m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "FLIGHT",
+      nameKo: "여수공항 ➔ 제주공항 (일반석 표준/정규형)",
+      nameEn: "Yeosu ➔ Jeju (Flight Standard Regular)",
+      oneWayPriceKrw: 85000,
+      durationTextKo: "55분",
+      durationTextEn: "55m",
+      isDefault: true,
+      optionType: "FASTEST",
+      badgeTextKo: "일반석(표준)",
+      badgeTextEn: "Standard Class",
+      priceRange: { min: 73000, max: 119000 },
+      subLabelKo: "선호 시간대 & 정규 운임",
+      subLabelEn: "Preferred Times & Regular Fares",
+      tierDescriptionsKo: [
+        "진에어 일반석(7.3만~) 및 대한항공·아시아나 정규 일반석",
+        "위탁 수하물 기본 포함 및 일정 변경 유연성 확보",
+        "잔여 좌석 여유가 있는 표준 예약 기준",
+      ],
+      tierDescriptionsEn: [
+        "Jin Air standard (from 73k) & FSC regular standard economy seats",
+        "Includes checked baggage with higher rescheduling flexibility",
+        "Standard booking rate with ample available seats",
+      ],
+    },
+    {
+      mode: "FLIGHT",
+      nameKo: "여수공항 ➔ 제주공항 (특가/할인석 실속형)",
+      nameEn: "Yeosu ➔ Jeju (Flight Discount Economy)",
+      oneWayPriceKrw: 65000,
+      durationTextKo: "55분",
+      durationTextEn: "55m",
+      optionType: "BUDGET",
+      badgeTextKo: "특가/실속",
+      badgeTextEn: "Discount Fare",
+      priceRange: { min: 58000, max: 82000 },
+      subLabelKo: "낮/오후 잔여 & 사전 예매",
+      subLabelEn: "Daytime/Afternoon & Early Booking",
+      tierDescriptionsKo: [
+        "대한항공 특가석 및 아시아나항공 할인석 중심 실속 운임",
+        "운항 편수가 적어(일 4편 내외) 조기 마감 가능성 높음",
+        "취소 및 변경 규정 확인 필요",
+      ],
+      tierDescriptionsEn: [
+        "FSC discount tickets and promotional early-bird fares",
+        "Limited daily flights (approx. 4 flights/day) with high sell-out rate",
+        "Strict rules regarding schedule changes and cancellations",
+      ],
+    },
   ],
   "JEJU-SOKCHO": [
     {

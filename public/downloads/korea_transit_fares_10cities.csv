@@ -33,8 +33,10 @@
 제주,강릉,JEJU-GANGNEUNG,TRANSFER,"제주공항 ➔ 원주(만종) ➔ 강릉 (국내선 항공 + KTX-이음)","Jeju ➔ Wonju(Manjong) ➔ Gangneung (Flight + KTX-Eum)",86300,2시간 00분,2h 00m,추천,강원도내공항,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 제주,강릉,JEJU-GANGNEUNG,TRANSFER,"제주공항 ➔ 김포공항 ➔ 강릉역 (국내선 항공 + 서울역 KTX)","Jeju ➔ Gimpo Airport ➔ Gangneung (Flight + KTX)",102600,3시간 20분,3h 20m,선택,정시성KTX,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 강릉,제주,GANGNEUNG-JEJU,TRANSFER,"강릉역 ➔ 원주(만종) ➔ 제주공항 (KTX-이음 + 국내선 항공)","Gangneung ➔ Wonju(Manjong) ➔ Jeju (KTX-Eum + Flight)",86300,2시간 00분,2h 00m,추천,,통합연계(코레일/버스타고/항공),https://www.letskorail.com
-제주,여수,JEJU-YEOSU,FLIGHT,"제주공항 ➔ 여수공항 (국내선 항공 직항)","Jeju Airport ➔ Yeosu Airport (Direct Flight)",68000,50분,50m,추천,,한국공항공사(KAC),https://www.airport.co.kr
-여수,제주,YEOSU-JEJU,FLIGHT,"여수공항 ➔ 제주공항 (국내선 항공 직항)","Yeosu Airport ➔ Jeju Airport (Direct Flight)",68000,50분,50m,추천,,한국공항공사(KAC),https://www.airport.co.kr
+제주,여수,JEJU-YEOSU,FLIGHT,"제주공항 ➔ 여수공항 (일반석 표준/정규형)","Jeju ➔ Yeosu (Flight Standard Regular)",85000,55분,55m,추천,일반석(표준),한국공항공사(KAC),https://www.airport.co.kr
+제주,여수,JEJU-YEOSU,FLIGHT,"제주공항 ➔ 여수공항 (특가/할인석 실속형)","Jeju ➔ Yeosu (Flight Discount Economy)",65000,55분,55m,선택,특가/실속,한국공항공사(KAC),https://www.airport.co.kr
+여수,제주,YEOSU-JEJU,FLIGHT,"여수공항 ➔ 제주공항 (일반석 표준/정규형)","Yeosu ➔ Jeju (Flight Standard Regular)",85000,55분,55m,추천,일반석(표준),한국공항공사(KAC),https://www.airport.co.kr
+여수,제주,YEOSU-JEJU,FLIGHT,"여수공항 ➔ 제주공항 (특가/할인석 실속형)","Yeosu ➔ Jeju (Flight Discount Economy)",65000,55분,55m,선택,특가/실속,한국공항공사(KAC),https://www.airport.co.kr
 제주,속초,JEJU-SOKCHO,TRANSFER,"제주공항 ➔ 양양공항 ➔ 속초 (국내선 항공 + 버스타고 시외버스)","Jeju ➔ Yangyang Airport ➔ Sokcho (Flight + Intercity Bus)",78200,1시간 40분,1h 40m,추천,인근공항,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 제주,속초,JEJU-SOKCHO,TRANSFER,"제주공항 ➔ 김포공항 ➔ 속초 (국내선 항공 + 우등 고속버스)","Jeju ➔ Gimpo Airport ➔ Sokcho (Flight + Express Bus)",97300,3시간 30분,3h 30m,선택,배차다수,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 속초,제주,SOKCHO-JEJU,TRANSFER,"속초 ➔ 양양공항 ➔ 제주공항 (버스타고 시외버스 + 국내선 항공)","Sokcho ➔ Yangyang Airport ➔ Jeju (Intercity Bus + Flight)",78200,1시간 40분,1h 40m,추천,,통합연계(코레일/버스타고/항공),https://www.letskorail.com

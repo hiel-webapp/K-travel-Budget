@@ -35,6 +35,54 @@ export interface IntercityFareInfo {
   summaryRouteEn?: string;
 }
 
+export interface RouteFareTier {
+  label: string;
+  subLabel: string;
+  priceRange: { min: number; max: number };
+  averagePrice: number;
+  description: string[];
+}
+
+export interface RouteFareInfo {
+  routeCode: string;
+  routeName: string;
+  duration: string;
+  tiers: {
+    discount: RouteFareTier;
+    standard: RouteFareTier;
+  };
+}
+
+export const GMP_CJU_FLIGHT_DATA: RouteFareInfo = {
+  routeCode: "GMP-CJU",
+  routeName: "김포(GMP) ↔ 제주(CJU)",
+  duration: "1시간 10분",
+  tiers: {
+    discount: {
+      label: "특가 / 할인석 (실속형)",
+      subLabel: "평일 낮/오후 & 사전 예매",
+      priceRange: { min: 32000, max: 68000 },
+      averagePrice: 48000,
+      description: [
+        "조기 예매 및 평일·오후 시간대 중심 최저가 운임",
+        "저비용 항공사(LCC) 위주 편성",
+        "예약 변경/취소 수수료 규정이 상대적으로 엄격함",
+      ],
+    },
+    standard: {
+      label: "일반석 (표준/정규형)",
+      subLabel: "오전 피크 & 주말/선호 시간대",
+      priceRange: { min: 85000, max: 112000 },
+      averagePrice: 95000,
+      description: [
+        "오전 골든타임 및 주말 선호 시간대 기본 배정 운임",
+        "대형 항공사(FSC) 및 LCC 정규 운임 포함",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 높음",
+      ],
+    },
+  },
+};
+
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
  * (코레일, 버스타고, KOBUS, 인천공항 airport.kr, 경기공항리무진 사용자 검증 최신 인가 요금 전수 반영)
@@ -50,10 +98,54 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     { mode: "KTX", nameKo: "부산역 ➔ 서울역 (KTX 고속철도)", nameEn: "Busan Stn ➔ Seoul Stn (KTX Express)", oneWayPriceKrw: 59800, durationTextKo: "2시간 37분", durationTextEn: "2h 37m", isDefault: true, optionType: "DIRECT" },
   ],
   "SEOUL-JEJU": [
-    { mode: "FLIGHT", nameKo: "김포공항 ➔ 제주공항 (국내선 항공 직항)", nameEn: "Gimpo Airport ➔ Jeju Airport (Flight)", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "FLIGHT",
+      nameKo: "김포공항 ➔ 제주공항 (일반석 표준/정규형)",
+      nameEn: "Gimpo ➔ Jeju (Flight Standard Regular)",
+      oneWayPriceKrw: 95000,
+      durationTextKo: "1시간 10분",
+      durationTextEn: "1h 10m",
+      isDefault: true,
+      optionType: "FASTEST",
+      badgeTextKo: "일반석(표준)",
+      badgeTextEn: "Standard Class",
+    },
+    {
+      mode: "FLIGHT",
+      nameKo: "김포공항 ➔ 제주공항 (특가/할인석 실속형)",
+      nameEn: "Gimpo ➔ Jeju (Flight Discount Economy)",
+      oneWayPriceKrw: 48000,
+      durationTextKo: "1시간 10분",
+      durationTextEn: "1h 10m",
+      optionType: "BUDGET",
+      badgeTextKo: "특가/실속",
+      badgeTextEn: "Discount Fare",
+    },
   ],
   "JEJU-SEOUL": [
-    { mode: "FLIGHT", nameKo: "제주공항 ➔ 김포공항 (국내선 항공 직항)", nameEn: "Jeju Airport ➔ Gimpo Airport (Flight)", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "FLIGHT",
+      nameKo: "제주공항 ➔ 김포공항 (일반석 표준/정규형)",
+      nameEn: "Jeju ➔ Gimpo (Flight Standard Regular)",
+      oneWayPriceKrw: 95000,
+      durationTextKo: "1시간 10분",
+      durationTextEn: "1h 10m",
+      isDefault: true,
+      optionType: "FASTEST",
+      badgeTextKo: "일반석(표준)",
+      badgeTextEn: "Standard Class",
+    },
+    {
+      mode: "FLIGHT",
+      nameKo: "제주공항 ➔ 김포공항 (특가/할인석 실속형)",
+      nameEn: "Jeju ➔ Gimpo (Flight Discount Economy)",
+      oneWayPriceKrw: 48000,
+      durationTextKo: "1시간 10분",
+      durationTextEn: "1h 10m",
+      optionType: "BUDGET",
+      badgeTextKo: "특가/실속",
+      badgeTextEn: "Discount Fare",
+    },
   ],
   "SEOUL-JEONJU": [
     { mode: "KTX", nameKo: "용산역 ➔ 전주역 (KTX 고속철도)", nameEn: "Yongsan Stn ➔ Jeonju Stn (KTX Express)", oneWayPriceKrw: 34400, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", isDefault: true, optionType: "DIRECT" },
@@ -100,7 +192,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "제주공항 ➔ 김포공항 ➔ 수원 (국내선 항공 + 리무진 4300번)",
       nameEn: "Jeju ➔ Gimpo Airport ➔ Suwon (Flight + Bus 4300)",
-      oneWayPriceKrw: 84500,
+      oneWayPriceKrw: 104500,
       durationTextKo: "2시간 00분",
       durationTextEn: "2h 00m",
       isDefault: true,
@@ -108,7 +200,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "직통리무진",
       badgeTextEn: "Direct Limousine",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
         { legOrder: 2, fromHubNameKo: "김포국제공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "수원역/수원터미널/영통", toHubNameEn: "Suwon Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 리무진 버스 (4300번 직통)", transitNameEn: "Airport Limousine (4300)", fareKrw: 9500, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
@@ -133,7 +225,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "수원 ➔ 김포공항 ➔ 제주공항 (리무진 4300번 + 국내선 항공)",
       nameEn: "Suwon ➔ Gimpo Airport ➔ Jeju (Bus 4300 + Flight)",
-      oneWayPriceKrw: 84500,
+      oneWayPriceKrw: 104500,
       durationTextKo: "2시간 00분",
       durationTextEn: "2h 00m",
       isDefault: true,
@@ -142,7 +234,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextEn: "Direct Limousine",
       legs: [
         { legOrder: 1, fromHubNameKo: "수원역/수원터미널/영통", fromHubNameEn: "Suwon Terminal", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 리무진 버스 (4300번 직통)", transitNameEn: "Airport Limousine (4300)", fareKrw: 9500, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "김포국제공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (김포➔제주)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "김포국제공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (김포➔제주)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],
@@ -897,8 +989,8 @@ export function getAirportTransitOptions(
     }
     if (targetCity === "JEJU") {
       return direction === "ENTRY"
-        ? [{ mode: "FLIGHT", nameKo: "김포공항 ➔ 제주공항 (국내선 항공)", nameEn: "Gimpo Airport ➔ Jeju (Flight)", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }]
-        : [{ mode: "FLIGHT", nameKo: "제주공항 ➔ 김포공항 (국내선 항공)", nameEn: "Jeju ➔ Gimpo Airport (Flight)", oneWayPriceKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }];
+        ? [{ mode: "FLIGHT", nameKo: "김포공항 ➔ 제주공항 (국내선 항공)", nameEn: "Gimpo Airport ➔ Jeju (Flight)", oneWayPriceKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }]
+        : [{ mode: "FLIGHT", nameKo: "제주공항 ➔ 김포공항 (국내선 항공)", nameEn: "Jeju ➔ Gimpo Airport (Flight)", oneWayPriceKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", isDefault: true }];
     }
     if (targetCity === "BUSAN") {
       return direction === "ENTRY"

@@ -1,8 +1,10 @@
 ﻿출발도시,도착도시,구간코드,교통수단,한글명칭,영문명칭,편도요금(KRW),소요시간(한글),소요시간(영문),추천여부,라벨,검증기준처_기관명,공식_예매처_URL
 서울,부산,SEOUL-BUSAN,KTX,"서울역 ➔ 부산역 (KTX 고속철도)","Seoul Stn ➔ Busan Stn (KTX Express)",59800,2시간 37분,2h 37m,추천,,코레일(레츠코레일),https://www.letskorail.com
 부산,서울,BUSAN-SEOUL,KTX,"부산역 ➔ 서울역 (KTX 고속철도)","Busan Stn ➔ Seoul Stn (KTX Express)",59800,2시간 37분,2h 37m,추천,,코레일(레츠코레일),https://www.letskorail.com
-서울,제주,SEOUL-JEJU,FLIGHT,"김포공항 ➔ 제주공항 (국내선 항공 직항)","Gimpo Airport ➔ Jeju Airport (Flight)",75000,1시간 10분,1h 10m,추천,,한국공항공사(KAC),https://www.airport.co.kr
-제주,서울,JEJU-SEOUL,FLIGHT,"제주공항 ➔ 김포공항 (국내선 항공 직항)","Jeju Airport ➔ Gimpo Airport (Flight)",75000,1시간 10분,1h 10m,추천,,한국공항공사(KAC),https://www.airport.co.kr
+서울,제주,SEOUL-JEJU,FLIGHT,"김포공항 ➔ 제주공항 (일반석 표준/정규형)","Gimpo ➔ Jeju (Flight Standard Regular)",95000,1시간 10분,1h 10m,추천,일반석(표준),한국공항공사(KAC),https://www.airport.co.kr
+서울,제주,SEOUL-JEJU,FLIGHT,"김포공항 ➔ 제주공항 (특가/할인석 실속형)","Gimpo ➔ Jeju (Flight Discount Economy)",48000,1시간 10분,1h 10m,선택,특가/실속,한국공항공사(KAC),https://www.airport.co.kr
+제주,서울,JEJU-SEOUL,FLIGHT,"제주공항 ➔ 김포공항 (일반석 표준/정규형)","Jeju ➔ Gimpo (Flight Standard Regular)",95000,1시간 10분,1h 10m,추천,일반석(표준),한국공항공사(KAC),https://www.airport.co.kr
+제주,서울,JEJU-SEOUL,FLIGHT,"제주공항 ➔ 김포공항 (특가/할인석 실속형)","Jeju ➔ Gimpo (Flight Discount Economy)",48000,1시간 10분,1h 10m,선택,특가/실속,한국공항공사(KAC),https://www.airport.co.kr
 서울,전주,SEOUL-JEONJU,KTX,"용산역 ➔ 전주역 (KTX 고속철도)","Yongsan Stn ➔ Jeonju Stn (KTX Express)",34400,1시간 40분,1h 40m,추천,,코레일(레츠코레일),https://www.letskorail.com
 전주,서울,JEONJU-SEOUL,KTX,"전주역 ➔ 용산역 (KTX 고속철도)","Jeonju Stn ➔ Yongsan Stn (KTX Express)",34400,1시간 40분,1h 40m,추천,,코레일(레츠코레일),https://www.letskorail.com
 서울,경주,SEOUL-GYEONGJU,KTX,"서울역 ➔ 신경주역 (KTX 고속철도)","Seoul Stn ➔ Singyeongju Stn (KTX Express)",49300,2시간 02분,2h 02m,추천,,코레일(레츠코레일),https://www.letskorail.com
@@ -15,9 +17,9 @@
 수원,서울,SUWON-SEOUL,KTX,"수원역 ➔ 서울역 (KTX / ITX-새마을)","Suwon Stn ➔ Seoul Stn (KTX / Train)",8400,30분,30m,추천,,코레일(레츠코레일),https://www.letskorail.com
 서울,속초,SEOUL-SOKCHO,EXPRESS_BUS,"서울경부터미널 ➔ 속초고속터미널 (우등 고속버스)","Seoul Terminal ➔ Sokcho Terminal (Express Bus)",22300,2시간 20분,2h 20m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
 속초,서울,SOKCHO-SEOUL,EXPRESS_BUS,"속초고속터미널 ➔ 서울경부터미널 (우등 고속버스)","Sokcho Terminal ➔ Seoul Terminal (Express Bus)",22300,2시간 20분,2h 20m,추천,,KOBUS(고속버스통합예매),https://www.kobus.co.kr
-제주,수원,JEJU-SUWON,TRANSFER,"제주공항 ➔ 김포공항 ➔ 수원 (국내선 항공 + 리무진 4300번)","Jeju ➔ Gimpo Airport ➔ Suwon (Flight + Bus 4300)",84500,2시간 00분,2h 00m,추천,직통리무진,통합연계(코레일/버스타고/항공),https://www.letskorail.com
+제주,수원,JEJU-SUWON,TRANSFER,"제주공항 ➔ 김포공항 ➔ 수원 (국내선 항공 + 리무진 4300번)","Jeju ➔ Gimpo Airport ➔ Suwon (Flight + Bus 4300)",104500,2시간 00분,2h 00m,추천,직통리무진,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 제주,수원,JEJU-SUWON,TRANSFER,"제주공항 ➔ 청주공항 ➔ 수원 (국내선 항공 + 시외버스/기차)","Jeju ➔ Cheongju Airport ➔ Suwon (Flight + Train/Bus)",78000,2시간 20분,2h 20m,선택,충청경유,통합연계(코레일/버스타고/항공),https://www.letskorail.com
-수원,제주,SUWON-JEJU,TRANSFER,"수원 ➔ 김포공항 ➔ 제주공항 (리무진 4300번 + 국내선 항공)","Suwon ➔ Gimpo Airport ➔ Jeju (Bus 4300 + Flight)",84500,2시간 00분,2h 00m,추천,직통리무진,통합연계(코레일/버스타고/항공),https://www.letskorail.com
+수원,제주,SUWON-JEJU,TRANSFER,"수원 ➔ 김포공항 ➔ 제주공항 (리무진 4300번 + 국내선 항공)","Suwon ➔ Gimpo Airport ➔ Jeju (Bus 4300 + Flight)",104500,2시간 00분,2h 00m,추천,직통리무진,통합연계(코레일/버스타고/항공),https://www.letskorail.com
 제주,부산,JEJU-BUSAN,FLIGHT,"제주공항 ➔ 김해공항 (국내선 항공 직항)","Jeju Airport ➔ Gimhae Airport (Direct Flight)",65000,1시간 00분,1h 00m,추천,,한국공항공사(KAC),https://www.airport.co.kr
 부산,제주,BUSAN-JEJU,FLIGHT,"김해공항 ➔ 제주공항 (국내선 항공 직항)","Gimhae Airport ➔ Jeju Airport (Direct Flight)",65000,1시간 00분,1h 00m,추천,,한국공항공사(KAC),https://www.airport.co.kr
 제주,전주,JEJU-JEONJU,TRANSFER,"제주공항 ➔ 군산공항 ➔ 전주 (국내선 항공 + 버스타고 시외버스)","Jeju ➔ Gunsan Airport ➔ Jeonju (Flight + Intercity Bus)",71600,2시간 10분,2h 10m,추천,전북직결,통합연계(코레일/버스타고/항공),https://www.letskorail.com

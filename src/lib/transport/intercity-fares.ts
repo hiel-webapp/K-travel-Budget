@@ -148,6 +148,36 @@ export const RSU_CJU_FLIGHT_DATA: RouteFareInfo = {
   },
 };
 
+export const KUV_CJU_FLIGHT_DATA: RouteFareInfo = {
+  routeCode: "KUV-CJU",
+  routeName: "군산(KUV) ↔ 제주(CJU)",
+  duration: "1시간 00분",
+  tiers: {
+    discount: {
+      label: "특가 / 할인석 (실속형)",
+      subLabel: "오후/저녁 잔여 & 사전 예매",
+      priceRange: { min: 58000, max: 72000 },
+      averagePrice: 65000,
+      description: [
+        "진에어 할인석 및 대한항공 공동운항 할인 운임 (5.8만~7.2만)",
+        "오후(15:55) 및 저녁(17:30) 편 중심 실속 예매",
+        "운항 편수 제한(일 3편)으로 사전 예매 필수",
+      ],
+    },
+    standard: {
+      label: "일반석 (표준/정규형)",
+      subLabel: "오전 피크 & 정규 일반석",
+      priceRange: { min: 87000, max: 88000 },
+      averagePrice: 87900,
+      description: [
+        "진에어 고정 정규 일반석 (87,900원 단일가 형성)",
+        "오전 첫 비행기(11:10) 및 전 시간대 정규 운임",
+        "위탁 수하물 기본 포함 및 취소/환불 규정 유연",
+      ],
+    },
+  },
+};
+
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
  * (코레일, 버스타고, KOBUS, 인천공항 airport.kr, 경기공항리무진 사용자 검증 최신 인가 요금 전수 반영)
@@ -462,7 +492,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "제주공항 ➔ 군산공항 ➔ 전주 (국내선 항공 + 버스타고 시외버스)",
       nameEn: "Jeju ➔ Gunsan Airport ➔ Jeonju (Flight + Intercity Bus)",
-      oneWayPriceKrw: 71600,
+      oneWayPriceKrw: 94500,
       durationTextKo: "2시간 10분",
       durationTextEn: "2h 10m",
       isDefault: true,
@@ -470,7 +500,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "전북직결",
       badgeTextEn: "Direct Link",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "군산공항", toHubNameEn: "Gunsan Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔군산)", transitNameEn: "Domestic Flight", fareKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "군산공항", toHubNameEn: "Gunsan Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔군산)", transitNameEn: "Domestic Flight", fareKrw: 87900, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
         { legOrder: 2, fromHubNameKo: "군산공항", fromHubNameEn: "Gunsan Airport", toHubNameKo: "전주시외터미널", toHubNameEn: "Jeonju Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "군산공항 ➔ 전주 시외버스", transitNameEn: "Airport Intercity Bus", fareKrw: 6600, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
@@ -495,8 +525,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     {
       mode: "TRANSFER",
       nameKo: "전주 ➔ 군산공항 ➔ 제주공항 (버스타고 시외버스 + 국내선 항공)",
-      nameEn: "Jeonju ➔ Gunsan Airport ➔ Jeju (Intercity Bus + Flight)",
-      oneWayPriceKrw: 71600,
+      nameEn: "Jeju ➔ Gunsan Airport ➔ Jeonju (Intercity Bus + Flight)",
+      oneWayPriceKrw: 94500,
       durationTextKo: "2시간 10분",
       durationTextEn: "2h 10m",
       isDefault: true,
@@ -505,7 +535,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextEn: "Direct Link",
       legs: [
         { legOrder: 1, fromHubNameKo: "전주시외터미널", fromHubNameEn: "Jeonju Terminal", toHubNameKo: "군산공항", toHubNameEn: "Gunsan Airport", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "전주 ➔ 군산공항 시외버스", transitNameEn: "Airport Intercity Bus", fareKrw: 6600, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "군산공항", fromHubNameEn: "Gunsan Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (군산➔제주)", transitNameEn: "Domestic Flight", fareKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "군산공항", fromHubNameEn: "Gunsan Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (군산➔제주)", transitNameEn: "Domestic Flight", fareKrw: 87900, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],

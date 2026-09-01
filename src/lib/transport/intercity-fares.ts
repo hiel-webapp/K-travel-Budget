@@ -879,10 +879,38 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     }
   ],
   "JEJU-INCHEON": [
-    { mode: "TRANSFER", nameKo: "제주공항 ➔ 김포공항 ➔ 인천공항 (국내선 항공 + 공항철도)", nameEn: "Jeju Airport ➔ Gimpo ➔ Incheon (Flight + AREX)", oneWayPriceKrw: 79900, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "TRANSFER",
+      nameKo: "제주공항 ➔ 김포공항 ➔ 인천 (국내선 항공 + 공항철도)",
+      nameEn: "Jeju ➔ Gimpo Airport ➔ Incheon (Flight + AREX)",
+      oneWayPriceKrw: 96600,
+      durationTextKo: "1시간 40분",
+      durationTextEn: "1h 40m",
+      isDefault: true,
+      badgeTextKo: "추천경로",
+      badgeTextEn: "Recommended",
+      legs: [
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "제주 ➔ 김포 항공 (일반석)", transitNameEn: "Jeju ➔ Gimpo Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "김포공항역", fromHubNameEn: "Gimpo Airport", toHubNameKo: "계양/검암/인천", toHubNameEn: "Incheon", mode: "SRT", modeIcon: "🚆", transitNameKo: "공항철도 일반열차", transitNameEn: "AREX Local", fareKrw: 1600, durationTextKo: "10분", durationTextEn: "10m", bookingPlatform: "TMONEY", bookingUrl: "https://www.arex.or.kr" },
+      ]
+    },
   ],
   "INCHEON-JEJU": [
-    { mode: "TRANSFER", nameKo: "인천공항 ➔ 김포공항 ➔ 제주공항 (공항철도 + 국내선 항공)", nameEn: "Incheon ➔ Gimpo ➔ Jeju Airport (AREX + Flight)", oneWayPriceKrw: 79900, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "TRANSFER",
+      nameKo: "인천 ➔ 김포공항 ➔ 제주공항 (공항철도 + 국내선 항공)",
+      nameEn: "Incheon ➔ Gimpo Airport ➔ Jeju (AREX + Flight)",
+      oneWayPriceKrw: 96600,
+      durationTextKo: "1시간 40분",
+      durationTextEn: "1h 40m",
+      isDefault: true,
+      badgeTextKo: "추천경로",
+      badgeTextEn: "Recommended",
+      legs: [
+        { legOrder: 1, fromHubNameKo: "계양/검암역", fromHubNameEn: "Gyeyang/Geomam", toHubNameKo: "김포공항역", toHubNameEn: "Gimpo Airport", mode: "SRT", modeIcon: "🚆", transitNameKo: "공항철도 일반열차", transitNameEn: "AREX Local", fareKrw: 1600, durationTextKo: "10분", durationTextEn: "10m", bookingPlatform: "TMONEY", bookingUrl: "https://www.arex.or.kr" },
+        { legOrder: 2, fromHubNameKo: "김포공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "김포 ➔ 제주 항공 (일반석)", transitNameEn: "Gimpo ➔ Jeju Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+      ]
+    },
   ],
 
   // =========================================================================
@@ -1318,6 +1346,29 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
   ],
   "INCHEON-SOKCHO": [
     { mode: "EXPRESS_BUS", nameKo: "인천공항 ➔ 속초시외터미널 (직행 시외버스)", nameEn: "Incheon Airport ➔ Sokcho (Direct Intercity Bus)", oneWayPriceKrw: 36400, durationTextKo: "3시간 10분", durationTextEn: "3h 10m", isDefault: true, badgeTextKo: "직통버스", badgeTextEn: "Direct Bus" },
+  ],
+  "INCHEON-INCHEON": [
+    {
+      mode: "SRT",
+      nameKo: "인천공항 ➔ 인천 시내/송도 (공항철도/시내버스 303번)",
+      nameEn: "Incheon Airport ➔ Incheon City / Songdo (AREX Local / Bus 303)",
+      oneWayPriceKrw: 3500,
+      durationTextKo: "35분",
+      durationTextEn: "35m",
+      isDefault: true,
+      badgeTextKo: "대중교통",
+      badgeTextEn: "Transit",
+    },
+    {
+      mode: "EXPRESS_BUS",
+      nameKo: "인천공항 ➔ 송도국제도시 (공항 리무진 6777번 직통)",
+      nameEn: "Incheon Airport ➔ Songdo (Limousine Bus 6777)",
+      oneWayPriceKrw: 7000,
+      durationTextKo: "25분",
+      durationTextEn: "25m",
+      badgeTextKo: "송도직통",
+      badgeTextEn: "Songdo Direct",
+    },
   ],
 
   // 출국

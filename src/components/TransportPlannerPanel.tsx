@@ -70,8 +70,7 @@ export default function TransportPlannerPanel({
     }
   }, [selectedCities, dragCity]);
 
-  const getCityName = (city: SupportedCity | "INCHEON") => {
-    if (city === "INCHEON") return locale === "ko" ? "인천국제공항" : "Incheon Int'l Airport";
+  const getCityName = (city: SupportedCity) => {
     return locale === "ko"
       ? CITY_KOREAN_NAMES[city] || city
       : CITY_ENGLISH_NAMES[city] || city;

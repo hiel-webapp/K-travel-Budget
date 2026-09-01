@@ -873,9 +873,9 @@ export default function TransportPlannerPanel({
                               setShowEvidenceTooltip(null);
                             }}
                           />
-                          <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                          <div className="absolute right-0 bottom-full mb-2 w-72 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                             <p className="font-extrabold text-amber-300 text-[11px]">
-                              {locale === "ko" ? "📊 1일 4회 이동 통계 근거" : "📊 4-Trip Pattern"}
+                              {locale === "ko" ? "📊 서울시 대중교통·택시 공식 인가요금 기준" : "📊 Seoul Official Public Transit & Taxi Fares"}
                             </p>
                             <p className="text-slate-200">
                               {locale === "ko" ? selectedOpt.evidenceKo : selectedOpt.evidenceEn}

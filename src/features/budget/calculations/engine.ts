@@ -12,6 +12,7 @@ import {
   MealSlot,
   BaseMealSlot,
   BaseMealPlan,
+  LocalTransitStyle,
 } from "../domain/types";
 import {
   MOCK_PRICE_CATALOG,
@@ -23,6 +24,23 @@ import {
 import { applyFoodReplacements, applyFoodAddOns } from "./food-engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
 import { getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } from "../../../lib/transport/intercity-fares";
+
+/**
+ * 지하철 및 광역 환승망이 촘촘한 대도시 목록
+ */
+export const METRO_CONNECTED_CITIES: SupportedCity[] = ["SEOUL", "BUSAN", "SUWON"];
+
+/**
+ * 도시별 스마트 기본 시내 교통 스타일 추천
+ * - 서울/부산/수원: 대중교통 알뜰형 (지하철/버스 ₩6,000/일)
+ * - 경주/전주/여수/강릉/속초/제주 등: 대중교통 + 택시 혼합형 (₩9,000/일)
+ */
+export function getDefaultCityTransitStyle(city: SupportedCity): LocalTransitStyle {
+  if (METRO_CONNECTED_CITIES.includes(city)) {
+    return "SUBWAY_BUS";
+  }
+  return "STANDARD_MIX";
+}
 
 /**
  * TripDraft 입력을 기준으로 초기 BudgetPlan을 생성하는 순수 계산 엔진
@@ -220,7 +238,15 @@ export function generateInitialBudgetPlan(
         } else if (attractionOverrideItem) {
           item = attractionOverrideItem;
         } else if (category === "CITY_TRANSPORT") {
-          const transitOpt = (overrides?.localTransitStyle && LOCAL_TRANSIT_OPTIONS.find((o) => o.style === overrides.localTransitStyle)) || LOCAL_TRANSIT_OPTIONS[0];
+          const effectiveStyle =
+            overrides?.cityTransitStyles?.[city] ||
+            overrides?.localTransitStyle ||
+            getDefaultCityTransitStyle(city);
+
+          const transitOpt =
+            LOCAL_TRANSIT_OPTIONS.find((o) => o.style === effectiveStyle) ||
+            LOCAL_TRANSIT_OPTIONS[0];
+
           const unitPrice = transitOpt.pricePerDayKrw;
           const lineTotalKrw = unitPrice * adultCount * nights;
           const basket = findBasket(catalog, basketId, category, city) || catalog.find((b) => b.category === "CITY_TRANSPORT");

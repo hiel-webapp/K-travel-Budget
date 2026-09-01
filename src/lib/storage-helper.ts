@@ -559,6 +559,7 @@ export interface SavePlannerPreferencesInput {
   emergencyFundPct?: number;
   intercityTransportOverrides?: Record<string, IntercityTransportMode>;
   localTransitStyle?: LocalTransitStyle;
+  cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
   draft: TripDraft;
 }
@@ -599,6 +600,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       emergencyFundPct: typeof input.emergencyFundPct === "number" ? input.emergencyFundPct : undefined,
       intercityTransportOverrides: input.intercityTransportOverrides,
       localTransitStyle: input.localTransitStyle,
+      cityTransitStyles: input.cityTransitStyles,
       isKobusPassApplied: input.isKobusPassApplied,
     };
 

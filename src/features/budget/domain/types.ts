@@ -180,6 +180,7 @@ export interface BudgetPlanOverrides {
   emergencyFundKrw?: number;
   intercityTransportOverrides?: Record<string, IntercityTransportMode>;
   localTransitStyle?: LocalTransitStyle;
+  cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
 }
 
@@ -351,6 +352,7 @@ export interface PlannerPreferences {
   emergencyFundPct?: number;
   intercityTransportOverrides?: Record<string, IntercityTransportMode>;
   localTransitStyle?: LocalTransitStyle;
+  cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
 }
 

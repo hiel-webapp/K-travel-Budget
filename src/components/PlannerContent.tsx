@@ -323,9 +323,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleSelectLocalTransitStyle = (style: LocalTransitStyle) => {
     if (state.status !== "ready") return;
+    // 전체 도시 일괄 적용 시, 각 도시별 개별 설정도 해당 스타일로 맞춤
+    const updatedCityStyles: Partial<Record<SupportedCity, LocalTransitStyle>> = {};
+    state.draft.selectedCities.forEach((c) => {
+      updatedCityStyles[c] = style;
+    });
+
     const nextPrefs: PlannerPreferences = {
       ...state.preferences,
       localTransitStyle: style,
+      cityTransitStyles: updatedCityStyles,
     };
 
     savePlannerPreferences({
@@ -341,6 +348,42 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       emergencyFundPct: nextPrefs.emergencyFundPct,
       intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
       localTransitStyle: style,
+      cityTransitStyles: updatedCityStyles,
+      isKobusPassApplied: nextPrefs.isKobusPassApplied,
+    });
+
+    setState({
+      ...state,
+      preferences: nextPrefs,
+    });
+  };
+
+  const handleSelectCityTransitStyle = (city: SupportedCity, style: LocalTransitStyle) => {
+    if (state.status !== "ready") return;
+    const currentCityStyles = state.preferences.cityTransitStyles || {};
+    const updatedCityStyles = {
+      ...currentCityStyles,
+      [city]: style,
+    };
+    const nextPrefs: PlannerPreferences = {
+      ...state.preferences,
+      cityTransitStyles: updatedCityStyles,
+    };
+
+    savePlannerPreferences({
+      draft: state.draft,
+      accommodationByCity: nextPrefs.accommodationByCity,
+      foodTier: nextPrefs.foodTier,
+      foodOverrides: nextPrefs.foodOverrides,
+      foodAddOnOverrides: nextPrefs.addOnSelections,
+      attractionByCity: nextPrefs.attractionByCity,
+      attractionSelections: nextPrefs.attractionSelections,
+      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
+      emergencyFundKrw: nextPrefs.emergencyFundKrw,
+      emergencyFundPct: nextPrefs.emergencyFundPct,
+      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
+      localTransitStyle: nextPrefs.localTransitStyle,
+      cityTransitStyles: updatedCityStyles,
       isKobusPassApplied: nextPrefs.isKobusPassApplied,
     });
 
@@ -608,6 +651,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     attractionSelections: preferences.attractionSelections,
     attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
     emergencyFundKrw: 0,
+    localTransitStyle: preferences.localTransitStyle,
+    cityTransitStyles: preferences.cityTransitStyles,
   });
 
   // 비상금 비율 계산 기준 총액 = (숙소 + 식비 + 교통 + 관광) + 쇼핑 예산
@@ -630,6 +675,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     emergencyFundKrw: computedEmergencyKrw,
     intercityTransportOverrides: preferences.intercityTransportOverrides,
     localTransitStyle: preferences.localTransitStyle,
+    cityTransitStyles: preferences.cityTransitStyles,
     isKobusPassApplied: preferences.isKobusPassApplied,
   });
 
@@ -2180,6 +2226,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 onReorderCities={handleReorderCities}
                 localTransitStyle={preferences.localTransitStyle || "STANDARD_MIX"}
                 onSelectLocalTransitStyle={handleSelectLocalTransitStyle}
+                cityTransitStyles={preferences.cityTransitStyles || {}}
+                onSelectCityTransitStyle={handleSelectCityTransitStyle}
                 locale={locale}
                 dict={dict}
               />

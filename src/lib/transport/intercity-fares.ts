@@ -208,6 +208,36 @@ export const WJU_CJU_FLIGHT_DATA: RouteFareInfo = {
   },
 };
 
+export const KWJ_CJU_FLIGHT_DATA: RouteFareInfo = {
+  routeCode: "KWJ-CJU",
+  routeName: "광주(KWJ) ↔ 제주(CJU)",
+  duration: "55분 ~ 1시간",
+  tiers: {
+    discount: {
+      label: "특가 / 할인석 (실속형)",
+      subLabel: "오후/저녁 시간대 & 사전 예매",
+      priceRange: { min: 28000, max: 77500 },
+      averagePrice: 48000,
+      description: [
+        "진에어 최저가(2.8만~) 및 대형사/LCC 특가·할인석 (2.8만~7.7만)",
+        "오후 13시~18시대 다수 편성으로 가성비 선택 폭 넓음",
+        "특가석은 위탁 수하물 및 취소 규정 사전 확인 필요",
+      ],
+    },
+    standard: {
+      label: "일반석 (표준/정규형)",
+      subLabel: "오전 피크 & 정규 일반석",
+      priceRange: { min: 73300, max: 117300 },
+      averagePrice: 85000,
+      description: [
+        "진에어·제주항공(7.3만~) 및 아시아나(8.7만)·대한항공(11.7만) 정규 일반석",
+        "오전 첫 비행기(10:00) 및 전 시간대 정규 운임",
+        "위탁 수하물 기본 포함 및 취소/환불 유연성 확보",
+      ],
+    },
+  },
+};
+
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
  * (코레일, 버스타고, KOBUS, 인천공항 airport.kr, 경기공항리무진 사용자 검증 최신 인가 요금 전수 반영)
@@ -538,14 +568,14 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "제주공항 ➔ 광주공항 ➔ 전주 (국내선 항공 + KTX/ITX)",
       nameEn: "Jeju ➔ Gwangju Airport ➔ Jeonju (Flight + KTX/ITX)",
-      oneWayPriceKrw: 81000,
+      oneWayPriceKrw: 104000,
       durationTextKo: "1시간 50분",
       durationTextEn: "1h 50m",
       optionType: "COMFORT",
       badgeTextKo: "배차다수",
       badgeTextEn: "Frequent Flights",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "광주공항", toHubNameEn: "Gwangju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔광주)", transitNameEn: "Domestic Flight", fareKrw: 62000, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "광주공항", toHubNameEn: "Gwangju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔광주)", transitNameEn: "Domestic Flight", fareKrw: 85000, durationTextKo: "55분", durationTextEn: "55m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
         { legOrder: 2, fromHubNameKo: "광주송정역", fromHubNameEn: "Gwangju Songjeong", toHubNameKo: "익산역", toHubNameEn: "Iksan Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Rail", fareKrw: 14200, durationTextKo: "35분", durationTextEn: "35m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
         { legOrder: 3, fromHubNameKo: "익산역", fromHubNameEn: "Iksan Stn", toHubNameKo: "전주역", toHubNameEn: "Jeonju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "ITX-새마을 / 마음", transitNameEn: "ITX Train", fareKrw: 4800, durationTextKo: "14분", durationTextEn: "14m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]

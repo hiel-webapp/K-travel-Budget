@@ -28,8 +28,6 @@ export const LOCAL_TRANSIT_OPTIONS: LocalTransitOptionDef[] = [
     descriptionEn: "Explore cities efficiently using subways and city buses.",
     evidenceKo: "1일 평균 관광 4회 이동 기준 (기본요금 ₩1,450 × 4 = ₩5,800). 서울 기후동행카드(3일권 ₩10,000) 구매 시 1일 ₩3,333 무제한.",
     evidenceEn: "Based on 4 tourist trips/day (₩1,450 × 4 = ₩5,800). Climate Card (₩10,000 for 3 days) offers unlimited rides at ₩3,333/day.",
-    badgeKo: "가성비",
-    badgeEn: "Best Value",
   },
   {
     style: "STANDARD_MIX",
@@ -42,8 +40,6 @@ export const LOCAL_TRANSIT_OPTIONS: LocalTransitOptionDef[] = [
     descriptionEn: "Use metro for main travel, take a short taxi ride when tired or carrying bags.",
     evidenceKo: "지하철 3회(₩4,350) + 기본거리 택시 1회(약 ₩5,000, 2인 탑승 시 1인 분할 기준).",
     evidenceEn: "3 subway rides (₩4,350) + 1 short taxi trip (~₩5,000, split between 2 travelers).",
-    badgeKo: "추천",
-    badgeEn: "Recommended",
   },
   {
     style: "COMFORT_TAXI",
@@ -56,8 +52,6 @@ export const LOCAL_TRANSIT_OPTIONS: LocalTransitOptionDef[] = [
     descriptionEn: "Door-to-door comfort using Kakao T, Uber, and local taxis.",
     evidenceKo: "기본요금 ₩4,800 + 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 탑승 기준 1인당 약 ₩22,000).",
     evidenceEn: "Base fare ₩4,800 + average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
-    badgeKo: "편안함",
-    badgeEn: "Max Comfort",
   },
 ];
 

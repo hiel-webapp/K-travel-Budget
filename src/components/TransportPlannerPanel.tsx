@@ -717,12 +717,12 @@ export default function TransportPlannerPanel({
         </div>
       </div>
 
-      {/* SECTION 4: 🚌 도시 내 시내 교통 스타일 선택 (초슬림 간소화 디자인 + 스마트 기본값) */}
+      {/* SECTION 4: 🚌 도시 내 이동 스타일 선택 (초슬림 간소화 디자인 + 스마트 기본값) */}
       <div className="space-y-3 pt-2">
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-200/80 pb-2">
           <div className="flex items-center gap-2">
             <h4 className="text-sm font-extrabold text-[#0f172a]">
-              {locale === "ko" ? "도시 내 시내 이동 스타일" : "Local City Transit Style"}
+              {locale === "ko" ? "도시 내 이동 스타일" : "Local Transit Style"}
             </h4>
             <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/60">
               {locale === "ko" ? "1일 4회 이동 기준" : "4 trips/day"}
@@ -798,7 +798,6 @@ export default function TransportPlannerPanel({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   {LOCAL_TRANSIT_OPTIONS.map((opt) => {
                     const isSelected = currentCityStyle === opt.style;
-                    const badge = locale === "ko" ? opt.badgeKo : opt.badgeEn;
 
                     return (
                       <button
@@ -820,15 +819,6 @@ export default function TransportPlannerPanel({
                               <span className={`font-black text-xs truncate ${isSelected ? "text-white" : "text-[#0f172a]"}`}>
                                 {locale === "ko" ? opt.nameKo : opt.nameEn}
                               </span>
-                              {badge && (
-                                <span className={`px-1 py-0.2 rounded text-[8px] font-black shrink-0 ${
-                                  isSelected
-                                    ? "bg-[#e25c5c] text-white"
-                                    : "bg-rose-50 text-[#e25c5c] border border-rose-200"
-                                }`}>
-                                  {badge}
-                                </span>
-                              )}
                             </div>
                             <div className={`text-[10px] ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
                               {opt.taxiTripsPerDay > 0

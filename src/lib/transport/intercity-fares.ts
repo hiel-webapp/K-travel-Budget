@@ -178,6 +178,36 @@ export const KUV_CJU_FLIGHT_DATA: RouteFareInfo = {
   },
 };
 
+export const WJU_CJU_FLIGHT_DATA: RouteFareInfo = {
+  routeCode: "WJU-CJU",
+  routeName: "원주(WJU) ↔ 제주(CJU)",
+  duration: "1시간 15분",
+  tiers: {
+    discount: {
+      label: "특가 / 할인석 (실속형)",
+      subLabel: "오후/저녁 잔여 & 사전 예매",
+      priceRange: { min: 55000, max: 86000 },
+      averagePrice: 65000,
+      description: [
+        "진에어 할인석(55,800원~) 및 대한항공 공동운항 할인 운임",
+        "저녁(17:20) 편 중심 실속 예매",
+        "일 2편 소수 운항으로 특가/할인석 조기 마감 주의",
+      ],
+    },
+    standard: {
+      label: "일반석 (표준/정규형)",
+      subLabel: "오전 피크 & 정규 일반석",
+      priceRange: { min: 100000, max: 101000 },
+      averagePrice: 100500,
+      description: [
+        "진에어 정규 일반석 (100,500원 고정가 형성)",
+        "오전 첫 비행기(11:15) 및 전 시간대 정규 운임",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 확보",
+      ],
+    },
+  },
+};
+
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
  * (코레일, 버스타고, KOBUS, 인천공항 airport.kr, 경기공항리무진 사용자 검증 최신 인가 요금 전수 반영)
@@ -593,7 +623,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "제주공항 ➔ 원주(만종) ➔ 강릉 (국내선 항공 + KTX-이음)",
       nameEn: "Jeju ➔ Wonju(Manjong) ➔ Gangneung (Flight + KTX-Eum)",
-      oneWayPriceKrw: 86300,
+      oneWayPriceKrw: 116800,
       durationTextKo: "2시간 00분",
       durationTextEn: "2h 00m",
       isDefault: true,
@@ -601,7 +631,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "강원도내공항",
       badgeTextEn: "Wonju Link",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "원주공항(횡성)", toHubNameEn: "Wonju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔원주)", transitNameEn: "Domestic Flight", fareKrw: 70000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "원주공항(횡성)", toHubNameEn: "Wonju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔원주)", transitNameEn: "Domestic Flight", fareKrw: 100500, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
         { legOrder: 2, fromHubNameKo: "만종(원주)역", fromHubNameEn: "Manjong/Wonju Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 16300, durationTextKo: "44분", durationTextEn: "44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     },
@@ -609,14 +639,14 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "제주공항 ➔ 김포공항 ➔ 강릉역 (국내선 항공 + 서울역 KTX)",
       nameEn: "Jeju ➔ Gimpo Airport ➔ Gangneung (Flight + KTX)",
-      oneWayPriceKrw: 102600,
+      oneWayPriceKrw: 122600,
       durationTextKo: "3시간 20분",
       durationTextEn: "3h 20m",
       optionType: "COMFORT",
       badgeTextKo: "정시성KTX",
       badgeTextEn: "Via Seoul KTX",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
         { legOrder: 2, fromHubNameKo: "서울역/청량리역", fromHubNameEn: "Seoul Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum Rail", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
@@ -626,14 +656,14 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "강릉역 ➔ 원주(만종) ➔ 제주공항 (KTX-이음 + 국내선 항공)",
       nameEn: "Gangneung ➔ Wonju(Manjong) ➔ Jeju (KTX-Eum + Flight)",
-      oneWayPriceKrw: 86300,
+      oneWayPriceKrw: 116800,
       durationTextKo: "2시간 00분",
       durationTextEn: "2h 00m",
       isDefault: true,
       optionType: "FASTEST",
       legs: [
         { legOrder: 1, fromHubNameKo: "강릉역", fromHubNameEn: "Gangneung Stn", toHubNameKo: "만종(원주)역", toHubNameEn: "Manjong/Wonju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 16300, durationTextKo: "44분", durationTextEn: "44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "원주공항(횡성)", fromHubNameEn: "Wonju Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (원주➔제주)", transitNameEn: "Domestic Flight", fareKrw: 70000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "원주공항(횡성)", fromHubNameEn: "Wonju Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (원주➔제주)", transitNameEn: "Domestic Flight", fareKrw: 100500, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],

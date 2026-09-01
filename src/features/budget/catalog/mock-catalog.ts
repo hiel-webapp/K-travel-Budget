@@ -84,6 +84,31 @@ export function getCityTransitEvidence(city: SupportedCity, style: LocalTransitS
     };
   }
 
+  if (city === "INCHEON") {
+    if (style === "SUBWAY_BUS") {
+      return {
+        title: locale === "ko" ? "📊 인천시 대중교통 공식 인가요금 기준" : "📊 Incheon Public Transit Official Fares",
+        evidence: locale === "ko"
+          ? "인천시 공식 인가요금 기준: 인천도시철도(1·2호선) 일반 카드 ₩1,550 / 일반 간선버스 ₩1,500(지선 ₩1,200) × 1일 4회 이동 = 약 ₩6,000~₩6,200. (수도권 통합환승 할인 적용)"
+          : "Incheon official fares: Incheon Metro Card ₩1,550 / Trunk Bus ₩1,500 (Branch Bus ₩1,200) × 4 rides/day = ~₩6,000-₩6,200. (Capital Area Integrated Transfer Discount applied)",
+      };
+    }
+    if (style === "STANDARD_MIX") {
+      return {
+        title: locale === "ko" ? "📊 인천시 대중교통·택시 공식 인가요금 기준" : "📊 Incheon Transit & Taxi Official Fares",
+        evidence: locale === "ko"
+          ? "인천시 공식 요금 기준: 도시철도/간선버스 3회(₩4,500~₩4,650) + 중형택시 단거리 1회(기본 1.6km ₩4,800 + 135m당 100원 거리 가산, 약 5km 이동 시 ₩9,600 기준 2인 분할 ₩4,800) = 약 ₩9,500."
+          : "Incheon official fares: Metro/Bus 3 rides (~₩4,500-₩4,650) + Standard Taxi (Base 1.6km ₩4,800 + ₩100/135m, ~5km trip ₩9,600 split ₩4,800/person for 2) = ~₩9,500.",
+      };
+    }
+    return {
+      title: locale === "ko" ? "📊 인천시 중형택시 공식 인가요금 기준" : "📊 Incheon Standard Taxi Official Fares",
+      evidence: locale === "ko"
+        ? "인천시 공식 중형택시 요금 기준: 주간 기본 1.6km ₩4,800 + 거리(135m당 100원)/시간(33초당 100원) 병산. 평균 5~7km 주행(1회 약 ₩11,000) × 2회 탑승 (2인 분할 1인당 약 ₩22,000)."
+        : "Incheon standard taxi: Base fare ₩4,800 (1.6km) + ₩100 per 135m & 33s. Average 5-7km trip (~₩11,000) × 2 rides/day (split per person).",
+    };
+  }
+
   if (city === "SEOUL") {
     if (style === "SUBWAY_BUS") {
       return {

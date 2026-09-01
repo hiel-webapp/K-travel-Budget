@@ -88,6 +88,36 @@ export const GMP_CJU_FLIGHT_DATA: RouteFareInfo = {
   },
 };
 
+export const PUS_CJU_FLIGHT_DATA: RouteFareInfo = {
+  routeCode: "PUS-CJU",
+  routeName: "김해(PUS) ↔ 제주(CJU)",
+  duration: "1시간 00분",
+  tiers: {
+    discount: {
+      label: "특가 / 할인석 (실속형)",
+      subLabel: "오후/야간 & 사전 예매",
+      priceRange: { min: 38000, max: 65000 },
+      averagePrice: 45000,
+      description: [
+        "오후(13:00 이후) 및 야간 시간대 중심 실속 최저가 운임",
+        "에어부산, 진에어, 제주항공, 이스타 등 LCC 위주 편성",
+        "예약 변경/취소 수수료 규정이 상대적으로 엄격함",
+      ],
+    },
+    standard: {
+      label: "일반석 (표준/정규형)",
+      subLabel: "오전 피크 & 주말/선호 시간대",
+      priceRange: { min: 81000, max: 131000 },
+      averagePrice: 92000,
+      description: [
+        "오전 출발(06:55~12:30) 및 주요 시간대 기본 정규 운임",
+        "대한항공, 아시아나(에어부산 공동운항) 및 LCC 일반석 포함",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 높음",
+      ],
+    },
+  },
+};
+
 /**
  * 대한민국 10대 도시 및 13개 국내선 공항 연계 도시 간 교통 테이블
  * (코레일, 버스타고, KOBUS, 인천공항 airport.kr, 경기공항리무진 사용자 검증 최신 인가 요금 전수 반영)
@@ -296,10 +326,106 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
     }
   ],
   "JEJU-BUSAN": [
-    { mode: "FLIGHT", nameKo: "제주공항 ➔ 김해공항 (국내선 항공 직항)", nameEn: "Jeju Airport ➔ Gimhae Airport (Direct Flight)", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "FLIGHT",
+      nameKo: "제주공항 ➔ 김해공항 (일반석 표준/정규형)",
+      nameEn: "Jeju ➔ Gimhae (Flight Standard Regular)",
+      oneWayPriceKrw: 92000,
+      durationTextKo: "1시간 00분",
+      durationTextEn: "1h 00m",
+      isDefault: true,
+      optionType: "FASTEST",
+      badgeTextKo: "일반석(표준)",
+      badgeTextEn: "Standard Class",
+      priceRange: { min: 81000, max: 131000 },
+      subLabelKo: "오전 피크 & 주말/선호 시간대",
+      subLabelEn: "Peak Morning & Weekend Preferred Times",
+      tierDescriptionsKo: [
+        "오전 출발(06:55~12:30) 및 주요 시간대 기본 정규 운임",
+        "대한항공, 아시아나(에어부산 공동운항) 및 LCC 일반석 포함",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 높음",
+      ],
+      tierDescriptionsEn: [
+        "Standard regular fare for morning departures (06:55~12:30) & peak weekend flights",
+        "Includes major carriers (Korean Air, Asiana) and LCC standard seats",
+        "Includes checked baggage with higher rescheduling/cancellation flexibility",
+      ],
+    },
+    {
+      mode: "FLIGHT",
+      nameKo: "제주공항 ➔ 김해공항 (특가/할인석 실속형)",
+      nameEn: "Jeju ➔ Gimhae (Flight Discount Economy)",
+      oneWayPriceKrw: 45000,
+      durationTextKo: "1시간 00분",
+      durationTextEn: "1h 00m",
+      optionType: "BUDGET",
+      badgeTextKo: "특가/실속",
+      badgeTextEn: "Discount Fare",
+      priceRange: { min: 38000, max: 65000 },
+      subLabelKo: "오후/야간 & 사전 예매",
+      subLabelEn: "Afternoon/Night & Early Booking",
+      tierDescriptionsKo: [
+        "오후(13:00 이후) 및 야간 시간대 중심 실속 최저가 운임",
+        "에어부산, 진에어, 제주항공, 이스타 등 LCC 위주 편성",
+        "예약 변경/취소 수수료 규정이 상대적으로 엄격함",
+      ],
+      tierDescriptionsEn: [
+        "Budget-friendly fares for afternoon (after 13:00) and evening departures",
+        "Primarily operated by LCC carriers (Air Busan, Jin Air, Jeju Air, Eastar)",
+        "Strict rules regarding schedule changes and cancellations",
+      ],
+    },
   ],
   "BUSAN-JEJU": [
-    { mode: "FLIGHT", nameKo: "김해공항 ➔ 제주공항 (국내선 항공 직항)", nameEn: "Gimhae Airport ➔ Jeju Airport (Direct Flight)", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true, optionType: "DIRECT" },
+    {
+      mode: "FLIGHT",
+      nameKo: "김해공항 ➔ 제주공항 (일반석 표준/정규형)",
+      nameEn: "Gimhae ➔ Jeju (Flight Standard Regular)",
+      oneWayPriceKrw: 92000,
+      durationTextKo: "1시간 00분",
+      durationTextEn: "1h 00m",
+      isDefault: true,
+      optionType: "FASTEST",
+      badgeTextKo: "일반석(표준)",
+      badgeTextEn: "Standard Class",
+      priceRange: { min: 81000, max: 131000 },
+      subLabelKo: "오전 피크 & 주말/선호 시간대",
+      subLabelEn: "Peak Morning & Weekend Preferred Times",
+      tierDescriptionsKo: [
+        "오전 출발(06:55~12:30) 및 주요 시간대 기본 정규 운임",
+        "대한항공, 아시아나(에어부산 공동운항) 및 LCC 일반석 포함",
+        "위탁 수하물 기본 포함 및 일정 변경/취소 유연성 높음",
+      ],
+      tierDescriptionsEn: [
+        "Standard regular fare for morning departures (06:55~12:30) & peak weekend flights",
+        "Includes major carriers (Korean Air, Asiana) and LCC standard seats",
+        "Includes checked baggage with higher rescheduling/cancellation flexibility",
+      ],
+    },
+    {
+      mode: "FLIGHT",
+      nameKo: "김해공항 ➔ 제주공항 (특가/할인석 실속형)",
+      nameEn: "Gimhae ➔ Jeju (Flight Discount Economy)",
+      oneWayPriceKrw: 45000,
+      durationTextKo: "1시간 00분",
+      durationTextEn: "1h 00m",
+      optionType: "BUDGET",
+      badgeTextKo: "특가/실속",
+      badgeTextEn: "Discount Fare",
+      priceRange: { min: 38000, max: 65000 },
+      subLabelKo: "오후/야간 & 사전 예매",
+      subLabelEn: "Afternoon/Night & Early Booking",
+      tierDescriptionsKo: [
+        "오후(13:00 이후) 및 야간 시간대 중심 실속 최저가 운임",
+        "에어부산, 진에어, 제주항공, 이스타 등 LCC 위주 편성",
+        "예약 변경/취소 수수료 규정이 상대적으로 엄격함",
+      ],
+      tierDescriptionsEn: [
+        "Budget-friendly fares for afternoon (after 13:00) and evening departures",
+        "Primarily operated by LCC carriers (Air Busan, Jin Air, Jeju Air, Eastar)",
+        "Strict rules regarding schedule changes and cancellations",
+      ],
+    },
   ],
   "JEJU-JEONJU": [
     {
@@ -358,7 +484,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "제주공항 ➔ 김해공항 ➔ 경주 (국내선 항공 + 공항 리무진)",
       nameEn: "Jeju ➔ Gimhae Airport ➔ Gyeongju (Flight + Limousine)",
-      oneWayPriceKrw: 74500,
+      oneWayPriceKrw: 101500,
       durationTextKo: "2시간 10분",
       durationTextEn: "2h 10m",
       isDefault: true,
@@ -366,7 +492,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "배차풍부",
       badgeTextEn: "Best Choice",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김해국제공항", toHubNameEn: "Gimhae Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김해)", transitNameEn: "Domestic Flight", fareKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김해국제공항", toHubNameEn: "Gimhae Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김해)", transitNameEn: "Domestic Flight", fareKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
         { legOrder: 2, fromHubNameKo: "김해국제공항", fromHubNameEn: "Gimhae Airport", toHubNameKo: "경주시외터미널", toHubNameEn: "Gyeongju Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 직행 리무진 버스 (금아)", transitNameEn: "Airport Direct Bus", fareKrw: 9500, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
@@ -391,14 +517,14 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       mode: "TRANSFER",
       nameKo: "경주 ➔ 김해공항 ➔ 제주공항 (공항 리무진 + 국내선 항공)",
       nameEn: "Gyeongju ➔ Gimhae Airport ➔ Jeju (Limousine + Flight)",
-      oneWayPriceKrw: 74500,
+      oneWayPriceKrw: 101500,
       durationTextKo: "2시간 10분",
       durationTextEn: "2h 20m",
       isDefault: true,
       optionType: "FASTEST",
       legs: [
         { legOrder: 1, fromHubNameKo: "경주시외터미널", fromHubNameEn: "Gyeongju Terminal", toHubNameKo: "김해국제공항", toHubNameEn: "Gimhae Airport", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 직행 리무진 버스 (금아)", transitNameEn: "Airport Direct Bus", fareKrw: 9500, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "김해국제공항", fromHubNameEn: "Gimhae Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (김해➔제주)", transitNameEn: "Domestic Flight", fareKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "김해국제공항", fromHubNameEn: "Gimhae Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (김해➔제주)", transitNameEn: "Domestic Flight", fareKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],
@@ -1078,8 +1204,8 @@ export function getAirportTransitOptions(
     }
     if (targetCity === "JEJU") {
       return direction === "ENTRY"
-        ? [{ mode: "FLIGHT", nameKo: "김해공항 ➔ 제주공항 (국내선 항공)", nameEn: "Gimhae Airport ➔ Jeju (Flight)", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }]
-        : [{ mode: "FLIGHT", nameKo: "제주공항 ➔ 김해공항 (국내선 항공)", nameEn: "Jeju ➔ Gimhae Airport (Flight)", oneWayPriceKrw: 65000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }];
+        ? [{ mode: "FLIGHT", nameKo: "김해공항 ➔ 제주공항 (국내선 항공)", nameEn: "Gimhae Airport ➔ Jeju (Flight)", oneWayPriceKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }]
+        : [{ mode: "FLIGHT", nameKo: "제주공항 ➔ 김해공항 (국내선 항공)", nameEn: "Jeju ➔ Gimhae Airport (Flight)", oneWayPriceKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", isDefault: true }];
     }
   }
 

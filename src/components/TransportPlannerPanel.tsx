@@ -76,6 +76,58 @@ export default function TransportPlannerPanel({
       : CITY_ENGLISH_NAMES[city] || city;
   };
 
+  const getSimplifiedTransportName = (nameKo: string, mode?: string, nameEn?: string) => {
+    if (nameKo.includes("AREX") || nameKo.includes("직통열차")) {
+      return locale === "ko" ? "공항철도 직통열차 (AREX)" : "AREX Express Train";
+    }
+    if (nameKo.includes("공항 리무진") || nameKo.includes("리무진")) {
+      return locale === "ko" ? "공항 리무진 버스" : "Airport Limousine Bus";
+    }
+    if (nameKo.includes("일반열차") || nameKo.includes("공항철도 일반")) {
+      return locale === "ko" ? "공항철도 일반열차" : "AREX All-Stop Train";
+    }
+    if (nameKo.includes("항공") && nameKo.includes("공항철도")) {
+      return locale === "ko" ? "국내선 항공 + 공항철도" : "Domestic Flight + AREX";
+    }
+    if (nameKo.includes("KTX") && (nameKo.includes("공항철도") || nameKo.includes("직통"))) {
+      return locale === "ko" ? "KTX 고속철도 + 직통열차" : "KTX + AREX";
+    }
+    if (nameKo.includes("시내버스") || nameKo.includes("지하철")) {
+      return locale === "ko" ? "시내버스 / 지하철" : "Local Bus / Metro";
+    }
+    if (nameKo.includes("KTX")) {
+      return locale === "ko" ? (nameKo.includes("환승") ? "KTX 고속철도 (환승)" : "KTX 고속철도") : (nameKo.includes("환승") ? "KTX (Transfer)" : "KTX High-Speed");
+    }
+    if (nameKo.includes("SRT")) {
+      return locale === "ko" ? "SRT 고속철도" : "SRT High-Speed";
+    }
+    if (nameKo.includes("우등")) {
+      return locale === "ko" ? "시외/고속버스 (우등)" : "Express Bus (Superior)";
+    }
+    if (nameKo.includes("시외버스") || nameKo.includes("시외")) {
+      return locale === "ko" ? "시외버스" : "Intercity Bus";
+    }
+    if (nameKo.includes("고속버스") || nameKo.includes("고속")) {
+      return locale === "ko" ? "고속버스" : "Express Bus";
+    }
+    if (nameKo.includes("특가") || nameKo.includes("할인석")) {
+      return locale === "ko" ? "국내선 항공 (특가/할인석)" : "Flight (Discount)";
+    }
+    if (nameKo.includes("일반석") || nameKo.includes("표준")) {
+      return locale === "ko" ? "국내선 항공 (일반석)" : "Flight (Standard)";
+    }
+    if (mode === "FLIGHT" || nameKo.includes("공항") || nameKo.includes("항공")) {
+      return locale === "ko" ? "국내선 항공" : "Domestic Flight";
+    }
+    if (locale === "ko") {
+      const match = nameKo.match(/\((.*?)\)/);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return locale === "ko" ? nameKo : (nameEn || nameKo);
+  };
+
   const getAirportDisplayName = (airportKey: string) => {
     const info = AIRPORT_INFO_MAP[airportKey] || AIRPORT_INFO_MAP.INCHEON;
     return locale === "ko" ? info.nameKo : `${info.nameEn} (${info.code})`;
@@ -350,6 +402,7 @@ export default function TransportPlannerPanel({
             {entryOptions.map((opt) => {
               const isSelected = activeEntryOption.nameKo === opt.nameKo;
               const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;
+              const simplifiedTitle = getSimplifiedTransportName(opt.nameKo, opt.mode, opt.nameEn);
 
               return (
                 <button
@@ -363,8 +416,8 @@ export default function TransportPlannerPanel({
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <span className={`font-extrabold text-xs ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
-                      {locale === "ko" ? opt.nameKo : opt.nameEn}
+                    <span className={`font-extrabold text-xs sm:text-[13px] ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
+                      {simplifiedTitle}
                     </span>
                     {badgeText && (
                       <span
@@ -422,7 +475,7 @@ export default function TransportPlannerPanel({
 
               const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
               const modeIcon = activeOption.mode === "FLIGHT" ? "🛫" : activeOption.mode === "EXPRESS_BUS" ? "🚌" : activeOption.mode === "TRANSFER" ? "🔀" : "🚄";
-              const displayName = locale === "ko" ? activeOption.nameKo : activeOption.nameEn;
+              const displayName = getSimplifiedTransportName(activeOption.nameKo, activeOption.mode, activeOption.nameEn);
               const hasMultipleOptions = options.length > 1;
               const isExpanded = !!expandedSegments[routeKey];
 
@@ -461,7 +514,7 @@ export default function TransportPlannerPanel({
                     </div>
                   )}
 
-                  {/* 메인 2줄 요약 카드 */}
+                  {/* 메인 간결 요약 카드 */}
                   <div className="p-3.5 sm:p-4 flex items-center justify-between gap-4">
                     {/* 좌측: 도시 경로 + [1줄: 명칭 / 2줄: 소요시간] */}
                     <div className="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -482,19 +535,6 @@ export default function TransportPlannerPanel({
                         </div>
                         <div className="text-[11px] text-slate-500 font-medium flex items-center gap-2">
                           <span>⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>
-                          {( (activeOption.legs && activeOption.legs.length > 0) || (activeOption.tierDescriptionsKo && activeOption.tierDescriptionsKo.length > 0) || !!activeOption.priceRange ) && (
-                            <button
-                              type="button"
-                              onClick={() => toggleSegmentDetails(routeKey)}
-                              className="text-[11px] font-extrabold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-0.5 transition-colors"
-                            >
-                              {activeOption.legs && activeOption.legs.length > 0 ? (
-                                <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close Details") : (locale === "ko" ? "▼ 상세 경로" : "▼ Route Details")}</span>
-                              ) : (
-                                <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close Details") : (locale === "ko" ? "▼ 운임 기준 & 특징 안내" : "▼ Fare Details & Features")}</span>
-                              )}
-                            </button>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -516,92 +556,6 @@ export default function TransportPlannerPanel({
                       )}
                     </div>
                   </div>
-
-                  {/* 아코디언 상세 보기: 1) 상세 환승 타임라인 */}
-                  {isExpanded && activeOption.legs && activeOption.legs.length > 0 && (
-                    <div className="px-4 pb-3.5 pt-2.5 bg-slate-50 border-t border-slate-100 space-y-2.5 text-xs">
-                      <div className="font-extrabold text-slate-700 flex items-center gap-1.5">
-                        <span>🗺</span>
-                        <span>{locale === "ko" ? "상세 환승 이동 경로" : "Detailed Transfer Route"}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {activeOption.legs.map((leg, lIdx) => (
-                          <div
-                            key={leg.legOrder || lIdx}
-                            className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-3 shadow-2xs"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-700 font-black text-[10px] flex items-center justify-center shrink-0">
-                                {lIdx + 1}
-                              </span>
-                              <div className="min-w-0">
-                                <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1 truncate">
-                                  <span>{leg.modeIcon}</span>
-                                  <span>{locale === "ko" ? leg.transitNameKo : leg.transitNameEn}</span>
-                                </div>
-                                <div className="text-[11px] text-slate-500 truncate">
-                                  {locale === "ko" ? leg.fromHubNameKo : leg.fromHubNameEn} ➔ {locale === "ko" ? leg.toHubNameKo : leg.toHubNameEn} (⏱ {locale === "ko" ? leg.durationTextKo : leg.durationTextEn})
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <span className="font-extrabold text-slate-800 text-xs">
-                                {formatKrw(leg.fareKrw)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 아코디언 상세 보기: 2) 항공권 운임 기준 및 좌석 특징 안내 */}
-                  {isExpanded && activeOption.tierDescriptionsKo && activeOption.tierDescriptionsKo.length > 0 && (
-                    <div className="px-4 pb-3.5 pt-3 bg-slate-50/90 border-t border-slate-100 space-y-3 text-xs">
-                      {/* 운임 범위 및 시간대 기준 요약 박스 */}
-                      <div className="p-3 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-2.5">
-                        <div className="space-y-0.5">
-                          <div className="text-[11px] font-bold text-slate-500">
-                            {locale === "ko" ? "⏱ 운임 적용 기준 시간대" : "⏱ Flight Time Window"}
-                          </div>
-                          <div className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span>{locale === "ko" ? (activeOption.subLabelKo || "선택된 좌석 기준") : (activeOption.subLabelEn || "Selected Seat Tier")}</span>
-                          </div>
-                        </div>
-
-                        {activeOption.priceRange && (
-                          <div className="text-right">
-                            <div className="text-[11px] font-bold text-slate-500">
-                              {locale === "ko" ? "예상 운임 변동 범위" : "Estimated Fare Range"}
-                            </div>
-                            <div className="text-xs font-black text-slate-900">
-                              {formatKrw(activeOption.priceRange.min)} ~ {formatKrw(activeOption.priceRange.max)}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* 좌석 등급별 특징 & 주의사항 리스트 */}
-                      <div className="space-y-1.5">
-                        <div className="font-extrabold text-slate-700 flex items-center gap-1.5 text-xs">
-                          <span>📋</span>
-                          <span>{locale === "ko" ? "좌석 등급 특징 및 예약 안내" : "Seat Tier Features & Booking Notice"}</span>
-                        </div>
-                        <div className="grid gap-1.5">
-                          {(locale === "ko" ? activeOption.tierDescriptionsKo : (activeOption.tierDescriptionsEn || activeOption.tierDescriptionsKo)).map((desc, dIdx) => (
-                            <div
-                              key={dIdx}
-                              className="px-3 py-2 rounded-lg bg-white/80 border border-slate-200/60 text-slate-700 text-[11px] flex items-start gap-2 leading-relaxed"
-                            >
-                              <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
-                              <span>{desc}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -618,35 +572,31 @@ export default function TransportPlannerPanel({
             </span>
             <div className="flex items-center gap-1.5 font-extrabold text-[#0f172a] text-sm">
               <span className="text-[#0f172a]">{getCityName(lastCity)}</span>
-              <span className="text-slate-400 font-normal">──►</span>
-              <span className="text-[#e25c5c]">🛫 {getAirportDisplayName(exitAirport)}</span>
+              <span className="text-slate-400 font-bold">➔</span>
+              <span className="text-blue-600 flex items-center gap-1">
+                <span>🛫</span>
+                <span>{getAirportDisplayName(exitAirport)}</span>
+              </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-slate-500 font-medium">
-              {locale === "ko" ? "1인 편도:" : "1-Person Fare:"}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 font-medium">
+              {locale === "ko" ? "1인 편도:" : "1-Person:"}
             </span>
-            <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
+            <strong className="text-sm font-black text-[#e25c5c]">
               {formatKrw(activeExitOption.oneWayPriceKrw)}
             </strong>
-            {adultCount > 1 && (
-              <span className="text-[11px] text-slate-400 font-medium ml-1">
-                ({locale === "ko" ? `총 ${formatKrw(exitTotalKrw)} / ${adultCount}명` : `Total ${formatKrw(exitTotalKrw)} / ${adultCount}p`})
-              </span>
-            )}
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="text-[11px] font-bold text-slate-500 block">
-              {locale === "ko" ? "마지막 여행지에서 공항 복귀 수단" : "Select Airport Departure Transit Mode"}
-            </label>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+            <span>{locale === "ko" ? "마지막 여행지에서 공항 복귀 수단" : "Airport Return Transit Option"}</span>
             <button
               type="button"
               onClick={() => setShowExitAirportToggle(!showExitAirportToggle)}
-              className="text-[11px] font-bold text-[#e25c5c] hover:underline cursor-pointer flex items-center gap-1"
+              className="text-[11px] text-slate-400 hover:text-slate-700 underline cursor-pointer flex items-center gap-1"
             >
               <span>⚙</span>
               <span>{locale === "ko" ? "다른 공항으로 출국하시나요? ▾" : "Departing from another airport? ▾"}</span>
@@ -673,6 +623,7 @@ export default function TransportPlannerPanel({
             {exitOptions.map((opt) => {
               const isSelected = activeExitOption.nameKo === opt.nameKo;
               const badgeText = locale === "ko" ? opt.badgeTextKo : opt.badgeTextEn;
+              const simplifiedTitle = getSimplifiedTransportName(opt.nameKo, opt.mode, opt.nameEn);
 
               return (
                 <button
@@ -686,8 +637,8 @@ export default function TransportPlannerPanel({
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <span className={`font-extrabold text-xs ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
-                      {locale === "ko" ? opt.nameKo : opt.nameEn}
+                    <span className={`font-extrabold text-xs sm:text-[13px] ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
+                      {simplifiedTitle}
                     </span>
                     {badgeText && (
                       <span

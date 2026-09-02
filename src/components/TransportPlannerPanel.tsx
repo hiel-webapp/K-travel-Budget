@@ -569,11 +569,7 @@ export default function TransportPlannerPanel({
                               onClick={() => toggleSegmentDetails(routeKey)}
                               className="text-[11px] font-extrabold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer flex items-center gap-0.5 transition-colors"
                             >
-                              {hasLegs ? (
-                                <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close") : (locale === "ko" ? "▼ 상세 경로" : "▼ Route Details")}</span>
-                              ) : (
-                                <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close") : (locale === "ko" ? "▼ 운임 기준 & 특징 안내" : "▼ Fare Details & Features")}</span>
-                              )}
+                              <span>{isExpanded ? (locale === "ko" ? "▲ 상세 닫기" : "▲ Close") : (locale === "ko" ? "▼ 상세 내용" : "▼ Details")}</span>
                             </button>
                           )}
                         </div>

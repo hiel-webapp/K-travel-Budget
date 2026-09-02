@@ -358,19 +358,19 @@ export default function TransportPlannerPanel({
                   onClick={() => onSelectIntercityOverride(entryRouteKey, opt.mode)}
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
                     isSelected
-                      ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs ring-1 ring-[#0f172a]"
+                      ? "bg-[#fdf2f2] text-[#0f172a] border-[#e25c5c] shadow-2xs ring-1 ring-[#e25c5c]"
                       : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <span className="font-extrabold text-xs">
+                    <span className={`font-extrabold text-xs ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
                       {locale === "ko" ? opt.nameKo : opt.nameEn}
                     </span>
                     {badgeText && (
                       <span
                         className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-tight ${
                           isSelected
-                            ? "bg-slate-800 text-slate-200 border border-slate-700"
+                            ? "bg-rose-100 text-[#e25c5c] border border-rose-200"
                             : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}
                       >
@@ -379,11 +379,11 @@ export default function TransportPlannerPanel({
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] font-medium opacity-90">
-                    <span className={isSelected ? "text-slate-300" : "text-slate-500"}>
+                  <div className="flex items-center justify-between text-[11px] font-medium">
+                    <span className={isSelected ? "text-slate-500" : "text-slate-400"}>
                       ⏱ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
                     </span>
-                    <strong className={isSelected ? "text-amber-300 font-black text-xs" : "text-[#0f172a] font-extrabold text-xs"}>
+                    <strong className={`font-black text-xs sm:text-sm ${isSelected ? "text-[#e25c5c]" : "text-[#0f172a]"}`}>
                       {formatKrw(opt.oneWayPriceKrw)}
                     </strong>
                   </div>
@@ -447,10 +447,10 @@ export default function TransportPlannerPanel({
                               key={opt.nameKo}
                               type="button"
                               onClick={() => onSelectIntercityOverride(routeKey, opt.nameKo)}
-                              className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold cursor-pointer transition-all ${
+                              className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold cursor-pointer transition-all border ${
                                 isSelected
-                                  ? "bg-[#0f172a] text-white shadow-2xs"
-                                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                                  ? "bg-[#fdf2f2] text-[#e25c5c] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-2xs font-black"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900"
                               }`}
                             >
                               {locale === "ko" ? optLabel : (opt.badgeTextEn || `Option ${optIdx + 1}`)}
@@ -681,19 +681,19 @@ export default function TransportPlannerPanel({
                   onClick={() => onSelectIntercityOverride(exitRouteKey, opt.mode)}
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
                     isSelected
-                      ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs ring-1 ring-[#0f172a]"
+                      ? "bg-[#fdf2f2] text-[#0f172a] border-[#e25c5c] shadow-2xs ring-1 ring-[#e25c5c]"
                       : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1">
-                    <span className="font-extrabold text-xs">
+                    <span className={`font-extrabold text-xs ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
                       {locale === "ko" ? opt.nameKo : opt.nameEn}
                     </span>
                     {badgeText && (
                       <span
                         className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-tight ${
                           isSelected
-                            ? "bg-slate-800 text-slate-200 border border-slate-700"
+                            ? "bg-rose-100 text-[#e25c5c] border border-rose-200"
                             : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}
                       >
@@ -702,11 +702,11 @@ export default function TransportPlannerPanel({
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between text-[11px] font-medium opacity-90">
-                    <span className={isSelected ? "text-slate-300" : "text-slate-500"}>
+                  <div className="flex items-center justify-between text-[11px] font-medium">
+                    <span className={isSelected ? "text-slate-500" : "text-slate-400"}>
                       ⏱ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
                     </span>
-                    <strong className={isSelected ? "text-amber-300 font-black text-xs" : "text-[#0f172a] font-extrabold text-xs"}>
+                    <strong className={`font-black text-xs sm:text-sm ${isSelected ? "text-[#e25c5c]" : "text-[#0f172a]"}`}>
                       {formatKrw(opt.oneWayPriceKrw)}
                     </strong>
                   </div>
@@ -739,7 +739,7 @@ export default function TransportPlannerPanel({
                 key={`all-${opt.style}`}
                 type="button"
                 onClick={() => onSelectLocalTransitStyle?.(opt.style)}
-                className="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border bg-white text-slate-700 border-slate-200 hover:bg-[#faf5f5] hover:text-[#e25c5c] hover:border-[#fce8e8] transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
               >
                 <span>{opt.style === "SUBWAY_BUS" ? "🚇" : opt.style === "STANDARD_MIX" ? "🔀" : "🚕"}</span>
                 <span>{locale === "ko" ? opt.nameKo : opt.nameEn}</span>
@@ -806,8 +806,8 @@ export default function TransportPlannerPanel({
                         onClick={() => onSelectCityTransitStyle?.(city, opt.style)}
                         className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
                           isSelected
-                            ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs ring-1 ring-[#0f172a]"
-                            : "bg-slate-50/70 text-slate-800 border-slate-200/80 hover:bg-white hover:border-slate-300"
+                            ? "bg-[#fdf2f2] text-[#0f172a] border-[#e25c5c] shadow-2xs ring-1 ring-[#e25c5c]"
+                            : "bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:border-slate-300"
                         }`}
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
@@ -816,11 +816,11 @@ export default function TransportPlannerPanel({
                           </span>
                           <div className="min-w-0">
                             <div className="flex items-center gap-1">
-                              <span className={`font-black text-xs truncate ${isSelected ? "text-white" : "text-[#0f172a]"}`}>
+                              <span className={`font-black text-xs truncate ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
                                 {locale === "ko" ? opt.nameKo : opt.nameEn}
                               </span>
                             </div>
-                            <div className={`text-[10px] ${isSelected ? "text-slate-300" : "text-slate-500"}`}>
+                            <div className={`text-[10px] ${isSelected ? "text-slate-500 font-medium" : "text-slate-400"}`}>
                               {opt.taxiTripsPerDay > 0
                                 ? `지하철 ${opt.subwayTripsPerDay}회 + 택시 ${opt.taxiTripsPerDay}회`
                                 : `지하철/버스 ${opt.subwayTripsPerDay}회`}
@@ -829,10 +829,10 @@ export default function TransportPlannerPanel({
                         </div>
 
                         <div className="text-right shrink-0">
-                          <strong className={`font-black text-xs block ${isSelected ? "text-amber-300" : "text-[#0f172a]"}`}>
+                          <strong className={`font-black text-xs sm:text-sm block ${isSelected ? "text-[#e25c5c]" : "text-[#0f172a]"}`}>
                             {formatKrw(opt.pricePerDayKrw)}
                           </strong>
-                          <span className={`text-[9px] ${isSelected ? "text-slate-400" : "text-slate-400"}`}>
+                          <span className="text-[9px] text-slate-400">
                             1일/1인
                           </span>
                         </div>

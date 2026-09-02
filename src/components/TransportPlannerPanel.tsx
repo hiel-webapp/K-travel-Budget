@@ -858,8 +858,8 @@ export default function TransportPlannerPanel({
           </div>
         </div>
 
-        {/* 도시별 개별 이동 스타일 세로 카드 그리드 (반응형 1열~4열 대시보드) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+        {/* 도시별 개별 이동 스타일 세로 카드 그리드 (기본 2열 / 모바일 1열 반응형) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {selectedCities.map((city) => {
             const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
             const isMetro = METRO_CONNECTED_CITIES.includes(city);

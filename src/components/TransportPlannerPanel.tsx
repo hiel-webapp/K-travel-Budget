@@ -77,30 +77,61 @@ export default function TransportPlannerPanel({
   };
 
   const getSimplifiedTransportName = (nameKo: string, mode?: string, nameEn?: string) => {
+    // 1. 항공 복합 환승 경로 우선 판별 (비행기가 포함된 노선은 반드시 항공 표시)
+    if (nameKo.includes("항공") && (nameKo.includes("공항철도") || nameKo.includes("AREX"))) {
+      return locale === "ko" ? "국내선 항공 + 공항철도" : "Domestic Flight + AREX";
+    }
+    if (nameKo.includes("항공") && (nameKo.includes("리무진") || nameKo.includes("공항 리무진") || nameKo.includes("공항리무진"))) {
+      return locale === "ko" ? "국내선 항공 + 공항리무진" : "Domestic Flight + Limousine";
+    }
+    if (nameKo.includes("항공") && (nameKo.includes("KTX") || nameKo.includes("이음") || nameKo.includes("철도"))) {
+      return locale === "ko" ? "국내선 항공 + KTX 고속철도" : "Domestic Flight + KTX";
+    }
+    if (nameKo.includes("항공") && (nameKo.includes("버스") || nameKo.includes("급행"))) {
+      return locale === "ko" ? "국내선 항공 + 시외/급행버스" : "Domestic Flight + Bus";
+    }
+
+    // 2. 순수 항공 노선 (특가 vs 일반석 vs 직항)
+    if (nameKo.includes("특가") || nameKo.includes("할인석")) {
+      return locale === "ko" ? "국내선 항공 (특가/할인석)" : "Flight (Discount)";
+    }
+    if (nameKo.includes("일반석") || nameKo.includes("표준")) {
+      return locale === "ko" ? "국내선 항공 (일반석)" : "Flight (Standard)";
+    }
+    if (mode === "FLIGHT" || (nameKo.includes("항공") && !nameKo.includes("철도") && !nameKo.includes("버스"))) {
+      return locale === "ko" ? "국내선 항공" : "Domestic Flight";
+    }
+
+    // 3. 공항철도 및 철도 직통/환승
+    if (nameKo.includes("KTX") && (nameKo.includes("공항철도") || nameKo.includes("직통") || nameKo.includes("AREX"))) {
+      return locale === "ko" ? "KTX 고속철도 + 직통열차" : "KTX + AREX";
+    }
     if (nameKo.includes("AREX") || nameKo.includes("직통열차")) {
       return locale === "ko" ? "공항철도 직통열차 (AREX)" : "AREX Express Train";
-    }
-    if (nameKo.includes("공항 리무진") || nameKo.includes("리무진")) {
-      return locale === "ko" ? "공항 리무진 버스" : "Airport Limousine Bus";
     }
     if (nameKo.includes("일반열차") || nameKo.includes("공항철도 일반")) {
       return locale === "ko" ? "공항철도 일반열차" : "AREX All-Stop Train";
     }
-    if (nameKo.includes("항공") && nameKo.includes("공항철도")) {
-      return locale === "ko" ? "국내선 항공 + 공항철도" : "Domestic Flight + AREX";
+
+    // 4. 순수 공항 리무진 버스 (내륙 ➔ 공항 또는 공항 ➔ 도심)
+    if (nameKo.includes("공항 리무진") || nameKo.includes("리무진")) {
+      return locale === "ko" ? "공항 리무진 버스" : "Airport Limousine Bus";
     }
-    if (nameKo.includes("KTX") && (nameKo.includes("공항철도") || nameKo.includes("직통"))) {
-      return locale === "ko" ? "KTX 고속철도 + 직통열차" : "KTX + AREX";
-    }
+
+    // 5. 시내 대중교통
     if (nameKo.includes("시내버스") || nameKo.includes("지하철")) {
       return locale === "ko" ? "시내버스 / 지하철" : "Local Bus / Metro";
     }
+
+    // 6. KTX / SRT 고속철도
     if (nameKo.includes("KTX")) {
       return locale === "ko" ? (nameKo.includes("환승") ? "KTX 고속철도 (환승)" : "KTX 고속철도") : (nameKo.includes("환승") ? "KTX (Transfer)" : "KTX High-Speed");
     }
     if (nameKo.includes("SRT")) {
       return locale === "ko" ? "SRT 고속철도" : "SRT High-Speed";
     }
+
+    // 7. 시외/고속버스
     if (nameKo.includes("우등")) {
       return locale === "ko" ? "시외/고속버스 (우등)" : "Express Bus (Superior)";
     }
@@ -110,15 +141,8 @@ export default function TransportPlannerPanel({
     if (nameKo.includes("고속버스") || nameKo.includes("고속")) {
       return locale === "ko" ? "고속버스" : "Express Bus";
     }
-    if (nameKo.includes("특가") || nameKo.includes("할인석")) {
-      return locale === "ko" ? "국내선 항공 (특가/할인석)" : "Flight (Discount)";
-    }
-    if (nameKo.includes("일반석") || nameKo.includes("표준")) {
-      return locale === "ko" ? "국내선 항공 (일반석)" : "Flight (Standard)";
-    }
-    if (mode === "FLIGHT" || nameKo.includes("공항") || nameKo.includes("항공")) {
-      return locale === "ko" ? "국내선 항공" : "Domestic Flight";
-    }
+
+    // 8. 기타 괄호 정제
     if (locale === "ko") {
       const match = nameKo.match(/\((.*?)\)/);
       if (match && match[1]) {
@@ -474,7 +498,8 @@ export default function TransportPlannerPanel({
                 || options[0];
 
               const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
-              const modeIcon = activeOption.mode === "FLIGHT" ? "🛫" : activeOption.mode === "EXPRESS_BUS" ? "🚌" : activeOption.mode === "TRANSFER" ? "🔀" : "🚄";
+              const hasFlight = activeOption.mode === "FLIGHT" || activeOption.nameKo.includes("항공") || activeOption.legs?.some((l) => l.mode === "FLIGHT");
+              const modeIcon = hasFlight ? "🛫" : (activeOption.mode === "EXPRESS_BUS" || activeOption.mode === "INTERCITY_BUS") ? "🚌" : activeOption.mode === "TRANSFER" ? "🔀" : "🚄";
               const displayName = getSimplifiedTransportName(activeOption.nameKo, activeOption.mode, activeOption.nameEn);
               const hasMultipleOptions = options.length > 1;
               const isExpanded = !!expandedSegments[routeKey];

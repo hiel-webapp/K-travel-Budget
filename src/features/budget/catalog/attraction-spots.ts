@@ -1141,3 +1141,19 @@ export const TOUR_COURSE_PRESETS: TourCoursePreset[] = [
     courseType: "CITY_HIGHLIGHT",
   },
 ];
+
+/**
+ * DB(Supabase) 또는 외부 API에서 불러온 최신 동적 관광지 목록을 카탈로그에 동기화합니다.
+ */
+export function registerCustomAttractionSpots(spots: (AttractionSpot & { imageUrl?: string; deepLink?: string })[]) {
+  const existingMap = new Map(ATTRACTION_SPOTS_CATALOG.map((s, idx) => [s.id, idx]));
+  spots.forEach((s) => {
+    if (existingMap.has(s.id)) {
+      ATTRACTION_SPOTS_CATALOG[existingMap.get(s.id)!] = s;
+    } else {
+      ATTRACTION_SPOTS_CATALOG.push(s);
+      existingMap.set(s.id, ATTRACTION_SPOTS_CATALOG.length - 1);
+    }
+  });
+}
+

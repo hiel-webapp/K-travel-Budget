@@ -9,7 +9,7 @@ import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPref
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
-import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset } from "../features/budget/catalog/attraction-spots";
+import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots } from "../features/budget/catalog/attraction-spots";
 import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
 import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
@@ -133,6 +133,34 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
   const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
+
+  // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태
+  const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]>>({});
+
+  // 도시 탭 선택 시 Supabase DB에 저장된 최신 관광지 데이터 실시간 연동
+  useEffect(() => {
+    if (selectedCityTab === "ALL" || selectedCityTab === "TRANSPORT") return;
+    const city = selectedCityTab;
+    if (dbAttractionsByCity[city]) return;
+
+    let isMounted = true;
+    fetch(`/api/catalog/attractions?city=${city}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (isMounted && json.success && Array.isArray(json.data) && json.data.length > 0) {
+          registerCustomAttractionSpots(json.data);
+          setDbAttractionsByCity((prev) => ({
+            ...prev,
+            [city]: json.data,
+          }));
+        }
+      })
+      .catch((err) => console.warn("[Planner] DB 관광지 연동 오류:", err));
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCityTab, dbAttractionsByCity]);
 
   // 여행 개요 섹션용 Option B Info 뱃지 및 툴팁 렌더러
   const renderOverviewSectionHeader = (
@@ -2603,7 +2631,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     "BALANCED";
 
                   const coursesForCity = TOUR_COURSE_PRESETS.filter((c) => c.cityCode === city);
-                  const spotsForCity = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+                  const dbSpots = dbAttractionsByCity[city];
+                  const spotsForCity = (dbSpots && dbSpots.length > 0)
+                    ? dbSpots
+                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
 
                   const isShowMore = !!showMoreAttractionsByCity[city];
                   const displayedSpots = isShowMore ? spotsForCity : spotsForCity.slice(0, 6);
@@ -2621,7 +2652,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const selectedSpotDetails: AttractionSpot[] = [];
 
                   selectedSpotSet.forEach((sid) => {
-                    const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
+                    const spot = spotsForCity.find((s) => s.id === sid) || ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
                     if (spot) {
                       selectedSpotDetails.push(spot);
                       if (spot.priceStatus === "PAID") {
@@ -2682,7 +2713,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             // 코스 내 유료 관광지 1인 합산가 계산
                             let coursePricePerPerson = 0;
                             course.spotIds.forEach((sid) => {
-                              const s = ATTRACTION_SPOTS_CATALOG.find((spot) => spot.id === sid);
+                              const s = spotsForCity.find((spot) => spot.id === sid) || ATTRACTION_SPOTS_CATALOG.find((spot) => spot.id === sid);
                               if (s && s.priceStatus === "PAID") {
                                 coursePricePerPerson += s.price;
                               }
@@ -2735,9 +2766,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* 2. Signature City Attractions Section (3x2 Desktop, 2x3 Mobile Grid) */}
                       <div className="space-y-3 pt-3 border-t border-slate-100">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                            {dict.planner.cityAttractionsTitle || "🎡 도시 대표 관광지"}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                              {dict.planner.cityAttractionsTitle || "🎡 도시 대표 관광지"}
+                            </span>
+                            {dbSpots && dbSpots.length > 0 && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                📡 DB 실시간 연동
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[10px] text-slate-400 font-medium">
                             {locale === "ko" ? `전체 ${spotsForCity.length}개 항목 중` : `Showing ${displayedSpots.length} of ${spotsForCity.length}`}
                           </span>
@@ -2752,35 +2790,42 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               return course?.spotIds.includes(spot.id);
                             });
                             const isAdded = isSpotSelected || isIncludedInCourse;
+                            const hasImage = (spot as any).imageUrl && (spot as any).imageUrl !== "/assets/default-place.jpg";
 
                             return (
                               <div
                                 key={spot.id}
-                                className={`p-3.5 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all ${
+                                className={`p-3 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all ${
                                   isAdded ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200 hover:border-slate-300"
                                 }`}
                               >
                                 <div className="space-y-2">
-                                  {/* Visual Badge Header */}
-                                  <div className={`h-12 w-full rounded-xl bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
-                                    <span className="text-2xl">{spot.emoji}</span>
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-[9px] bg-white/90 text-slate-700 font-bold px-1.5 py-0.5 rounded">
+                                  {/* Visual Badge Header: 고화질 사진 우선 표출 */}
+                                  <div className="relative h-24 w-full rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
+                                    {hasImage ? (
+                                      <img
+                                        src={(spot as any).imageUrl}
+                                        alt={locale === "ko" ? spot.nameKo : spot.nameEn}
+                                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                        loading="lazy"
+                                      />
+                                    ) : (
+                                      <div className={`h-full w-full bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
+                                        <span className="text-2xl">{spot.emoji}</span>
+                                      </div>
+                                    )}
+                                    <div className="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+                                      <span className="text-[9px] bg-slate-900/75 text-white backdrop-blur-xs font-bold px-1.5 py-0.5 rounded shadow-2xs">
                                         {spot.tag}
                                       </span>
                                       {spot.priceStatus === "FREE" && (
-                                        <span className="text-[9px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.5 rounded">
+                                        <span className="text-[9px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
                                           {dict.planner.freeBadge || "무료"}
                                         </span>
                                       )}
-                                      {spot.priceStatus === "PARTIALLY_PAID" && (
-                                        <span className="text-[9px] bg-amber-500 text-white font-extrabold px-1.5 py-0.5 rounded">
-                                          {dict.planner.partiallyPaidBadge || "일부 유료"}
-                                        </span>
-                                      )}
-                                      {spot.priceStatus === "UNCONFIRMED" && (
-                                        <span className="text-[9px] bg-slate-500 text-white font-extrabold px-1.5 py-0.5 rounded">
-                                          {dict.planner.unconfirmedBadge || "확인 필요"}
+                                      {spot.priceStatus === "PAID" && (
+                                        <span className="text-[9px] bg-rose-500 text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
+                                          유료
                                         </span>
                                       )}
                                     </div>
@@ -2796,7 +2841,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   </div>
                                 </div>
 
-                                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+                                <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
                                   <span className="text-xs font-black text-[#e25c5c]">
                                     {spot.priceStatus === "FREE"
                                       ? (locale === "ko" ? "₩0 (무료)" : "₩0 (Free)")
@@ -2805,23 +2850,36 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       : (locale === "ko" ? "가격 확인 필요" : "Check Price")}
                                   </span>
 
-                                  <button
-                                    type="button"
-                                    onClick={() => handleToggleSpot(city, spot.id)}
-                                    className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-colors cursor-pointer shrink-0 ${
-                                      isSpotSelected
-                                        ? "bg-rose-100 text-[#e25c5c] hover:bg-rose-200"
+                                  <div className="flex items-center gap-1">
+                                    {(spot as any).deepLink && (
+                                      <a
+                                        href={(spot as any).deepLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-1 rounded text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                                        title={locale === "ko" ? "티켓 예매 및 정보 보기" : "Book tickets"}
+                                      >
+                                        🔗
+                                      </a>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={() => handleToggleSpot(city, spot.id)}
+                                      className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-colors cursor-pointer shrink-0 ${
+                                        isSpotSelected
+                                          ? "bg-rose-100 text-[#e25c5c] hover:bg-rose-200"
+                                          : isIncludedInCourse
+                                          ? "bg-slate-100 text-slate-500 cursor-default"
+                                          : "bg-[#0f172a] text-white hover:bg-slate-800"
+                                      }`}
+                                    >
+                                      {isSpotSelected
+                                        ? (dict.planner.inBudget || "✓ 담김")
                                         : isIncludedInCourse
-                                        ? "bg-slate-100 text-slate-500 cursor-default"
-                                        : "bg-[#0f172a] text-white hover:bg-slate-800"
-                                    }`}
-                                  >
-                                    {isSpotSelected
-                                      ? (dict.planner.inBudget || "✓ 담김")
-                                      : isIncludedInCourse
-                                      ? (locale === "ko" ? "코스 포함" : "In Course")
-                                      : (dict.planner.addToBudget || "+ 예산에 담기")}
-                                  </button>
+                                        ? (locale === "ko" ? "코스 포함" : "In Course")
+                                        : (dict.planner.addToBudget || "+ 예산에 담기")}
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             );

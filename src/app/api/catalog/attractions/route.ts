@@ -1,0 +1,128 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseFetch } from "../../../../lib/supabase/client";
+import { SupportedCity } from "../../../../lib/trip-domain";
+import { AttractionSpot } from "../../../../features/budget/catalog/attraction-spots";
+
+const CITY_TO_AREA_CODE: Record<string, number> = {
+  SEOUL: 1,
+  INCHEON: 2,
+  SUWON: 31,
+  GANGNEUNG: 32,
+  SOKCHO: 32,
+  JEONJU: 35,
+  YEOSU: 36,
+  GYEONGJU: 37,
+  BUSAN: 6,
+  JEJU: 39,
+};
+
+interface DbCatalogItem {
+  id: number;
+  content_id: string;
+  budget_partition: string;
+  area_code: number;
+  main_category: string;
+  sub_category: string;
+  title_en: string;
+  desc_en: string;
+  price_krw: number;
+  image_url: string;
+  deep_link_template: string;
+  last_synced_at?: string;
+}
+
+/**
+ * "Seoul Cruise (서울크루즈)" 형태에서 한글명과 영문명을 분리 추출합니다.
+ */
+function parseBilingualTitle(title: string): { nameKo: string; nameEn: string } {
+  const match = title.match(/^(.*?)\s*\((.*?)\)$/);
+  if (match) {
+    return {
+      nameEn: match[1].trim(),
+      nameKo: match[2].trim(),
+    };
+  }
+  return {
+    nameKo: title,
+    nameEn: title,
+  };
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const city = (searchParams.get("city") || "SEOUL").toUpperCase();
+    const areaCode = CITY_TO_AREA_CODE[city] ?? 1;
+
+    // 1. Supabase Hype_Catalog_Items 테이블에서 관광지 데이터 조회
+    let dbRows: DbCatalogItem[] = [];
+    try {
+      dbRows = await supabaseFetch<DbCatalogItem[]>("Hype_Catalog_Items", {
+        method: "GET",
+        query: {
+          select: "*",
+          budget_partition: "eq.CITY_SPECIFIC",
+          area_code: `eq.${areaCode}`,
+          order: "id.asc",
+          limit: "20",
+        },
+      });
+    } catch (dbErr: any) {
+      console.warn("[API/Catalog] Supabase DB 조회 실패:", dbErr.message);
+    }
+
+    if (!dbRows || !Array.isArray(dbRows) || dbRows.length === 0) {
+      return NextResponse.json({
+        success: true,
+        source: "EMPTY",
+        data: [],
+      });
+    }
+
+    // 2. AttractionSpot 규격으로 변환
+    const spots: (AttractionSpot & { imageUrl?: string; deepLink?: string })[] = dbRows.map((row, idx) => {
+      const { nameKo, nameEn } = parseBilingualTitle(row.title_en);
+      const isPaid = (row.price_krw || 0) > 0;
+
+      // 시각적 테마 그라디언트 순환
+      const gradients = [
+        "from-rose-500/15 to-pink-500/15",
+        "from-blue-500/15 to-indigo-500/15",
+        "from-emerald-500/15 to-teal-500/15",
+        "from-amber-500/15 to-orange-500/15",
+        "from-purple-500/15 to-fuchsia-500/15",
+      ];
+      const emojis = ["🎡", "🏞️", "🏙️", "🏛️", "☕", "📸", "🌉", "🎨"];
+
+      return {
+        id: `kto_${row.content_id || row.id}`,
+        cityCode: city as SupportedCity,
+        nameKo,
+        nameEn,
+        descKo: row.desc_en || "한국관광공사 선정 서울 인기 추천 관광지",
+        descEn: row.desc_en || "Popular sightseeing spot recommended by KTO",
+        price: row.price_krw || 0,
+        priceStatus: isPaid ? "PAID" : "FREE",
+        tag: row.sub_category || "Attraction",
+        emoji: emojis[idx % emojis.length],
+        gradientBg: gradients[idx % gradients.length],
+        isFeatured: true,
+        imageUrl: row.image_url,
+        deepLink: row.deep_link_template,
+      };
+    });
+
+    return NextResponse.json({
+      success: true,
+      source: "SUPABASE_DB",
+      count: spots.length,
+      data: spots,
+    });
+  } catch (error: any) {
+    console.error("[API/Catalog] 에러:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}

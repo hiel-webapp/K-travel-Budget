@@ -819,9 +819,9 @@ export default function TransportPlannerPanel({
       {/* ========================================================================= */}
       {/* GROUP 2: 🚏 체류 도시 내 시내 이동 스타일 (지하철·버스·택시 1일 시내 교통비) */}
       {/* ========================================================================= */}
-      <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 sm:p-5 rounded-2xl space-y-4 shadow-2xs">
+      <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 sm:p-5 rounded-2xl space-y-3.5 shadow-2xs">
         {/* 그룹 2 메인 헤더 */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[#fce8e8] pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[#fce8e8] pb-2.5">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-base">🚏</span>
@@ -829,12 +829,12 @@ export default function TransportPlannerPanel({
                 {locale === "ko" ? "체류 도시 내 이동 스타일" : "Local City Transit Style"}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-[#e25c5c] border border-rose-200/90">
-                {locale === "ko" ? "1일 4회 이동 기준" : "4 Trips / Day"}
+                {locale === "ko" ? "1인 1일 기준 (4회 이동)" : "1 Person / 1 Day (4 Trips)"}
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-medium">
               {locale === "ko"
-                ? "각 도시에 머무는 동안 탑승할 지하철, 시내버스, 택시 등 1일 시내 교통 예산입니다."
+                ? "각 도시에 머무는 동안 탑승할 지하철, 시내버스, 택시 등 1인 1일 시내 교통 예산입니다."
                 : "Daily city transit budget for subways, city buses, and taxis during your stay in each city."}
             </p>
           </div>
@@ -858,8 +858,8 @@ export default function TransportPlannerPanel({
           </div>
         </div>
 
-        {/* 도시별 개별 이동 스타일 세로 카드 그리드 (기본 2열 / 모바일 1열 반응형) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* 도시별 개별 이동 스타일 세로 카드 그리드 (기본 2열 / 모바일 1열 반응형 - 높이 컴팩트 최적화) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {selectedCities.map((city) => {
             const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
             const isMetro = METRO_CONNECTED_CITIES.includes(city);
@@ -873,10 +873,10 @@ export default function TransportPlannerPanel({
             return (
               <div
                 key={city}
-                className="p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between gap-3 relative"
+                className="p-3 rounded-xl bg-white border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between gap-2.5 relative"
               >
-                {/* 상단 1줄: 도시명 + 체류 박수/일수 + 통합 Info 버튼 */}
-                <div className="flex items-center justify-between gap-1.5 border-b border-slate-100 pb-2">
+                {/* 상단 1줄: 도시명 + 체류 박수/일수 + [1인 1일 기준] 안내 + 통합 Info 버튼 */}
+                <div className="flex items-center justify-between gap-1.5 border-b border-slate-100 pb-1.5">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="text-sm font-black text-slate-900 truncate">
                       {cityName}
@@ -886,17 +886,23 @@ export default function TransportPlannerPanel({
                         ? (locale === "ko" ? "당일치기" : "Day Trip")
                         : `${cityNights}${locale === "ko" ? "박 " : "N "}${cityNights + 1}${locale === "ko" ? "일" : "D"}`}
                     </span>
+                    <span className="text-[10px] text-slate-400 font-medium hidden sm:inline shrink-0">
+                      · {locale === "ko" ? "1인 1일 기준" : "1p 1d"}
+                    </span>
                   </div>
 
                   {/* 통합 Info 팝오버 버튼 */}
-                  <div className="relative shrink-0">
+                  <div className="relative shrink-0 flex items-center gap-1.5">
+                    <span className="text-[10px] text-slate-400 font-medium sm:hidden">
+                      {locale === "ko" ? "1인/1일" : "1p/1d"}
+                    </span>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowEvidenceTooltip(isTooltipOpen ? null : `${city}-active`);
                       }}
-                      className="px-1.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-[10px] font-extrabold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                      className="px-1.5 py-0.5 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-[10px] font-extrabold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                       title={locale === "ko" ? "이동 구성 및 산출 근거 보기" : "View Transit Details & Evidence"}
                     >
                       <span>ℹ</span>
@@ -913,8 +919,8 @@ export default function TransportPlannerPanel({
                             setShowEvidenceTooltip(null);
                           }}
                         />
-                        <div className="absolute right-0 top-full mt-1.5 w-68 sm:w-72 p-3.5 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-2 animate-in fade-in zoom-in-95 duration-150">
-                          <div className="flex items-center justify-between border-b border-slate-700 pb-1.5">
+                        <div className="absolute right-0 top-full mt-1.5 w-68 sm:w-72 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-2 animate-in fade-in zoom-in-95 duration-150">
+                          <div className="flex items-center justify-between border-b border-slate-700 pb-1">
                             <span className="font-extrabold text-amber-300 text-xs">
                               {cityName} {locale === "ko" ? "시내 교통 안내" : "Local Transit"}
                             </span>
@@ -923,7 +929,7 @@ export default function TransportPlannerPanel({
                             </span>
                           </div>
 
-                          <div className="space-y-1 text-slate-300">
+                          <div className="space-y-0.5 text-slate-300">
                             <div className="text-[11px] font-extrabold text-white">
                               • {locale === "ko" ? "선택 스타일 1일 구성:" : "Daily Trip Breakdown:"}
                             </div>
@@ -937,7 +943,7 @@ export default function TransportPlannerPanel({
                           {(() => {
                             const ev = getCityTransitEvidence(city, currentCityStyle, locale);
                             return (
-                              <div className="space-y-1 pt-1.5 border-t border-slate-800 text-slate-300">
+                              <div className="space-y-0.5 pt-1 border-t border-slate-800 text-slate-300">
                                 <div className="text-[11px] font-extrabold text-amber-300">
                                   • {ev.title}
                                 </div>
@@ -953,8 +959,8 @@ export default function TransportPlannerPanel({
                   </div>
                 </div>
 
-                {/* 중단: 3대 스타일 세그먼트 버튼 (세로형 정렬) */}
-                <div className="space-y-1.5">
+                {/* 중단: 3대 스타일 세그먼트 버튼 (슬림 컴팩트 1줄 정렬 - 1일/1인 반복 문구 제거) */}
+                <div className="space-y-1">
                   {LOCAL_TRANSIT_OPTIONS.map((opt) => {
                     const isSelected = currentCityStyle === opt.style;
 
@@ -963,14 +969,14 @@ export default function TransportPlannerPanel({
                         key={opt.style}
                         type="button"
                         onClick={() => onSelectCityTransitStyle?.(city, opt.style)}
-                        className={`w-full p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                        className={`w-full py-2 px-2.5 sm:px-3 rounded-lg border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
                           isSelected
                             ? "bg-[#fdf2f2] text-[#0f172a] border-[#e25c5c] shadow-2xs ring-1 ring-[#e25c5c]"
                             : "bg-slate-50/70 text-slate-700 border-slate-200/90 hover:bg-slate-100 hover:border-slate-300"
                         }`}
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="text-sm shrink-0">
+                          <span className="text-xs sm:text-sm shrink-0">
                             {opt.style === "SUBWAY_BUS" ? "🚇" : opt.style === "STANDARD_MIX" ? "🔀" : "🚕"}
                           </span>
                           <span className={`font-black text-xs truncate ${isSelected ? "text-[#0f172a]" : "text-slate-800"}`}>
@@ -982,27 +988,21 @@ export default function TransportPlannerPanel({
                           <strong className={`font-black text-xs sm:text-sm ${isSelected ? "text-[#e25c5c]" : "text-slate-900"}`}>
                             {formatKrw(opt.pricePerDayKrw)}
                           </strong>
-                          <span className="text-[9px] text-slate-400 block -mt-0.5">
-                            {locale === "ko" ? "1일/1인" : "/day"}
-                          </span>
                         </div>
                       </button>
                     );
                   })}
                 </div>
 
-                {/* 하단 푸터: 체류 N일 합계 금액 */}
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                {/* 하단 푸터: N일/N명 합계 금액 (명확한 일자/인원 통합 표기) */}
+                <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-xs">
                   <span className="text-[11px] font-bold text-slate-500">
-                    {locale === "ko" ? `${stayDays}일 합계:` : `${stayDays}d Total:`}
+                    {locale === "ko" ? `${stayDays}일/${adultCount}명 합계:` : `${stayDays}d/${adultCount}p Total:`}
                   </span>
                   <div className="text-right">
                     <strong className="text-slate-900 font-black text-sm">
                       {formatKrw(totalCityTransit)}
                     </strong>
-                    {adultCount > 1 && (
-                      <span className="text-[10px] text-slate-400 ml-1">({adultCount}인)</span>
-                    )}
                   </div>
                 </div>
               </div>

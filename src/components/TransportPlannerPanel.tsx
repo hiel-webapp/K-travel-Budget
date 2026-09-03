@@ -959,8 +959,8 @@ export default function TransportPlannerPanel({
                   </div>
                 </div>
 
-                {/* 중단: 3대 스타일 세그먼트 버튼 (슬림 컴팩트 1줄 정렬 - 1일/1인 반복 문구 제거) */}
-                <div className="space-y-1">
+                {/* 중단: 3대 스타일 세그먼트 버튼 (답답하지 않도록 간격 space-y-2.5로 시원하게 분리) */}
+                <div className="space-y-2">
                   {LOCAL_TRANSIT_OPTIONS.map((opt) => {
                     const isSelected = currentCityStyle === opt.style;
 
@@ -969,7 +969,7 @@ export default function TransportPlannerPanel({
                         key={opt.style}
                         type="button"
                         onClick={() => onSelectCityTransitStyle?.(city, opt.style)}
-                        className={`w-full py-2 px-2.5 sm:px-3 rounded-lg border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                        className={`w-full py-2.5 px-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
                           isSelected
                             ? "bg-[#fdf2f2] text-[#0f172a] border-[#e25c5c] shadow-2xs ring-1 ring-[#e25c5c]"
                             : "bg-slate-50/70 text-slate-700 border-slate-200/90 hover:bg-slate-100 hover:border-slate-300"

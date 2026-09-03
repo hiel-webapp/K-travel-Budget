@@ -1534,7 +1534,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     aria-selected={isActive}
                     id={`city-tab-${city}`}
                     aria-controls={`city-panel-${city}`}
-                    onClick={() => setSelectedCityTab(city)}
+                    onClick={() => {
+                      setSelectedCityTab(city);
+                      if (activeCategory === "CITY_TRANSPORT") {
+                        setActiveCategory("ACCOMMODATION");
+                      }
+                    }}
                     className={`h-8 px-3 rounded-t-xl text-[13px] font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer whitespace-nowrap ${
                       isActive
                         ? "bg-[#e25c5c] text-white border-[#e25c5c] border-b-[#e25c5c] shadow-2xs z-10 font-extrabold"
@@ -1603,17 +1608,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             );
           })()}
 
-          {/* Category Tabs / Cards (Only shown for individual city tabs: 4 categories) */}
+          {/* Category Tabs / Cards (Only shown for individual city tabs: 3 categories without redundant transport) */}
           {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="tablist" aria-label="Budget categories">
-              {(["ACCOMMODATION", "FOOD", "CITY_TRANSPORT", "ATTRACTION"] as BudgetCategory[]).map((cat) => {
-                const isActive = (activeCategory === "EMERGENCY_FUND" ? "ACCOMMODATION" : activeCategory) === cat;
+            <div className="grid grid-cols-3 gap-2 sm:gap-3" role="tablist" aria-label="Budget categories">
+              {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as BudgetCategory[]).map((cat) => {
+                const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
+                const isActive = effectiveCategory === cat;
                 const label = getCategoryLabel(cat, dict);
-
-                const amount =
-                  cat === "CITY_TRANSPORT"
-                    ? getCombinedTransportSubtotal(plan)
-                    : plan.categoryTotals[cat] || 0;
+                const amount = plan.categoryTotals[cat] || 0;
 
                 return (
                   <button
@@ -2903,108 +2905,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <span>{dict.planner.priceUnconfirmedWarning || "일부 유료 또는 가격 미확인 항목은 자동 예산 합산에서 제외되어 있습니다."}</span>
                           </div>
                         )}
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {activeCategory === "CITY_TRANSPORT" && (() => {
-                  const city = selectedCityTab;
-                  const citySection = plan.citySections[city];
-                  const nights = citySection?.nights || 1;
-                  const days = nights + 1;
-                  const adultCount = draft.adultCount || 1;
-
-                  const basketOptions: BudgetBasketId[] = ["BASIC_CITY_TRANSPORT", "STANDARD_CITY_TRANSPORT", "COMFORT_CITY_TRANSPORT"];
-
-                  return (
-                    <div className="space-y-5">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "도시 내 이동 스타일" : "Local Transport Style"}
-                          </h4>
-                          <p className="text-xs text-slate-400">
-                            {locale === "ko"
-                              ? `${CITY_KOREAN_NAMES[city] || city} 체류 기간 동안의 시내 이동 수단을 선택하세요.`
-                              : `Select local transportation method in ${city}.`}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        {basketOptions.map((opt) => {
-                          const name = opt === "BASIC_CITY_TRANSPORT"
-                            ? (locale === "ko" ? "알뜰형 (대중교통 위주)" : "Transit Focus")
-                            : opt === "STANDARD_CITY_TRANSPORT"
-                              ? (locale === "ko" ? "일반형 (버스+택시 혼용)" : "Balanced Mixed")
-                              : (locale === "ko" ? "편의형 (택시/렌터카)" : "Taxi & Rental");
-
-                          const pricePerDay = opt === "BASIC_CITY_TRANSPORT" ? 9000 : opt === "STANDARD_CITY_TRANSPORT" ? 22000 : 45000;
-                          const totalCityTransport = pricePerDay * days * adultCount;
-
-                          let desc = locale === "ko" ? "지하철과 시내버스를 주로 이용하여 알뜰하게 이동합니다." : "Subway and city buses.";
-                          if (opt === "STANDARD_CITY_TRANSPORT") desc = locale === "ko" ? "기본 대중교통에 꼭 필요한 구간 택시를 혼용합니다." : "Public transit mixed with taxis.";
-                          if (opt === "COMFORT_CITY_TRANSPORT") desc = locale === "ko" ? "편안한 도어투도어 이동을 위해 택시나 렌터카를 우선 이용합니다." : "Door-to-door taxis and car rental.";
-
-                          return (
-                            <div
-                              key={opt}
-                              className="p-4 rounded-2xl border border-slate-200 bg-white flex flex-col justify-between space-y-3 shadow-2xs"
-                            >
-                              <div>
-                                <span className="text-xs font-extrabold text-[#0f172a] block">{name}</span>
-                                <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{desc}</p>
-                              </div>
-                              <div className="border-t border-slate-100 pt-2 space-y-1">
-                                <div className="flex justify-between text-xs text-slate-600">
-                                  <span>{locale === "ko" ? "1인 1일 단가:" : "Per Traveler/Day:"}</span>
-                                  <strong className="font-extrabold text-slate-900">{formatKrw(pricePerDay)}</strong>
-                                </div>
-                                <div className="flex justify-between text-xs text-[#e25c5c] font-extrabold pt-1">
-                                  <span>{locale === "ko" ? `${days}일 체류 총액:` : `Total for ${days}d:`}</span>
-                                  <span>{formatKrw(totalCityTransport)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Shopping Selector Card */}
-                      <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">{locale === "ko" ? "쇼핑 예산 옵션" : "Shopping Budget"}</h4>
-                        </div>
-                        <select
-                          value={shoppingOption}
-                          onChange={(e) => setShoppingOption(e.target.value as ShoppingOption)}
-                          className="w-full text-sm p-2 rounded-lg border border-slate-200 font-medium text-slate-700"
-                        >
-                          <option value="NONE">{locale === "ko" ? "쇼핑 안함" : "No Shopping"}</option>
-                          <option value="BEAUTY">{locale === "ko" ? "K-뷰티 (화장품)" : "K-Beauty"}</option>
-                          <option value="FASHION">{locale === "ko" ? "K-패션 (의류)" : "K-Fashion"}</option>
-                          <option value="SOUVENIR">{locale === "ko" ? "기념품 및 굿즈" : "Souvenirs"}</option>
-                          <option value="CUSTOM">{locale === "ko" ? "직접 입력" : "Custom Amount"}</option>
-                        </select>
-                        {shoppingOption === "CUSTOM" && (
-                          <input
-                            type="number"
-                            value={shoppingCustomInput}
-                            onChange={(e) => setShoppingCustomInput(e.target.value)}
-                            placeholder={locale === "ko" ? "예산 입력 (원)" : "Enter amount (KRW)"}
-                            className="w-full text-sm p-2 rounded-lg border border-slate-200"
-                          />
-                        )}
-                      </div>
-
-                      {/* K-Guide Tip Banner */}
-                      <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs text-blue-900 font-medium flex items-start gap-2">
-                        <p className="leading-relaxed">
-                          {locale === "ko"
-                            ? "K-Guide 팁: T-money 교통카드는 한국의 모든 편의점에서 ₩2,500에 구매할 수 있으며, 서울/수원/부산 등 전국의 지하철과 시내버스에서 공통 사용할 수 있습니다."
-                            : "K-Guide Tip: T-money transit card can be purchased for ₩2,500 at any convenience store and works across subways and buses in Seoul, Suwon, Busan, and more."}
-                        </p>
                       </div>
                     </div>
                   );

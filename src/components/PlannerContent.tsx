@@ -158,8 +158,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           // Fallback: API 응답이 비어있거나 CDN 캐시 문제일 때 Supabase 직접 조회
           try {
             const areaCode = city === "SEOUL" ? 1 : 1;
-            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=id.asc&limit=35`;
-            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=item_id.asc&limit=35`;
+            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=id.asc&limit=50`;
+            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=item_id.asc&limit=50`;
             const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
             let directRes = await fetch(sbUrl1, {
               headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },

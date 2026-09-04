@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
           area_code: `eq.${areaCode}`,
           main_category: "eq.Sightseeing",
           order: "id.asc",
-          limit: "35",
+          limit: "50",
         },
       });
     } catch {
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
             area_code: `eq.${areaCode}`,
             main_category: "eq.Sightseeing",
             order: "item_id.asc",
-            limit: "35",
+            limit: "50",
           },
         });
       } catch (dbErr: any) {

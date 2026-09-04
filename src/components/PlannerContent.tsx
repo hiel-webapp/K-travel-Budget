@@ -158,8 +158,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           // Fallback: API 응답이 비어있거나 CDN 캐시 문제일 때 Supabase 직접 조회
           try {
             const areaCode = city === "SEOUL" ? 1 : 1;
-            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=price_krw.desc,item_id.asc&limit=35`;
-            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=price_krw.desc,id.asc&limit=35`;
+            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=id.asc&limit=35`;
+            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=item_id.asc&limit=35`;
             const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
             let directRes = await fetch(sbUrl1, {
               headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
@@ -2858,14 +2858,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 }`}
                               >
                                 <div className="space-y-2">
-                                  {/* Visual Badge Header: 고화질 사진 우선 표출 */}
-                                  <div className="relative h-24 w-full rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
+                                  {/* Visual Badge Header: 고화질 공식 실사 표출 */}
+                                  <div className="relative h-28 sm:h-32 w-full rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
                                     {hasImage ? (
                                       <img
                                         src={(spot as any).imageUrl}
                                         alt={locale === "ko" ? spot.nameKo : spot.nameEn}
                                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                         loading="lazy"
+                                        onError={(e) => {
+                                          // KTO 링크 만료 또는 차단 시 안정적인 한국 랜드마크 실사 폴백
+                                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=600&q=80";
+                                        }}
                                       />
                                     ) : (
                                       <div className={`h-full w-full bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>

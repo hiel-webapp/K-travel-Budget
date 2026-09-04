@@ -136,7 +136,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Seongsu-dong Yeonmujang-gil (성수동 연무장길)',
     desc_en: 'The vibrant "Brooklyn of Seoul" buzzing with iconic fashion flagship pop-ups, artisanal cafes, and trendy bakeries. || SUBWAY: 2호선 성수역 4번 출구 / 뚝섬역 5번 출구 || HOURS: 11:00 ~ 21:00 (팝업스토어/카페별 상이) || CLOSED: 연중무휴 (매장별 상이) || WEB: https://korean.visitseoul.net',
     price_krw: 0,
-    image_url: 'https://tong.visitkorea.or.kr/cms/resource/72/4043572_image2_1.png',
+    image_url: '/assets/seongsu-street.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 9. 홍대 걷고싶은거리
@@ -360,17 +360,17 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     image_url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=85',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
-  // 26. 한남동 꼼데가르송길 [신규]
+  // 26. 명동 쇼핑거리 [신규]
   {
-    content_id: 'seoul_hannam_fashion',
+    content_id: 'seoul_myeongdong_shopping',
     budget_partition: 'CITY_SPECIFIC',
     area_code: 1,
     main_category: 'Sightseeing',
     sub_category: 'Shopping',
-    title_en: 'Hannam-dong Comme des Garçons Street (한남동 꼼데가르송길)',
-    desc_en: 'Trendsetting designer street buzzing with K-fashion flagship stores, art galleries, and upscale dining. || SUBWAY: 6호선 한강진역 1, 3번 출구 || HOURS: 11:00 ~ 21:00 (매장별 상이) || CLOSED: 연중무휴 || WEB: https://english.visitseoul.net/attractions/Hangangjin-Station/ENPk0c3m0',
+    title_en: 'Myeongdong Shopping Street (명동 쇼핑거리)',
+    desc_en: 'Korea\'s premier shopping & K-beauty district packed with global cosmetics flagships, trendy street food stalls, and fashion boutiques. || SUBWAY: 4호선 명동역 6번 출구 (도보 1분) / 2호선 을지로입구역 5, 6번 출구 || HOURS: 10:00 ~ 22:00 (노점 먹거리 16:00~23:00) || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net/attractions/명동거리/KOP000257',
     price_krw: 0,
-    image_url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=800&q=85',
+    image_url: '/assets/myeongdong-street.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 27. 국립현대미술관 서울관 (MMCA) [신규]

@@ -23,12 +23,16 @@ export interface CatalogItemPayload {
   price_krw: number;
   image_url: string;
   deep_link_template: string;
+  subway_info?: string;
+  opening_hours?: string;
+  closed_days?: string;
+  official_url?: string;
   created_at?: string;
 }
 
 /**
- * 한국관광공사(KTO) 검증 공식 사진 및 실사만을 100% 매핑한
- * 외국인 필수 20대 서울 랜드마크 데이터셋
+ * 서울특별시 관광명소 공공데이터 및 한국관광공사(KTO) 검증 공식 사진/실사를 결합한
+ * 외국인/국내 여행객 필수 20대 서울 랜드마크 상세 데이터셋
  */
 export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
   {
@@ -38,7 +42,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Heritage',
     title_en: 'Gyeongbokgung Palace (경복궁)',
-    desc_en: 'The main royal palace of the Joseon dynasty built in 1395. Free admission for visitors wearing Hanbok.',
+    desc_en: 'The main royal palace of the Joseon dynasty built in 1395. Free admission for visitors wearing Hanbok. || SUBWAY: 3호선 경복궁역 5번 출구 (도보 3분) || HOURS: 09:00 ~ 18:00 (입장마감 17:00) || CLOSED: 매주 화요일 휴관 || WEB: https://www.royalpalace.go.kr',
     price_krw: 3000,
     image_url: 'https://tong.visitkorea.or.kr/cms/resource/98/3487598_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -50,7 +54,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'N Seoul Tower Observatory (N서울타워 전망대)',
-    desc_en: 'Iconic tower atop Namsan Mountain offering a 360-degree panoramic skyline view of downtown Seoul.',
+    desc_en: 'Iconic tower atop Namsan Mountain offering a 360-degree panoramic skyline view of downtown Seoul. || SUBWAY: 4호선 명동역 3번 출구 (케이블카 도보 10분) || HOURS: 10:00 ~ 23:00 (주말 23:30까지) || CLOSED: 연중무휴 || WEB: https://www.nseoultower.co.kr',
     price_krw: 21000,
     image_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/N_Seoul_Tower_in_November_2019.jpg/800px-N_Seoul_Tower_in_November_2019.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -62,7 +66,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Lotte World Tower Seoul Sky (롯데월드타워 서울스카이)',
-    desc_en: 'Korea\'s tallest skyscraper (555m) featuring glass-floor skywalks and breathtaking 360-degree metropolitan vistas.',
+    desc_en: 'Korea\'s tallest skyscraper (555m) featuring glass-floor skywalks and breathtaking 360-degree metropolitan vistas. || SUBWAY: 2·8호선 잠실역 1, 2번 출구 지하연결 || HOURS: 10:30 ~ 22:00 (금·토 23:00까지) || CLOSED: 연중무휴 || WEB: https://seoulsky.lotteworld.com',
     price_krw: 31000,
     image_url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Lotte_World_Tower%2C_2020.jpg/800px-Lotte_World_Tower%2C_2020.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -74,7 +78,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Heritage',
     title_en: 'Changdeokgung Palace & Secret Garden (창덕궁과 후원)',
-    desc_en: 'UNESCO World Heritage palace renowned for its masterfully integrated nature and scenic Secret Garden.',
+    desc_en: 'UNESCO World Heritage palace renowned for its masterfully integrated nature and scenic Secret Garden. || SUBWAY: 3호선 안국역 3번 출구 (도보 5분) || HOURS: 09:00 ~ 17:30 (후원 사전예약 필수) || CLOSED: 매주 월요일 휴관 || WEB: http://www.cdg.go.kr',
     price_krw: 8000,
     image_url: 'https://tong.visitkorea.or.kr/cms/resource_photo/09/3511909_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -86,7 +90,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Heritage',
     title_en: 'Deoksugung Palace & Stonewall Path (덕수궁 & 돌담길)',
-    desc_en: 'Historic royal palace combining traditional and modern Western architectures along the famous romantic stonewall path.',
+    desc_en: 'Historic royal palace combining traditional and modern Western architectures along the famous romantic stonewall path. || SUBWAY: 1·2호선 시청역 1, 2번 출구 (도보 1분) || HOURS: 09:00 ~ 21:00 (야간개장 상시) || CLOSED: 매주 월요일 휴관 || WEB: http://www.deoksugung.go.kr',
     price_krw: 1000,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/50/2658350_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -98,7 +102,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Dongdaemun Design Plaza - DDP (동대문디자인플라자)',
-    desc_en: 'World-famous futuristic landmark designed by Zaha Hadid, hosting global fashion weeks and art exhibitions.',
+    desc_en: 'World-famous futuristic landmark designed by Zaha Hadid, hosting global fashion weeks and art exhibitions. || SUBWAY: 2·4·5호선 동대문역사문화공원역 1번 출구 연결 || HOURS: 10:00 ~ 20:00 (야외공원 24시간 개방) || CLOSED: 연중무휴 || WEB: https://ddp.or.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/06/3539606_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -110,7 +114,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Heritage',
     title_en: 'Bukchon Hanok Village (북촌한옥마을)',
-    desc_en: 'Historic village nestled between royal palaces, home to hundreds of traditional Korean tile-roofed houses.',
+    desc_en: 'Historic village nestled between royal palaces, home to hundreds of traditional Korean tile-roofed houses. || SUBWAY: 3호선 안국역 2번 출구 (도보 7분) || HOURS: 10:00 ~ 17:00 (주민생활권 보호 권장시간) || CLOSED: 일요일 골목길 관광자제 || WEB: https://hanok.seoul.go.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/04/3304404_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -122,7 +126,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Shopping',
     title_en: 'Seongsu-dong Yeonmujang-gil (성수동 연무장길)',
-    desc_en: 'The vibrant "Brooklyn of Seoul" buzzing with iconic fashion flagship pop-ups, artisanal cafes, and trendy bakeries.',
+    desc_en: 'The vibrant "Brooklyn of Seoul" buzzing with iconic fashion flagship pop-ups, artisanal cafes, and trendy bakeries. || SUBWAY: 2호선 성수역 4번 출구 / 뚝섬역 5번 출구 || HOURS: 11:00 ~ 21:00 (매장별 상이) || CLOSED: 연중무휴 (매장별 상이) || WEB: https://korean.visitseoul.net',
     price_krw: 0,
     image_url: 'https://tong.visitkorea.or.kr/cms/resource/72/4043572_image2_1.png',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -134,7 +138,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Hongdae Walking Street (홍대 걷고싶은거리)',
-    desc_en: 'Korea\'s youth culture hub packed with spontaneous K-Pop busking performances, indie art shops, and energetic nightlife.',
+    desc_en: 'Korea\'s youth culture hub packed with spontaneous K-Pop busking performances, indie art shops, and energetic nightlife. || SUBWAY: 2호선·공항철도 홍대입구역 8, 9번 출구 || HOURS: 24시간 상시 (버스킹 집중 18:00~22:00) || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/77/3573277_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -146,7 +150,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Market',
     title_en: 'Gwangjang Market (광장시장)',
-    desc_en: 'Korea\'s first permanent century-old traditional market, celebrated worldwide for Bindaetteok and street food.',
+    desc_en: 'Over 100 years of authentic street food heritage, world-famous for crispy bindaetteok, mayak gimbap, and fresh yukhoe. || SUBWAY: 1호선 종로5가역 8번 출구 / 2·5호선 을지로4가역 4번 출구 || HOURS: 09:00 ~ 23:00 (먹자골목 상시) || CLOSED: 일요일 일부 휴무 (먹자골목은 연중무휴) || WEB: http://www.kwangjangmarket.co.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/81/2668981_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -158,7 +162,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Market',
     title_en: 'Namdaemun Market (남대문시장)',
-    desc_en: 'The largest traditional marketplace in Korea with over 600 years of trading history right next to Sungnyemun Gate.',
+    desc_en: 'Korea\'s largest traditional market packed with over 10,000 stalls offering local delicacies, fashion, and souvenirs. || SUBWAY: 4호선 회현역 5번 출구 (도보 1분) || HOURS: 24시간 상시 (소매 09:00 ~ 18:00) || CLOSED: 매주 일요일 휴무 (일부 먹거리 제외) || WEB: http://www.namdaemunmarket.co.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/67/2612867_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -170,19 +174,19 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Yeouido Hangang Park (여의도 한강공원)',
-    desc_en: 'Beloved riverside park along the Han River famous for Han River instant ramen, picnic mats, and river ferry cruises.',
+    desc_en: 'Premier riverside leisure spot loved for lawn picnics, instant Hangang ramen dining, and night cruise tours. || SUBWAY: 5호선 여의나루역 2, 3번 출구 (도보 2분) || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://hangang.seoul.go.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/89/3544389_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   {
-    content_id: 'seoul_national_museum',
+    content_id: 'seoul_museum_korea',
     budget_partition: 'CITY_SPECIFIC',
     area_code: 1,
     main_category: 'Sightseeing',
     sub_category: 'Heritage',
     title_en: 'National Museum of Korea (국립중앙박물관)',
-    desc_en: 'The premier national museum conserving Korea\'s invaluable archaeological and historical treasures. Free permanent admission.',
+    desc_en: 'World-class museum housing priceless national treasures including the meditative Pensive Bodhisattva statues. Free admission. || SUBWAY: 4호선·경의중앙선 이촌역 2번 출구 연결 || HOURS: 10:00 ~ 18:00 (수·토 21:00 야간개장) || CLOSED: 1월1일, 설/추석 당일 휴관 || WEB: https://www.museum.go.kr',
     price_krw: 0,
     image_url: 'https://tong.visitkorea.or.kr/cms/resource/12/3495012_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -194,43 +198,43 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Cheonggyecheon Stream (청계천)',
-    desc_en: 'An 11km urban eco-stream flowing through central Seoul, illuminated beautifully at night for tranquil strolls.',
+    desc_en: 'An 11km tranquil ecological stream flowing through downtown Seoul, adorned with night illuminations and art stepping-stones. || SUBWAY: 5호선 광화문역 5번 출구 / 1·2호선 시청역 4번 출구 || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 (폭우 시 통제) || WEB: https://www.sisul.or.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/90/2544890_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   {
-    content_id: 'seoul_starfield_library',
+    content_id: 'seoul_coex_starfield_library',
     budget_partition: 'CITY_SPECIFIC',
     area_code: 1,
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Starfield Library COEX (코엑스 별마당도서관)',
-    desc_en: 'A stunning open public library in COEX Mall highlighted by towering 13-meter glowing bookshelves.',
+    desc_en: 'A monumental open public library inside Starfield COEX Mall featuring magnificent 13-meter tall curved bookshelves. || SUBWAY: 2호선 삼성역 5, 6번 출구 연결 / 9호선 봉은사역 7번 출구 || HOURS: 10:30 ~ 22:00 || CLOSED: 연중무휴 || WEB: https://www.starfield.co.kr/coexmall',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/29/3584529_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   {
-    content_id: 'seoul_banpo_bridge',
+    content_id: 'seoul_banpo_rainbow_fountain',
     budget_partition: 'CITY_SPECIFIC',
     area_code: 1,
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Banpo Bridge Moonlight Rainbow Fountain (반포대교 달빛무지개분수)',
-    desc_en: 'Guinness-record musical fountain show spraying water jets illuminated by colorful rainbow lights into the Han River.',
+    desc_en: 'Guinness-recorded longest bridge fountain illuminating the night skyline with synchronized music and colorful water jets. || SUBWAY: 3·7·9호선 고속터미널역 8-1번 출구 (도보 15분) || HOURS: 분수 가동: 12:00, 19:30, 20:00, 20:30, 21:00 (4~10월) || CLOSED: 동절기(11~3월) 미가동 || WEB: https://hangang.seoul.go.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/46/3515046_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   {
-    content_id: 'seoul_seokchon_lake',
+    content_id: 'seoul_seokchonhosu_lake',
     budget_partition: 'CITY_SPECIFIC',
     area_code: 1,
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Seokchonhosu Lake & Jamsil Park (석촌호수 & 잠실나루)',
-    desc_en: 'Picturesque lake encircling Lotte World Magic Island with iconic photo spots beneath Lotte World Tower.',
+    desc_en: 'Scenic lakeside loop wrapping around Lotte World Magic Island and Lotte World Tower, renowned for spring cherry blossoms. || SUBWAY: 2·8호선 잠실역 2, 3번 출구 (도보 5분) || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/48/1826048_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -242,7 +246,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Some Sevit Floating Islands (세빛섬)',
-    desc_en: 'World-class artificial floating islands in the Han River featuring artistic architecture and luminous evening vistas.',
+    desc_en: 'World-class artificial floating islands in the Han River featuring artistic architecture and luminous evening vistas. || SUBWAY: 3·7·9호선 고속터미널역 8-1번 출구 반포한강공원 내 || HOURS: 11:00 ~ 22:00 (업장별 상이) || CLOSED: 연중무휴 || WEB: http://www.somesevit.co.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/13/2034913_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -254,7 +258,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Ttukseom Hangang Park (뚝섬한강공원)',
-    desc_en: 'Popular recreational waterside park with cylindrical J-Bug cultural complex, windsurfing, and outdoor swimming.',
+    desc_en: 'Popular recreational waterside park with cylindrical J-Bug cultural complex, windsurfing, and outdoor swimming. || SUBWAY: 7호선 자양(뚝섬한강공원)역 2, 3번 출구 연결 || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://hangang.seoul.go.kr',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/79/1982079_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -266,7 +270,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
     title_en: 'Seoul Children\'s Grand Park (서울어린이대공원)',
-    desc_en: 'Extensive botanical park and public zoo nestled in lush greenery offering peaceful walking trails.',
+    desc_en: 'Extensive botanical park and public zoo nestled in lush greenery offering peaceful walking trails. || SUBWAY: 7호선 어린이대공원역 1번 출구 / 5호선 아차산역 4번 출구 || HOURS: 05:00 ~ 22:00 (동물원 10:00 ~ 17:00) || CLOSED: 연중무휴 || WEB: https://www.sisul.or.kr/open_content/childrenpark',
     price_krw: 0,
     image_url: 'http://tong.visitkorea.or.kr/cms/resource/55/1979255_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
@@ -278,7 +282,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
  * 검증된 20대 랜드마크만 깔끔하게 동기화합니다.
  */
 export async function syncCleanVerifiedLandmarks() {
-  console.log('🚀 [Sync] 서울 관광지 데이터 정제 및 공식 고화질 실사 동기화 시작...');
+  console.log('🚀 [Sync] 서울 관광지 데이터 정제 및 공식 고화질 실사/상세메타데이터 동기화 시작...');
 
   const headers = {
     apikey: SUPABASE_SERVICE_ROLE_KEY,
@@ -289,12 +293,11 @@ export async function syncCleanVerifiedLandmarks() {
 
   const cleanList = VERIFIED_SEOUL_LANDMARKS;
 
-  // 1. 기존 서울 관광지 데이터 중 사설 공방, 폰케이스, 테스트 구데이터 완전 삭제
+  // 1. 기존 서울 관광지 데이터 중 구데이터 삭제
   const tables = ['Hype_Catalog_Items', 'hype_catalog_items'];
   for (const tbl of tables) {
     try {
       console.log(`🧹 [Supabase] ${tbl} 테이블의 기존 서울 구데이터 정리 중...`);
-      // area_code=1 인 데이터 삭제
       await axios.delete(
         `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${tbl}?area_code=eq.1&budget_partition=eq.CITY_SPECIFIC`,
         {
@@ -314,7 +317,7 @@ export async function syncCleanVerifiedLandmarks() {
   // 2. 검증된 20대 랜드마크 데이터 삽입
   for (const tbl of tables) {
     try {
-      console.log(`📡 [Supabase] ${tbl} 테이블에 20대 핵심 랜드마크 데이터 인입 중...`);
+      console.log(`📡 [Supabase] ${tbl} 테이블에 20대 핵심 랜드마크(교통/운영시간/휴무일 메타데이터 포함) 인입 중...`);
       const res = await axios.post(
         `${SUPABASE_URL.replace(/\/$/, '')}/rest/v1/${tbl}`,
         cleanList,
@@ -330,7 +333,7 @@ export async function syncCleanVerifiedLandmarks() {
   console.log('✨ [동기화 완료] 등록된 20대 서울 공식 랜드마크 목록:');
   cleanList.forEach((item, idx) => {
     console.log(
-      `  [${String(idx + 1).padStart(2, '0')}/20] ${item.title_en} | ${item.price_krw === 0 ? 'FREE' : '₩' + item.price_krw.toLocaleString()} | 📸 ${item.image_url.substring(0, 60)}...`
+      `  [${String(idx + 1).padStart(2, '0')}/20] ${item.title_en} | ${item.price_krw === 0 ? 'FREE' : '₩' + item.price_krw.toLocaleString()} | 📸 ${item.image_url.substring(0, 50)}...`
     );
   });
   console.log('======================================================\n');

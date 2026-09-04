@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseFetch } from "../../../../lib/supabase/client";
 import { SupportedCity } from "../../../../lib/trip-domain";
-import { AttractionSpot } from "../../../../features/budget/catalog/attraction-spots";
+import { AttractionSpot, parseAttractionMetadata } from "../../../../features/budget/catalog/attraction-spots";
 
 const CITY_TO_AREA_CODE: Record<string, number> = {
   SEOUL: 1,
@@ -95,9 +95,10 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. AttractionSpot 규격으로 변환
-    const spots: (AttractionSpot & { imageUrl?: string; deepLink?: string })[] = dbRows.map((row, idx) => {
+    const spots: AttractionSpot[] = dbRows.map((row, idx) => {
       const { nameKo, nameEn } = parseBilingualTitle(row.title_en);
       const isPaid = (row.price_krw || 0) > 0;
+      const meta = parseAttractionMetadata(row.desc_en || "");
 
       // 시각적 테마 그라디언트 순환
       const gradients = [
@@ -114,8 +115,8 @@ export async function GET(request: NextRequest) {
         cityCode: city as SupportedCity,
         nameKo,
         nameEn,
-        descKo: row.desc_en || "한국관광공사 선정 서울 인기 추천 관광지",
-        descEn: row.desc_en || "Popular sightseeing spot recommended by KTO",
+        descKo: meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
+        descEn: meta.cleanDesc || "Popular sightseeing spot in Seoul",
         price: row.price_krw || 0,
         priceStatus: isPaid ? "PAID" : "FREE",
         tag: row.sub_category || "Attraction",
@@ -124,6 +125,10 @@ export async function GET(request: NextRequest) {
         isFeatured: true,
         imageUrl: row.image_url,
         deepLink: row.deep_link_template,
+        subwayInfo: meta.subwayInfo,
+        openingHours: meta.openingHours,
+        closedDays: meta.closedDays,
+        officialUrl: meta.officialUrl,
       };
     });
 

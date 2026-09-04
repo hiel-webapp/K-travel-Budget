@@ -15,6 +15,42 @@ export interface AttractionSpot {
   emoji: string;
   gradientBg: string;
   isFeatured: boolean;
+  subwayInfo?: string;
+  openingHours?: string;
+  closedDays?: string;
+  officialUrl?: string;
+  imageUrl?: string;
+  deepLink?: string;
+}
+
+/**
+ * desc_en 문자열에서 || SUBWAY: ..., || HOURS: ..., || CLOSED: ..., || WEB: ...
+ * 태그를 파싱하여 메타데이터와 순수 설명을 분리합니다.
+ */
+export function parseAttractionMetadata(rawDesc: string): {
+  cleanDesc: string;
+  subwayInfo?: string;
+  openingHours?: string;
+  closedDays?: string;
+  officialUrl?: string;
+} {
+  if (!rawDesc) return { cleanDesc: "" };
+
+  const subwayMatch = rawDesc.match(/\|\|\s*SUBWAY:\s*([^|]+)/i);
+  const hoursMatch = rawDesc.match(/\|\|\s*HOURS:\s*([^|]+)/i);
+  const closedMatch = rawDesc.match(/\|\|\s*CLOSED:\s*([^|]+)/i);
+  const webMatch = rawDesc.match(/\|\|\s*WEB:\s*([^|]+)/i);
+
+  // 태그 제거한 순수 설명
+  const cleanDesc = rawDesc.split("||")[0].trim();
+
+  return {
+    cleanDesc,
+    subwayInfo: subwayMatch ? subwayMatch[1].trim() : undefined,
+    openingHours: hoursMatch ? hoursMatch[1].trim() : undefined,
+    closedDays: closedMatch ? closedMatch[1].trim() : undefined,
+    officialUrl: webMatch ? webMatch[1].trim() : undefined,
+  };
 }
 
 export interface TourCoursePreset {

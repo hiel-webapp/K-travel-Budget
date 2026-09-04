@@ -9,7 +9,7 @@ import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPref
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
-import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots } from "../features/budget/catalog/attraction-spots";
+import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata } from "../features/budget/catalog/attraction-spots";
 import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
 import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
@@ -184,13 +184,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const match = (row.title_en || "").match(/^(.*?)\s*\((.*?)\)$/);
                   const nameEn = match ? match[1].trim() : row.title_en;
                   const nameKo = match ? match[2].trim() : row.title_en;
+                  const meta = parseAttractionMetadata(row.desc_en || "");
                   return {
                     id: `kto_${row.content_id || row.id}`,
                     cityCode: city,
                     nameKo,
                     nameEn,
-                    descKo: row.desc_en || "한국관광공사 선정 서울 인기 추천 관광지",
-                    descEn: row.desc_en || "Popular sightseeing spot recommended by KTO",
+                    descKo: meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
+                    descEn: meta.cleanDesc || "Popular sightseeing spot in Seoul",
                     price: row.price_krw || 0,
                     priceStatus: (row.price_krw || 0) > 0 ? ("PAID" as const) : ("FREE" as const),
                     tag: row.sub_category || "Attraction",
@@ -199,6 +200,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     isFeatured: true,
                     imageUrl: row.image_url,
                     deepLink: row.deep_link_template,
+                    subwayInfo: meta.subwayInfo,
+                    openingHours: meta.openingHours,
+                    closedDays: meta.closedDays,
+                    officialUrl: meta.officialUrl,
                   };
                 });
                 registerCustomAttractionSpots(directSpots);
@@ -2854,7 +2859,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <div
                                 key={spot.id}
                                 className={`p-3 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all ${
-                                  isAdded ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200 hover:border-slate-300"
+                            isAdded ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200 hover:border-slate-300"
                                 }`}
                               >
                                 <div className="space-y-2">
@@ -2900,6 +2905,42 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     <p className="text-[10px] text-slate-400 leading-snug line-clamp-2 mt-0.5">
                                       {locale === "ko" ? spot.descKo : spot.descEn}
                                     </p>
+
+                                    {/* 지하철 / 교통 안내 배지 */}
+                                    {spot.subwayInfo && (
+                                      <div
+                                        className="flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100/90 px-2 py-0.5 rounded-md mt-1.5 w-fit line-clamp-1 border border-slate-200/80"
+                                        title={spot.subwayInfo}
+                                      >
+                                        <span className="shrink-0 text-[10px]">🚇</span>
+                                        <span className="truncate">{spot.subwayInfo}</span>
+                                      </div>
+                                    )}
+
+                                    {/* 운영시간 및 휴무일 뱃지 */}
+                                    {(spot.closedDays || spot.openingHours) && (
+                                      <div className="flex items-center flex-wrap gap-1 mt-1 text-[9.5px]">
+                                        {spot.closedDays && (
+                                          <span
+                                            className={`px-1.5 py-0.5 rounded font-bold border ${
+                                              spot.closedDays.includes("연중무휴")
+                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                                : "bg-amber-50 text-amber-800 border-amber-200"
+                                            }`}
+                                          >
+                                            ⏱️ {spot.closedDays}
+                                          </span>
+                                        )}
+                                        {spot.openingHours && (
+                                          <span
+                                            className="text-slate-500 font-medium px-1.5 py-0.5 rounded bg-slate-50 border border-slate-200/60 truncate max-w-[160px]"
+                                            title={spot.openingHours}
+                                          >
+                                            🕒 {spot.openingHours}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
 
@@ -2917,6 +2958,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   </div>
 
                                   <div className="flex items-center gap-1">
+                                    {spot.officialUrl && (
+                                      <a
+                                        href={spot.officialUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                        title={locale === "ko" ? "공식 홈페이지 / 비짓서울 안내" : "Official Website"}
+                                      >
+                                        🌐
+                                      </a>
+                                    )}
                                     {(spot as any).deepLink && (
                                       <a
                                         href={(spot as any).deepLink}

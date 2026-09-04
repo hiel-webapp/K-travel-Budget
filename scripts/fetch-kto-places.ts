@@ -225,7 +225,7 @@ export async function syncKTOPlacesToHypeHeritage() {
   return catalogList;
 }
 
-// 직접 스크립트 실행 시
+// 직접 스크립트 실행 시 검증된 20대 서울 랜드마크 데이터셋 동기화 호출
 if (require.main === module || process.argv[1]?.includes('fetch-kto-places')) {
-  syncKTOPlacesToHypeHeritage();
+  import('./sync-kto-places').then((m) => m.syncCleanVerifiedLandmarks());
 }

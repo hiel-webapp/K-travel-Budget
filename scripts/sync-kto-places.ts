@@ -58,7 +58,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'N Seoul Tower Observatory (N서울타워 전망대)',
     desc_en: 'Iconic tower atop Namsan Mountain offering a 360-degree panoramic skyline view of downtown Seoul. || SUBWAY: 4호선 명동역 3번 출구 (케이블카 도보 10분) / 3·4호선 충무로역 2번 출구 남산순환버스 01번 || HOURS: 10:00 ~ 23:00 (주말 23:30까지) || CLOSED: 연중무휴 || WEB: https://english.visitseoul.net/attractions/Namsan-Seoul-Tower/ENP000036',
     price_krw: 21000,
-    image_url: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?auto=format&fit=crop&w=800&q=85',
+    image_url: '/assets/n-seoul-tower.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 3. 롯데월드타워 서울스카이

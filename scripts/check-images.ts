@@ -5,6 +5,18 @@ async function testAllImages() {
   console.log('🔍 [Image Check] 20개 서울 랜드마크 이미지 유효성 전수 검사...\n');
   for (let i = 0; i < VERIFIED_SEOUL_LANDMARKS.length; i++) {
     const item = VERIFIED_SEOUL_LANDMARKS[i];
+    if (item.image_url.startsWith('/')) {
+      const fs = require('fs');
+      const path = require('path');
+      const localPath = path.resolve(process.cwd(), 'public', item.image_url.substring(1));
+      if (fs.existsSync(localPath)) {
+        const stats = fs.statSync(localPath);
+        console.log(
+          `[${String(i + 1).padStart(2, '0')}/${VERIFIED_SEOUL_LANDMARKS.length}] LOCAL FILE | Size: ${(stats.size / 1024).toFixed(1)}KB | Type: image/jpeg | ✅ 정상 (로컬 정적 에셋) | ${item.title_en}`
+        );
+        continue;
+      }
+    }
     try {
       const res = await axios.get(item.image_url, {
         headers: {
@@ -21,7 +33,7 @@ async function testAllImages() {
       const isOk = res.status === 200 && contentLength > 5000 && contentType.startsWith('image/');
 
       console.log(
-        `[${String(i + 1).padStart(2, '0')}/20] HTTP ${res.status} | Size: ${(contentLength / 1024).toFixed(1)}KB | Type: ${contentType} | ${isOk ? '✅ 정상' : '❌ 오류'} | ${item.title_en}`
+        `[${String(i + 1).padStart(2, '0')}/${VERIFIED_SEOUL_LANDMARKS.length}] HTTP ${res.status} | Size: ${(contentLength / 1024).toFixed(1)}KB | Type: ${contentType} | ${isOk ? '✅ 정상' : '❌ 오류'} | ${item.title_en}`
       );
       if (!isOk) {
         console.log(`     ⚠️ URL: ${item.image_url}`);

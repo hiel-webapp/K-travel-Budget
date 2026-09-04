@@ -239,25 +239,28 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   useEffect(() => {
     if (selectedCityTab === "ALL" || selectedCityTab === "TRANSPORT") return;
     const city = selectedCityTab;
-    if (dbAttractionsByCity[city]) return;
+    if (dbAttractionsByCity[city] && dbAttractionsByCity[city].length > 0) return;
 
     let isMounted = true;
     fetch(`/api/catalog/attractions?city=${city}`)
       .then((res) => res.json())
       .then(async (json) => {
         if (!isMounted) return;
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          registerCustomAttractionSpots(json.data);
+        const validData = Array.isArray(json.data)
+          ? json.data.filter((spot: any) => spot.cityCode === city)
+          : [];
+
+        if (json.success && validData.length > 0) {
+          registerCustomAttractionSpots(validData);
           setDbAttractionsByCity((prev) => ({
             ...prev,
-            [city]: json.data,
+            [city]: validData,
           }));
-        } else {
-          // Fallback: API 응답이 비어있거나 CDN 캐시 문제일 때 Supabase 직접 조회
+        } else if (city === "SEOUL") {
+          // 서울만 Supabase 직접 조회 폴백 (area_code=1) 허용
           try {
-            const areaCode = city === "SEOUL" ? 1 : 1;
-            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=id.asc&limit=50`;
-            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=item_id.asc&limit=50`;
+            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=id.asc&limit=50`;
+            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=item_id.asc&limit=50`;
             const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
             let directRes = await fetch(sbUrl1, {
               headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
@@ -285,7 +288,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const meta = parseAttractionMetadata(row.desc_en || "");
                   return {
                     id: `kto_${row.content_id || row.id}`,
-                    cityCode: city,
+                    cityCode: "SEOUL" as SupportedCity,
                     nameKo,
                     nameEn,
                     descKo: meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
@@ -307,16 +310,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 registerCustomAttractionSpots(directSpots);
                 setDbAttractionsByCity((prev) => ({
                   ...prev,
-                  [city]: directSpots,
+                  SEOUL: directSpots,
                 }));
               }
             }
           } catch (directErr) {
             console.warn("[Planner] Direct Supabase Fallback 실패:", directErr);
           }
+        } else {
+          // 타 도시(부산, 제주 등)는 DB 데이터가 없는 경우 해당 도시 전용 카탈로그로 안전하게 바인딩
+          const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+          setDbAttractionsByCity((prev) => ({
+            ...prev,
+            [city]: localSpots,
+          }));
         }
       })
-      .catch((err) => console.warn("[Planner] DB 관광지 연동 오류:", err));
+      .catch((err) => {
+        console.warn("[Planner] DB 관광지 연동 오류:", err);
+        const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+        setDbAttractionsByCity((prev) => ({
+          ...prev,
+          [city]: localSpots,
+        }));
+      });
 
     return () => {
       isMounted = false;
@@ -2793,8 +2810,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   const coursesForCity = TOUR_COURSE_PRESETS.filter((c) => c.cityCode === city);
                   const dbSpots = dbAttractionsByCity[city];
-                  const spotsForCity = (dbSpots && dbSpots.length > 0)
-                    ? dbSpots
+                  const validDbSpots = dbSpots?.filter((s) => s.cityCode === city);
+                  const spotsForCity = (validDbSpots && validDbSpots.length > 0)
+                    ? validDbSpots
                     : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
 
                   const isShowMore = !!showMoreAttractionsByCity[city];

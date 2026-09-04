@@ -52,7 +52,14 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const city = (searchParams.get("city") || "SEOUL").toUpperCase();
-    const areaCode = CITY_TO_AREA_CODE[city] ?? 1;
+    const areaCode = CITY_TO_AREA_CODE[city];
+    if (!areaCode) {
+      return NextResponse.json({
+        success: true,
+        source: "EMPTY",
+        data: [],
+      });
+    }
 
     // 1. Supabase Hype_Catalog_Items 테이블에서 관광지 데이터 조회
     let dbRows: DbCatalogItem[] = [];
@@ -115,8 +122,8 @@ export async function GET(request: NextRequest) {
         cityCode: city as SupportedCity,
         nameKo,
         nameEn,
-        descKo: meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
-        descEn: meta.cleanDesc || "Popular sightseeing spot in Seoul",
+        descKo: meta.cleanDesc || "한국관광공사 선정 추천 명소",
+        descEn: meta.cleanDesc || `Popular sightseeing spot in ${city}`,
         price: row.price_krw || 0,
         priceStatus: isPaid ? "PAID" : "FREE",
         tag: row.sub_category || "Attraction",

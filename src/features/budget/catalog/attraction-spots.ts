@@ -208,6 +208,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🚃",
     gradientBg: "from-blue-500/15 to-cyan-500/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "busan_gamcheon",
@@ -222,6 +223,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🎨",
     gradientBg: "from-amber-500/15 to-rose-500/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "busan_tower",
@@ -236,6 +238,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "⚓",
     gradientBg: "from-indigo-500/15 to-blue-500/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "busan_gwangalli",
@@ -250,6 +253,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🌉",
     gradientBg: "from-blue-600/15 to-purple-600/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "busan_haedong",
@@ -264,6 +268,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🛕",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "busan_jagalchi",
@@ -278,6 +283,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🐟",
     gradientBg: "from-orange-500/15 to-amber-500/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
   },
 
   // === JEJU ===
@@ -294,6 +300,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🌋",
     gradientBg: "from-emerald-600/15 to-green-600/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "jeju_udo",
@@ -308,6 +315,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🏝️",
     gradientBg: "from-cyan-500/15 to-teal-500/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "jeju_hyeopjae",
@@ -322,6 +330,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🏖️",
     gradientBg: "from-sky-500/15 to-blue-400/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "jeju_snoopy",
@@ -336,6 +345,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🐶",
     gradientBg: "from-yellow-500/15 to-orange-400/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "jeju_dongmun",
@@ -350,6 +360,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🍊",
     gradientBg: "from-amber-500/15 to-orange-500/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80",
   },
   {
     id: "jeju_arte",
@@ -364,6 +375,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🎨",
     gradientBg: "from-purple-600/15 to-pink-600/15",
     isFeatured: true,
+    imageUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80",
   },
 
   // === INCHEON ===
@@ -1184,8 +1196,12 @@ export const TOUR_COURSE_PRESETS: TourCoursePreset[] = [
 export function registerCustomAttractionSpots(spots: (AttractionSpot & { imageUrl?: string; deepLink?: string })[]) {
   const existingMap = new Map(ATTRACTION_SPOTS_CATALOG.map((s, idx) => [s.id, idx]));
   spots.forEach((s) => {
+    if (!s || !s.id || !s.cityCode) return;
     if (existingMap.has(s.id)) {
-      ATTRACTION_SPOTS_CATALOG[existingMap.get(s.id)!] = s;
+      const idx = existingMap.get(s.id)!;
+      if (ATTRACTION_SPOTS_CATALOG[idx].cityCode === s.cityCode) {
+        ATTRACTION_SPOTS_CATALOG[idx] = s;
+      }
     } else {
       ATTRACTION_SPOTS_CATALOG.push(s);
       existingMap.set(s.id, ATTRACTION_SPOTS_CATALOG.length - 1);

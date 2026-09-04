@@ -158,14 +158,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           // Fallback: API 응답이 비어있거나 CDN 캐시 문제일 때 Supabase 직접 조회
           try {
             const areaCode = city === "SEOUL" ? 1 : 1;
-            const sbUrl = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&order=id.asc&limit=20`;
+            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=price_krw.desc,item_id.asc&limit=35`;
+            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&main_category=eq.Sightseeing&order=price_krw.desc,id.asc&limit=35`;
             const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
-            const directRes = await fetch(sbUrl, {
-              headers: {
-                apikey: anonKey,
-                Authorization: `Bearer ${anonKey}`,
-              },
+            let directRes = await fetch(sbUrl1, {
+              headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
             });
+            if (!directRes.ok) {
+              directRes = await fetch(sbUrl2, {
+                headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+              });
+            }
             if (directRes.ok && isMounted) {
               const rows = await directRes.json();
               if (Array.isArray(rows) && rows.length > 0) {
@@ -2692,7 +2695,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
 
                   const isShowMore = !!showMoreAttractionsByCity[city];
-                  const displayedSpots = isShowMore ? spotsForCity : spotsForCity.slice(0, 6);
+                  const displayedSpots = isShowMore ? spotsForCity : spotsForCity.slice(0, 12);
 
                   // 수집된 중복 제거 유료 Spot 계산
                   const selectedSpotSet = new Set<string>();
@@ -2897,13 +2900,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 </div>
 
                                 <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
-                                  <span className="text-xs font-black text-[#e25c5c]">
-                                    {spot.priceStatus === "FREE"
-                                      ? (locale === "ko" ? "₩0 (무료)" : "₩0 (Free)")
-                                      : spot.priceStatus === "PAID"
-                                      ? formatKrw(spot.price)
-                                      : (locale === "ko" ? "가격 확인 필요" : "Check Price")}
-                                  </span>
+                                  <div>
+                                    {spot.priceStatus === "FREE" || spot.price === 0 ? (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        FREE
+                                      </span>
+                                    ) : (
+                                      <span className="text-xs font-black text-[#e25c5c]">
+                                        {formatKrw(spot.price)}
+                                      </span>
+                                    )}
+                                  </div>
 
                                   <div className="flex items-center gap-1">
                                     {(spot as any).deepLink && (
@@ -2920,19 +2927,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     <button
                                       type="button"
                                       onClick={() => handleToggleSpot(city, spot.id)}
-                                      className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-colors cursor-pointer shrink-0 ${
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 ${
                                         isSpotSelected
-                                          ? "bg-rose-100 text-[#e25c5c] hover:bg-rose-200"
+                                          ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
                                           : isIncludedInCourse
                                           ? "bg-slate-100 text-slate-500 cursor-default"
-                                          : "bg-[#0f172a] text-white hover:bg-slate-800"
+                                          : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
                                       }`}
                                     >
                                       {isSpotSelected
-                                        ? (dict.planner.inBudget || "✓ 담김")
+                                        ? (locale === "ko" ? "✓ 담김" : "✓ Added")
                                         : isIncludedInCourse
                                         ? (locale === "ko" ? "코스 포함" : "In Course")
-                                        : (dict.planner.addToBudget || "+ 예산에 담기")}
+                                        : (locale === "ko" ? "+ 예산에 담기" : "+ Add")}
                                     </button>
                                   </div>
                                 </div>
@@ -2942,7 +2949,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
 
                         {/* Show More / Show Less Toggle Button */}
-                        {spotsForCity.length > 6 && (
+                        {spotsForCity.length > 12 && (
                           <div className="text-center pt-2">
                             <button
                               type="button"
@@ -3152,26 +3159,62 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
 
                 <div className="py-4 space-y-5 max-h-[360px] overflow-y-auto pr-1">
+                  {/* [📍 CITY-SPECIFIC EXPENSES] Header */}
+                  <div className="flex items-center gap-1.5 px-0.5 border-b border-slate-100 pb-1.5">
+                    <span className="text-xs">📍</span>
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                      [📍 CITY-SPECIFIC EXPENSES]
+                    </span>
+                  </div>
 
                   {draft.selectedCities.map((city, cityIdx) => {
                     const section = plan.citySections[city];
                     if (!section || section.lineItems.length === 0) return null;
 
                     const label = CITY_KOREAN_NAMES[city] || city;
+                    const englishCityName = CITY_ENGLISH_NAMES[city] || city;
                     const cityNights = section.nights;
                     const cityLineItems = section.lineItems.filter((item) => item.category !== "ATTRACTION");
-                    const citySubtotalWithoutAttraction = cityLineItems.reduce((sum, item) => sum + item.lineTotalKrw, 0);
+
+                    // 사용자가 [+ Add]한 개별 관광지 및 추천 코스 내 관광지 추출
+                    const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+                    const spotsForCity = dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+                    const selectedSpotSet = new Set<string>();
+                    (citySel.selectedCourseIds || []).forEach((cid) => {
+                      const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                      if (course) course.spotIds.forEach((sid) => selectedSpotSet.add(sid));
+                    });
+                    (citySel.individualSpotIds || []).forEach((sid) => selectedSpotSet.add(sid));
+
+                    const adultCount = draft.adultCount || 1;
+                    const addedSpotsList: AttractionSpot[] = [];
+                    let attractionsTotalKrw = 0;
+
+                    selectedSpotSet.forEach((sid) => {
+                      const spot = spotsForCity.find((s) => s.id === sid) || ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
+                      if (spot) {
+                        addedSpotsList.push(spot);
+                        if (spot.priceStatus === "PAID" && spot.price > 0) {
+                          attractionsTotalKrw += spot.price * adultCount;
+                        }
+                      }
+                    });
+
+                    const baseCitySubtotal = cityLineItems.reduce((sum, item) => sum + item.lineTotalKrw, 0);
+                    const totalCityExpenses = baseCitySubtotal + attractionsTotalKrw;
 
                     return (
                       <div key={city} className={`space-y-2 ${cityIdx === 0 ? "" : "pt-2 border-t border-slate-100"}`}>
                         <div className="flex justify-between items-baseline">
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {label} <span className="text-[11px] font-bold text-slate-400">({cityNights}박)</span>
+                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+                            <span className="text-[#e25c5c] font-black">■</span>
+                            <span>{englishCityName} ({label})</span>
+                            <span className="text-[11px] font-bold text-slate-400 font-normal">({cityNights}박)</span>
                           </h4>
-                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(citySubtotalWithoutAttraction)}</span>
+                          <span className="text-xs font-black text-slate-900">{formatKrw(totalCityExpenses)}</span>
                         </div>
 
-                        <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
+                        <div className="space-y-2.5 pl-2.5 border-l-2 border-slate-100">
                           {cityLineItems.map((item) => (
                             <div key={item.id} className="space-y-1">
                               <div className="flex justify-between items-start text-xs">
@@ -3192,6 +3235,41 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               )}
                             </div>
                           ))}
+
+                          {/* [+ Add]한 관광지(Sightseeing) 실시간 영수증 연동 목록 */}
+                          {addedSpotsList.length > 0 && (
+                            <div className="pt-2 border-t border-dashed border-slate-200/80 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-[#e25c5c] uppercase tracking-wider flex items-center gap-1">
+                                  <span>🎡</span>
+                                  <span>{locale === "ko" ? "선택된 관광 명소" : "Added Sightseeing"} ({addedSpotsList.length})</span>
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-400">
+                                  {formatKrw(attractionsTotalKrw)}
+                                </span>
+                              </div>
+                              {addedSpotsList.map((spot) => {
+                                const itemTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
+                                return (
+                                  <div key={spot.id} className="flex justify-between items-start text-xs pl-1">
+                                    <div className="pr-2 min-w-0">
+                                      <span className="text-slate-800 font-semibold block truncate">
+                                        {locale === "ko" ? spot.nameKo : spot.nameEn}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400">
+                                        {spot.priceStatus === "FREE" || spot.price === 0
+                                          ? (locale === "ko" ? "입장료 무료 (₩0)" : "Free Entry (₩0)")
+                                          : `${formatKrw(spot.price)} × ${adultCount}명`}
+                                      </span>
+                                    </div>
+                                    <span className={`font-sans tabular-nums font-bold shrink-0 ${itemTotal > 0 ? "text-slate-800" : "text-emerald-600 font-extrabold"}`}>
+                                      {itemTotal > 0 ? formatKrw(itemTotal) : "FREE"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );

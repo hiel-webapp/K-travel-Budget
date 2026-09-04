@@ -54,21 +54,38 @@ export async function GET(request: NextRequest) {
     const city = (searchParams.get("city") || "SEOUL").toUpperCase();
     const areaCode = CITY_TO_AREA_CODE[city] ?? 1;
 
-    // 1. Supabase Hype_Catalog_Items 테이블에서 관광지 데이터 조회
+    // 1. Supabase hype_catalog_items 테이블 (또는 Hype_Catalog_Items)에서 관광지 데이터 조회
     let dbRows: DbCatalogItem[] = [];
     try {
-      dbRows = await supabaseFetch<DbCatalogItem[]>("Hype_Catalog_Items", {
+      // 1순위: hype_catalog_items
+      dbRows = await supabaseFetch<DbCatalogItem[]>("hype_catalog_items", {
         method: "GET",
         query: {
           select: "*",
           budget_partition: "eq.CITY_SPECIFIC",
           area_code: `eq.${areaCode}`,
-          order: "id.asc",
-          limit: "20",
+          main_category: "eq.Sightseeing",
+          order: "price_krw.desc,item_id.asc",
+          limit: "35",
         },
       });
-    } catch (dbErr: any) {
-      console.warn("[API/Catalog] Supabase DB 조회 실패:", dbErr.message);
+    } catch {
+      try {
+        // 2순위 폴백: Hype_Catalog_Items
+        dbRows = await supabaseFetch<DbCatalogItem[]>("Hype_Catalog_Items", {
+          method: "GET",
+          query: {
+            select: "*",
+            budget_partition: "eq.CITY_SPECIFIC",
+            area_code: `eq.${areaCode}`,
+            main_category: "eq.Sightseeing",
+            order: "price_krw.desc,id.asc",
+            limit: "35",
+          },
+        });
+      } catch (dbErr: any) {
+        console.warn("[API/Catalog] Supabase DB 조회 실패:", dbErr.message);
+      }
     }
 
     if (!dbRows || !Array.isArray(dbRows) || dbRows.length === 0) {

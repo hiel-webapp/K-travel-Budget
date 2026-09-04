@@ -12,7 +12,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "sync:fares": "npx -y tsx scripts/sync-tago-fares.ts",
-    "sync:kto-places": "npx -y tsx scripts/fetch-kto-places.ts",
+    "sync:kto-places": "npx -y tsx scripts/sync-kto-places.ts",
     "export:csv": "npx -y tsx scripts/export-fares-csv.ts"
   },
   "dependencies": {

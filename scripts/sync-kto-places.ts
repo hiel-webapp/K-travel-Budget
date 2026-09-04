@@ -71,7 +71,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Lotte World Tower Seoul Sky (롯데월드타워 서울스카이)',
     desc_en: 'Korea\'s tallest skyscraper (555m) featuring glass-floor skywalks and breathtaking 360-degree metropolitan vistas. || SUBWAY: 2·8호선 잠실역 1, 2번 출구 지하연결 (도보 1분) || HOURS: 평일 10:30 ~ 22:00, 주말 10:30 ~ 23:00 || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net/attractions/롯데월드타워/KOP021278',
     price_krw: 31000,
-    image_url: 'https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=800&q=85',
+    image_url: 'https://tong.visitkorea.or.kr/cms/resource/66/3092766_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 4. 창덕궁과 후원

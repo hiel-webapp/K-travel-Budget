@@ -2960,8 +2960,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </span>
                         </div>
 
-                        {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {/* Grid: 가로형 와이드 카드 (Horizontal List Cards) */}
+                        <div className="grid grid-cols-1 gap-3.5">
                           {displayedSpots.map((spot) => {
                             const isSpotSelected = individualSpotIds.includes(spot.id);
                             const isIncludedInCourse = selectedCourseIds.some((cid) => {
@@ -2974,132 +2974,144 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             return (
                               <div
                                 key={spot.id}
-                                className={`p-3 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all ${
-                            isAdded ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200 hover:border-slate-300"
+                                className={`p-3 sm:p-3.5 rounded-2xl border bg-white flex flex-col sm:flex-row gap-3.5 items-stretch shadow-2xs hover:shadow-xs transition-all ${
+                                  isAdded ? "border-rose-300 ring-1 ring-rose-200 bg-rose-50/10" : "border-slate-200 hover:border-slate-300"
                                 }`}
                               >
-                                <div className="space-y-2">
-                                  {/* Visual Badge Header: 고화질 공식 실사 표출 */}
-                                  <div className="relative h-28 sm:h-32 w-full rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
-                                    {hasImage ? (
-                                      <img
-                                        src={(spot as any).imageUrl}
-                                        alt={locale === "ko" ? spot.nameKo : spot.nameEn}
-                                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                                        loading="lazy"
-                                        onError={(e) => {
-                                          // KTO 링크 만료 또는 차단 시 안정적인 한국 랜드마크 실사 폴백
-                                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=600&q=80";
-                                        }}
-                                      />
-                                    ) : (
-                                      <div className={`h-full w-full bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
-                                        <span className="text-2xl">{spot.emoji}</span>
-                                      </div>
-                                    )}
-                                    <div className="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
-                                      <span className="text-[9px] bg-slate-900/75 text-white backdrop-blur-xs font-bold px-1.5 py-0.5 rounded shadow-2xs">
-                                        {spot.tag}
+                                {/* Visual Badge: 좌측 고화질 실사 썸네일 */}
+                                <div className="relative w-full sm:w-44 md:w-48 h-40 sm:h-auto sm:min-h-[140px] shrink-0 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
+                                  {hasImage ? (
+                                    <img
+                                      src={(spot as any).imageUrl}
+                                      alt={locale === "ko" ? spot.nameKo : spot.nameEn}
+                                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        // KTO 링크 만료 또는 차단 시 안정적인 한국 랜드마크 실사 폴백
+                                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=600&q=80";
+                                      }}
+                                    />
+                                  ) : (
+                                    <div className={`h-full w-full bg-gradient-to-r ${spot.gradientBg} flex items-center justify-center`}>
+                                      <span className="text-3xl">{spot.emoji}</span>
+                                    </div>
+                                  )}
+                                  <div className="absolute top-2 left-2 flex items-center gap-1 z-10">
+                                    <span className="text-[10px] bg-slate-900/80 text-white backdrop-blur-xs font-bold px-2 py-0.5 rounded-md shadow-2xs">
+                                      {spot.tag}
+                                    </span>
+                                    {spot.priceStatus === "FREE" && (
+                                      <span className="text-[10px] bg-emerald-500 text-white font-extrabold px-2 py-0.5 rounded-md shadow-2xs">
+                                        {dict.planner.freeBadge || "무료"}
                                       </span>
-                                      {spot.priceStatus === "FREE" && (
-                                        <span className="text-[9px] bg-emerald-500 text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
-                                          {dict.planner.freeBadge || "무료"}
+                                    )}
+                                    {spot.priceStatus === "PAID" && (
+                                      <span className="text-[10px] bg-rose-500 text-white font-extrabold px-2 py-0.5 rounded-md shadow-2xs">
+                                        유료
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Info & Action Column: 우측 여유로운 정보 영역 */}
+                                <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
+                                  <div className="space-y-1.5">
+                                    {/* Title & Price Header */}
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div>
+                                        <h5 className="text-sm font-extrabold text-[#0f172a] leading-tight">
+                                          {locale === "ko" ? spot.nameKo : spot.nameEn}
+                                        </h5>
+                                        {locale === "ko" && spot.nameEn && spot.nameEn !== spot.nameKo && (
+                                          <span className="text-[11px] text-slate-400 font-medium block mt-0.5">
+                                            {spot.nameEn}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div className="shrink-0 text-right">
+                                        {spot.priceStatus === "FREE" || spot.price === 0 ? (
+                                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            FREE
+                                          </span>
+                                        ) : (
+                                          <span className="text-sm font-black text-[#e25c5c]">
+                                            {formatKrw(spot.price)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-[11.5px] text-slate-500 leading-relaxed line-clamp-2">
+                                      {locale === "ko" ? spot.descKo : spot.descEn}
+                                    </p>
+
+                                    {/* Badges: 지하철 및 운영시간/휴무일 */}
+                                    <div className="flex items-center flex-wrap gap-1.5 pt-0.5">
+                                      {spot.subwayInfo && (
+                                        <div
+                                          className="flex items-center gap-1 text-[10.5px] font-medium text-slate-600 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200/80"
+                                          title={spot.subwayInfo}
+                                        >
+                                          <span className="shrink-0 text-[11px]">🚇</span>
+                                          <span className="truncate max-w-[280px] sm:max-w-[340px]">{spot.subwayInfo}</span>
+                                        </div>
+                                      )}
+                                      {spot.closedDays && (
+                                        <span
+                                          className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border ${
+                                            spot.closedDays.includes("연중무휴")
+                                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                              : "bg-amber-50 text-amber-800 border-amber-200"
+                                          }`}
+                                        >
+                                          ⏱️ {spot.closedDays}
                                         </span>
                                       )}
-                                      {spot.priceStatus === "PAID" && (
-                                        <span className="text-[9px] bg-rose-500 text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
-                                          유료
+                                      {spot.openingHours && (
+                                        <span
+                                          className="text-slate-500 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 truncate max-w-[220px]"
+                                          title={spot.openingHours}
+                                        >
+                                          🕒 {spot.openingHours}
                                         </span>
                                       )}
                                     </div>
                                   </div>
 
-                                  <div>
-                                    <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
-                                      {locale === "ko" ? spot.nameKo : spot.nameEn}
-                                    </h5>
-                                    <p className="text-[10px] text-slate-400 leading-snug line-clamp-2 mt-0.5">
-                                      {locale === "ko" ? spot.descKo : spot.descEn}
-                                    </p>
+                                  {/* Bottom Action Row */}
+                                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-1.5">
+                                      {spot.officialUrl && (
+                                        <a
+                                          href={spot.officialUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors border border-slate-200/80"
+                                          title={locale === "ko" ? "공식 홈페이지 / 비짓서울 안내" : "Official Website"}
+                                        >
+                                          <span>🌐</span>
+                                          <span>{locale === "ko" ? "공식정보" : "Official"}</span>
+                                        </a>
+                                      )}
+                                      {(spot as any).deepLink && (
+                                        <a
+                                          href={(spot as any).deepLink}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors border border-rose-200/80"
+                                          title={locale === "ko" ? "티켓 예매 및 정보 보기" : "Book tickets"}
+                                        >
+                                          <span>🔗</span>
+                                          <span>{locale === "ko" ? "예매/안내" : "Tickets"}</span>
+                                        </a>
+                                      )}
+                                    </div>
 
-                                    {/* 지하철 / 교통 안내 배지 */}
-                                    {spot.subwayInfo && (
-                                      <div
-                                        className="flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100/90 px-2 py-0.5 rounded-md mt-1.5 w-fit line-clamp-1 border border-slate-200/80"
-                                        title={spot.subwayInfo}
-                                      >
-                                        <span className="shrink-0 text-[10px]">🚇</span>
-                                        <span className="truncate">{spot.subwayInfo}</span>
-                                      </div>
-                                    )}
-
-                                    {/* 운영시간 및 휴무일 뱃지 */}
-                                    {(spot.closedDays || spot.openingHours) && (
-                                      <div className="flex items-center flex-wrap gap-1 mt-1 text-[9.5px]">
-                                        {spot.closedDays && (
-                                          <span
-                                            className={`px-1.5 py-0.5 rounded font-bold border ${
-                                              spot.closedDays.includes("연중무휴")
-                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                                : "bg-amber-50 text-amber-800 border-amber-200"
-                                            }`}
-                                          >
-                                            ⏱️ {spot.closedDays}
-                                          </span>
-                                        )}
-                                        {spot.openingHours && (
-                                          <span
-                                            className="text-slate-500 font-medium px-1.5 py-0.5 rounded bg-slate-50 border border-slate-200/60 truncate max-w-[160px]"
-                                            title={spot.openingHours}
-                                          >
-                                            🕒 {spot.openingHours}
-                                          </span>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-1">
-                                  <div>
-                                    {spot.priceStatus === "FREE" || spot.price === 0 ? (
-                                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        FREE
-                                      </span>
-                                    ) : (
-                                      <span className="text-xs font-black text-[#e25c5c]">
-                                        {formatKrw(spot.price)}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex items-center gap-1">
-                                    {spot.officialUrl && (
-                                      <a
-                                        href={spot.officialUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                        title={locale === "ko" ? "공식 홈페이지 / 비짓서울 안내" : "Official Website"}
-                                      >
-                                        🌐
-                                      </a>
-                                    )}
-                                    {(spot as any).deepLink && (
-                                      <a
-                                        href={(spot as any).deepLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="p-1 rounded text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
-                                        title={locale === "ko" ? "티켓 예매 및 정보 보기" : "Book tickets"}
-                                      >
-                                        🔗
-                                      </a>
-                                    )}
                                     <button
                                       type="button"
                                       onClick={() => handleToggleSpot(city, spot.id)}
-                                      className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 ${
+                                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
                                         isSpotSelected
                                           ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
                                           : isIncludedInCourse

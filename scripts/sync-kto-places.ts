@@ -45,7 +45,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Gyeongbokgung Palace (경복궁)',
     desc_en: 'The main royal palace of the Joseon dynasty built in 1395. Free admission for visitors wearing Hanbok. || SUBWAY: 3호선 경복궁역 5번 출구 (도보 3분) / 5호선 광화문역 2번 출구 || HOURS: 09:00 ~ 18:00 (입장마감 17:00, 계절별 상이) || CLOSED: 매주 화요일 휴관 || WEB: https://korean.visitseoul.net/attractions/경복궁/KOP000072',
     price_krw: 3000,
-    image_url: 'https://tong.visitkorea.or.kr/cms/resource/98/3487598_image2_1.jpg',
+    image_url: 'https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/a2d38673-f715-47a7-9ce9-ae2f557820d5/it11',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 2. N서울타워 전망대

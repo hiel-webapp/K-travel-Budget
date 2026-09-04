@@ -14,6 +14,7 @@
     "sync:fares": "npx -y tsx scripts/sync-tago-fares.ts",
     "sync:kto-places": "npx -y tsx scripts/sync-kto-places.ts",
     "sync:seoul-places": "npx -y tsx scripts/fetch-seoul-attractions.ts",
+    "generate:foreigner-spots": "npx -y tsx scripts/generate-foreigner-spots.ts",
     "export:csv": "npx -y tsx scripts/export-fares-csv.ts"
   },
   "dependencies": {

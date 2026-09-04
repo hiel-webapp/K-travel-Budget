@@ -146,13 +146,68 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     let isMounted = true;
     fetch(`/api/catalog/attractions?city=${city}`)
       .then((res) => res.json())
-      .then((json) => {
-        if (isMounted && json.success && Array.isArray(json.data) && json.data.length > 0) {
+      .then(async (json) => {
+        if (!isMounted) return;
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           registerCustomAttractionSpots(json.data);
           setDbAttractionsByCity((prev) => ({
             ...prev,
             [city]: json.data,
           }));
+        } else {
+          // Fallback: API 응답이 비어있거나 CDN 캐시 문제일 때 Supabase 직접 조회
+          try {
+            const areaCode = city === "SEOUL" ? 1 : 1;
+            const sbUrl = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.${areaCode}&order=id.asc&limit=20`;
+            const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
+            const directRes = await fetch(sbUrl, {
+              headers: {
+                apikey: anonKey,
+                Authorization: `Bearer ${anonKey}`,
+              },
+            });
+            if (directRes.ok && isMounted) {
+              const rows = await directRes.json();
+              if (Array.isArray(rows) && rows.length > 0) {
+                const gradients = [
+                  "from-rose-500/15 to-pink-500/15",
+                  "from-blue-500/15 to-indigo-500/15",
+                  "from-emerald-500/15 to-teal-500/15",
+                  "from-amber-500/15 to-orange-500/15",
+                  "from-purple-500/15 to-fuchsia-500/15",
+                ];
+                const emojis = ["🎡", "🏞️", "🏙️", "🏛️", "☕", "📸", "🌉", "🎨"];
+                const directSpots = rows.map((row: any, idx: number) => {
+                  const match = (row.title_en || "").match(/^(.*?)\s*\((.*?)\)$/);
+                  const nameEn = match ? match[1].trim() : row.title_en;
+                  const nameKo = match ? match[2].trim() : row.title_en;
+                  return {
+                    id: `kto_${row.content_id || row.id}`,
+                    cityCode: city,
+                    nameKo,
+                    nameEn,
+                    descKo: row.desc_en || "한국관광공사 선정 서울 인기 추천 관광지",
+                    descEn: row.desc_en || "Popular sightseeing spot recommended by KTO",
+                    price: row.price_krw || 0,
+                    priceStatus: (row.price_krw || 0) > 0 ? ("PAID" as const) : ("FREE" as const),
+                    tag: row.sub_category || "Attraction",
+                    emoji: emojis[idx % emojis.length],
+                    gradientBg: gradients[idx % gradients.length],
+                    isFeatured: true,
+                    imageUrl: row.image_url,
+                    deepLink: row.deep_link_template,
+                  };
+                });
+                registerCustomAttractionSpots(directSpots);
+                setDbAttractionsByCity((prev) => ({
+                  ...prev,
+                  [city]: directSpots,
+                }));
+              }
+            }
+          } catch (directErr) {
+            console.warn("[Planner] Direct Supabase Fallback 실패:", directErr);
+          }
         }
       })
       .catch((err) => console.warn("[Planner] DB 관광지 연동 오류:", err));

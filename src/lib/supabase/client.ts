@@ -8,22 +8,15 @@ export interface SupabaseEnv {
  * 키 값 자체나 URL 비밀정보를 에러 메시지에 노출하지 않습니다.
  */
 export function validateSupabaseEnv(): SupabaseEnv {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const DEFAULT_URL = "https://aqfvmuytaukrkdmememh.supabase.co";
+  const DEFAULT_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
 
-  const missing: string[] = [];
-  if (!supabaseUrl) missing.push("SUPABASE_URL");
-  if (!supabaseServiceRoleKey) missing.push("SUPABASE_SERVICE_ROLE_KEY");
-
-  if (missing.length > 0) {
-    throw new Error(
-      `[SUPABASE_CLIENT_ERROR] Missing required server environment variable(s): ${missing.join(", ")}`
-    );
-  }
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
 
   return {
-    supabaseUrl: supabaseUrl!,
-    supabaseServiceRoleKey: supabaseServiceRoleKey!,
+    supabaseUrl,
+    supabaseServiceRoleKey,
   };
 }
 

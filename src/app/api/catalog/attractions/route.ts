@@ -112,17 +112,29 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({
-      success: true,
-      source: "SUPABASE_DB",
-      count: spots.length,
-      data: spots,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        source: "SUPABASE_DB",
+        count: spots.length,
+        data: spots,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("[API/Catalog] 에러:", error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
+      }
     );
   }
 }

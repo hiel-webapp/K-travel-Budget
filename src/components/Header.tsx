@@ -16,9 +16,12 @@ export default function Header({ locale, dict }: HeaderProps) {
   const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Close mobile menu on route change
+  // Close mobile menu on route change & prevent browser from restoring outdated scroll positions on refresh
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
   }, [pathname]);
 
   const getLanguageLink = (targetLocale: Locale) => {

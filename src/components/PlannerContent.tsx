@@ -115,8 +115,106 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   });
 
-  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "TRANSPORT" | SupportedCity>("ALL");
-  const [activeCategory, setActiveCategory] = useState<BudgetCategory>("ACCOMMODATION");
+  // 탭 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: "ALL")
+  const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "TRANSPORT" | SupportedCity>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlTab = params.get("tab") || params.get("cityTab");
+        if (urlTab) return urlTab as "ALL" | "TRANSPORT" | SupportedCity;
+        const saved = sessionStorage.getItem("hh_planner_selected_city_tab");
+        if (saved) return saved as "ALL" | "TRANSPORT" | SupportedCity;
+      } catch (e) {
+        console.error("Failed to restore city tab:", e);
+      }
+    }
+    return "ALL";
+  });
+
+  // 카테고리 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: "ACCOMMODATION")
+  const [activeCategory, setActiveCategory] = useState<BudgetCategory>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlCat = params.get("cat") || params.get("category");
+        if (urlCat) return urlCat as BudgetCategory;
+        const saved = sessionStorage.getItem("hh_planner_active_category");
+        if (saved) return saved as BudgetCategory;
+      } catch (e) {
+        console.error("Failed to restore active category:", e);
+      }
+    }
+    return "ACCOMMODATION";
+  });
+
+  // 도시 탭 및 카테고리 변경 시 sessionStorage 및 URL 쿼리 파라미터 동기화
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("hh_planner_selected_city_tab", selectedCityTab);
+        const url = new URL(window.location.href);
+        if (selectedCityTab === "ALL") {
+          url.searchParams.delete("tab");
+          url.searchParams.delete("cityTab");
+        } else {
+          url.searchParams.set("tab", selectedCityTab);
+        }
+        window.history.replaceState(null, "", url.toString());
+      } catch (e) {}
+    }
+  }, [selectedCityTab]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("hh_planner_active_category", activeCategory);
+        const url = new URL(window.location.href);
+        if (activeCategory === "ACCOMMODATION") {
+          url.searchParams.delete("cat");
+          url.searchParams.delete("category");
+        } else {
+          url.searchParams.set("cat", activeCategory);
+        }
+        window.history.replaceState(null, "", url.toString());
+      } catch (e) {}
+    }
+  }, [activeCategory]);
+
+  // 유효한 도시인지 검증 (드래프트의 selectedCities에 없는 도시일 경우 안전하게 첫 번째 도시로 복구)
+  useEffect(() => {
+    if (state.status === "ready") {
+      const validCities = state.draft.selectedCities || [];
+      if (
+        selectedCityTab !== "ALL" &&
+        selectedCityTab !== "TRANSPORT" &&
+        !validCities.includes(selectedCityTab as SupportedCity)
+      ) {
+        setSelectedCityTab(validCities[0] || "ALL");
+      }
+    }
+  }, [state, selectedCityTab]);
+
+  // 브라우저 새로고침 시 다른 페이지 하단으로 튀는 현상 방지:
+  // 브라우저의 기본 스크롤 복원을 차단(manual)하고 현재 머무는 페이지의 최상단(0, 0)으로 위치시킴
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "manual";
+      }
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      const t1 = setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      }, 0);
+      const t2 = setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      }, 80);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+  }, []);
+
   const [saveError, setSaveError] = useState<boolean>(false);
 
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);

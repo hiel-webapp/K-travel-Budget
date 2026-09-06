@@ -104,7 +104,7 @@ export const ko = {
 
     recommendedCoursesTitle: "⚡ 추천 관광 코스 프리셋 (복수 선택 가능)",
     recommendedCoursesDesc: "이동 동선을 최소화한 권역별 코스 및 도시 대표 추천 코스입니다.",
-    cityAttractionsTitle: "🎡 도시 대표 관광지",
+    cityAttractionsTitle: "도시 대표 관광지",
     cityAttractionsDesc: "각 도시의 대표 관광지를 확인하고 내 여행 예산에 담아보세요.",
     addToBudget: "+ 예산에 담기",
     inBudget: "✓ 담김",

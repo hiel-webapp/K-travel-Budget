@@ -106,7 +106,7 @@ export const en: Dictionary = {
 
     recommendedCoursesTitle: "⚡ Recommended Tour Course Presets (Multi-select)",
     recommendedCoursesDesc: "Route-optimized course presets minimizing travel distance and city highlights.",
-    cityAttractionsTitle: "🎡 Signature City Attractions",
+    cityAttractionsTitle: "City Attractions",
     cityAttractionsDesc: "Explore top attractions for each city and add them to your trip budget.",
     addToBudget: "+ Add to Budget",
     inBudget: "✓ Added",

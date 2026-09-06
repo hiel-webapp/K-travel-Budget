@@ -2945,18 +2945,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* 2. Signature City Attractions Section (3x2 Desktop, 2x3 Mobile Grid) */}
                       <div className="space-y-3 pt-3 border-t border-slate-100">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                              {dict.planner.cityAttractionsTitle || "🎡 도시 대표 관광지"}
-                            </span>
-                            {dbSpots && dbSpots.length > 0 && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded-full font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                📡 DB 실시간 연동
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[10px] text-slate-400 font-medium">
-                            {locale === "ko" ? `전체 ${spotsForCity.length}개 항목 중` : `Showing ${displayedSpots.length} of ${spotsForCity.length}`}
+                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                            {locale === "ko" ? "도시 대표 관광지" : (dict.planner.cityAttractionsTitle || "City Attractions")}
                           </span>
                         </div>
 

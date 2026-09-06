@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseFetch } from "../../../../lib/supabase/client";
 import { SupportedCity } from "../../../../lib/trip-domain";
-import { AttractionSpot, parseAttractionMetadata } from "../../../../features/budget/catalog/attraction-spots";
+import {
+  AttractionSpot,
+  parseAttractionMetadata,
+  SEOUL_LANDMARK_BILINGUAL_MAP,
+} from "../../../../features/budget/catalog/attraction-spots";
 
 const CITY_TO_AREA_CODE: Record<string, number> = {
   SEOUL: 1,
@@ -103,7 +107,10 @@ export async function GET(request: NextRequest) {
 
     // 2. AttractionSpot 규격으로 변환
     const spots: AttractionSpot[] = dbRows.map((row, idx) => {
-      const { nameKo, nameEn } = parseBilingualTitle(row.title_en);
+      const parsedTitle = parseBilingualTitle(row.title_en);
+      const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[row.content_id];
+      const nameKo = bilingual?.nameKo || parsedTitle.nameKo;
+      const nameEn = bilingual?.nameEn || parsedTitle.nameEn;
       const isPaid = (row.price_krw || 0) > 0;
       const meta = parseAttractionMetadata(row.desc_en || "");
 
@@ -122,8 +129,8 @@ export async function GET(request: NextRequest) {
         cityCode: city as SupportedCity,
         nameKo,
         nameEn,
-        descKo: meta.cleanDesc || "한국관광공사 선정 추천 명소",
-        descEn: meta.cleanDesc || `Popular sightseeing spot in ${city}`,
+        descKo: bilingual?.descKo || "한국관광공사 선정 서울 대표 랜드마크",
+        descEn: bilingual?.descEn || meta.cleanDesc || `Popular sightseeing spot in ${city}`,
         price: row.price_krw || 0,
         priceStatus: isPaid ? "PAID" : "FREE",
         tag: row.sub_category || "Attraction",
@@ -132,9 +139,15 @@ export async function GET(request: NextRequest) {
         isFeatured: true,
         imageUrl: row.image_url,
         deepLink: row.deep_link_template,
-        subwayInfo: meta.subwayInfo,
-        openingHours: meta.openingHours,
-        closedDays: meta.closedDays,
+        subwayInfo: meta.subwayInfo || bilingual?.subwayKo,
+        subwayInfoKo: bilingual?.subwayKo || meta.subwayInfo,
+        subwayInfoEn: bilingual?.subwayEn || meta.subwayInfo,
+        openingHours: meta.openingHours || bilingual?.hoursKo,
+        openingHoursKo: bilingual?.hoursKo || meta.openingHours,
+        openingHoursEn: bilingual?.hoursEn || meta.openingHours,
+        closedDays: meta.closedDays || bilingual?.closedKo,
+        closedDaysKo: bilingual?.closedKo || meta.closedDays,
+        closedDaysEn: bilingual?.closedEn || meta.closedDays,
         officialUrl: meta.officialUrl,
       };
     });

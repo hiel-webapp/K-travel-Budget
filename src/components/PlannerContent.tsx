@@ -231,6 +231,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
   const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
+  const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
 
   // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태
   const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]>>({});
@@ -2950,8 +2951,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </span>
                         </div>
 
-                        {/* Grid: 가로형 와이드 카드 (Horizontal List Cards) */}
-                        <div className="grid grid-cols-1 gap-3.5">
+                        {/* Grid: 1열 2개 관광정보 카드 (1 Row 2 Columns Grid) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {displayedSpots.map((rawSpot) => {
                             const spotKey = rawSpot.id.replace(/^kto_/, "");
                             const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
@@ -2981,17 +2982,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             return (
                               <div
                                 key={rawSpot.id}
-                                className={`p-3 sm:p-3.5 rounded-2xl border bg-white flex flex-col sm:flex-row gap-3.5 items-stretch shadow-2xs hover:shadow-xs transition-all ${
+                                className={`rounded-2xl border bg-white flex flex-col overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 ${
                                   isAdded ? "border-rose-300 ring-1 ring-rose-200 bg-rose-50/10" : "border-slate-200 hover:border-slate-300"
                                 }`}
                               >
-                                {/* Visual Badge: 좌측 고화질 실사 썸네일 (태그/배지 없이 이미지만 깔끔하게 표출) */}
-                                <div className="relative w-full sm:w-44 md:w-48 h-40 sm:h-auto sm:min-h-[140px] shrink-0 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center">
+                                {/* Photo Container: 클릭 시 상세 팝업 오픈 */}
+                                <div
+                                  onClick={() => setPreviewSpot(rawSpot)}
+                                  className="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden cursor-pointer group"
+                                  title={locale === "ko" ? "클릭하여 사진 및 상세정보 크게 보기" : "Click to view photo & details"}
+                                >
                                   {hasImage ? (
                                     <img
                                       src={(rawSpot as any).imageUrl}
                                       alt={name}
-                                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                       loading="lazy"
                                       onError={(e) => {
                                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=600&q=80";
@@ -2999,53 +3004,62 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     />
                                   ) : (
                                     <div className={`h-full w-full bg-gradient-to-r ${rawSpot.gradientBg} flex items-center justify-center`}>
-                                      <span className="text-3xl">{rawSpot.emoji}</span>
+                                      <span className="text-4xl">{rawSpot.emoji}</span>
                                     </div>
                                   )}
+
+                                  {/* Hover overlay hint */}
+                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px]">
+                                    <span className="text-base">🔍</span>
+                                    <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
+                                  </div>
+
+                                  {/* Price Tag Pill on Image */}
+                                  <div className="absolute top-3 right-3 z-10">
+                                    {rawSpot.priceStatus === "FREE" || rawSpot.price === 0 ? (
+                                      <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500/90 text-white backdrop-blur-md shadow-xs">
+                                        {locale === "ko" ? "무료" : "FREE"}
+                                      </span>
+                                    ) : (
+                                      <span className="px-2.5 py-1 rounded-full text-xs font-black bg-slate-900/85 text-white backdrop-blur-md shadow-xs">
+                                        {formatKrw(rawSpot.price)}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
 
-                                {/* Info & Action Column: 우측 여유로운 정보 영역 */}
-                                <div className="flex-1 flex flex-col justify-between min-w-0 py-0.5">
-                                  <div className="space-y-1.5">
-                                    {/* Title & Price Header (선택된 언어만 단일 표출) */}
+                                {/* Body Information */}
+                                <div className="p-4 flex-1 flex flex-col justify-between gap-3">
+                                  <div className="space-y-2">
+                                    {/* Title */}
                                     <div className="flex items-start justify-between gap-2">
-                                      <div>
-                                        <h5 className="text-sm font-extrabold text-[#0f172a] leading-tight">
-                                          {name}
-                                        </h5>
-                                      </div>
-                                      <div className="shrink-0 text-right">
-                                        {rawSpot.priceStatus === "FREE" || rawSpot.price === 0 ? (
-                                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            {locale === "ko" ? "무료" : "FREE"}
-                                          </span>
-                                        ) : (
-                                          <span className="text-sm font-black text-[#e25c5c]">
-                                            {formatKrw(rawSpot.price)}
-                                          </span>
-                                        )}
-                                      </div>
+                                      <h5
+                                        onClick={() => setPreviewSpot(rawSpot)}
+                                        className="text-[15px] font-extrabold text-[#0f172a] leading-snug cursor-pointer hover:text-indigo-600 transition-colors"
+                                      >
+                                        {name}
+                                      </h5>
                                     </div>
 
-                                    {/* Description (선택된 언어로만 표출) */}
-                                    <p className="text-[11.5px] text-slate-500 leading-relaxed line-clamp-2">
+                                    {/* Description */}
+                                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
                                       {desc}
                                     </p>
 
-                                    {/* Badges: 지하철 및 운영시간/휴무일 (선택된 언어로만 표출) */}
-                                    <div className="flex items-center flex-wrap gap-1.5 pt-0.5">
+                                    {/* Badges: Subway, Closed, Hours */}
+                                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
                                       {subway && (
                                         <div
-                                          className="flex items-center gap-1 text-[10.5px] font-medium text-slate-600 bg-slate-100/90 px-2 py-0.5 rounded-md border border-slate-200/80"
+                                          className="flex items-center gap-1 text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/70 truncate max-w-full"
                                           title={subway}
                                         >
-                                          <span className="shrink-0 text-[11px]">🚇</span>
-                                          <span className="truncate max-w-[280px] sm:max-w-[340px]">{subway}</span>
+                                          <span className="shrink-0">🚇</span>
+                                          <span className="truncate">{subway}</span>
                                         </div>
                                       )}
                                       {closed && (
                                         <span
-                                          className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border ${
+                                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${
                                             closed.includes("연중무휴") || closed.toLowerCase().includes("year-round")
                                               ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                               : "bg-amber-50 text-amber-800 border-amber-200"
@@ -3056,7 +3070,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       )}
                                       {hours && (
                                         <span
-                                          className="text-slate-500 text-[10.5px] font-medium px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 truncate max-w-[220px]"
+                                          className="text-slate-500 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 truncate max-w-[200px]"
                                           title={hours}
                                         >
                                           🕒 {hours}
@@ -3065,22 +3079,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     </div>
                                   </div>
 
-                                  {/* Bottom Action Row (예매 링크는 최종 리포트로 이관, 공식정보 링크 및 담기 버튼만 유지) */}
-                                  <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-1.5">
-                                      {rawSpot.officialUrl && (
-                                        <a
-                                          href={rawSpot.officialUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-colors border border-slate-200/80"
-                                          title={locale === "ko" ? "공식 홈페이지 / 비짓서울 안내" : "Official Website"}
-                                        >
-                                          <span>🌐</span>
-                                          <span>{locale === "ko" ? "공식정보" : "Official"}</span>
-                                        </a>
-                                      )}
-                                    </div>
+                                  {/* Action Buttons */}
+                                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setPreviewSpot(rawSpot)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer"
+                                    >
+                                      <span>🔍</span>
+                                      <span>{locale === "ko" ? "상세보기" : "Details"}</span>
+                                    </button>
 
                                     <button
                                       type="button"
@@ -3097,7 +3105,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         ? (locale === "ko" ? "✓ 담김" : "✓ Added")
                                         : isIncludedInCourse
                                         ? (locale === "ko" ? "코스 포함" : "In Course")
-                                        : (locale === "ko" ? "+ 예산에 담기" : "+ Add")}
+                                        : (locale === "ko" ? "+ 예산에 담기" : "+ Add to Budget")}
                                     </button>
                                   </div>
                                 </div>
@@ -3913,6 +3921,194 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           </div>
         </div>
       )}
+
+      {/* 4. Large Attraction Image & Detail Modal */}
+      {previewSpot && (() => {
+        const spotKey = previewSpot.id.replace(/^kto_/, "");
+        const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+        const name = locale === "ko" ? (bilingual?.nameKo || previewSpot.nameKo) : (bilingual?.nameEn || previewSpot.nameEn);
+        const desc = locale === "ko"
+          ? (bilingual?.descKo || previewSpot.descKo || previewSpot.descEn)
+          : (bilingual?.descEn || previewSpot.descEn || previewSpot.descKo);
+        const subway = locale === "ko"
+          ? (bilingual?.subwayKo || previewSpot.subwayInfoKo || previewSpot.subwayInfo)
+          : (bilingual?.subwayEn || previewSpot.subwayInfoEn || previewSpot.subwayInfo);
+        const hours = locale === "ko"
+          ? (bilingual?.hoursKo || previewSpot.openingHoursKo || previewSpot.openingHours)
+          : (bilingual?.hoursEn || previewSpot.openingHoursEn || previewSpot.openingHours);
+        const closed = locale === "ko"
+          ? (bilingual?.closedKo || previewSpot.closedDaysKo || previewSpot.closedDays)
+          : (bilingual?.closedEn || previewSpot.closedDaysEn || previewSpot.closedDays);
+
+        const spotCity = previewSpot.cityCode || selectedCityTab || "seoul";
+        const citySel = preferences.attractionSelections?.[spotCity] || { selectedCourseIds: [], individualSpotIds: [] };
+        const isSpotSelected = (citySel.individualSpotIds || []).includes(previewSpot.id);
+        const isIncludedInCourse = (citySel.selectedCourseIds || []).some((cid) => {
+          const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+          return course?.spotIds.includes(previewSpot.id);
+        });
+        const hasImage = (previewSpot as any).imageUrl && (previewSpot as any).imageUrl !== "/assets/default-place.jpg";
+
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setPreviewSpot(null)}
+          >
+            <div
+              className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Large Image Header */}
+              <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] bg-slate-950 overflow-hidden shrink-0">
+                {hasImage ? (
+                  <img
+                    src={(previewSpot as any).imageUrl}
+                    alt={name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80";
+                    }}
+                  />
+                ) : (
+                  <div className={`h-full w-full bg-gradient-to-r ${previewSpot.gradientBg} flex items-center justify-center`}>
+                    <span className="text-6xl">{previewSpot.emoji}</span>
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setPreviewSpot(null)}
+                  className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer text-lg font-bold z-10"
+                  title={locale === "ko" ? "닫기" : "Close"}
+                >
+                  ✕
+                </button>
+
+                {/* Price badge */}
+                <div className="absolute top-4 left-4 z-10">
+                  {previewSpot.priceStatus === "FREE" || previewSpot.price === 0 ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-white shadow-md">
+                      {locale === "ko" ? "무료 입장" : "Free Admission"}
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-900/90 text-white shadow-md backdrop-blur-md">
+                      {formatKrw(previewSpot.price)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Title on bottom of image */}
+                <div className="absolute bottom-4 left-5 right-5 text-white z-10">
+                  <h3 className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-md">
+                    {name}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Modal Body Content (Scrollable) */}
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+                {/* Detailed Description */}
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    {locale === "ko" ? "관광지 소개" : "About"}
+                  </h4>
+                  <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                    {desc}
+                  </p>
+                </div>
+
+                {/* Key Visitor Info Box */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  {subway && (
+                    <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                      <span className="text-base shrink-0">🚇</span>
+                      <div>
+                        <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                          {locale === "ko" ? "지하철 / 교통" : "Transit"}
+                        </span>
+                        <span className="text-slate-600">{subway}</span>
+                      </div>
+                    </div>
+                  )}
+                  {closed && (
+                    <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                      <span className="text-base shrink-0">⏱️</span>
+                      <div>
+                        <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                          {locale === "ko" ? "휴무일" : "Closed Days"}
+                        </span>
+                        <span className="text-slate-600">{closed}</span>
+                      </div>
+                    </div>
+                  )}
+                  {hours && (
+                    <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 sm:col-span-2">
+                      <span className="text-base shrink-0">🕒</span>
+                      <div>
+                        <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                          {locale === "ko" ? "운영시간" : "Opening Hours"}
+                        </span>
+                        <span className="text-slate-600">{hours}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3 shrink-0">
+                <div>
+                  {previewSpot.officialUrl ? (
+                    <a
+                      href={previewSpot.officialUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors"
+                    >
+                      <span>🌐</span>
+                      <span>{locale === "ko" ? "공식 홈페이지 방문" : "Official Website"}</span>
+                    </a>
+                  ) : <div />}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewSpot(null)}
+                    className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-200/80 transition-colors cursor-pointer"
+                  >
+                    {locale === "ko" ? "닫기" : "Close"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleToggleSpot(spotCity, previewSpot.id);
+                    }}
+                    className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shadow-xs ${
+                      isSpotSelected
+                        ? "bg-rose-500 text-white hover:bg-rose-600"
+                        : isIncludedInCourse
+                        ? "bg-slate-100 text-slate-500 cursor-default"
+                        : "bg-[#0f172a] text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    {isSpotSelected
+                      ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
+                      : isIncludedInCourse
+                      ? (locale === "ko" ? "코스에 포함됨" : "Included in Course")
+                      : (locale === "ko" ? "+ 내 예산에 담기" : "+ Add to My Budget")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
 
       {/* Budget Tier Switch Confirmation Modal */}
       <BudgetTierModal

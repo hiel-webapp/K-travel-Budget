@@ -100,6 +100,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       if (selectedCategory !== "ALL") params.set("category", selectedCategory);
       if (debouncedQuery.trim()) params.set("query", debouncedQuery.trim());
       params.set("locale", locale);
+      params.set("limit", "100");
 
       const res = await fetch(`/api/places?${params.toString()}`);
       const json = await res.json();

@@ -2,30 +2,6 @@ import { PlaceItem } from "./types";
 import { SEOUL_LANDMARK_BILINGUAL_MAP } from "../../features/budget/catalog/attraction-spots";
 import { PlaceCategory } from "../kto/types";
 
-const SEOUL_LANDMARK_FALLBACK_IMAGES: Record<string, string> = {
-  seoul_gyeongbokgung: "https://images.unsplash.com/photo-1538485399081-7191377e8241?w=800&auto=format&fit=crop",
-  seoul_nseoultower: "https://images.unsplash.com/photo-1541014741259-de529411b96a?w=800&auto=format&fit=crop",
-  seoul_lotteworldtower: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&auto=format&fit=crop",
-  seoul_changdeokgung: "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&auto=format&fit=crop",
-  seoul_deoksugung: "https://images.unsplash.com/photo-1548115184-bc6544d06a58?w=800&auto=format&fit=crop",
-  seoul_ddp: "https://images.unsplash.com/photo-1578637387939-43c525550085?w=800&auto=format&fit=crop",
-  seoul_bukchon: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
-  seoul_museum_korea: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=800&auto=format&fit=crop",
-  seoul_coex_starfield_library: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&auto=format&fit=crop",
-  seoul_changgyeonggung: "https://images.unsplash.com/photo-1538485399081-7191377e8241?w=800&auto=format&fit=crop",
-  seoul_jongmyo: "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&auto=format&fit=crop",
-  seoul_namsangol: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
-  seoul_gwanghwamun_square: "https://images.unsplash.com/photo-1578637387939-43c525550085?w=800&auto=format&fit=crop",
-  seoul_cheonggyecheon: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop",
-  seoul_hongdae: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop",
-  seoul_banpo_rainbow_fountain: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop",
-  seoul_seongsu: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&auto=format&fit=crop",
-  seoul_gwangjang: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop",
-  seoul_namdaemun: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop",
-  seoul_insadong_ssamzigil: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&auto=format&fit=crop",
-  seoul_myeongdong_shopping: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=800&auto=format&fit=crop",
-};
-
 // 30개 서울 대표 관광지 (명소, 자연, 엔터, 쇼핑 4대 분류 체계)
 export const SEOUL_30_REPRESENTATIVE_PLACES: PlaceItem[] = Object.entries(SEOUL_LANDMARK_BILINGUAL_MAP)
   .filter(([key]) => key !== "seoul_childrens_grand_park") // seoul_lotteworld와 중복 방지
@@ -37,7 +13,7 @@ export const SEOUL_30_REPRESENTATIVE_PLACES: PlaceItem[] = Object.entries(SEOUL_
     else if (cat === "엔터") category = "ENTERTAINMENT";
     else if (cat === "쇼핑") category = "SHOPPING";
 
-    const repImg = item.imageUrl || SEOUL_LANDMARK_FALLBACK_IMAGES[key] || "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80";
+    const repImg = item.imageUrl || "/assets/gyeongbokgung-main.jpg";
 
     return {
       id: `seoul_rep_${key}`,

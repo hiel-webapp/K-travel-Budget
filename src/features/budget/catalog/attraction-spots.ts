@@ -60,6 +60,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "09:00 ~ 18:00 (Last entry 17:00)",
     closedKo: "매주 화요일 휴관",
     closedEn: "Closed on Tuesdays",
+    imageUrl: "/assets/gyeongbokgung-main.jpg",
   },
   seoul_nseoultower: {
     categoryType: "명소",
@@ -73,6 +74,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 22:30 (Weekends until 23:00)",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "/assets/n-seoul-tower.jpg",
   },
   seoul_lotteworldtower: {
     categoryType: "명소",
@@ -86,6 +88,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:30 ~ 22:00 (Fri/Sat until 23:00)",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/66/3092766_image2_1.jpg",
   },
   seoul_changdeokgung: {
     categoryType: "명소",
@@ -99,6 +102,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "09:00 ~ 18:00 (Secret Garden reservation recommended)",
     closedKo: "매주 월요일 휴관",
     closedEn: "Closed on Mondays",
+    imageUrl: "/assets/changdeokgung-hall.jpg",
   },
   seoul_deoksugung: {
     categoryType: "명소",
@@ -112,6 +116,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "09:00 ~ 21:00 (Night opening, last entry 20:00)",
     closedKo: "매주 월요일 휴관 (돌담길 24시간)",
     closedEn: "Closed on Mondays (Stonewall Path open 24h)",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2658350_image2_1.jpg",
   },
   seoul_ddp: {
     categoryType: "명소",
@@ -125,6 +130,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 20:00 (Outdoor plaza open 24 hours)",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/60/4105560_image2_1.jpg",
   },
   seoul_bukchon: {
     categoryType: "명소",
@@ -138,6 +144,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 17:00 (Recommended visiting hours)",
     closedKo: "일요일 골목길 관광 자제",
     closedEn: "Visiting restricted on Sundays",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/04/3304404_image2_1.jpg",
   },
   seoul_seongsu: {
     categoryType: "쇼핑",
@@ -151,6 +158,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "11:00 ~ 21:00 (Varies by store)",
     closedKo: "연중무휴 (매장별 상이)",
     closedEn: "Open year-round (Varies by store)",
+    imageUrl: "/assets/seongsu-street.jpg",
   },
   seoul_hongdae: {
     categoryType: "엔터",
@@ -164,6 +172,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "Open 24 hours (Busking peaks 18:00~22:00)",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "/assets/hongdae-street.jpg",
   },
   seoul_gwangjang: {
     categoryType: "쇼핑",
@@ -177,6 +186,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "09:00 ~ 23:00 (Food alley open daily)",
     closedKo: "일요일 일부 일반점포 휴무 (먹자골목 연중무휴)",
     closedEn: "Sundays partially closed (Food stalls open 365 days)",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/81/2668981_image2_1.jpg",
   },
   seoul_namdaemun: {
     categoryType: "쇼핑",
@@ -190,6 +200,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "24 hours (Retail 09:00 ~ 18:00)",
     closedKo: "매주 일요일 휴무 (일부 먹거리존 제외)",
     closedEn: "Closed on Sundays (Food zones open)",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/67/2612867_image2_1.jpg",
   },
   seoul_yeouido_hangang: {
     categoryType: "자연",
@@ -217,6 +228,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 18:00 (Wed/Sat until 21:00)",
     closedKo: "1월 1일, 설날, 추석 당일 휴관",
     closedEn: "Closed Jan 1, Lunar New Year, Chuseok",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/12/3495012_image2_1.jpg",
   },
   seoul_cheonggyecheon: {
     categoryType: "자연",
@@ -230,6 +242,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "Open 24 hours",
     closedKo: "연중무휴 (기상악화 시 통제)",
     closedEn: "Open year-round (Controlled during heavy rain)",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/90/2544890_image2_1.jpg",
   },
   seoul_coex_starfield_library: {
     categoryType: "명소",
@@ -243,6 +256,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:30 ~ 22:00",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/29/3584529_image2_1.jpg",
   },
   seoul_banpo_rainbow_fountain: {
     categoryType: "엔터",
@@ -256,6 +270,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "Shows: 12:00, 19:30, 20:00, 20:30, 21:00 (Apr-Oct)",
     closedKo: "동절기(11~3월) 및 우천 시 미가동",
     closedEn: "Suspended in winter (Nov-Mar) and rain",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/46/3515046_image2_1.jpg",
   },
   seoul_seokchonhosu_lake: {
     categoryType: "자연",
@@ -339,6 +354,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "09:00 ~ 21:00 (Night opening, last entry 20:00)",
     closedKo: "매주 월요일 휴관",
     closedEn: "Closed on Mondays",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/96/3384896_image2_1.JPG",
   },
   seoul_jongmyo: {
     categoryType: "명소",
@@ -352,6 +368,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "09:00 ~ 18:00 (Timed tours on weekdays, free on weekends)",
     closedKo: "매주 화요일 휴관",
     closedEn: "Closed on Tuesdays",
+    imageUrl: "/assets/jongmyo-main.jpg",
   },
   seoul_namsangol: {
     categoryType: "명소",
@@ -365,6 +382,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "09:00 ~ 21:00",
     closedKo: "매주 월요일 휴관",
     closedEn: "Closed on Mondays",
+    imageUrl: "/assets/namsangol-hanok.jpg",
   },
   seoul_insadong_ssamzigil: {
     categoryType: "쇼핑",
@@ -378,6 +396,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:30 ~ 20:30",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "/assets/insadong-ssamzigil.jpg",
   },
   seoul_63square: {
     categoryType: "엔터",
@@ -405,6 +424,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 22:00 (Street food stalls 16:00~23:00)",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "/assets/myeongdong-street.jpg",
   },
   seoul_mmca_contemporary: {
     categoryType: "명소",
@@ -460,6 +480,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "Open 24 hours",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "/assets/gwanghwamun-square.jpg",
   },
 };
 

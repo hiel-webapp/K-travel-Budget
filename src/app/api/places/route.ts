@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     const locale: "ko" | "en" = localeParam === "en" ? "en" : "ko";
     const page = isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
-    const limit = isNaN(limitParam) || limitParam < 1 ? 20 : Math.min(100, limitParam);
+    const limit = isNaN(limitParam) || limitParam < 1 ? 100 : Math.min(100, limitParam);
 
     // 2. Places Service를 통한 데이터 조회
     const service = getPlacesService();

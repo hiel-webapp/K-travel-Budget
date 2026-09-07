@@ -16,6 +16,9 @@ export class PlacesService implements IPlacesService {
   async getPlaces(options: PlaceFilterOptions = {}): Promise<PlaceItem[]> {
     const { city = "ALL", category = "ALL", query = "", locale = "ko" } = options;
 
+    // 플래너와 일치하는 서울 대표 30개 관광지 (필터 조건 매칭)
+    const seoulRepPlaces = listPlaces(options).filter((p) => p.id.startsWith("seoul_rep_"));
+
     // 1단계: Supabase DB 조회 시도
     try {
       if (process.env.SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -74,9 +77,15 @@ export class PlacesService implements IPlacesService {
             };
           });
 
+          // 서울 대표 명소와 DB 결과 중복 없이 병합 (서울 대표 명소 우선 노출)
+          const merged = [
+            ...seoulRepPlaces,
+            ...items.filter((it) => !seoulRepPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
+          ];
+
           if (query.trim().length > 0) {
             const q = query.trim().toLowerCase();
-            return items.filter((item) => {
+            return merged.filter((item) => {
               const trans = item.translations[locale] || item.translations.ko;
               return (
                 trans.title.toLowerCase().includes(q) ||
@@ -86,7 +95,7 @@ export class PlacesService implements IPlacesService {
             });
           }
 
-          return items;
+          return merged;
         }
       }
     } catch {
@@ -98,7 +107,11 @@ export class PlacesService implements IPlacesService {
       try {
         const liveKtoPlaces = await this.fetchLiveKtoPlaces(options);
         if (liveKtoPlaces.length > 0) {
-          return liveKtoPlaces;
+          const merged = [
+            ...seoulRepPlaces,
+            ...liveKtoPlaces.filter((it) => !seoulRepPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
+          ];
+          return merged;
         }
       } catch {
         // KTO API 호출 실패 시 3단계 Fallback 진행

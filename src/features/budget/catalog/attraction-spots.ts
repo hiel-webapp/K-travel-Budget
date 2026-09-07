@@ -248,7 +248,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "Open 24 hours",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/71/3500871_image2_1.jpg",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/686ee7a7-f3ea-4955-9beb-2744ca9f942b/it11",
   },
   seoul_some_sevit: {
     nameKo: "세빛섬",
@@ -287,7 +287,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 21:00 (Fri/Sat until 22:00)",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
-    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=78a00ac3-ad3c-4637-8629-48aefb22a79b",
+    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=8da3ed81-4ae3-40f6-8fad-9cfb67aad3c5",
   },
   seoul_lotteworld: {
     nameKo: "롯데월드 어드벤처",
@@ -300,7 +300,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 21:00 (Fri/Sat until 22:00)",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
-    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=78a00ac3-ad3c-4637-8629-48aefb22a79b",
+    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=8da3ed81-4ae3-40f6-8fad-9cfb67aad3c5",
   },
   seoul_changgyeonggung: {
     nameKo: "창경궁 & 대온실",
@@ -361,7 +361,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 22:00",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
-    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=106368d5-188b-4b10-85f8-41ec26a8019b",
+    imageUrl: "https://korean.visitseoul.net/comm/getImage?srvcId=MEDIA&parentSn=68046&fileTy=MEDIA&fileNo=1&thumbTy=L",
   },
   seoul_myeongdong_shopping: {
     nameKo: "명동 쇼핑거리",

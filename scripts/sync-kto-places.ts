@@ -253,7 +253,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Seokchon Lake (석촌호수)',
     desc_en: 'Scenic twin-lake park wrapping around Lotte World Magic Island and Lotte World Tower, renowned for serene walking trails and cherry blossoms. || SUBWAY: 2·8호선 잠실역 2, 3번 출구 (도보 5분) / 8·9호선 석촌역 1, 8번 출구 || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net',
     price_krw: 0,
-    image_url: 'https://tong.visitkorea.or.kr/cms/resource/71/3500871_image2_1.jpg',
+    image_url: 'https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/686ee7a7-f3ea-4955-9beb-2744ca9f942b/it11',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 18. 세빛섬
@@ -292,7 +292,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Lotte World Adventure (롯데월드 어드벤처)',
     desc_en: 'World-class theme park featuring massive indoor Adventure zones and outdoor Magic Island on Seokchon Lake. || SUBWAY: 2·8호선 잠실역 3, 4번 출구 지하 직결 || HOURS: 10:00 ~ 21:00 (금·토 22:00) || CLOSED: 연중무휴 || WEB: https://adventure.lotteworld.com',
     price_krw: 62000,
-    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=78a00ac3-ad3c-4637-8629-48aefb22a79b',
+    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=8da3ed81-4ae3-40f6-8fad-9cfb67aad3c5',
     deep_link_template: 'https://www.klook.com/activity/253-lotte-world-seoul/?spm=HypeHeritage',
   },
   // 21. 창경궁 & 대온실 [신규]
@@ -357,7 +357,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: '63 Square & Sky Observatory (63스퀘어 & 63전망대)',
     desc_en: 'Yeouido\'s golden skyscraper landmark boasting art exhibitions and sweeping sunset vistas across the Han River. || SUBWAY: 9호선 샛강역 3번 출구 / 5호선 여의나루역 1번 출구 (버스 연계) || HOURS: 10:00 ~ 22:00 || CLOSED: 연중무휴 || WEB: https://english.visitseoul.net/attractions/63-Square/ENP000210',
     price_krw: 15000,
-    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=106368d5-188b-4b10-85f8-41ec26a8019b',
+    image_url: 'https://korean.visitseoul.net/comm/getImage?srvcId=MEDIA&parentSn=68046&fileTy=MEDIA&fileNo=1&thumbTy=L',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 26. 명동 쇼핑거리 [신규]

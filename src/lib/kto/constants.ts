@@ -43,11 +43,13 @@ export const KTO_CONTENT_TYPE = {
     ATTRACTION: "12",
     CULTURE: "14",
     ACCOMMODATION: "32",
+    SHOPPING: "38",
     RESTAURANT: "39",
   },
   ENG: {
     ATTRACTION: "76",
     CULTURE: "78",
+    SHOPPING: "79",
     ACCOMMODATION: "32",
     RESTAURANT: "39",
   },

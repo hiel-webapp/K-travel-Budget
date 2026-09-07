@@ -51,6 +51,10 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     paramCategory === "ACCOMMODATION" ||
       paramCategory === "RESTAURANT" ||
       paramCategory === "CAFE" ||
+      paramCategory === "LANDMARK" ||
+      paramCategory === "NATURE" ||
+      paramCategory === "ENTERTAINMENT" ||
+      paramCategory === "SHOPPING" ||
       paramCategory === "ATTRACTION" ||
       paramCategory === "CULTURE"
       ? paramCategory
@@ -60,6 +64,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   const [debouncedQuery, setDebouncedQuery] = useState<string>(paramQuery);
   const [showSavedOnly, setShowSavedOnly] = useState<boolean>(paramSavedOnly);
   const [expandedPlaceId, setExpandedPlaceId] = useState<string | null>(null);
+  const [previewPlace, setPreviewPlace] = useState<PlaceItem | null>(null);
 
   // Places fetched from API
   const [places, setPlaces] = useState<PlaceItem[]>([]);
@@ -171,13 +176,15 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     return places.filter((p) => savedPlaceIds.includes(p.id) || savedPlaceIds.includes(p.contentId));
   }, [places, showSavedOnly, savedPlaceIds]);
 
-  const categories: Array<{ id: PlaceCategory | "ALL"; label: string }> = [
-    { id: "ALL", label: dict.places.allCategories },
-    { id: "ACCOMMODATION", label: dict.places.categoryAccommodation },
-    { id: "RESTAURANT", label: dict.places.categoryRestaurant },
-    { id: "CAFE", label: dict.places.categoryCafe },
-    { id: "ATTRACTION", label: dict.places.categoryAttraction },
-    { id: "CULTURE", label: dict.places.categoryCulture },
+  const categories: Array<{ id: PlaceCategory | "ALL"; label: string; icon?: string }> = [
+    { id: "ALL", label: dict.places.allCategories, icon: "" },
+    { id: "ACCOMMODATION", label: dict.places.categoryAccommodation || "숙소", icon: "🏨" },
+    { id: "RESTAURANT", label: dict.places.categoryRestaurant || "음식점", icon: "🍽️" },
+    { id: "CAFE", label: dict.places.categoryCafe || "카페", icon: "☕" },
+    { id: "LANDMARK", label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️" },
+    { id: "NATURE", label: (dict.places as any).categoryNature || "자연", icon: "🌿" },
+    { id: "ENTERTAINMENT", label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡" },
+    { id: "SHOPPING", label: (dict.places as any).categoryShopping || "쇼핑", icon: "🛍️" },
   ];
 
   return (
@@ -310,13 +317,14 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                   if (showSavedOnly) setShowSavedOnly(false);
                   handleCategoryChange(c.id);
                 }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 ${
                   isSelected
-                    ? "bg-[#e25c5c] text-white"
+                    ? "bg-[#e25c5c] text-white shadow-xs"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {c.label}
+                {c.icon && <span>{c.icon}</span>}
+                <span>{c.label}</span>
               </button>
             );
           })}
@@ -398,6 +406,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 dict={dict}
                 isSaved={isSaved}
                 onToggleSave={() => handleToggleSavePlace(place.id || place.contentId)}
+                onPreview={() => setPreviewPlace(place)}
                 isExpanded={expandedPlaceId === (place.id || place.contentId)}
                 onToggleExpand={() =>
                   setExpandedPlaceId(
@@ -407,6 +416,208 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
               />
             );
           })}
+        </div>
+      )}
+
+      {/* City Attraction Large Detail Modal (플래너와 동일한 대형 팝업창) */}
+      {previewPlace && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setPreviewPlace(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Image Header */}
+            <div className="relative w-full aspect-[16/10] bg-slate-900 shrink-0">
+              {previewPlace.repImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewPlace.repImageUrl}
+                  alt={previewPlace.translations[locale]?.title || previewPlace.translations.ko.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-white text-4xl">
+                  🏛️
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setPreviewPlace(null)}
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer text-lg font-bold z-10"
+                title={locale === "ko" ? "닫기" : "Close"}
+              >
+                ✕
+              </button>
+
+              {/* Category & Price badges */}
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                {(() => {
+                  const cat = previewPlace.categoryType || (
+                    previewPlace.category === "LANDMARK" ? "명소" :
+                    previewPlace.category === "NATURE" ? "자연" :
+                    previewPlace.category === "ENTERTAINMENT" ? "엔터" :
+                    previewPlace.category === "SHOPPING" ? "쇼핑" :
+                    previewPlace.category === "ACCOMMODATION" ? "숙소" :
+                    previewPlace.category === "RESTAURANT" ? "음식점" :
+                    previewPlace.category === "CAFE" ? "카페" : "명소"
+                  );
+                  const badgeMap: Record<string, { label: string; icon: string; bg: string }> = {
+                    명소: { label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️", bg: "bg-blue-600/90 text-white" },
+                    자연: { label: (dict.places as any).categoryNature || "자연", icon: "🌿", bg: "bg-emerald-600/90 text-white" },
+                    엔터: { label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡", bg: "bg-purple-600/90 text-white" },
+                    쇼핑: { label: (dict.places as any).categoryShopping || "쇼핑", icon: "🛍️", bg: "bg-pink-600/90 text-white" },
+                    숙소: { label: dict.places.categoryAccommodation || "숙소", icon: "🏨", bg: "bg-indigo-600/90 text-white" },
+                    음식점: { label: dict.places.categoryRestaurant || "음식점", icon: "🍽️", bg: "bg-rose-600/90 text-white" },
+                    카페: { label: dict.places.categoryCafe || "카페", icon: "☕", bg: "bg-amber-600/90 text-white" },
+                  };
+                  const badge = badgeMap[cat] || badgeMap["명소"];
+                  return (
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-black shadow-md backdrop-blur-md flex items-center gap-1 ${badge.bg}`}>
+                      <span>{badge.icon}</span>
+                      <span>{badge.label}</span>
+                    </span>
+                  );
+                })()}
+
+                {previewPlace.priceKrw && previewPlace.priceKrw > 0 ? (
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-900/90 text-white shadow-md backdrop-blur-md">
+                    ₩{previewPlace.priceKrw.toLocaleString()}
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-white shadow-md">
+                    {locale === "ko" ? "무료 입장" : "Free Admission"}
+                  </span>
+                )}
+              </div>
+
+              {/* Title on bottom of image */}
+              <div className="absolute bottom-4 left-5 right-5 text-white z-10">
+                <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">
+                  {CITY_ENGLISH_NAMES[previewPlace.city as SupportedCity] || previewPlace.city}
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-md">
+                  {previewPlace.translations[locale]?.title || previewPlace.translations.ko.title}
+                </h3>
+              </div>
+            </div>
+
+            {/* Modal Body Content (Scrollable) */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+              {/* Detailed Description */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  {locale === "ko" ? "장소 소개" : "About"}
+                </h4>
+                <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                  {previewPlace.translations[locale]?.description ||
+                    previewPlace.translations.ko.description ||
+                    dict.places.noDescription}
+                </p>
+              </div>
+
+              {/* Key Visitor Info Box */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                {(previewPlace.subwayInfo || previewPlace.translations[locale]?.address || previewPlace.translations.ko.address) && (
+                  <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                    <span className="text-base shrink-0">🚇</span>
+                    <div>
+                      <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                        {locale === "ko" ? "교통 / 위치" : "Transit / Location"}
+                      </span>
+                      <span className="text-slate-600">
+                        {previewPlace.subwayInfo || previewPlace.translations[locale]?.address || previewPlace.translations.ko.address}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {previewPlace.closedDays && (
+                  <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                    <span className="text-base shrink-0">⏱️</span>
+                    <div>
+                      <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                        {locale === "ko" ? "휴무일" : "Closed Days"}
+                      </span>
+                      <span className="text-slate-600">{previewPlace.closedDays}</span>
+                    </div>
+                  </div>
+                )}
+                {(previewPlace.openingHours || previewPlace.useTime) && (
+                  <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 sm:col-span-2">
+                    <span className="text-base shrink-0">🕒</span>
+                    <div>
+                      <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                        {locale === "ko" ? "운영시간 / 이용정보" : "Opening Hours"}
+                      </span>
+                      <span className="text-slate-600">{previewPlace.openingHours || previewPlace.useTime}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Tags */}
+              {previewPlace.tags && previewPlace.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {previewPlace.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2">
+                {previewPlace.officialLink && (
+                  <a
+                    href={previewPlace.officialLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-emerald-700 bg-white hover:bg-emerald-50/50 border border-slate-200 transition-colors"
+                  >
+                    <span>🗺️</span>
+                    <span>{locale === "ko" ? "네이버 지도" : "Map Link"}</span>
+                    <span>↗</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleToggleSavePlace(previewPlace.id || previewPlace.contentId);
+                  }}
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId)
+                      ? "bg-rose-500 text-white shadow-xs"
+                      : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
+                  }`}
+                >
+                  <span>{savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId) ? "★" : "☆"}</span>
+                  <span>
+                    {savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId)
+                      ? (locale === "ko" ? "저장됨" : "Saved")
+                      : (locale === "ko" ? "후보 저장" : "Save")}
+                  </span>
+                </button>
+              </div>
+
+              <Link
+                href={`/${locale}/planner`}
+                className="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold text-white bg-[#0f172a] hover:bg-slate-800 transition-colors shadow-sm"
+              >
+                {locale === "ko" ? "플래너로 이동 ➔" : "Go to Planner ➔"}
+              </Link>
+            </div>
+          </div>
         </div>
       )}
 
@@ -432,6 +643,7 @@ interface PlaceCardProps {
   dict: Dictionary;
   isSaved: boolean;
   onToggleSave: () => void;
+  onPreview: () => void;
   isExpanded: boolean;
   onToggleExpand: () => void;
 }
@@ -442,59 +654,70 @@ function PlaceCard({
   dict,
   isSaved,
   onToggleSave,
+  onPreview,
   isExpanded,
   onToggleExpand,
 }: PlaceCardProps) {
   const trans = place.translations[locale] || place.translations.ko;
 
-  const categoryLabelMap: Record<string, string> = {
-    ACCOMMODATION: dict.places.categoryAccommodation,
-    RESTAURANT: dict.places.categoryRestaurant,
-    CAFE: dict.places.categoryCafe,
-    ATTRACTION: dict.places.categoryAttraction,
-    CULTURE: dict.places.categoryCulture,
+  const categoryBadgeMap: Record<string, { label: string; icon: string; bg: string }> = {
+    LANDMARK: { label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️", bg: "bg-blue-50 text-blue-700 border-blue-200/90" },
+    NATURE: { label: (dict.places as any).categoryNature || "자연", icon: "🌿", bg: "bg-emerald-50 text-emerald-700 border-emerald-200/90" },
+    ENTERTAINMENT: { label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡", bg: "bg-purple-50 text-purple-700 border-purple-200/90" },
+    SHOPPING: { label: (dict.places as any).categoryShopping || "쇼핑", icon: "🛍️", bg: "bg-pink-50 text-pink-700 border-pink-200/90" },
+    ACCOMMODATION: { label: dict.places.categoryAccommodation || "숙소", icon: "🏨", bg: "bg-indigo-50 text-indigo-700 border-indigo-200/90" },
+    RESTAURANT: { label: dict.places.categoryRestaurant || "음식점", icon: "🍽️", bg: "bg-rose-50 text-rose-700 border-rose-200/90" },
+    CAFE: { label: dict.places.categoryCafe || "카페", icon: "☕", bg: "bg-amber-50 text-amber-700 border-amber-200/90" },
+    ATTRACTION: { label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️", bg: "bg-blue-50 text-blue-700 border-blue-200/90" },
+    CULTURE: { label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡", bg: "bg-purple-50 text-purple-700 border-purple-200/90" },
   };
 
-  const categoryLabel = categoryLabelMap[place.category] || place.category;
+  const badge = categoryBadgeMap[place.category] || {
+    label: place.category,
+    icon: "📍",
+    bg: "bg-slate-100 text-slate-700 border-slate-200",
+  };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-hidden flex flex-col justify-between transition-all hover:border-slate-300">
+    <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between group">
       {/* Thumbnail Image Container */}
-      <div className="relative h-44 w-full bg-slate-100 overflow-hidden flex items-center justify-center">
+      <div
+        onClick={onPreview}
+        className="relative h-48 w-full bg-slate-100 overflow-hidden flex items-center justify-center cursor-pointer"
+        title={locale === "ko" ? "클릭하여 사진 및 상세정보 크게 보기" : "Click to view photo & details"}
+      >
         {place.repImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={place.repImageUrl}
             alt={trans.title}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=600&q=80";
+            }}
           />
         ) : (
           <div className="flex flex-col items-center justify-center p-4 text-slate-400 space-y-1 text-center">
-            <svg
-              className="w-8 h-8 opacity-50"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+            <span className="text-3xl">{badge.icon}</span>
             <span className="text-xs font-bold">{dict.places.noImage}</span>
           </div>
         )}
 
+        {/* Hover zoom overlay hint */}
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px]">
+          <span className="text-base">🔍</span>
+          <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
+        </div>
+
         {/* City & Category Badges */}
-        <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
-          <span className="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase">
+        <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5 z-10">
+          <span className="bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase">
             {CITY_ENGLISH_NAMES[place.city as SupportedCity] || place.city}
           </span>
-          <span className="bg-[#e25c5c]/90 backdrop-blur-md text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md">
-            {categoryLabel}
+          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border backdrop-blur-md flex items-center gap-0.5 ${badge.bg}`}>
+            <span>{badge.icon}</span>
+            <span>{badge.label}</span>
           </span>
         </div>
 
@@ -502,8 +725,11 @@ function PlaceCard({
         <button
           type="button"
           aria-pressed={isSaved}
-          onClick={onToggleSave}
-          className={`absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-colors shadow-sm cursor-pointer flex items-center gap-1 ${
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSave();
+          }}
+          className={`absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-colors shadow-sm cursor-pointer flex items-center gap-1 z-10 ${
             isSaved
               ? "bg-[#e25c5c] text-white hover:bg-[#d14b4b]"
               : "bg-white/90 backdrop-blur-md text-slate-700 hover:bg-white border border-slate-200"
@@ -519,20 +745,27 @@ function PlaceCard({
       {/* Content Area */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div>
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-rose-50 text-[#e25c5c] border border-rose-100">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-rose-50 text-[#e25c5c] border border-rose-100">
               ★ Curated Spot
             </span>
-            {place.priceKrw !== undefined && place.priceKrw > 0 && (
+            {place.priceKrw !== undefined && place.priceKrw > 0 ? (
               <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
                 ₩{place.priceKrw.toLocaleString()}
               </span>
+            ) : (
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                {locale === "ko" ? "무료 입장" : "Free"}
+              </span>
             )}
           </div>
-          <h2 className="text-base font-extrabold text-[#0f172a] line-clamp-1">
+          <h2
+            onClick={onPreview}
+            className="text-base font-extrabold text-[#0f172a] line-clamp-1 hover:text-indigo-600 transition-colors cursor-pointer"
+          >
             {trans.title}
           </h2>
-          <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed">
+          <p className="mt-1 text-xs text-slate-600 line-clamp-2 leading-relaxed">
             {trans.description || dict.places.noDescription}
           </p>
         </div>
@@ -549,31 +782,50 @@ function PlaceCard({
           ))}
         </div>
 
-        {/* Address */}
-        <div className="text-[11px] text-slate-400 truncate border-t border-slate-100 pt-2">
-          📍 {trans.address || dict.places.noAddress}
+        {/* Address / Subway */}
+        <div className="text-[11px] text-slate-500 truncate border-t border-slate-100 pt-2">
+          {place.subwayInfo ? `🚇 ${place.subwayInfo}` : `📍 ${trans.address || dict.places.noAddress}`}
         </div>
       </div>
 
-      {/* Expand Details Area */}
-      <div className="px-4 pb-4">
+      {/* Action Buttons: 크게보기 팝업 & 인라인 펼치기 */}
+      <div className="px-4 pb-4 pt-1 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onPreview}
+          className="flex-1 py-2 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
+        >
+          <span>🔍</span>
+          <span>{locale === "ko" ? "크게 보기" : "Zoom Details"}</span>
+        </button>
         <button
           type="button"
           onClick={onToggleExpand}
-          className="w-full py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors flex items-center justify-center space-x-1 border border-slate-200/60"
+          className="py-2 px-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-600 transition-colors flex items-center justify-center gap-1 border border-slate-200/80 cursor-pointer"
+          title={isExpanded ? dict.places.hideDetail : dict.places.viewDetail}
         >
-          <span>{isExpanded ? dict.places.hideDetail : dict.places.viewDetail}</span>
-          <span className="text-[10px]">{isExpanded ? "▲" : "▼"}</span>
+          <span>{isExpanded ? "▲" : "▼"}</span>
         </button>
+      </div>
 
-        {isExpanded && (
-          <div className="mt-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200/60 space-y-2 text-xs text-slate-700">
+      {/* Expand Details Area */}
+      {isExpanded && (
+        <div className="px-4 pb-4">
+          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-2 text-xs text-slate-700">
             <div>
               <strong className="block text-slate-500 font-bold text-[11px]">
                 {dict.places.address}
               </strong>
               <span>{trans.address || "-"}</span>
             </div>
+            {place.subwayInfo && (
+              <div>
+                <strong className="block text-slate-500 font-bold text-[11px]">
+                  교통 / 지하철
+                </strong>
+                <span>{place.subwayInfo}</span>
+              </div>
+            )}
             {place.tel && (
               <div>
                 <strong className="block text-slate-500 font-bold text-[11px]">
@@ -582,12 +834,20 @@ function PlaceCard({
                 <span>{place.tel}</span>
               </div>
             )}
-            {place.useTime && (
+            {(place.openingHours || place.useTime) && (
               <div>
                 <strong className="block text-slate-500 font-bold text-[11px]">
                   영업시간 / 이용정보
                 </strong>
-                <span>{place.useTime}</span>
+                <span>{place.openingHours || place.useTime}</span>
+              </div>
+            )}
+            {place.closedDays && (
+              <div>
+                <strong className="block text-slate-500 font-bold text-[11px]">
+                  휴무일
+                </strong>
+                <span>{place.closedDays}</span>
               </div>
             )}
             {place.priceKrw !== undefined && place.priceKrw > 0 && (
@@ -620,8 +880,8 @@ function PlaceCard({
               {dict.places.officialNotice}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

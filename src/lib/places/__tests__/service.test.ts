@@ -29,14 +29,18 @@ describe("Place Candidate Data & Service Layer Unit Tests", () => {
     expect(busanPlaces.length).toBeGreaterThanOrEqual(12);
   });
 
-  it("should contain all 5 categories for both Seoul and Busan", () => {
-    const categories = ["ACCOMMODATION", "RESTAURANT", "CAFE", "ATTRACTION", "CULTURE"] as const;
+  it("should contain representative categories for both Seoul and Busan", () => {
+    const seoulCategories = ["ACCOMMODATION", "RESTAURANT", "CAFE", "LANDMARK", "NATURE", "ENTERTAINMENT", "SHOPPING"] as const;
+    const busanCategories = ["ACCOMMODATION", "RESTAURANT", "CAFE", "ATTRACTION", "CULTURE"] as const;
 
-    for (const city of ["SEOUL", "BUSAN"] as const) {
-      for (const cat of categories) {
-        const matches = MOCK_PLACES.filter((p) => p.city === city && p.category === cat);
-        expect(matches.length).toBeGreaterThanOrEqual(1);
-      }
+    for (const cat of seoulCategories) {
+      const matches = MOCK_PLACES.filter((p) => p.city === "SEOUL" && p.category === cat);
+      expect(matches.length).toBeGreaterThanOrEqual(1);
+    }
+
+    for (const cat of busanCategories) {
+      const matches = MOCK_PLACES.filter((p) => p.city === "BUSAN" && p.category === cat);
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     }
   });
 

@@ -105,7 +105,7 @@ export class PlacesService implements IPlacesService {
       }
     }
 
-    // 3단계: MOCK_PLACES 안전 Fallback
+    // 3단계: MOCK_PLACES 안전 Fallback (30개 서울 대표 관광지 포함)
     return listPlaces(options);
   }
 
@@ -128,8 +128,9 @@ export class PlacesService implements IPlacesService {
     if (category !== "ALL") {
       let contentTypeId: string | undefined = undefined;
       if (category === "ACCOMMODATION") contentTypeId = KTO_CONTENT_TYPE.KOR.ACCOMMODATION;
-      else if (category === "ATTRACTION") contentTypeId = KTO_CONTENT_TYPE.KOR.ATTRACTION;
-      else if (category === "CULTURE") contentTypeId = KTO_CONTENT_TYPE.KOR.CULTURE;
+      else if (category === "LANDMARK" || category === "NATURE" || category === "ATTRACTION") contentTypeId = KTO_CONTENT_TYPE.KOR.ATTRACTION;
+      else if (category === "ENTERTAINMENT" || category === "CULTURE") contentTypeId = KTO_CONTENT_TYPE.KOR.CULTURE;
+      else if (category === "SHOPPING") contentTypeId = KTO_CONTENT_TYPE.KOR.SHOPPING;
       else if (category === "RESTAURANT" || category === "CAFE") contentTypeId = KTO_CONTENT_TYPE.KOR.RESTAURANT;
 
       if (contentTypeId) {
@@ -212,7 +213,17 @@ export function listPlaces(options: PlaceFilterOptions = {}): PlaceItem[] {
 
   return MOCK_PLACES.filter((place) => {
     if (city !== "ALL" && place.city !== city) return false;
-    if (category !== "ALL" && place.category !== category) return false;
+    if (category !== "ALL") {
+      if (place.category !== category) {
+        if (category === "ATTRACTION" && (place.category === "LANDMARK" || place.category === "NATURE")) {
+          // 하위 호환 허용
+        } else if (category === "CULTURE" && place.category === "ENTERTAINMENT") {
+          // 하위 호환 허용
+        } else {
+          return false;
+        }
+      }
+    }
 
     if (normalizedQuery.length > 0) {
       const trans = place.translations[locale] || place.translations.ko;

@@ -74,6 +74,10 @@ export type PlaceCategory =
   | "ACCOMMODATION"
   | "RESTAURANT"
   | "CAFE"
+  | "LANDMARK"
+  | "NATURE"
+  | "ENTERTAINMENT"
+  | "SHOPPING"
   | "ATTRACTION"
   | "CULTURE";
 

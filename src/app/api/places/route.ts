@@ -25,6 +25,10 @@ export async function GET(request: NextRequest) {
       "ACCOMMODATION",
       "RESTAURANT",
       "CAFE",
+      "LANDMARK",
+      "NATURE",
+      "ENTERTAINMENT",
+      "SHOPPING",
       "ATTRACTION",
       "CULTURE",
     ];

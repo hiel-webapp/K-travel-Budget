@@ -24,6 +24,10 @@ export interface PlaceItem {
   officialLink?: string;
   tel?: string;
   useTime?: string;
+  subwayInfo?: string;
+  openingHours?: string;
+  closedDays?: string;
+  categoryType?: "명소" | "자연" | "엔터" | "쇼핑";
 }
 
 export interface PlaceFilterOptions {

@@ -1,8 +1,82 @@
 import { PlaceItem } from "./types";
+import { SEOUL_LANDMARK_BILINGUAL_MAP } from "../../features/budget/catalog/attraction-spots";
+import { PlaceCategory } from "../kto/types";
+
+const SEOUL_LANDMARK_FALLBACK_IMAGES: Record<string, string> = {
+  seoul_gyeongbokgung: "https://images.unsplash.com/photo-1538485399081-7191377e8241?w=800&auto=format&fit=crop",
+  seoul_nseoultower: "https://images.unsplash.com/photo-1541014741259-de529411b96a?w=800&auto=format&fit=crop",
+  seoul_lotteworldtower: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&auto=format&fit=crop",
+  seoul_changdeokgung: "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&auto=format&fit=crop",
+  seoul_deoksugung: "https://images.unsplash.com/photo-1548115184-bc6544d06a58?w=800&auto=format&fit=crop",
+  seoul_ddp: "https://images.unsplash.com/photo-1578637387939-43c525550085?w=800&auto=format&fit=crop",
+  seoul_bukchon: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
+  seoul_museum_korea: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=800&auto=format&fit=crop",
+  seoul_coex_starfield_library: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=800&auto=format&fit=crop",
+  seoul_changgyeonggung: "https://images.unsplash.com/photo-1538485399081-7191377e8241?w=800&auto=format&fit=crop",
+  seoul_jongmyo: "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&auto=format&fit=crop",
+  seoul_namsangol: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
+  seoul_gwanghwamun_square: "https://images.unsplash.com/photo-1578637387939-43c525550085?w=800&auto=format&fit=crop",
+  seoul_cheonggyecheon: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop",
+  seoul_hongdae: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop",
+  seoul_banpo_rainbow_fountain: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop",
+  seoul_seongsu: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&auto=format&fit=crop",
+  seoul_gwangjang: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop",
+  seoul_namdaemun: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop",
+  seoul_insadong_ssamzigil: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800&auto=format&fit=crop",
+  seoul_myeongdong_shopping: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?w=800&auto=format&fit=crop",
+};
+
+// 30개 서울 대표 관광지 (명소, 자연, 엔터, 쇼핑 4대 분류 체계)
+export const SEOUL_30_REPRESENTATIVE_PLACES: PlaceItem[] = Object.entries(SEOUL_LANDMARK_BILINGUAL_MAP)
+  .filter(([key]) => key !== "seoul_childrens_grand_park") // seoul_lotteworld와 중복 방지
+  .map(([key, item]) => {
+    const cat = item.categoryType || "명소";
+    let category: PlaceCategory = "LANDMARK";
+    if (cat === "명소") category = "LANDMARK";
+    else if (cat === "자연") category = "NATURE";
+    else if (cat === "엔터") category = "ENTERTAINMENT";
+    else if (cat === "쇼핑") category = "SHOPPING";
+
+    const repImg = item.imageUrl || SEOUL_LANDMARK_FALLBACK_IMAGES[key] || "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80";
+
+    return {
+      id: `seoul_rep_${key}`,
+      contentId: key,
+      city: "SEOUL" as const,
+      category,
+      categoryType: cat,
+      sourceName: "KTO" as const,
+      qualityStatus: "READY" as const,
+      rawUpdatedAt: "2026-09-07",
+      repImageUrl: repImg,
+      tags: [cat, "서울대표", "추천관광지", key.replace("seoul_", "")],
+      subwayInfo: item.subwayKo,
+      openingHours: item.hoursKo,
+      closedDays: item.closedKo,
+      priceStatus: "FREE" as const,
+      translations: {
+        ko: {
+          title: item.nameKo,
+          description: item.descKo,
+          address: item.subwayKo || "서울특별시",
+        },
+        en: {
+          title: item.nameEn,
+          description: item.descEn,
+          address: item.subwayEn || "Seoul, Republic of Korea",
+        },
+      },
+    };
+  });
 
 export const MOCK_PLACES: PlaceItem[] = [
   // ==========================================
-  // SEOUL (13 Places)
+  // SEOUL 30 Representative Attractions (명소, 자연, 엔터, 쇼핑)
+  // ==========================================
+  ...SEOUL_30_REPRESENTATIVE_PLACES,
+
+  // ==========================================
+  // SEOUL Accommodations & Food
   // ==========================================
   {
     id: "mock-seoul-acc-1",
@@ -233,131 +307,7 @@ export const MOCK_PLACES: PlaceItem[] = [
       },
     },
   },
-  {
-    id: "mock-seoul-att-1",
-    contentId: "2800009",
-    city: "SEOUL",
-    category: "ATTRACTION",
-    sourceName: "MOCK",
-    qualityStatus: "READY",
-    rawUpdatedAt: "2026-03-11",
-    latitude: 37.5796,
-    longitude: 126.977,
-    repImageUrl: "https://images.unsplash.com/photo-1538485399081-7191377e8241?w=800&auto=format&fit=crop",
-    tags: ["경복궁", "고궁", "역사", "무료/할인"],
-    translations: {
-      ko: {
-        title: "경복궁 (Gyeongbokgung Palace)",
-        description: "조선 왕조의 대표적인 으뜸 궁궐로 근정전, 경회루 등 아름다운 백제·조선 건축 기양을 자랑합니다.",
-        address: "서울특별시 종로구 사직로 161",
-      },
-      en: {
-        title: "Gyeongbokgung Palace",
-        description: "The main royal palace of the Joseon Dynasty featuring majestic halls, pavilions, and changing of guards.",
-        address: "161 Sajik-ro, Jongno-gu, Seoul",
-      },
-    },
-  },
-  {
-    id: "mock-seoul-att-2",
-    contentId: "2800010",
-    city: "SEOUL",
-    category: "ATTRACTION",
-    sourceName: "MOCK",
-    qualityStatus: "READY",
-    rawUpdatedAt: "2026-03-12",
-    latitude: 37.5512,
-    longitude: 126.9882,
-    repImageUrl: "https://images.unsplash.com/photo-1541014741259-de529411b96a?w=800&auto=format&fit=crop",
-    tags: ["남산", "전망대", "야경", "랜드마크"],
-    translations: {
-      ko: {
-        title: "N서울타워 (N Seoul Tower)",
-        description: "서울 중심 남산 정상에 위치하여 360도 도심 야경과 케이블카 체험을 제공하는 서울의 랜드마크입니다.",
-        address: "서울특별시 용산구 남산공원길 105",
-      },
-      en: {
-        title: "N Seoul Tower",
-        description: "Seoul's iconic landmark at the top of Namsan Mountain offering panoramic city views and cable car rides.",
-        address: "105 Namsangongwon-gil, Yongsan-gu, Seoul",
-      },
-    },
-  },
-  {
-    id: "mock-seoul-att-3",
-    contentId: "2800011",
-    city: "SEOUL",
-    category: "ATTRACTION",
-    sourceName: "MOCK",
-    qualityStatus: "READY",
-    rawUpdatedAt: "2026-03-13",
-    latitude: 37.509,
-    longitude: 127.06,
-    repImageUrl: "https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=800&auto=format&fit=crop",
-    tags: ["강남", "코엑스", "수족관", "쇼핑"],
-    translations: {
-      ko: {
-        title: "코엑스 아쿠아리움 & 별마당 도서관",
-        description: "수만 마리의 해양 생물 탐험과 함께 초대형 서가 건축으로 유명한 문화 복합 공간입니다.",
-        address: "서울특별시 강남구 영동대로 513",
-      },
-      en: {
-        title: "COEX Aquarium & Starfield Library",
-        description: "Large-scale aquarium and open cultural library space located inside the World Trade Center COEX complex.",
-        address: "513 Yeongdong-daero, Gangnam-gu, Seoul",
-      },
-    },
-  },
-  {
-    id: "mock-seoul-cul-1",
-    contentId: "2800012",
-    city: "SEOUL",
-    category: "CULTURE",
-    sourceName: "MOCK",
-    qualityStatus: "READY",
-    rawUpdatedAt: "2026-03-14",
-    latitude: 37.5239,
-    longitude: 126.9804,
-    repImageUrl: "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&auto=format&fit=crop",
-    tags: ["박물관", "국립", "전시", "문화 heritage"],
-    translations: {
-      ko: {
-        title: "국립중앙박물관 (National Museum of Korea)",
-        description: "대한민국의 소중한 유물과 역사 기획 전시를 만날 수 있는 세계적 수준의 박물관입니다.",
-        address: "서울특별시 용산구 서빙고로 137",
-      },
-      en: {
-        title: "National Museum of Korea",
-        description: "World-class museum displaying Korea's rich historical treasures, fine art, and cultural heritage.",
-        address: "137 Seobinggo-ro, Yongsan-gu, Seoul",
-      },
-    },
-  },
-  {
-    id: "mock-seoul-cul-2",
-    contentId: "2800013",
-    city: "SEOUL",
-    category: "CULTURE",
-    sourceName: "MOCK",
-    qualityStatus: "READY",
-    rawUpdatedAt: "2026-03-15",
-    latitude: 37.5667,
-    longitude: 127.0094,
-    repImageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&auto=format&fit=crop",
-    tags: ["DDP", "디자인", "건축", "전시"],
-    translations: {
-      ko: {
-        title: "동대문디자인플라자 (DDP)",
-        description: "자하 하디드가 설계한 곡선미 넘치는 미래형 건축물로 다양한 디자인 전시와 패션쇼가 개최됩니다.",
-        address: "서울특별시 중구 을지로 281",
-      },
-      en: {
-        title: "Dongdaemun Design Plaza (DDP)",
-        description: "Futuristic architectural landmark designed by Zaha Hadid, hosting global fashion, art, and design events.",
-        address: "281 Eulji-ro, Jung-gu, Seoul",
-      },
-    },
-  },
+
 
   // ==========================================
   // BUSAN (13 Places)

@@ -188,7 +188,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Yeouido Hangang Park (여의도 한강공원)',
     desc_en: 'Premier riverside leisure spot loved for lawn picnics, instant Hangang ramen dining, and night cruise tours. || SUBWAY: 5호선 여의나루역 2, 3번 출구 (도보 2분) || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://hangang.seoul.go.kr',
     price_krw: 0,
-    image_url: 'https://tong.visitkorea.or.kr/cms/resource/89/3544389_image2_1.jpg',
+    image_url: 'https://hangang.seoul.go.kr/resources/zeroCMS/site/main/images/park_view_photo_9.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 13. 국립중앙박물관

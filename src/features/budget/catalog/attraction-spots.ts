@@ -40,6 +40,7 @@ export interface BilingualSpotDetail {
   hoursEn?: string;
   closedKo?: string;
   closedEn?: string;
+  imageUrl?: string;
 }
 
 export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> = {
@@ -186,6 +187,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "Open 24 hours",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "https://hangang.seoul.go.kr/resources/zeroCMS/site/main/images/park_view_photo_9.jpg",
   },
   seoul_museum_korea: {
     nameKo: "국립중앙박물관",
@@ -610,7 +612,7 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
     emoji: "🍜",
     gradientBg: "from-cyan-500/15 to-blue-500/15",
     isFeatured: true,
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/89/3544389_image2_1.jpg",
+    imageUrl: "https://hangang.seoul.go.kr/resources/zeroCMS/site/main/images/park_view_photo_9.jpg",
     subwayInfo: "5호선 여의나루역 2, 3번 출구 (도보 2분)",
     subwayInfoKo: "5호선 여의나루역 2, 3번 출구 (도보 2분)",
     subwayInfoEn: "Line 5 Yeouinaru Stn. Exit 2, 3 (2 min walk)",

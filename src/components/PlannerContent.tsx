@@ -287,24 +287,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const nameEn = match ? match[1].trim() : row.title_en;
                   const nameKo = match ? match[2].trim() : row.title_en;
                   const meta = parseAttractionMetadata(row.desc_en || "");
+                  const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[row.content_id];
                   return {
                     id: `kto_${row.content_id || row.id}`,
                     cityCode: "SEOUL" as SupportedCity,
-                    nameKo,
-                    nameEn,
-                    descKo: meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
-                    descEn: meta.cleanDesc || "Popular sightseeing spot in Seoul",
+                    nameKo: bilingual?.nameKo || nameKo,
+                    nameEn: bilingual?.nameEn || nameEn,
+                    descKo: bilingual?.descKo || meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
+                    descEn: bilingual?.descEn || meta.cleanDesc || "Popular sightseeing spot in Seoul",
                     price: row.price_krw || 0,
                     priceStatus: (row.price_krw || 0) > 0 ? ("PAID" as const) : ("FREE" as const),
                     tag: row.sub_category || "Attraction",
                     emoji: emojis[idx % emojis.length],
                     gradientBg: gradients[idx % gradients.length],
                     isFeatured: true,
-                    imageUrl: row.image_url,
+                    imageUrl: bilingual?.imageUrl || row.image_url,
                     deepLink: row.deep_link_template,
-                    subwayInfo: meta.subwayInfo,
-                    openingHours: meta.openingHours,
-                    closedDays: meta.closedDays,
+                    subwayInfo: meta.subwayInfo || bilingual?.subwayKo,
+                    openingHours: meta.openingHours || bilingual?.hoursKo,
+                    closedDays: meta.closedDays || bilingual?.closedKo,
                     officialUrl: meta.officialUrl,
                   };
                 });

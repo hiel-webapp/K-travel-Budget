@@ -63,7 +63,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   const [searchQuery, setSearchQuery] = useState<string>(paramQuery);
   const [debouncedQuery, setDebouncedQuery] = useState<string>(paramQuery);
   const [showSavedOnly, setShowSavedOnly] = useState<boolean>(paramSavedOnly);
-  const [expandedPlaceId, setExpandedPlaceId] = useState<string | null>(null);
   const [previewPlace, setPreviewPlace] = useState<PlaceItem | null>(null);
 
   // Places fetched from API
@@ -408,12 +407,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 isSaved={isSaved}
                 onToggleSave={() => handleToggleSavePlace(place.id || place.contentId)}
                 onPreview={() => setPreviewPlace(place)}
-                isExpanded={expandedPlaceId === (place.id || place.contentId)}
-                onToggleExpand={() =>
-                  setExpandedPlaceId(
-                    expandedPlaceId === (place.id || place.contentId) ? null : place.id || place.contentId
-                  )
-                }
               />
             );
           })}
@@ -645,8 +638,6 @@ interface PlaceCardProps {
   isSaved: boolean;
   onToggleSave: () => void;
   onPreview: () => void;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
 }
 
 function PlaceCard({
@@ -656,8 +647,6 @@ function PlaceCard({
   isSaved,
   onToggleSave,
   onPreview,
-  isExpanded,
-  onToggleExpand,
 }: PlaceCardProps) {
   const trans = place.translations[locale] || place.translations.ko;
 
@@ -788,101 +777,6 @@ function PlaceCard({
           {place.subwayInfo ? `🚇 ${place.subwayInfo}` : `📍 ${trans.address || dict.places.noAddress}`}
         </div>
       </div>
-
-      {/* Action Buttons: 크게보기 팝업 & 인라인 펼치기 */}
-      <div className="px-4 pb-4 pt-1 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onPreview}
-          className="flex-1 py-2 bg-[#0f172a] hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
-        >
-          <span>🔍</span>
-          <span>{locale === "ko" ? "크게 보기" : "Zoom Details"}</span>
-        </button>
-        <button
-          type="button"
-          onClick={onToggleExpand}
-          className="py-2 px-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-bold text-slate-600 transition-colors flex items-center justify-center gap-1 border border-slate-200/80 cursor-pointer"
-          title={isExpanded ? dict.places.hideDetail : dict.places.viewDetail}
-        >
-          <span>{isExpanded ? "▲" : "▼"}</span>
-        </button>
-      </div>
-
-      {/* Expand Details Area */}
-      {isExpanded && (
-        <div className="px-4 pb-4">
-          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-2 text-xs text-slate-700">
-            <div>
-              <strong className="block text-slate-500 font-bold text-[11px]">
-                {dict.places.address}
-              </strong>
-              <span>{trans.address || "-"}</span>
-            </div>
-            {place.subwayInfo && (
-              <div>
-                <strong className="block text-slate-500 font-bold text-[11px]">
-                  교통 / 지하철
-                </strong>
-                <span>{place.subwayInfo}</span>
-              </div>
-            )}
-            {place.tel && (
-              <div>
-                <strong className="block text-slate-500 font-bold text-[11px]">
-                  전화번호
-                </strong>
-                <span>{place.tel}</span>
-              </div>
-            )}
-            {(place.openingHours || place.useTime) && (
-              <div>
-                <strong className="block text-slate-500 font-bold text-[11px]">
-                  영업시간 / 이용정보
-                </strong>
-                <span>{place.openingHours || place.useTime}</span>
-              </div>
-            )}
-            {place.closedDays && (
-              <div>
-                <strong className="block text-slate-500 font-bold text-[11px]">
-                  휴무일
-                </strong>
-                <span>{place.closedDays}</span>
-              </div>
-            )}
-            {place.priceKrw !== undefined && place.priceKrw > 0 && (
-              <div>
-                <strong className="block text-slate-500 font-bold text-[11px]">
-                  1인 예상 예산
-                </strong>
-                <span className="font-bold text-[#e25c5c]">₩{place.priceKrw.toLocaleString()}</span>
-              </div>
-            )}
-            {place.officialLink && (
-              <div className="pt-2 border-t border-slate-200/50">
-                <a
-                  href={place.officialLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline"
-                >
-                  <span>🗺️ 네이버 지도 바로가기</span>
-                  <span>↗</span>
-                </a>
-              </div>
-            )}
-            {place.rawUpdatedAt && (
-              <div className="pt-1 text-[10px] text-slate-400">
-                {dict.places.updatedAt}: {place.rawUpdatedAt}
-              </div>
-            )}
-            <div className="pt-1.5 border-t border-slate-200/50 text-[10px] text-amber-800 leading-tight">
-              {dict.places.officialNotice}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

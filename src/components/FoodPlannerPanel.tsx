@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Locale } from "../lib/i18n/locales";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { CalculatedMealPlan, EffectiveMealSlot } from "../features/budget/domain/types";
@@ -34,6 +34,10 @@ export default function FoodPlannerPanel({
   const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
   const [showMoreFood, setShowMoreFood] = useState<boolean>(false);
   const [activeSlotPickerSpotId, setActiveSlotPickerSpotId] = useState<string | null>(null);
+
+  // 방안 1: 도시 탭 진입 시점의 스냅샷 기준으로 상단 정렬 (탐색 중 클릭 시 화면 튐 방지)
+  const prevCityRef = useRef<string>("");
+  const pinnedFoodSpotIdsRef = useRef<string[]>([]);
 
   if (!mealPlan || !mealPlan.slots || mealPlan.slots.length === 0) {
     return (
@@ -99,15 +103,21 @@ export default function FoodPlannerPanel({
       {/* 2. In-place Candidate K-Food Menu Section (3x2 Desktop, 2x3 Mobile Grid) */}
       {(() => {
         const foodSpotsForCity = FOOD_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity);
+
+        // 도시가 바뀔 때만 상단 고정 스냅샷 갱신 (슬롯 교체/취소 중에는 위치 불변)
+        if (currentCity !== prevCityRef.current) {
+          prevCityRef.current = currentCity;
+          const currentReplaced = mealPlan.slots
+            .map((s) => s.replacedByFoodItemId)
+            .filter(Boolean) as string[];
+          pinnedFoodSpotIdsRef.current = currentReplaced;
+        }
+
         const sortedFoodSpots = [...foodSpotsForCity].sort((a, b) => {
-          const isReplacedA = mealPlan.slots.some(
-            (s) => s.replacedByFoodItemId === a.id || s.replacedByFoodItemId === a.nameKo
-          );
-          const isReplacedB = mealPlan.slots.some(
-            (s) => s.replacedByFoodItemId === b.id || s.replacedByFoodItemId === b.nameKo
-          );
-          if (isReplacedA && !isReplacedB) return -1;
-          if (!isReplacedA && isReplacedB) return 1;
+          const isPinnedA = pinnedFoodSpotIdsRef.current.some((id) => id === a.id || id === a.nameKo);
+          const isPinnedB = pinnedFoodSpotIdsRef.current.some((id) => id === b.id || id === b.nameKo);
+          if (isPinnedA && !isPinnedB) return -1;
+          if (!isPinnedA && isPinnedB) return 1;
           return 0;
         });
         const displayedFoodSpots = showMoreFood ? sortedFoodSpots : sortedFoodSpots.slice(0, 6);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, Suspense, useCallback } from "react";
+import { useState, useEffect, useMemo, Suspense, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -76,6 +76,11 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // 방안 1: 탭/필터 진입 시점의 스냅샷 기준으로 상단 정렬 (탐색 중 클릭 시 화면 튐 방지)
+  const pinnedPlaceIdsRef = useRef<string[]>([]);
+  const prevFilterKeyRef = useRef<string>("");
+  const isInitialSyncedRef = useRef<boolean>(false);
+
   const syncAllSavedIds = useCallback(() => {
     const placesInStorage = loadBudgetPlaces();
     const draft = loadTripDraft();
@@ -129,8 +134,14 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       });
     }
 
+    const idsArr = Array.from(allIds);
+    if (!isInitialSyncedRef.current) {
+      pinnedPlaceIdsRef.current = idsArr;
+      isInitialSyncedRef.current = true;
+    }
+
     setBudgetPlaces(placesInStorage);
-    setSavedPlaceIds(Array.from(allIds));
+    setSavedPlaceIds(idsArr);
   }, []);
 
   useEffect(() => {
@@ -240,6 +251,13 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  // 탭 또는 필터(도시, 카테고리, 담은장소 토글) 변경 시 상단 고정 스냅샷 갱신
+  const currentFilterKey = `${selectedCity}_${selectedCategory}_${showSavedOnly}`;
+  if (currentFilterKey !== prevFilterKeyRef.current) {
+    prevFilterKeyRef.current = currentFilterKey;
+    pinnedPlaceIdsRef.current = [...savedPlaceIds];
+  }
+
   const displayedPlaces = useMemo(() => {
     const list = showSavedOnly
       ? places.filter((p) =>
@@ -253,27 +271,29 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
         )
       : places;
 
-    // 담긴 카드는 최상단(1번째)으로 이동하고, 해제 시 원래 위치로 복귀
+    // 방안 1: 탐색 중 클릭 시에는 제자리 유지, 탭/필터 재진입 시 상단에 모아 정렬
+    const targetPinned = showSavedOnly ? savedPlaceIds : pinnedPlaceIdsRef.current;
+
     return [...list].sort((a, b) => {
-      const isSavedA = savedPlaceIds.some(
+      const isPinnedA = targetPinned.some(
         (sid) =>
           isSameSpot(sid, a.id) ||
           isSameSpot(sid, a.contentId) ||
           sid === a.id ||
           sid === a.contentId
       );
-      const isSavedB = savedPlaceIds.some(
+      const isPinnedB = targetPinned.some(
         (sid) =>
           isSameSpot(sid, b.id) ||
           isSameSpot(sid, b.contentId) ||
           sid === b.id ||
           sid === b.contentId
       );
-      if (isSavedA && !isSavedB) return -1;
-      if (!isSavedA && isSavedB) return 1;
+      if (isPinnedA && !isPinnedB) return -1;
+      if (!isPinnedA && isPinnedB) return 1;
       return 0;
     });
-  }, [places, showSavedOnly, savedPlaceIds]);
+  }, [places, showSavedOnly, savedPlaceIds, selectedCity, selectedCategory]);
 
   const categories: Array<{ id: PlaceCategory | "ALL"; label: string; icon?: string }> = [
     { id: "ALL", label: dict.places.allCategories, icon: "" },

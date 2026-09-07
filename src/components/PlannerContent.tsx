@@ -310,6 +310,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     return "ACCOMMODATION";
   });
 
+  // 방안 1: 도시 탭 및 카테고리 탭 진입 시점의 스냅샷 기준으로 상단 정렬 (탐색 중 클릭 시 화면 튐 방지)
+  const prevTabKeyRef = useRef<string>("");
+  const pinnedSnapshotRef = useRef<Record<string, { attractions: string[]; accommodations: string[] }>>({});
+
   // 도시 탭 및 카테고리 변경 시 sessionStorage 및 URL 쿼리 파라미터 동기화
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -2699,10 +2703,46 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             )}
 
             {/* 2. Single City Tab Mode: City-Specific Category Options */}
+            {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {
+              const currentCatFilter = attractionCategoryFilterByCity[selectedCityTab] || "ALL";
+              const currentTabKey = `${selectedCityTab}_${activeCategory}_${currentCatFilter}`;
+              if (currentTabKey !== prevTabKeyRef.current) {
+                prevTabKeyRef.current = currentTabKey;
+                const city = selectedCityTab;
+
+                // 1. 관광 (Attraction) 스냅샷
+                const cityAttrSel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+                const attrPinned = new Set<string>();
+                (cityAttrSel.individualSpotIds || []).forEach((sid) => attrPinned.add(normalizeSpotKey(sid)));
+                (cityAttrSel.selectedCourseIds || []).forEach((cid) => {
+                  const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                  course?.spotIds.forEach((sid) => attrPinned.add(normalizeSpotKey(sid)));
+                });
+
+                // 2. 숙소 (Accommodation) 스냅샷
+                const accOverride = preferences.accommodationByCity?.[city];
+                const isPlaceOverride = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && accOverride.kind === "PLACE";
+                const accPinned = new Set<string>();
+                if (isPlaceOverride && (accOverride as any).placeId) {
+                  accPinned.add((accOverride as any).placeId);
+                }
+                budgetPlaces.filter((p) => p.city === city && p.category === "ACCOMMODATION").forEach((p) => accPinned.add(p.id));
+
+                pinnedSnapshotRef.current[currentTabKey] = {
+                  attractions: Array.from(attrPinned),
+                  accommodations: Array.from(accPinned),
+                };
+              }
+              return null;
+            })()}
             {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (
               <div className="space-y-6">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab;
+                  const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
+                  const currentTabKey = `${city}_${activeCategory}_${currentCatFilter}`;
+                  const pinnedAccIds = pinnedSnapshotRef.current[currentTabKey]?.accommodations || [];
+
                   const accOverride = preferences.accommodationByCity[city];
                   const hasOverride = !!accOverride;
                   const isPlaceOverride = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && accOverride.kind === "PLACE";
@@ -2722,10 +2762,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     .map(placeToAccommodationSpot);
                   const accSpotsForCity = [...customAccSpots, ...defaultAccSpots];
                   const sortedAccSpots = [...accSpotsForCity].sort((a, b) => {
-                    const isSelA = (isPlaceOverride && (accOverride as any).placeId === a.id) || budgetPlaces.some((p) => p.id === a.id);
-                    const isSelB = (isPlaceOverride && (accOverride as any).placeId === b.id) || budgetPlaces.some((p) => p.id === b.id);
-                    if (isSelA && !isSelB) return -1;
-                    if (!isSelA && isSelB) return 1;
+                    const isPinnedA = pinnedAccIds.includes(a.id);
+                    const isPinnedB = pinnedAccIds.includes(b.id);
+                    if (isPinnedA && !isPinnedB) return -1;
+                    if (!isPinnedA && isPinnedB) return 1;
                     return 0;
                   });
                   const isShowMoreAcc = !!showMoreAccommodationsByCity[city];
@@ -3200,22 +3240,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         return cat === currentCatFilter;
                       });
 
+                  const currentTabKey = `${city}_${activeCategory}_${currentCatFilter}`;
+                  const pinnedAttrKeys = pinnedSnapshotRef.current[currentTabKey]?.attractions || [];
                   const isShowMore = !!showMoreAttractionsByCity[city];
                   const sortedSpotsForCity = [...filteredSpotsForCity].sort((a, b) => {
-                    const isAddedA =
-                      individualSpotIds.some((sid) => isSameSpot(sid, a.id)) ||
-                      selectedCourseIds.some((cid) => {
-                        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                        return course?.spotIds.some((sid) => isSameSpot(sid, a.id));
-                      });
-                    const isAddedB =
-                      individualSpotIds.some((sid) => isSameSpot(sid, b.id)) ||
-                      selectedCourseIds.some((cid) => {
-                        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                        return course?.spotIds.some((sid) => isSameSpot(sid, b.id));
-                      });
-                    if (isAddedA && !isAddedB) return -1;
-                    if (!isAddedA && isAddedB) return 1;
+                    const isPinnedA = pinnedAttrKeys.some((sid) => isSameSpot(sid, a.id));
+                    const isPinnedB = pinnedAttrKeys.some((sid) => isSameSpot(sid, b.id));
+                    if (isPinnedA && !isPinnedB) return -1;
+                    if (!isPinnedA && isPinnedB) return 1;
                     return 0;
                   });
                   const displayedSpots = isShowMore ? sortedSpotsForCity : sortedSpotsForCity.slice(0, 12);

@@ -383,7 +383,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'MMCA Seoul - Museum of Modern Art (국립현대미술관 서울관)',
     desc_en: 'Premier contemporary art institution in Samcheong-dong showcasing cutting-edge Korean and international exhibits. || SUBWAY: 3호선 안국역 1번 출구 (도보 10분) / 3호선 경복궁역 5번 출구 || HOURS: 10:00 ~ 18:00 (수·토 21:00 야간무료) || CLOSED: 1월 1일, 설날, 추석 || WEB: https://english.visitseoul.net/attractions/Gallery-Art-Zone/ENP016792',
     price_krw: 5000,
-    image_url: 'https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&w=800&q=85',
+    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=c5fc3bbb-b17e-4327-93c7-7e7dbafd34da',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 28. 을지로 노가리골목 힙지로 [신규]
@@ -396,7 +396,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Euljiro Nogari Alley - Hipjiro (을지로 노가리골목 힙지로)',
     desc_en: 'Vibrant retro outdoor nightlife alley where visitors enjoy ice-cold draft beer and grilled dried pollack. || SUBWAY: 2·3호선 을지로3가역 3, 4번 출구 || HOURS: 17:00 ~ 24:00 || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net',
     price_krw: 0,
-    image_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=85',
+    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=da4c46b9-4f87-457c-89fa-e738cbd92603',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 29. 하늘공원 & 억새밭 [신규]
@@ -409,7 +409,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Haneul Park - World Cup Park (하늘공원 & 억새밭)',
     desc_en: 'Breathtaking hilltop ecological park famed for silver grass fields, metasequoia paths, and panoramic sunset views. || SUBWAY: 6호선 월드컵경기장역 1번 출구 (맹꽁이전기차 이용 가능) || HOURS: 05:00 ~ 22:00 || CLOSED: 연중무휴 || WEB: https://english.visitseoul.net/attractions/NightViewsatHaneulPark/ENP016322',
     price_krw: 0,
-    image_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=85',
+    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=08fee415-c6dc-49db-8617-3cbf0a199183',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 30. 광화문광장 & 세종대왕 동상 [신규]

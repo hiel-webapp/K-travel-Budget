@@ -386,6 +386,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "10:00 ~ 18:00 (Wed/Sat until 21:00 free)",
     closedKo: "1월 1일, 설날, 추석 당일 휴관",
     closedEn: "Closed Jan 1, Lunar New Year, Chuseok",
+    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=c5fc3bbb-b17e-4327-93c7-7e7dbafd34da",
   },
   seoul_euljiro_nogari: {
     nameKo: "을지로 노가리골목 힙지로",
@@ -398,6 +399,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "17:00 ~ 24:00",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=da4c46b9-4f87-457c-89fa-e738cbd92603",
   },
   seoul_haneul_park: {
     nameKo: "하늘공원 & 억새밭",
@@ -410,6 +412,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     hoursEn: "05:00 ~ 22:00",
     closedKo: "연중무휴",
     closedEn: "Open year-round",
+    imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=08fee415-c6dc-49db-8617-3cbf0a199183",
   },
   seoul_gwanghwamun_square: {
     nameKo: "광화문광장 & 세종대왕 동상",

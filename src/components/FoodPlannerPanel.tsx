@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Locale } from "../lib/i18n/locales";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { CalculatedMealPlan, EffectiveMealSlot } from "../features/budget/domain/types";
@@ -35,6 +35,14 @@ export default function FoodPlannerPanel({
   const [showMoreFood, setShowMoreFood] = useState<boolean>(false);
   const [activeSlotPickerSpotId, setActiveSlotPickerSpotId] = useState<string | null>(null);
   const [showReplacedOnly, setShowReplacedOnly] = useState<boolean>(false);
+
+  // 담은/대체된 메뉴가 0개가 되었을 때 showReplacedOnly 필터가 켜져 있으면 자동으로 전체로 복귀
+  const replacedSlotsTotalCount = mealPlan?.slots?.filter((s) => s.replacedByFoodItemId).length ?? 0;
+  useEffect(() => {
+    if (showReplacedOnly && replacedSlotsTotalCount === 0) {
+      setShowReplacedOnly(false);
+    }
+  }, [showReplacedOnly, replacedSlotsTotalCount]);
 
   if (!mealPlan || !mealPlan.slots || mealPlan.slots.length === 0) {
     return (
@@ -101,9 +109,10 @@ export default function FoodPlannerPanel({
       {(() => {
         const foodSpotsForCity = FOOD_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity);
         const replacedSlotsCount = mealPlan.slots.filter((s) => s.replacedByFoodItemId).length;
+        const effectiveShowReplacedOnly = showReplacedOnly && replacedSlotsCount > 0;
 
-        // 방안 3: 기본 추천순 항상 고정, 필요 시 '대체된 메뉴만 보기' 필터로 모아봄
-        const filteredFoodSpots = showReplacedOnly
+        // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 항목' 필터로 모아봄
+        const filteredFoodSpots = effectiveShowReplacedOnly
           ? foodSpotsForCity.filter((spot) =>
               mealPlan.slots.some(
                 (s) => s.replacedByFoodItemId === spot.id || s.replacedByFoodItemId === spot.nameKo
@@ -125,7 +134,7 @@ export default function FoodPlannerPanel({
                     type="button"
                     onClick={() => setShowReplacedOnly((prev) => !prev)}
                     className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                      showReplacedOnly
+                      effectiveShowReplacedOnly
                         ? "bg-amber-500 text-white shadow-xs"
                         : "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
                     }`}
@@ -133,8 +142,8 @@ export default function FoodPlannerPanel({
                     <span>🔖</span>
                     <span>
                       {locale === "ko"
-                        ? `대체된 메뉴만 (${replacedSlotsCount})`
-                        : `Replaced (${replacedSlotsCount})`}
+                        ? `담은 항목 (${replacedSlotsCount})`
+                        : `Saved (${replacedSlotsCount})`}
                     </span>
                   </button>
                 )}

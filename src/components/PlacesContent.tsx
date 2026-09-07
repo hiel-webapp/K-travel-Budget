@@ -240,9 +240,19 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // 방안 3: 목록 순서는 기본 추천순으로 항상 고정, 담은 장소는 '담은 장소만 보기' 필터로 모아봄
+  // 담은 항목이 0개가 되었을 때 showSavedOnly가 켜져 있으면 자동으로 전체로 복귀
+  useEffect(() => {
+    if (showSavedOnly && budgetPlaces.length === 0 && savedPlaceIds.length === 0) {
+      setShowSavedOnly(false);
+      updateQueryParams(selectedCity, selectedCategory, searchQuery, false);
+    }
+  }, [showSavedOnly, budgetPlaces.length, savedPlaceIds.length, selectedCity, selectedCategory, searchQuery, updateQueryParams]);
+
+  const effectiveShowSavedOnly = showSavedOnly && (budgetPlaces.length > 0 || savedPlaceIds.length > 0);
+
+  // 방안 3: 목록 순서는 기본 추천순으로 항상 고정, 담은 장소는 '담은 항목' 필터로 모아봄
   const displayedPlaces = useMemo(() => {
-    if (!showSavedOnly) return places;
+    if (!effectiveShowSavedOnly) return places;
     return places.filter((p) =>
       savedPlaceIds.some(
         (sid) =>
@@ -252,7 +262,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
           sid === p.contentId
       )
     );
-  }, [places, showSavedOnly, savedPlaceIds]);
+  }, [places, effectiveShowSavedOnly, savedPlaceIds]);
 
   const categories: Array<{ id: PlaceCategory | "ALL"; label: string; icon?: string }> = [
     { id: "ALL", label: dict.places.allCategories, icon: "" },
@@ -410,14 +420,14 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
             type="button"
             onClick={handleToggleSavedOnly}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1 ${
-              showSavedOnly
+              effectiveShowSavedOnly
                 ? "bg-[#0f172a] text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
             <span>✓</span>
             <span>
-              {locale === "ko" ? "예산에 담긴 장소" : "In Budget"} ({budgetPlaces.length})
+              {locale === "ko" ? "담은 항목" : "Saved"} ({budgetPlaces.length})
             </span>
           </button>
         </div>

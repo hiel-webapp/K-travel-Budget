@@ -423,6 +423,40 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   }, [budgetPlaces]);
 
+  // 담은 관광지가 0개가 되었을 때 카테고리 필터가 SAVED_ONLY로 남아있지 않도록 ALL로 자동 복귀
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const prefs = state.preferences;
+    Object.entries(attractionCategoryFilterByCity).forEach(([c, cat]) => {
+      if (cat === "SAVED_ONLY") {
+        const cityAttrSel = prefs.attractionSelections?.[c as SupportedCity] || { selectedCourseIds: [], individualSpotIds: [] };
+        const hasSpots =
+          (cityAttrSel.individualSpotIds?.length || 0) > 0 ||
+          (cityAttrSel.selectedCourseIds?.length || 0) > 0 ||
+          budgetPlaces.some((p) => p.city === c && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category));
+        if (!hasSpots) {
+          setAttractionCategoryFilterByCity((prev) => ({ ...prev, [c]: "ALL" }));
+        }
+      }
+    });
+  }, [state, budgetPlaces, attractionCategoryFilterByCity]);
+
+  // 담은 숙소가 0개가 되었을 때 숙소 필터가 true로 남아있지 않도록 false로 자동 복귀
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const prefs = state.preferences;
+    Object.entries(showSavedOnlyAccByCity).forEach(([c, isSavedOnly]) => {
+      if (isSavedOnly) {
+        const accOverride = prefs.accommodationByCity?.[c as SupportedCity];
+        const isPlaceOverride = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
+        const hasSaved = isPlaceOverride || budgetPlaces.some((p) => p.city === c && p.category === "ACCOMMODATION");
+        if (!hasSaved) {
+          setShowSavedOnlyAccByCity((prev) => ({ ...prev, [c]: false }));
+        }
+      }
+    });
+  }, [state, budgetPlaces, showSavedOnlyAccByCity]);
+
   // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태
   const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]>>({});
 
@@ -2706,7 +2740,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <div className="space-y-6">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab;
-                  const isSavedOnlyAcc = !!showSavedOnlyAccByCity[city];
 
                   const accOverride = preferences.accommodationByCity[city];
                   const hasOverride = !!accOverride;
@@ -2726,7 +2759,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     .filter((p) => p.city === city && p.category === "ACCOMMODATION" && !defaultAccSpots.some((d) => d.id === p.id))
                     .map(placeToAccommodationSpot);
                   const accSpotsForCity = [...customAccSpots, ...defaultAccSpots];
-                  // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 숙소만 보기' 필터로 모아봄
+                  const savedAccSpotsCount = accSpotsForCity.filter((spot) =>
+                    (isPlaceOverride && (accOverride as any).placeId === spot.id) ||
+                    budgetPlaces.some((p) => p.id === spot.id)
+                  ).length;
+                  const isSavedOnlyAcc = !!showSavedOnlyAccByCity[city] && savedAccSpotsCount > 0;
+                  // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 항목' 필터로 모아봄
                   const filteredAccSpots = isSavedOnlyAcc
                     ? accSpotsForCity.filter((spot) =>
                         (isPlaceOverride && (accOverride as any).placeId === spot.id) ||
@@ -2842,7 +2880,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               {locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 실제 후보 숙소 탐색` : `${CITY_ENGLISH_NAMES[city] || city} Candidate Accommodations`}
                             </span>
                             <div className="flex items-center gap-2">
-                              {accSpotsForCity.some((spot) => (isPlaceOverride && (accOverride as any).placeId === spot.id) || budgetPlaces.some((p) => p.id === spot.id)) && (
+                              {savedAccSpotsCount > 0 && (
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -2858,7 +2896,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   }`}
                                 >
                                   <span>🔖</span>
-                                  <span>{locale === "ko" ? "담은 숙소만 보기" : "Saved Only"}</span>
+                                  <span>{locale === "ko" ? `담은 항목 (${savedAccSpotsCount})` : `Saved (${savedAccSpotsCount})`}</span>
                                 </button>
                               )}
                               <span className="text-[10px] text-slate-400 font-medium">
@@ -3225,17 +3263,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   individualSpotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
                   const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
-                  // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 명소만 보기' 필터로 모아봄
+                  const effectiveCatFilter = currentCatFilter === "SAVED_ONLY" && selectedSpotKeys.size === 0 ? "ALL" : currentCatFilter;
+                  // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 항목' 필터로 모아봄
                   const filteredSpotsForCity =
-                    currentCatFilter === "SAVED_ONLY"
+                    effectiveCatFilter === "SAVED_ONLY"
                       ? spotsForCity.filter((s) => selectedSpotKeys.has(normalizeSpotKey(s.id)))
-                      : currentCatFilter === "ALL"
+                      : effectiveCatFilter === "ALL"
                         ? spotsForCity
                         : spotsForCity.filter((s) => {
                             const spotKey = s.id.replace(/^kto_/, "");
                             const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
                             const cat = s.categoryType || bilingual?.categoryType;
-                            return cat === currentCatFilter;
+                            return cat === effectiveCatFilter;
                           });
 
                   const isShowMore = !!showMoreAttractionsByCity[city];
@@ -3372,7 +3411,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 ? [
                                     {
                                       key: "SAVED_ONLY",
-                                      labelKo: `담은 명소만 (${selectedSpotKeys.size})`,
+                                      labelKo: `담은 항목 (${selectedSpotKeys.size})`,
                                       labelEn: `Saved (${selectedSpotKeys.size})`,
                                       icon: "🔖",
                                     },
@@ -3383,7 +3422,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               { key: "엔터", labelKo: "엔터", labelEn: "Enter", icon: "🎡" },
                               { key: "쇼핑", labelKo: "쇼핑", labelEn: "Shopping", icon: "🛍️" },
                             ].map((tab) => {
-                              const isActive = (attractionCategoryFilterByCity[city] || "ALL") === tab.key;
+                              const isActive = effectiveCatFilter === tab.key;
                               const isSavedTab = tab.key === "SAVED_ONLY";
                               return (
                                 <button

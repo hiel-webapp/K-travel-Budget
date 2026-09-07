@@ -10,7 +10,7 @@ import type { PlaceItem } from "../lib/places/types";
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
-import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata, SEOUL_LANDMARK_BILINGUAL_MAP } from "../features/budget/catalog/attraction-spots";
+import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata, SEOUL_LANDMARK_BILINGUAL_MAP, isSameSpot, normalizeSpotKey } from "../features/budget/catalog/attraction-spots";
 import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
 import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
@@ -155,10 +155,10 @@ function placeToAccommodationSpot(p: PlaceItem): AccommodationCandidateSpot {
 }
 
 function isDefaultAttractionSpot(spotId: string): boolean {
-  const spotKey = spotId.replace(/^kto_/, "");
-  if (SEOUL_LANDMARK_BILINGUAL_MAP[spotKey]) return true;
+  const normKey = normalizeSpotKey(spotId);
+  if (SEOUL_LANDMARK_BILINGUAL_MAP[normKey]) return true;
   return ATTRACTION_SPOTS_CATALOG.some(
-    (s) => !s.id.startsWith("kto_custom_") && (s.id === spotId || s.id === `kto_${spotId}`)
+    (s) => !s.id.startsWith("kto_custom_") && isSameSpot(s.id, spotId)
   );
 }
 
@@ -1379,8 +1379,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleToggleSpot = (city: SupportedCity, spotId: string) => {
     const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-    const isSelected = currentCitySel.individualSpotIds.includes(spotId);
-    const customKSpot = budgetPlaces.find((p) => p.id === spotId);
+    const isSelected = currentCitySel.individualSpotIds.some((sid) => isSameSpot(sid, spotId));
+    const customKSpot = budgetPlaces.find((p) => isSameSpot(p.id, spotId) || isSameSpot(p.contentId, spotId));
 
     // K-스팟에서 유입된 비기본 커스텀 관광지의 담기 취소 시: 플래너 목록 및 예산에서 완전 제거
     if (!isDefaultAttractionSpot(spotId)) {
@@ -1392,9 +1392,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
     }
 
+    const normSpotId = normalizeSpotKey(spotId);
     const nextSpotIds = isSelected
-      ? currentCitySel.individualSpotIds.filter((id) => id !== spotId)
-      : [...currentCitySel.individualSpotIds, spotId];
+      ? currentCitySel.individualSpotIds.filter((id) => !isSameSpot(id, spotId))
+      : [...currentCitySel.individualSpotIds, normSpotId];
 
     const nextAttractionSelections = {
       ...preferences.attractionSelections,
@@ -3061,7 +3062,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const customAttractionPlaces = budgetPlaces
                     .filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
                     .map(placeToAttractionSpot)
-                    .filter((cs) => !baseSpotsForCity.some((bs) => bs.id === cs.id || bs.id === `kto_${cs.id}` || cs.id === `kto_${bs.id}`));
+                    .filter((cs) => {
+                      if (isDefaultAttractionSpot(cs.id)) return false;
+                      return !baseSpotsForCity.some((bs) => isSameSpot(bs.id, cs.id));
+                    });
 
                   const spotsForCity = [...customAttractionPlaces, ...baseSpotsForCity];
 
@@ -3079,19 +3083,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const displayedSpots = isShowMore ? filteredSpotsForCity : filteredSpotsForCity.slice(0, 12);
 
                   // 수집된 중복 제거 유료 Spot 계산
-                  const selectedSpotSet = new Set<string>();
+                  const selectedSpotKeys = new Set<string>();
                   selectedCourseIds.forEach((cid) => {
                     const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                    if (course) course.spotIds.forEach((sid) => selectedSpotSet.add(sid));
+                    if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
                   });
-                  individualSpotIds.forEach((sid) => selectedSpotSet.add(sid));
+                  individualSpotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
                   const adultCount = draft.adultCount || 1;
                   let selectedSpotsPricePerPerson = 0;
                   const selectedSpotDetails: AttractionSpot[] = [];
 
-                  selectedSpotSet.forEach((sid) => {
-                    const spot = spotsForCity.find((s) => s.id === sid) || ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
+                  selectedSpotKeys.forEach((normKey) => {
+                    const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
                     if (spot) {
                       selectedSpotDetails.push(spot);
                       if (spot.priceStatus === "PAID") {
@@ -3263,10 +3267,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               ? (bilingual?.closedKo || rawSpot.closedDaysKo || rawSpot.closedDays)
                               : (bilingual?.closedEn || rawSpot.closedDaysEn || rawSpot.closedDays);
 
-                            const isSpotSelected = individualSpotIds.includes(rawSpot.id);
+                            const isSpotSelected = individualSpotIds.some((sid) => isSameSpot(sid, rawSpot.id));
                             const isIncludedInCourse = selectedCourseIds.some((cid) => {
                               const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                              return course?.spotIds.includes(rawSpot.id);
+                              return course?.spotIds.some((sid) => isSameSpot(sid, rawSpot.id));
                             });
                             const isAdded = isSpotSelected || isIncludedInCourse;
                             const hasImage = (rawSpot as any).imageUrl && (rawSpot as any).imageUrl !== "/assets/default-place.jpg";
@@ -3417,7 +3421,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         ? (locale === "ko" ? "✓ 담김" : "✓ Added")
                                         : isIncludedInCourse
                                         ? (locale === "ko" ? "코스 포함" : "In Course")
-                                        : (locale === "ko" ? "+ 예산에 담기" : "+ Add to Budget")}
+                                        : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
                                     </button>
                                   </div>
                                 </div>
@@ -3662,19 +3666,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         .map(placeToAttractionSpot),
                       ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
                     ];
-                    const selectedSpotSet = new Set<string>();
+                    const selectedSpotKeys = new Set<string>();
                     (citySel.selectedCourseIds || []).forEach((cid) => {
                       const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                      if (course) course.spotIds.forEach((sid) => selectedSpotSet.add(sid));
+                      if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
                     });
-                    (citySel.individualSpotIds || []).forEach((sid) => selectedSpotSet.add(sid));
+                    (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
                     const adultCount = draft.adultCount || 1;
                     const addedSpotsList: AttractionSpot[] = [];
                     let attractionsTotalKrw = 0;
 
-                    selectedSpotSet.forEach((sid) => {
-                      const spot = spotsForCity.find((s) => s.id === sid) || ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
+                    selectedSpotKeys.forEach((normKey) => {
+                      const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
                       if (spot) {
                         addedSpotsList.push(spot);
                         if (spot.priceStatus === "PAID" && spot.price > 0) {
@@ -3742,12 +3746,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 </span>
                               </div>
                               {addedSpotsList.map((spot) => {
+                                const spotKey = normalizeSpotKey(spot.id);
+                                const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+                                const spotName = locale === "ko" ? (bilingual?.nameKo || spot.nameKo) : (bilingual?.nameEn || spot.nameEn);
                                 const itemTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
                                 return (
                                   <div key={spot.id} className="flex justify-between items-start text-xs pl-1">
                                     <div className="pr-2 min-w-0">
                                       <span className="text-slate-800 font-semibold block truncate">
-                                        {locale === "ko" ? spot.nameKo : spot.nameEn}
+                                        {spotName}
                                       </span>
                                       <span className="text-[10px] text-slate-400">
                                         {spot.priceStatus === "FREE" || spot.price === 0
@@ -4306,10 +4313,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
         const spotCity = previewSpot.cityCode || selectedCityTab || "seoul";
         const citySel = preferences.attractionSelections?.[spotCity] || { selectedCourseIds: [], individualSpotIds: [] };
-        const isSpotSelected = (citySel.individualSpotIds || []).includes(previewSpot.id);
+        const isSpotSelected = (citySel.individualSpotIds || []).some((sid) => isSameSpot(sid, previewSpot.id));
         const isIncludedInCourse = (citySel.selectedCourseIds || []).some((cid) => {
           const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-          return course?.spotIds.includes(previewSpot.id);
+          return course?.spotIds.some((sid) => isSameSpot(sid, previewSpot.id));
         });
         const hasImage = (previewSpot as any).imageUrl && (previewSpot as any).imageUrl !== "/assets/default-place.jpg";
 
@@ -4483,7 +4490,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
                       : isIncludedInCourse
                       ? (locale === "ko" ? "코스에 포함됨" : "Included in Course")
-                      : (locale === "ko" ? "+ 내 예산에 담기" : "+ Add to My Budget")}
+                      : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
                   </button>
                 </div>
               </div>

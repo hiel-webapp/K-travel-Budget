@@ -9,6 +9,7 @@ import { PlaceItem } from "../lib/places";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 import { PlaceCategory } from "../lib/kto/types";
 import { loadSavedPlaceIds, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget } from "../lib/storage-helper";
+import { isSameSpot } from "../features/budget/catalog/attraction-spots";
 
 interface PlacesContentProps {
   locale: Locale;
@@ -189,10 +190,17 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Filtered Places by saved status
   const displayedPlaces = useMemo(() => {
     if (!showSavedOnly) return places;
-    return places.filter((p) => savedPlaceIds.includes(p.id) || savedPlaceIds.includes(p.contentId));
+    return places.filter((p) =>
+      savedPlaceIds.some(
+        (sid) =>
+          isSameSpot(sid, p.id) ||
+          isSameSpot(sid, p.contentId) ||
+          sid === p.id ||
+          sid === p.contentId
+      )
+    );
   }, [places, showSavedOnly, savedPlaceIds]);
 
   const categories: Array<{ id: PlaceCategory | "ALL"; label: string; icon?: string }> = [
@@ -416,7 +424,13 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayedPlaces.map((place) => {
-            const isSaved = savedPlaceIds.includes(place.id) || savedPlaceIds.includes(place.contentId);
+            const isSaved = savedPlaceIds.some(
+              (sid) =>
+                isSameSpot(sid, place.id) ||
+                isSameSpot(sid, place.contentId) ||
+                sid === place.id ||
+                sid === place.contentId
+            );
             return (
               <PlaceCard
                 key={place.id || place.contentId}
@@ -603,24 +617,35 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                     <span>↗</span>
                   </a>
                 )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleToggleBudgetPlace(previewPlace);
-                  }}
-                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                    savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId)
-                      ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
-                      : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
-                  }`}
-                >
-                  <span>{savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId) ? "✓" : "+"}</span>
-                  <span>
-                    {savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId)
-                      ? (locale === "ko" ? "✓ 담김" : "✓ Added")
-                      : (locale === "ko" ? "+ 예산에 담기" : "+ Add to Budget")}
-                  </span>
-                </button>
+                {(() => {
+                  const isPreviewSaved = savedPlaceIds.some(
+                    (sid) =>
+                      isSameSpot(sid, previewPlace.id) ||
+                      isSameSpot(sid, previewPlace.contentId) ||
+                      sid === previewPlace.id ||
+                      sid === previewPlace.contentId
+                  );
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleToggleBudgetPlace(previewPlace);
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                        isPreviewSaved
+                          ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
+                          : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
+                      }`}
+                    >
+                      {isPreviewSaved && <span>✓</span>}
+                      <span>
+                        {isPreviewSaved
+                          ? (locale === "ko" ? "담김" : "Added")
+                          : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
+                      </span>
+                    </button>
+                  );
+                })()}
               </div>
 
               <Link
@@ -744,11 +769,11 @@ function PlaceCard({
               : "bg-[#0f172a]/90 hover:bg-[#0f172a] text-white backdrop-blur-md shadow-2xs"
           }`}
         >
-          <span>{isSaved ? "✓" : "+"}</span>
+          {isSaved && <span>✓</span>}
           <span>
             {isSaved
-              ? (locale === "ko" ? "✓ 담김" : "✓ Added")
-              : (locale === "ko" ? "+ 예산에 담기" : "+ Add to Budget")}
+              ? (locale === "ko" ? "담김" : "Added")
+              : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
           </span>
         </button>
       </div>

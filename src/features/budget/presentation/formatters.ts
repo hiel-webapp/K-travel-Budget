@@ -27,7 +27,7 @@ export const REGIONAL_BASKET_LABELS: Record<
     STANDARD_CITY_TRANSPORT: { ko: "지하철 + 시내 택시 자율 혼합", en: "Subway + City Taxi Mixed Transport" },
     COMFORT_CITY_TRANSPORT: { ko: "프리미엄 콜택시 & 모범택시 전용", en: "Premium Call Taxi & Deluxe Transport" },
     MOSTLY_FREE: { ko: "경복궁/청계천/한강공원 자율 탐방", en: "Gyeongbokgung & Hangang Park Free Exploration" },
-    BALANCED: { ko: "N서울타워 전망대 & 한복 대여 체험", en: "N Seoul Tower & Hanbok Rental Experience" },
+    BALANCED: { ko: "N서울타워 전망대 & 서울 대표 명소 탐방", en: "N Seoul Tower & Seoul Highlights Tour" },
     EXPERIENCE_RICH: { ko: "한강 프라이빗 요트 & VIP 뮤지컬 관람", en: "Hangang Private Yacht & VIP Musical Show" },
     KTX_STANDARD: { ko: "KTX 고속철도 이동", en: "KTX High-Speed Rail" },
     EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },

@@ -23,6 +23,7 @@ import {
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { IntercityTransportMode } from "./transport/intercity-fares";
 import { PlaceItem } from "./places/types";
+import { normalizeSpotKey, isSameSpot } from "../features/budget/catalog/attraction-spots";
 
 const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
@@ -806,7 +807,10 @@ export function saveBudgetPlaces(places: PlaceItem[]): boolean {
 export function isPlaceInBudget(idOrContentId: string): boolean {
   if (!idOrContentId) return false;
   const places = loadBudgetPlaces();
-  return places.some((p) => p.id === idOrContentId || p.contentId === idOrContentId);
+  return places.some((p) =>
+    isSameSpot(p.id, idOrContentId) ||
+    isSameSpot(p.contentId, idOrContentId)
+  );
 }
 
 /**
@@ -824,10 +828,10 @@ export function toggleBudgetPlace(place: PlaceItem): { isAdded: boolean; current
 
   const existingIdx = currentPlaces.findIndex(
     (p) =>
-      p.id === targetId ||
-      p.contentId === targetContentId ||
-      p.id === targetContentId ||
-      p.contentId === targetId
+      isSameSpot(p.id, targetId) ||
+      isSameSpot(p.contentId, targetContentId) ||
+      isSameSpot(p.id, targetContentId) ||
+      isSameSpot(p.contentId, targetId)
   );
 
   let nextPlaces: PlaceItem[];
@@ -849,7 +853,7 @@ export function toggleBudgetPlace(place: PlaceItem): { isAdded: boolean; current
     const prefsRes = loadPlannerPreferencesEx(draft);
     const prefs = prefsRes.preferences;
     const city = place.city;
-    const spotKey = place.contentId || place.id;
+    const normSpotKey = normalizeSpotKey(place.contentId || place.id);
 
     if (
       place.category === "LANDMARK" ||
@@ -865,12 +869,12 @@ export function toggleBudgetPlace(place: PlaceItem): { isAdded: boolean; current
       }
       const spotIds = prefs.attractionSelections[city].individualSpotIds || [];
       if (isAdded) {
-        if (!spotIds.includes(spotKey) && !spotIds.includes(place.id)) {
-          prefs.attractionSelections[city].individualSpotIds = [...spotIds, spotKey];
+        if (!spotIds.some((sid) => isSameSpot(sid, normSpotKey))) {
+          prefs.attractionSelections[city].individualSpotIds = [...spotIds, normSpotKey];
         }
       } else {
         prefs.attractionSelections[city].individualSpotIds = spotIds.filter(
-          (sid) => sid !== spotKey && sid !== place.id && sid !== `kto_${spotKey}`
+          (sid) => !isSameSpot(sid, normSpotKey)
         );
       }
     } else if (place.category === "ACCOMMODATION") {

@@ -47,6 +47,27 @@ export interface BilingualSpotDetail {
   imageUrl?: string;
 }
 
+/**
+ * 정규화된 관광지 ID를 반환합니다. (seoul_rep_, kto_, kto_custom_ 접두사를 통일)
+ */
+export function normalizeSpotKey(id?: string): string {
+  if (!id) return "";
+  return id
+    .replace(/^seoul_rep_/, "")
+    .replace(/^kto_custom_/, "")
+    .replace(/^kto_/, "")
+    .trim();
+}
+
+/**
+ * 서로 다른 접두사를 가진 장소 ID가 동일한 관광지를 가리키는지 판별합니다.
+ */
+export function isSameSpot(idA?: string, idB?: string): boolean {
+  if (!idA || !idB) return false;
+  if (idA === idB) return true;
+  return normalizeSpotKey(idA) === normalizeSpotKey(idB);
+}
+
 export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> = {
   seoul_gyeongbokgung: {
     categoryType: "명소",
@@ -531,13 +552,13 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
   {
     id: "seoul_gyeongbokgung",
     cityCode: "SEOUL",
-    nameKo: "경복궁 & 한복 대여 체험",
-    nameEn: "Gyeongbokgung & Hanbok Rental",
-    descKo: "조선 왕조의 으뜸 궁궐이자 한복 착용 시 입장료 무료",
-    descEn: "Main royal palace of Joseon dynasty with free entry in Hanbok",
-    price: 15000,
-    priceStatus: "PAID",
-    tag: "K-컬처",
+    nameKo: "경복궁",
+    nameEn: "Gyeongbokgung Palace",
+    descKo: "조선 왕조 제1의 법궁으로 수문장 교대의식과 한복 착용 시 무료 입장이 가능한 필수 명소",
+    descEn: "The main royal palace of Joseon dynasty with free entry in Hanbok and royal guard ceremonies",
+    price: 0,
+    priceStatus: "FREE",
+    tag: "명소",
     emoji: "🏯",
     gradientBg: "from-amber-500/15 to-orange-500/15",
     isFeatured: true,
@@ -559,13 +580,13 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
   {
     id: "seoul_gwanghwamun",
     cityCode: "SEOUL",
-    nameKo: "광화문 광장 & 청계천 산책",
-    nameEn: "Gwanghwamun Square & Cheonggyecheon",
-    descKo: "도심 속 탁 트인 역사 광장과 시원한 도심 개천 산책로",
-    descEn: "Open historic square and relaxing urban stream walk",
+    nameKo: "광화문광장 & 세종대왕 동상",
+    nameEn: "Gwanghwamun Square & King Sejong",
+    descKo: "세종대왕과 이순신 장군 동상이 자리하고 북악산과 경복궁이 한눈에 펼쳐지는 역사·문화 중심 광장",
+    descEn: "The historic heart of Seoul featuring iconic statues of King Sejong the Great and Admiral Yi Sun-sin",
     price: 0,
     priceStatus: "FREE",
-    tag: "무료/휴식",
+    tag: "명소",
     emoji: "🏞️",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
     isFeatured: true,
@@ -573,10 +594,10 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
   {
     id: "seoul_seoulsky",
     cityCode: "SEOUL",
-    nameKo: "롯데월드 타워 서울스카이",
+    nameKo: "롯데월드타워 서울스카이",
     nameEn: "Lotte World Tower Seoul Sky",
-    descKo: "세계 5위 높이 초고층 타워에서 만나는 압도적 유리전망대",
-    descEn: "Glass-floor observatory at the 5th tallest building in the world",
+    descKo: "세계 5위 높이(555m) 118층 초고층 타워에서 만나는 압도적인 스카이데크 유리 바닥 전망대",
+    descEn: "The 5th tallest building in the world (555m) featuring glass-floor sky decks and sweeping skyline views",
     price: 29000,
     priceStatus: "PAID",
     tag: "랜드마크",
@@ -587,13 +608,13 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
   {
     id: "seoul_bukchon",
     cityCode: "SEOUL",
-    nameKo: "북촌한옥마을 & 인사동 길",
-    nameEn: "Bukchon Hanok Village & Insadong",
-    descKo: "전통 한옥이 잘 보존된 600년 역사의 옛 골목길과 골동품 거리",
-    descEn: "Traditional hanok alleys and cultural craft street",
+    nameKo: "북촌한옥마을",
+    nameEn: "Bukchon Hanok Village",
+    descKo: "경복궁과 창덕궁 사이 600년 역사를 간직한 수백 채의 전통 기와집과 감고당길 골목 투어 명소",
+    descEn: "Historic village nestled between royal palaces, home to hundreds of traditional Korean tile-roofed houses",
     price: 0,
     priceStatus: "FREE",
-    tag: "역사/문화",
+    tag: "명소",
     emoji: "🏘️",
     gradientBg: "from-amber-600/15 to-yellow-600/15",
     isFeatured: true,
@@ -601,13 +622,13 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
   {
     id: "seoul_seongsu",
     cityCode: "SEOUL",
-    nameKo: "성수동 팝업스토어 & 서울숲",
-    nameEn: "Seongsu Pop-up Stores & Seoul Forest",
-    descKo: "MZ 세대 핫플레이스 성수동 붉은벽돌 골목과 울창한 숲",
-    descEn: "Trendy pop-up store district and lush city park",
+    nameKo: "성수동 연무장길",
+    nameEn: "Seongsu-dong Yeonmujang-gil",
+    descKo: "서울의 브루클린으로 불리며 감각적인 패션 플래그십 팝업스토어와 트렌디한 베이커리 카페 거리",
+    descEn: "The 'Brooklyn of Seoul' buzzing with iconic fashion flagship pop-ups, artisanal cafes, and trendy bakeries",
     price: 0,
     priceStatus: "FREE",
-    tag: "트렌드",
+    tag: "쇼핑",
     emoji: "☕",
     gradientBg: "from-rose-500/15 to-pink-500/15",
     isFeatured: true,
@@ -615,13 +636,13 @@ export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [
   {
     id: "seoul_hongdae",
     cityCode: "SEOUL",
-    nameKo: "홍대 버스킹 거리 & 연남동 연트럴파크",
-    nameEn: "Hongdae Busking & Yeonnam Park",
-    descKo: "젊음과 버스킹 공연이 넘치는 문화의 거리와 선형 공원",
-    descEn: "Youth culture street with live busking and park walk",
+    nameKo: "홍대 걷고싶은거리",
+    nameEn: "Hongdae Walking Street",
+    descKo: "청춘과 버스킹의 중심지로 K-Pop 댄스 거리공연과 개성 넘치는 인디 숍들이 활기를 띠는 명소",
+    descEn: "Korea's youth culture hub packed with spontaneous K-Pop busking performances, indie art shops, and nightlife",
     price: 0,
     priceStatus: "FREE",
-    tag: "야간/문화",
+    tag: "엔터",
     emoji: "🎸",
     gradientBg: "from-purple-500/15 to-violet-500/15",
     isFeatured: false,
@@ -1510,7 +1531,7 @@ export const TOUR_COURSE_PRESETS: TourCoursePreset[] = [
     cityCode: "SEOUL",
     nameKo: "궁궐·북촌·인사동 코스",
     nameEn: "Palace, Bukchon & Insadong Course",
-    descKo: "경복궁 한복 체험부터 북촌 한옥 골목과 인사동 문화거리 도보 투어",
+    descKo: "경복궁 수문장 교대의식부터 북촌 한옥 골목과 광화문광장 역사 도보 투어",
     descEn: "Traditional walk: Gyeongbokgung palace entry, hanok village & Insadong",
     spotIds: ["seoul_gyeongbokgung", "seoul_bukchon", "seoul_gwanghwamun"],
     estimatedHours: 4,

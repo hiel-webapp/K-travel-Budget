@@ -200,6 +200,34 @@ function placeToAccommodationSpot(p: PlaceItem): AccommodationCandidateSpot {
   };
 }
 
+function accommodationSpotToPlaceItem(spot: AccommodationCandidateSpot): PlaceItem {
+  return {
+    id: spot.id,
+    contentId: spot.id,
+    city: spot.cityCode,
+    category: "ACCOMMODATION",
+    sourceName: "MOCK",
+    qualityStatus: "READY",
+    rawUpdatedAt: "2026-09-07",
+    repImageUrl: (spot as any).imageUrl || "/assets/default-hotel.jpg",
+    tags: ["숙소", spot.basketId],
+    priceKrw: spot.nightlyPriceKrw,
+    priceStatus: "OFFICIAL_PRICE",
+    translations: {
+      ko: {
+        title: spot.nameKo,
+        description: spot.descKo,
+        address: spot.locationKo,
+      },
+      en: {
+        title: spot.nameEn,
+        description: spot.descEn,
+        address: spot.locationEn,
+      },
+    },
+  };
+}
+
 function isDefaultAttractionSpot(spotId: string): boolean {
   const normKey = normalizeSpotKey(spotId);
   if (SEOUL_LANDMARK_BILINGUAL_MAP[normKey]) return true;
@@ -2693,8 +2721,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     .filter((p) => p.city === city && p.category === "ACCOMMODATION" && !defaultAccSpots.some((d) => d.id === p.id))
                     .map(placeToAccommodationSpot);
                   const accSpotsForCity = [...customAccSpots, ...defaultAccSpots];
+                  const sortedAccSpots = [...accSpotsForCity].sort((a, b) => {
+                    const isSelA = (isPlaceOverride && (accOverride as any).placeId === a.id) || budgetPlaces.some((p) => p.id === a.id);
+                    const isSelB = (isPlaceOverride && (accOverride as any).placeId === b.id) || budgetPlaces.some((p) => p.id === b.id);
+                    if (isSelA && !isSelB) return -1;
+                    if (!isSelA && isSelB) return 1;
+                    return 0;
+                  });
                   const isShowMoreAcc = !!showMoreAccommodationsByCity[city];
-                  const displayedAccSpots = isShowMoreAcc ? accSpotsForCity : accSpotsForCity.slice(0, 6);
+                  const displayedAccSpots = isShowMoreAcc ? sortedAccSpots : sortedAccSpots.slice(0, 6);
                   const cityNights = draft.cityNightAllocations[city] ?? 0;
 
                   return (
@@ -2809,7 +2844,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             {displayedAccSpots.map((spot) => {
-                              const isSelectedSpot = isPlaceOverride && (accOverride as any).placeId === spot.id;
+                              const isSelectedSpot =
+                                (isPlaceOverride && (accOverride as any).placeId === spot.id) ||
+                                budgetPlaces.some((p) => p.id === spot.id);
                               const stayNights = Math.max(1, cityNights);
                               const totalStayPrice = spot.nightlyPriceKrw * stayNights;
 
@@ -2858,12 +2895,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         type="button"
                                         onClick={() => {
                                           if (isSelectedSpot) {
-                                            if (!isDefaultAccommodationSpot(spot.id)) {
-                                              const customAcc = budgetPlaces.find((p) => p.id === spot.id);
-                                              if (customAcc) toggleBudgetPlace(customAcc);
+                                            const existInBudget = budgetPlaces.find((p) => p.id === spot.id);
+                                            if (existInBudget) {
+                                              toggleBudgetPlace(existInBudget);
                                             }
                                             handleResetStay(city);
                                           } else {
+                                            const existInBudget = budgetPlaces.find((p) => p.id === spot.id);
+                                            if (!existInBudget) {
+                                              toggleBudgetPlace(accommodationSpotToPlaceItem(spot));
+                                            }
                                             handleStayOverride(city, {
                                               kind: "PLACE",
                                               basketId: spot.basketId,
@@ -2883,8 +2924,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         }`}
                                       >
                                         {isSelectedSpot
-                                          ? (locale === "ko" ? "✓ 선택됨" : "✓ Selected")
-                                          : (locale === "ko" ? "+ 예산에 담기" : "+ Add Stay")}
+                                          ? (locale === "ko" ? "✓ 담김" : "✓ Selected")
+                                          : (locale === "ko" ? "예산에 담기" : "Add Stay")}
                                       </button>
                                     </div>
                                   </div>
@@ -3160,7 +3201,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       });
 
                   const isShowMore = !!showMoreAttractionsByCity[city];
-                  const displayedSpots = isShowMore ? filteredSpotsForCity : filteredSpotsForCity.slice(0, 12);
+                  const sortedSpotsForCity = [...filteredSpotsForCity].sort((a, b) => {
+                    const isAddedA =
+                      individualSpotIds.some((sid) => isSameSpot(sid, a.id)) ||
+                      selectedCourseIds.some((cid) => {
+                        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                        return course?.spotIds.some((sid) => isSameSpot(sid, a.id));
+                      });
+                    const isAddedB =
+                      individualSpotIds.some((sid) => isSameSpot(sid, b.id)) ||
+                      selectedCourseIds.some((cid) => {
+                        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                        return course?.spotIds.some((sid) => isSameSpot(sid, b.id));
+                      });
+                    if (isAddedA && !isAddedB) return -1;
+                    if (!isAddedA && isAddedB) return 1;
+                    return 0;
+                  });
+                  const displayedSpots = isShowMore ? sortedSpotsForCity : sortedSpotsForCity.slice(0, 12);
 
                   // 수집된 중복 제거 유료 Spot 계산
                   const selectedSpotKeys = new Set<string>();

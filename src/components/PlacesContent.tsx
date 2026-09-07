@@ -119,6 +119,16 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       });
     }
 
+    // 4. 플래너의 음식 대체 선택 정보
+    if (prefs.foodOverrides) {
+      Object.values(prefs.foodOverrides).forEach((foodId) => {
+        if (foodId) {
+          allIds.add(foodId);
+          allIds.add(normalizeSpotKey(foodId));
+        }
+      });
+    }
+
     setBudgetPlaces(placesInStorage);
     setSavedPlaceIds(Array.from(allIds));
   }, []);
@@ -231,16 +241,38 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   };
 
   const displayedPlaces = useMemo(() => {
-    if (!showSavedOnly) return places;
-    return places.filter((p) =>
-      savedPlaceIds.some(
+    const list = showSavedOnly
+      ? places.filter((p) =>
+          savedPlaceIds.some(
+            (sid) =>
+              isSameSpot(sid, p.id) ||
+              isSameSpot(sid, p.contentId) ||
+              sid === p.id ||
+              sid === p.contentId
+          )
+        )
+      : places;
+
+    // 담긴 카드는 최상단(1번째)으로 이동하고, 해제 시 원래 위치로 복귀
+    return [...list].sort((a, b) => {
+      const isSavedA = savedPlaceIds.some(
         (sid) =>
-          isSameSpot(sid, p.id) ||
-          isSameSpot(sid, p.contentId) ||
-          sid === p.id ||
-          sid === p.contentId
-      )
-    );
+          isSameSpot(sid, a.id) ||
+          isSameSpot(sid, a.contentId) ||
+          sid === a.id ||
+          sid === a.contentId
+      );
+      const isSavedB = savedPlaceIds.some(
+        (sid) =>
+          isSameSpot(sid, b.id) ||
+          isSameSpot(sid, b.contentId) ||
+          sid === b.id ||
+          sid === b.contentId
+      );
+      if (isSavedA && !isSavedB) return -1;
+      if (!isSavedA && isSavedB) return 1;
+      return 0;
+    });
   }, [places, showSavedOnly, savedPlaceIds]);
 
   const categories: Array<{ id: PlaceCategory | "ALL"; label: string; icon?: string }> = [

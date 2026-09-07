@@ -99,7 +99,18 @@ export default function FoodPlannerPanel({
       {/* 2. In-place Candidate K-Food Menu Section (3x2 Desktop, 2x3 Mobile Grid) */}
       {(() => {
         const foodSpotsForCity = FOOD_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity);
-        const displayedFoodSpots = showMoreFood ? foodSpotsForCity : foodSpotsForCity.slice(0, 6);
+        const sortedFoodSpots = [...foodSpotsForCity].sort((a, b) => {
+          const isReplacedA = mealPlan.slots.some(
+            (s) => s.replacedByFoodItemId === a.id || s.replacedByFoodItemId === a.nameKo
+          );
+          const isReplacedB = mealPlan.slots.some(
+            (s) => s.replacedByFoodItemId === b.id || s.replacedByFoodItemId === b.nameKo
+          );
+          if (isReplacedA && !isReplacedB) return -1;
+          if (!isReplacedA && isReplacedB) return 1;
+          return 0;
+        });
+        const displayedFoodSpots = showMoreFood ? sortedFoodSpots : sortedFoodSpots.slice(0, 6);
 
         return (
           <div className="space-y-3 pt-3 border-t border-slate-100">
@@ -185,7 +196,7 @@ export default function FoodPlannerPanel({
                             onClick={() => setActiveSlotPickerSpotId(isPickerActive ? null : spot.id)}
                             className="w-full py-1.5 px-2 rounded-lg text-xs font-extrabold bg-[#0f172a] text-white hover:bg-slate-800 transition-colors flex items-center justify-center gap-1 cursor-pointer"
                           >
-                            <span>+ 식사 슬롯에 담기</span>
+                            <span>식사 슬롯에 담기</span>
                           </button>
                         )}
 

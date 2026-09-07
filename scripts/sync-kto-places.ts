@@ -243,17 +243,17 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     image_url: 'https://tong.visitkorea.or.kr/cms/resource/46/3515046_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
-  // 17. 석촌호수 & 잠실나루
+  // 17. 석촌호수
   {
     content_id: 'seoul_seokchonhosu_lake',
     budget_partition: 'CITY_SPECIFIC',
     area_code: 1,
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
-    title_en: 'Seokchonhosu Lake & Jamsil Park (석촌호수 & 잠실나루)',
-    desc_en: 'Scenic lakeside loop wrapping around Lotte World Magic Island and Lotte World Tower, renowned for spring cherry blossoms. || SUBWAY: 2·8호선 잠실역 2, 3번 출구 (도보 5분) / 8호선 석촌역 || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net',
+    title_en: 'Seokchon Lake (석촌호수)',
+    desc_en: 'Scenic twin-lake park wrapping around Lotte World Magic Island and Lotte World Tower, renowned for serene walking trails and cherry blossoms. || SUBWAY: 2·8호선 잠실역 2, 3번 출구 (도보 5분) / 8·9호선 석촌역 1, 8번 출구 || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net',
     price_krw: 0,
-    image_url: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=85',
+    image_url: 'https://tong.visitkorea.or.kr/cms/resource/71/3500871_image2_1.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 18. 세빛섬
@@ -266,7 +266,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Some Sevit Floating Islands (세빛섬)',
     desc_en: 'World-class artificial floating islands in the Han River featuring artistic architecture and luminous evening vistas. || SUBWAY: 3·7·9호선 고속터미널역 8-1번 출구 반포한강공원 방면 || HOURS: 11:00 ~ 22:00 (업장별 상이) || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net/attractions/some-sevit-kr/KOP024645',
     price_krw: 0,
-    image_url: 'https://tong.visitkorea.or.kr/cms/resource/13/2034913_image2_1.jpg',
+    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=7331c90a-e6e3-4b63-9ec6-69aa9ab1426f',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 19. 뚝섬한강공원
@@ -279,21 +279,21 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: 'Ttukseom Hangang Park (뚝섬한강공원)',
     desc_en: 'Popular recreational waterside park with cylindrical J-Bug cultural complex, windsurfing, and outdoor swimming. || SUBWAY: 7호선 자양(뚝섬한강공원)역 2, 3번 출구 연결 || HOURS: 24시간 상시 개방 || CLOSED: 연중무휴 || WEB: https://hangang.seoul.go.kr',
     price_krw: 0,
-    image_url: 'https://tong.visitkorea.or.kr/cms/resource/79/1982079_image2_1.jpg',
+    image_url: 'https://hangang.seoul.go.kr/resources/zeroCMS/site/main/images/park_view_photo_4.jpg',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
-  // 20. 서울어린이대공원
+  // 20. 롯데월드 어드벤처
   {
     content_id: 'seoul_childrens_grand_park',
     budget_partition: 'CITY_SPECIFIC',
     area_code: 1,
     main_category: 'Sightseeing',
     sub_category: 'Attraction',
-    title_en: 'Seoul Children\'s Grand Park (서울어린이대공원)',
-    desc_en: 'Extensive botanical park and public zoo nestled in lush greenery offering peaceful walking trails. || SUBWAY: 7호선 어린이대공원역 1번 출구 / 5호선 아차산역 4번 출구 || HOURS: 05:00 ~ 22:00 (동물원 10:00 ~ 17:00) || CLOSED: 연중무휴 || WEB: https://korean.visitseoul.net/attractions/어린이대공원-꿈마루/KOP042170',
-    price_krw: 0,
-    image_url: 'https://tong.visitkorea.or.kr/cms/resource/55/1979255_image2_1.jpg',
-    deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
+    title_en: 'Lotte World Adventure (롯데월드 어드벤처)',
+    desc_en: 'World-class theme park featuring massive indoor Adventure zones and outdoor Magic Island on Seokchon Lake. || SUBWAY: 2·8호선 잠실역 3, 4번 출구 지하 직결 || HOURS: 10:00 ~ 21:00 (금·토 22:00) || CLOSED: 연중무휴 || WEB: https://adventure.lotteworld.com',
+    price_krw: 62000,
+    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=78a00ac3-ad3c-4637-8629-48aefb22a79b',
+    deep_link_template: 'https://www.klook.com/activity/253-lotte-world-seoul/?spm=HypeHeritage',
   },
   // 21. 창경궁 & 대온실 [신규]
   {
@@ -357,7 +357,7 @@ export const VERIFIED_SEOUL_LANDMARKS: CatalogItemPayload[] = [
     title_en: '63 Square & Sky Observatory (63스퀘어 & 63전망대)',
     desc_en: 'Yeouido\'s golden skyscraper landmark boasting art exhibitions and sweeping sunset vistas across the Han River. || SUBWAY: 9호선 샛강역 3번 출구 / 5호선 여의나루역 1번 출구 (버스 연계) || HOURS: 10:00 ~ 22:00 || CLOSED: 연중무휴 || WEB: https://english.visitseoul.net/attractions/63-Square/ENP000210',
     price_krw: 15000,
-    image_url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=85',
+    image_url: 'https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=106368d5-188b-4b10-85f8-41ec26a8019b',
     deep_link_template: 'https://www.klook.com/city/14-seoul-things-to-do/?spm=HypeHeritage',
   },
   // 26. 명동 쇼핑거리 [신규]

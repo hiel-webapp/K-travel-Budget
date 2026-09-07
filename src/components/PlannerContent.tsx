@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
-import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft } from "../lib/storage-helper";
+import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget } from "../lib/storage-helper";
+import type { PlaceItem } from "../lib/places/types";
 
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
@@ -76,6 +77,94 @@ const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[]
   { key: "SOKCHO", nameKo: "속초", nameEn: "Sokcho" },
   { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
 ];
+ 
+function placeToAttractionSpot(p: PlaceItem): AttractionSpot {
+  const categoryTypeMap: Record<string, "명소" | "자연" | "엔터" | "쇼핑"> = {
+    NATURE: "자연",
+    ENTERTAINMENT: "엔터",
+    SHOPPING: "쇼핑",
+    ATTRACTION: "명소",
+    CULTURE: "명소",
+  };
+  const categoryType = p.categoryType || categoryTypeMap[p.category] || "명소";
+  const emojiMap: Record<string, string> = {
+    NATURE: "🌿",
+    ENTERTAINMENT: "🎡",
+    SHOPPING: "🛍️",
+    ATTRACTION: "🏛️",
+    CULTURE: "🎨",
+  };
+  const titleKo = p.translations?.ko?.title || (p as any).title || "명소";
+  const titleEn = p.translations?.en?.title || titleKo;
+  const descKo = p.translations?.ko?.description || (p as any).descriptionKo || titleKo;
+  const descEn = p.translations?.en?.description || (p as any).descriptionEn || descKo;
+  const price = p.priceKrw ?? (p as any).estimatedPriceKrw ?? 0;
+
+  return {
+    id: p.id,
+    cityCode: p.city,
+    nameKo: titleKo,
+    nameEn: titleEn,
+    descKo,
+    descEn,
+    price,
+    priceStatus: price > 0 ? "PAID" : "FREE",
+    tag: p.category,
+    emoji: emojiMap[p.category] || "📍",
+    gradientBg: "from-slate-700 to-slate-900",
+    isFeatured: true,
+    subwayInfo: p.subwayInfo,
+    openingHours: p.openingHours,
+    closedDays: p.closedDays,
+    categoryType,
+    imageUrl: p.repImageUrl || (p as any).imageUrl,
+  };
+}
+
+function placeToAccommodationSpot(p: PlaceItem): AccommodationCandidateSpot {
+  const titleKo = p.translations?.ko?.title || (p as any).title || "숙소";
+  const titleEn = p.translations?.en?.title || titleKo;
+  const descKo = p.translations?.ko?.description || (p as any).descriptionKo || titleKo;
+  const descEn = p.translations?.en?.description || (p as any).descriptionEn || descKo;
+  const price = p.priceKrw ?? (p as any).estimatedPriceKrw ?? 95000;
+  const basketId: BudgetBasketId =
+    price < 60000
+      ? "BUDGET_STAY"
+      : price > 180000
+      ? "PREMIUM_HERITAGE"
+      : "STANDARD_HOTEL";
+
+  const locKo = p.translations?.ko?.address || "도심";
+  const locEn = p.translations?.en?.address || "City Center";
+
+  return {
+    id: p.id,
+    cityCode: p.city,
+    basketId,
+    nameKo: titleKo,
+    nameEn: titleEn,
+    descKo,
+    descEn,
+    nightlyPriceKrw: price,
+    locationKo: locKo,
+    locationEn: locEn,
+    tag: basketId === "BUDGET_STAY" ? "Hostel" : basketId === "PREMIUM_HERITAGE" ? "Luxury" : "Hotel",
+    emoji: "🏨",
+    gradientBg: "from-blue-600 to-indigo-700",
+  };
+}
+
+function isDefaultAttractionSpot(spotId: string): boolean {
+  const spotKey = spotId.replace(/^kto_/, "");
+  if (SEOUL_LANDMARK_BILINGUAL_MAP[spotKey]) return true;
+  return ATTRACTION_SPOTS_CATALOG.some(
+    (s) => !s.id.startsWith("kto_custom_") && (s.id === spotId || s.id === `kto_${spotId}`)
+  );
+}
+
+function isDefaultAccommodationSpot(spotId: string): boolean {
+  return ACCOMMODATION_SPOTS_CATALOG.some((s) => s.id === spotId);
+}
 
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
@@ -233,6 +322,29 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
   const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
+  const [budgetPlaces, setBudgetPlaces] = useState<PlaceItem[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBudgetPlaces(loadBudgetPlaces());
+      const handleSync = () => {
+        setBudgetPlaces(loadBudgetPlaces());
+      };
+      window.addEventListener("hypeheritage_budget_places_changed", handleSync);
+      return () => {
+        window.removeEventListener("hypeheritage_budget_places_changed", handleSync);
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    const customAttractions = budgetPlaces
+      .filter((p) => !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
+      .map(placeToAttractionSpot);
+    if (customAttractions.length > 0) {
+      registerCustomAttractionSpots(customAttractions);
+    }
+  }, [budgetPlaces]);
 
   // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태
   const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]>>({});
@@ -865,8 +977,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     cityTransitStyles: preferences.cityTransitStyles,
   });
 
-  // 비상금 비율 계산 기준 총액 = (숙소 + 식비 + 교통 + 관광) + 쇼핑 예산
-  const baseEmergencyGrandTotal = basePlanForEmergency.grandTotalKrw + shoppingAmountKrw;
+  // K-스팟에서 담긴 맛집/카페 총액 계산
+  const allCustomFoodTotalKrw = budgetPlaces
+    .filter((p) => p.category === "RESTAURANT" || p.category === "CAFE")
+    .reduce((sum, p) => sum + (p.priceKrw ?? (p as any).estimatedPriceKrw ?? (p.category === "CAFE" ? 8000 : 18000)) * adultCount, 0);
+
+  // 비상금 비율 계산 기준 총액 = (숙소 + 식비 + 교통 + 관광) + 쇼핑 예산 + K-스팟 맛집/카페
+  const baseEmergencyGrandTotal = basePlanForEmergency.grandTotalKrw + shoppingAmountKrw + allCustomFoodTotalKrw;
   const emergencyAdultCount = adultCount;
   const computedEmergencyKrw = activeEmergencyPct !== undefined
     ? Math.round(((baseEmergencyGrandTotal / emergencyAdultCount) * activeEmergencyPct) / 1000) * 1000 * emergencyAdultCount
@@ -1065,6 +1182,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   const handleResetStay = (cityTarget: SupportedCity) => {
+    const currentStay = preferences.accommodationByCity?.[cityTarget];
+    if (currentStay && typeof currentStay === "object" && "placeId" in currentStay) {
+      const placeId = (currentStay as any).placeId;
+      if (!isDefaultAccommodationSpot(placeId)) {
+        const customAcc = budgetPlaces.find((p) => p.id === placeId);
+        if (customAcc) {
+          toggleBudgetPlace(customAcc);
+        }
+      }
+    }
+
     const nextAcc = { ...preferences.accommodationByCity };
     delete nextAcc[cityTarget];
 
@@ -1252,6 +1380,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleToggleSpot = (city: SupportedCity, spotId: string) => {
     const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
     const isSelected = currentCitySel.individualSpotIds.includes(spotId);
+    const customKSpot = budgetPlaces.find((p) => p.id === spotId);
+
+    // K-스팟에서 유입된 비기본 커스텀 관광지의 담기 취소 시: 플래너 목록 및 예산에서 완전 제거
+    if (!isDefaultAttractionSpot(spotId)) {
+      if (isSelected && customKSpot) {
+        toggleBudgetPlace(customKSpot);
+        setToastMessage(locale === "ko" ? "선택된 관광지가 예산 및 목록에서 제외되었습니다." : "Attraction removed from budget and list.");
+        setTimeout(() => setToastMessage(null), 2500);
+        return;
+      }
+    }
+
     const nextSpotIds = isSelected
       ? currentCitySel.individualSpotIds.filter((id) => id !== spotId)
       : [...currentCitySel.individualSpotIds, spotId];
@@ -1288,6 +1428,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           },
         };
       });
+      // 기본 항목이라도 K-스팟 스토리지와 동기화가 필요한 경우
+      if (customKSpot) {
+        toggleBudgetPlace(customKSpot);
+      }
     } else {
       setSaveError(true);
     }
@@ -2463,7 +2607,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           : plan.citySections[city]?.lineItems.find((i) => i.category === "ACCOMMODATION")?.basketId) || "STANDARD_HOTEL";
                   const basketOptions: BudgetBasketId[] = ["BUDGET_STAY", "STANDARD_HOTEL", "PREMIUM_HERITAGE"];
 
-                  const accSpotsForCity = ACCOMMODATION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+                  const defaultAccSpots = ACCOMMODATION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+                  const customAccSpots = budgetPlaces
+                    .filter((p) => p.city === city && p.category === "ACCOMMODATION" && !defaultAccSpots.some((d) => d.id === p.id))
+                    .map(placeToAccommodationSpot);
+                  const accSpotsForCity = [...customAccSpots, ...defaultAccSpots];
                   const isShowMoreAcc = !!showMoreAccommodationsByCity[city];
                   const displayedAccSpots = isShowMoreAcc ? accSpotsForCity : accSpotsForCity.slice(0, 6);
                   const cityNights = draft.cityNightAllocations[city] ?? 0;
@@ -2629,6 +2777,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         type="button"
                                         onClick={() => {
                                           if (isSelectedSpot) {
+                                            if (!isDefaultAccommodationSpot(spot.id)) {
+                                              const customAcc = budgetPlaces.find((p) => p.id === spot.id);
+                                              if (customAcc) toggleBudgetPlace(customAcc);
+                                            }
                                             handleResetStay(city);
                                           } else {
                                             handleStayOverride(city, {
@@ -2792,6 +2944,92 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         onRemoveAddOn={handleRemoveAddOn}
                         onChangeAddOnQuantity={handleChangeAddOnQuantity}
                       />
+
+                      {/* 3. K-Spot Gourmet & Cafe Candidates added by user */}
+                      {(() => {
+                        const customFoodPlaces = budgetPlaces.filter(
+                          (p) => p.city === city && (p.category === "RESTAURANT" || p.category === "CAFE")
+                        );
+                        if (customFoodPlaces.length === 0) return null;
+
+                        return (
+                          <div className="space-y-3 pt-4 border-t border-slate-100">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                                {locale === "ko"
+                                  ? `🍱 K-스팟에서 담은 추천 맛집 & 카페 (${customFoodPlaces.length})`
+                                  : `🍱 Selected K-Gourmet & Cafes (${customFoodPlaces.length})`}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                {locale === "ko" ? "취소 시 목록 및 예산에서 즉시 제외됩니다" : "Removing excludes from budget"}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {customFoodPlaces.map((foodPlace) => {
+                                const unitPrice = foodPlace.priceKrw ?? (foodPlace as any).estimatedPriceKrw ?? (foodPlace.category === "CAFE" ? 8000 : 18000);
+                                const totalFoodItemPrice = unitPrice * (draft.adultCount || 1);
+                                const title = locale === "ko"
+                                  ? (foodPlace.translations?.ko?.title || (foodPlace as any).title)
+                                  : (foodPlace.translations?.en?.title || foodPlace.translations?.ko?.title || (foodPlace as any).title);
+                                const desc = locale === "ko"
+                                  ? (foodPlace.translations?.ko?.description || (foodPlace as any).descriptionKo)
+                                  : (foodPlace.translations?.en?.description || foodPlace.translations?.ko?.description || (foodPlace as any).descriptionKo);
+                                const address = foodPlace.translations?.ko?.address || (foodPlace as any).area || foodPlace.city;
+
+                                return (
+                                  <div
+                                    key={foodPlace.id}
+                                    className="p-3.5 rounded-2xl border border-rose-300 ring-1 ring-rose-200 bg-rose-50/20 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all"
+                                  >
+                                    <div className="space-y-2">
+                                      <div className="flex items-start justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xl shrink-0">{foodPlace.category === "CAFE" ? "☕" : "🍲"}</span>
+                                          <div>
+                                            <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
+                                              {title}
+                                            </h5>
+                                            <span className="text-[10px] text-slate-400">
+                                              {foodPlace.category === "CAFE" ? (locale === "ko" ? "디저트·카페" : "Cafe") : (locale === "ko" ? "맛집·식당" : "Restaurant")} · {address}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-800 border-amber-200">
+                                          {formatKrw(unitPrice)}/인
+                                        </span>
+                                      </div>
+
+                                      {desc && (
+                                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                                          {desc}
+                                        </p>
+                                      )}
+                                    </div>
+
+                                    <div className="mt-3 pt-2 border-t border-rose-100 flex items-center justify-between text-xs">
+                                      <span className="text-[11px] font-bold text-[#e25c5c]">
+                                        {formatKrw(totalFoodItemPrice)} <span className="text-[10px] text-slate-400 font-normal">({draft.adultCount || 1}명 기준)</span>
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          toggleBudgetPlace(foodPlace);
+                                          setToastMessage(locale === "ko" ? "맛집 담기가 취소되어 목록에서 제외되었습니다." : "Removed from budget.");
+                                          setTimeout(() => setToastMessage(null), 2500);
+                                        }}
+                                        className="px-3 py-1 rounded-lg text-xs font-black bg-rose-500 text-white hover:bg-rose-600 shadow-2xs cursor-pointer transition-colors"
+                                      >
+                                        {locale === "ko" ? "✓ 담김 (취소)" : "✓ Added"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })()}
@@ -2815,9 +3053,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const coursesForCity = TOUR_COURSE_PRESETS.filter((c) => c.cityCode === city);
                   const dbSpots = dbAttractionsByCity[city];
                   const validDbSpots = dbSpots?.filter((s) => s.cityCode === city);
-                  const spotsForCity = (validDbSpots && validDbSpots.length > 0)
+                  const baseSpotsForCity = (validDbSpots && validDbSpots.length > 0)
                     ? validDbSpots
                     : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+
+                  // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합
+                  const customAttractionPlaces = budgetPlaces
+                    .filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
+                    .map(placeToAttractionSpot)
+                    .filter((cs) => !baseSpotsForCity.some((bs) => bs.id === cs.id || bs.id === `kto_${cs.id}` || cs.id === `kto_${bs.id}`));
+
+                  const spotsForCity = [...customAttractionPlaces, ...baseSpotsForCity];
 
                   const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
                   const filteredSpotsForCity = currentCatFilter === "ALL"
@@ -3291,7 +3537,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
         {/* ================= RIGHT STICKY SMART RECEIPT (40%) ================= */}
         {(() => {
-          const finalGrandTotalKrw = plan.grandTotalKrw + shoppingAmountKrw;
+          const finalGrandTotalKrw = plan.grandTotalKrw + shoppingAmountKrw + allCustomFoodTotalKrw;
           const finalPerTravelerTotalKrw = Math.round(finalGrandTotalKrw / adultCount);
 
           const targetBudget = plan.targetBudgetKrw || 1;
@@ -3410,7 +3656,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                     // 사용자가 [+ Add]한 개별 관광지 및 추천 코스 내 관광지 추출
                     const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-                    const spotsForCity = dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+                    const spotsForCity = [
+                      ...budgetPlaces
+                        .filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
+                        .map(placeToAttractionSpot),
+                      ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
+                    ];
                     const selectedSpotSet = new Set<string>();
                     (citySel.selectedCourseIds || []).forEach((cid) => {
                       const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
@@ -3432,8 +3683,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       }
                     });
 
+                    // K-스팟에서 담은 맛집·카페 항목 추출 및 합산
+                    const cityCustomFood = budgetPlaces.filter(
+                      (p) => p.city === city && (p.category === "RESTAURANT" || p.category === "CAFE")
+                    );
+                    let cityCustomFoodTotalKrw = 0;
+                    cityCustomFood.forEach((f) => {
+                      const price = f.priceKrw ?? (f as any).estimatedPriceKrw ?? (f.category === "CAFE" ? 8000 : 18000);
+                      cityCustomFoodTotalKrw += price * adultCount;
+                    });
+
                     const baseCitySubtotal = cityLineItems.reduce((sum, item) => sum + item.lineTotalKrw, 0);
-                    const totalCityExpenses = baseCitySubtotal + attractionsTotalKrw;
+                    const totalCityExpenses = baseCitySubtotal + attractionsTotalKrw + cityCustomFoodTotalKrw;
 
                     return (
                       <div key={city} className={`space-y-2 ${cityIdx === 0 ? "" : "pt-2 border-t border-slate-100"}`}>
@@ -3496,6 +3757,43 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     </div>
                                     <span className={`font-sans tabular-nums font-bold shrink-0 ${itemTotal > 0 ? "text-slate-800" : "text-emerald-600 font-extrabold"}`}>
                                       {itemTotal > 0 ? formatKrw(itemTotal) : "FREE"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* K-스팟에서 담은 맛집·카페 실시간 영수증 연동 목록 */}
+                          {cityCustomFood.length > 0 && (
+                            <div className="pt-2 border-t border-dashed border-slate-200/80 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                                  <span>🍲</span>
+                                  <span>{locale === "ko" ? "선택된 K-맛집·카페" : "Added Gourmet & Cafes"} ({cityCustomFood.length})</span>
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-400">
+                                  {formatKrw(cityCustomFoodTotalKrw)}
+                                </span>
+                              </div>
+                              {cityCustomFood.map((foodPlace) => {
+                                const unitPrice = foodPlace.priceKrw ?? (foodPlace as any).estimatedPriceKrw ?? (foodPlace.category === "CAFE" ? 8000 : 18000);
+                                const itemTotal = unitPrice * adultCount;
+                                const title = locale === "ko"
+                                  ? (foodPlace.translations?.ko?.title || (foodPlace as any).title)
+                                  : (foodPlace.translations?.en?.title || foodPlace.translations?.ko?.title || (foodPlace as any).title);
+                                return (
+                                  <div key={foodPlace.id} className="flex justify-between items-start text-xs pl-1">
+                                    <div className="pr-2 min-w-0">
+                                      <span className="text-slate-800 font-semibold block truncate">
+                                        {title}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400">
+                                        {foodPlace.category === "CAFE" ? (locale === "ko" ? "디저트·카페" : "Cafe") : (locale === "ko" ? "맛집·식당" : "Dining")} · {formatKrw(unitPrice)} × {adultCount}{locale === "ko" ? "명" : " travelers"}
+                                      </span>
+                                    </div>
+                                    <span className="font-sans tabular-nums font-bold shrink-0 text-slate-800">
+                                      {formatKrw(itemTotal)}
                                     </span>
                                   </div>
                                 );

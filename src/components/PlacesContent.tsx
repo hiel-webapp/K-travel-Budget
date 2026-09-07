@@ -8,7 +8,7 @@ import { Locale } from "../lib/i18n/locales";
 import { PlaceItem } from "../lib/places";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 import { PlaceCategory } from "../lib/kto/types";
-import { loadSavedPlaceIds, toggleSavedPlaceId } from "../lib/storage-helper";
+import { loadSavedPlaceIds, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget } from "../lib/storage-helper";
 
 interface PlacesContentProps {
   locale: Locale;
@@ -70,15 +70,33 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Saved place candidate IDs state
+  // Saved place candidate IDs state & Budget places
+  const [budgetPlaces, setBudgetPlaces] = useState<PlaceItem[]>([]);
   const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
-      setSavedPlaceIds(loadSavedPlaceIds());
+      const placesInStorage = loadBudgetPlaces();
+      setBudgetPlaces(placesInStorage);
+      setSavedPlaceIds(placesInStorage.map((p) => p.id || p.contentId));
     });
     return () => cancelAnimationFrame(handle);
+  }, []);
+
+  useEffect(() => {
+    const handleSync = (e: any) => {
+      if (e?.detail?.places) {
+        setBudgetPlaces(e.detail.places);
+        setSavedPlaceIds(e.detail.places.map((p: PlaceItem) => p.id || p.contentId));
+      } else {
+        const placesInStorage = loadBudgetPlaces();
+        setBudgetPlaces(placesInStorage);
+        setSavedPlaceIds(placesInStorage.map((p) => p.id || p.contentId));
+      }
+    };
+    window.addEventListener("hypeheritage_budget_places_changed", handleSync);
+    return () => window.removeEventListener("hypeheritage_budget_places_changed", handleSync);
   }, []);
 
   // Debounce search query
@@ -160,12 +178,13 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     updateQueryParams(selectedCity, selectedCategory, searchQuery, nextSavedOnly);
   };
 
-  const handleToggleSavePlace = (placeId: string) => {
-    const res = toggleSavedPlaceId(placeId);
-    setSavedPlaceIds(res.currentIds);
-    const msg = res.isSaved
-      ? dict.places.placeSavedSuccess || "장소 후보가 내 여행에 저장되었습니다."
-      : dict.places.placeUnsavedSuccess || "장소 후보 저장이 해제되었습니다.";
+  const handleToggleBudgetPlace = (place: PlaceItem) => {
+    const res = toggleBudgetPlace(place);
+    setBudgetPlaces(res.currentPlaces);
+    setSavedPlaceIds(res.currentPlaces.map((p) => p.id || p.contentId));
+    const msg = res.isAdded
+      ? (locale === "ko" ? "✓ 내 한국 여행 예산 및 영수증에 담겼습니다." : "✓ Added to trip budget & receipt.")
+      : (locale === "ko" ? "예산 담기가 해제되었습니다." : "Removed from trip budget.");
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
@@ -337,9 +356,9 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
-            <span>★</span>
+            <span>✓</span>
             <span>
-              {dict.places.filterSavedOnly} ({savedPlaceIds.length})
+              {locale === "ko" ? "예산에 담긴 장소" : "In Budget"} ({budgetPlaces.length})
             </span>
           </button>
         </div>
@@ -405,7 +424,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 locale={locale}
                 dict={dict}
                 isSaved={isSaved}
-                onToggleSave={() => handleToggleSavePlace(place.id || place.contentId)}
+                onToggleSave={() => handleToggleBudgetPlace(place)}
                 onPreview={() => setPreviewPlace(place)}
               />
             );
@@ -587,19 +606,19 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 <button
                   type="button"
                   onClick={() => {
-                    handleToggleSavePlace(previewPlace.id || previewPlace.contentId);
+                    handleToggleBudgetPlace(previewPlace);
                   }}
-                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                     savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId)
-                      ? "bg-rose-500 text-white shadow-xs"
-                      : "bg-white text-slate-700 border border-slate-200 hover:bg-slate-100"
+                      ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
+                      : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
                   }`}
                 >
-                  <span>{savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId) ? "★" : "☆"}</span>
+                  <span>{savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId) ? "✓" : "+"}</span>
                   <span>
                     {savedPlaceIds.includes(previewPlace.id) || savedPlaceIds.includes(previewPlace.contentId)
-                      ? (locale === "ko" ? "저장됨" : "Saved")
-                      : (locale === "ko" ? "후보 저장" : "Save")}
+                      ? (locale === "ko" ? "✓ 담김" : "✓ Added")
+                      : (locale === "ko" ? "+ 예산에 담기" : "+ Add to Budget")}
                   </span>
                 </button>
               </div>
@@ -711,7 +730,7 @@ function PlaceCard({
           </span>
         </div>
 
-        {/* Save Toggle Button */}
+        {/* Budget Add / Toggle Button */}
         <button
           type="button"
           aria-pressed={isSaved}
@@ -719,15 +738,17 @@ function PlaceCard({
             e.stopPropagation();
             onToggleSave();
           }}
-          className={`absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold transition-colors shadow-sm cursor-pointer flex items-center gap-1 z-10 ${
+          className={`absolute top-2.5 right-2.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all shadow-md cursor-pointer flex items-center gap-1 z-10 ${
             isSaved
-              ? "bg-[#e25c5c] text-white hover:bg-[#d14b4b]"
-              : "bg-white/90 backdrop-blur-md text-slate-700 hover:bg-white border border-slate-200"
+              ? "bg-rose-500 text-white hover:bg-rose-600 shadow-xs"
+              : "bg-[#0f172a]/90 hover:bg-[#0f172a] text-white backdrop-blur-md shadow-2xs"
           }`}
         >
-          <span>{isSaved ? "★" : "☆"}</span>
+          <span>{isSaved ? "✓" : "+"}</span>
           <span>
-            {isSaved ? dict.places.unsavePlace : dict.places.savePlace}
+            {isSaved
+              ? (locale === "ko" ? "✓ 담김" : "✓ Added")
+              : (locale === "ko" ? "+ 예산에 담기" : "+ Add to Budget")}
           </span>
         </button>
       </div>

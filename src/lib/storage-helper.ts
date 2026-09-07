@@ -22,11 +22,13 @@ import {
 } from "../features/budget/domain/types";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { IntercityTransportMode } from "./transport/intercity-fares";
+import { PlaceItem } from "./places/types";
 
 const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
 const PREFS_STORAGE_KEY = "hypeheritage_planner_preferences";
 const SAVED_PLACE_IDS_STORAGE_KEY = "hypeheritage_saved_place_ids";
+const BUDGET_PLACES_STORAGE_KEY = "hypeheritage_budget_places";
 const SESSION_ACTIVE_KEY = "hypeheritage_session_active";
 
 export function isClient(): boolean {
@@ -66,12 +68,14 @@ export function ensureSessionInitialized(): void {
         sessionStore.removeItem(LEGACY_STORAGE_KEY);
         sessionStore.removeItem(PREFS_STORAGE_KEY);
         sessionStore.removeItem(SAVED_PLACE_IDS_STORAGE_KEY);
+        sessionStore.removeItem(BUDGET_PLACES_STORAGE_KEY);
 
         if (typeof window.localStorage !== "undefined" && window.localStorage) {
           window.localStorage.removeItem(NEW_STORAGE_KEY);
           window.localStorage.removeItem(LEGACY_STORAGE_KEY);
           window.localStorage.removeItem(PREFS_STORAGE_KEY);
           window.localStorage.removeItem(SAVED_PLACE_IDS_STORAGE_KEY);
+          window.localStorage.removeItem(BUDGET_PLACES_STORAGE_KEY);
         }
       }
     }
@@ -754,6 +758,163 @@ export function isPlaceSaved(id: string): boolean {
   if (!id) return false;
   const currentIds = loadSavedPlaceIds();
   return currentIds.includes(id);
+}
+
+/**
+ * 예산에 담긴 K-스팟 장소 목록을 세션스토리지에서 로드합니다.
+ */
+export function loadBudgetPlaces(): PlaceItem[] {
+  if (!isClient()) return [];
+  ensureSessionInitialized();
+  try {
+    const storage = getStorage();
+    if (!storage) return [];
+    const raw = storage.getItem(BUDGET_PLACES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 예산에 담긴 K-스팟 장소 목록을 저장하고 savedPlaceIds 및 window 이벤트를 동기화합니다.
+ */
+export function saveBudgetPlaces(places: PlaceItem[]): boolean {
+  if (!isClient()) return false;
+  ensureSessionInitialized();
+  try {
+    const storage = getStorage();
+    if (!storage) return false;
+    storage.setItem(BUDGET_PLACES_STORAGE_KEY, JSON.stringify(places));
+    const placeIds = places.map((p) => p.id || p.contentId);
+    saveSavedPlaceIds(placeIds);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("hypeheritage_budget_places_changed", { detail: { places } }));
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 특정 장소 ID 또는 contentId가 예산에 담겨 있는지 검사합니다.
+ */
+export function isPlaceInBudget(idOrContentId: string): boolean {
+  if (!idOrContentId) return false;
+  const places = loadBudgetPlaces();
+  return places.some((p) => p.id === idOrContentId || p.contentId === idOrContentId);
+}
+
+/**
+ * K-스팟 장소를 예산에 담기 / 담기 취소 토글하고 플래너 Preferences와 즉시 양방향 동기화합니다.
+ */
+export function toggleBudgetPlace(place: PlaceItem): { isAdded: boolean; currentPlaces: PlaceItem[] } {
+  if (!place || (!place.id && !place.contentId)) {
+    const current = loadBudgetPlaces();
+    return { isAdded: false, currentPlaces: current };
+  }
+
+  const currentPlaces = loadBudgetPlaces();
+  const targetId = place.id || place.contentId;
+  const targetContentId = place.contentId || place.id;
+
+  const existingIdx = currentPlaces.findIndex(
+    (p) =>
+      p.id === targetId ||
+      p.contentId === targetContentId ||
+      p.id === targetContentId ||
+      p.contentId === targetId
+  );
+
+  let nextPlaces: PlaceItem[];
+  let isAdded: boolean;
+
+  if (existingIdx >= 0) {
+    nextPlaces = currentPlaces.filter((_, idx) => idx !== existingIdx);
+    isAdded = false;
+  } else {
+    nextPlaces = [...currentPlaces, place];
+    isAdded = true;
+  }
+
+  saveBudgetPlaces(nextPlaces);
+
+  // 플래너 Preferences와의 즉각 양방향 동기화
+  try {
+    const draft = loadTripDraft();
+    const prefsRes = loadPlannerPreferencesEx(draft);
+    const prefs = prefsRes.preferences;
+    const city = place.city;
+    const spotKey = place.contentId || place.id;
+
+    if (
+      place.category === "LANDMARK" ||
+      place.category === "NATURE" ||
+      place.category === "ENTERTAINMENT" ||
+      place.category === "SHOPPING" ||
+      place.category === "ATTRACTION" ||
+      place.category === "CULTURE"
+    ) {
+      if (!prefs.attractionSelections) prefs.attractionSelections = {};
+      if (!prefs.attractionSelections[city]) {
+        prefs.attractionSelections[city] = { selectedCourseIds: [], individualSpotIds: [] };
+      }
+      const spotIds = prefs.attractionSelections[city].individualSpotIds || [];
+      if (isAdded) {
+        if (!spotIds.includes(spotKey) && !spotIds.includes(place.id)) {
+          prefs.attractionSelections[city].individualSpotIds = [...spotIds, spotKey];
+        }
+      } else {
+        prefs.attractionSelections[city].individualSpotIds = spotIds.filter(
+          (sid) => sid !== spotKey && sid !== place.id && sid !== `kto_${spotKey}`
+        );
+      }
+    } else if (place.category === "ACCOMMODATION") {
+      if (!prefs.accommodationByCity) prefs.accommodationByCity = {};
+      if (isAdded) {
+        prefs.accommodationByCity[city] = {
+          kind: "PLACE",
+          basketId: "BUDGET_STAY",
+          placeId: place.id,
+          placeNameKo: place.translations?.ko?.title || (place as any).title || "숙소",
+          placeNameEn: place.translations?.en?.title || place.translations?.ko?.title || (place as any).title || "Stay",
+          nightlyPriceKrw: place.priceKrw && place.priceKrw > 0 ? place.priceKrw : 80000,
+          priceSource: "MOCK",
+          snapshotAt: new Date().toISOString(),
+        };
+      } else {
+        const curStay = prefs.accommodationByCity[city];
+        if (curStay && typeof curStay === "object" && (curStay as any).placeId === place.id) {
+          delete prefs.accommodationByCity[city];
+        }
+      }
+    }
+
+    savePlannerPreferences({
+      draft,
+      accommodationByCity: prefs.accommodationByCity,
+      foodTier: prefs.foodTier,
+      foodOverrides: prefs.foodOverrides,
+      foodAddOnOverrides: prefs.addOnSelections,
+      attractionByCity: prefs.attractionByCity,
+      attractionSelections: prefs.attractionSelections,
+      attractionCustomDailyKrw: prefs.attractionCustomDailyKrw,
+      emergencyFundKrw: prefs.emergencyFundKrw,
+      emergencyFundPct: prefs.emergencyFundPct,
+      intercityTransportOverrides: prefs.intercityTransportOverrides,
+      localTransitStyle: prefs.localTransitStyle,
+      cityTransitStyles: prefs.cityTransitStyles,
+      isKobusPassApplied: prefs.isKobusPassApplied,
+    });
+  } catch {
+    // ignore
+  }
+
+  return { isAdded, currentPlaces: nextPlaces };
 }
 
 export function loadSavedTrips(): SavedTripItem[] {

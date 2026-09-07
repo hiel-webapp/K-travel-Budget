@@ -34,10 +34,7 @@ export default function FoodPlannerPanel({
   const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
   const [showMoreFood, setShowMoreFood] = useState<boolean>(false);
   const [activeSlotPickerSpotId, setActiveSlotPickerSpotId] = useState<string | null>(null);
-
-  // 방안 1: 도시 탭 진입 시점의 스냅샷 기준으로 상단 정렬 (탐색 중 클릭 시 화면 튐 방지)
-  const prevCityRef = useRef<string>("");
-  const pinnedFoodSpotIdsRef = useRef<string[]>([]);
+  const [showReplacedOnly, setShowReplacedOnly] = useState<boolean>(false);
 
   if (!mealPlan || !mealPlan.slots || mealPlan.slots.length === 0) {
     return (
@@ -103,34 +100,48 @@ export default function FoodPlannerPanel({
       {/* 2. In-place Candidate K-Food Menu Section (3x2 Desktop, 2x3 Mobile Grid) */}
       {(() => {
         const foodSpotsForCity = FOOD_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity);
+        const replacedSlotsCount = mealPlan.slots.filter((s) => s.replacedByFoodItemId).length;
 
-        // 도시가 바뀔 때만 상단 고정 스냅샷 갱신 (슬롯 교체/취소 중에는 위치 불변)
-        if (currentCity !== prevCityRef.current) {
-          prevCityRef.current = currentCity;
-          const currentReplaced = mealPlan.slots
-            .map((s) => s.replacedByFoodItemId)
-            .filter(Boolean) as string[];
-          pinnedFoodSpotIdsRef.current = currentReplaced;
-        }
+        // 방안 3: 기본 추천순 항상 고정, 필요 시 '대체된 메뉴만 보기' 필터로 모아봄
+        const filteredFoodSpots = showReplacedOnly
+          ? foodSpotsForCity.filter((spot) =>
+              mealPlan.slots.some(
+                (s) => s.replacedByFoodItemId === spot.id || s.replacedByFoodItemId === spot.nameKo
+              )
+            )
+          : foodSpotsForCity;
 
-        const sortedFoodSpots = [...foodSpotsForCity].sort((a, b) => {
-          const isPinnedA = pinnedFoodSpotIdsRef.current.some((id) => id === a.id || id === a.nameKo);
-          const isPinnedB = pinnedFoodSpotIdsRef.current.some((id) => id === b.id || id === b.nameKo);
-          if (isPinnedA && !isPinnedB) return -1;
-          if (!isPinnedA && isPinnedB) return 1;
-          return 0;
-        });
-        const displayedFoodSpots = showMoreFood ? sortedFoodSpots : sortedFoodSpots.slice(0, 6);
+        const displayedFoodSpots = showMoreFood ? filteredFoodSpots : filteredFoodSpots.slice(0, 6);
 
         return (
           <div className="space-y-3 pt-3 border-t border-slate-100">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                 🍱 {locale === "ko" ? `${currentCityLabel} 대표 시그니처 K-Food & 맛집 탐색` : `${currentCityLabel} Signature K-Food Candidates`}
               </span>
-              <span className="text-[10px] text-slate-400 font-medium">
-                {locale === "ko" ? `전체 ${foodSpotsForCity.length}개 중 ${displayedFoodSpots.length}개 노출` : `Showing ${displayedFoodSpots.length} of ${foodSpotsForCity.length}`}
-              </span>
+              <div className="flex items-center gap-2">
+                {replacedSlotsCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowReplacedOnly((prev) => !prev)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      showReplacedOnly
+                        ? "bg-amber-500 text-white shadow-xs"
+                        : "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
+                    }`}
+                  >
+                    <span>🔖</span>
+                    <span>
+                      {locale === "ko"
+                        ? `대체된 메뉴만 (${replacedSlotsCount})`
+                        : `Replaced (${replacedSlotsCount})`}
+                    </span>
+                  </button>
+                )}
+                <span className="text-[10px] text-slate-400 font-medium">
+                  {locale === "ko" ? `전체 ${filteredFoodSpots.length}개 중 ${displayedFoodSpots.length}개 노출` : `Showing ${displayedFoodSpots.length} of ${filteredFoodSpots.length}`}
+                </span>
+              </div>
             </div>
 
             {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}

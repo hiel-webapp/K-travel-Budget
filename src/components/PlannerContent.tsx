@@ -310,9 +310,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     return "ACCOMMODATION";
   });
 
-  // 방안 1: 도시 탭 및 카테고리 탭 진입 시점의 스냅샷 기준으로 상단 정렬 (탐색 중 클릭 시 화면 튐 방지)
-  const prevTabKeyRef = useRef<string>("");
-  const pinnedSnapshotRef = useRef<Record<string, { attractions: string[]; accommodations: string[] }>>({});
+  // 방안 3: 목록 순서는 기본 추천순 고정, 필요 시 '담은 항목만 보기' 필터 제공
+  const [showSavedOnlyAccByCity, setShowSavedOnlyAccByCity] = useState<Record<string, boolean>>({});
 
   // 도시 탭 및 카테고리 변경 시 sessionStorage 및 URL 쿼리 파라미터 동기화
   useEffect(() => {
@@ -2703,45 +2702,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             )}
 
             {/* 2. Single City Tab Mode: City-Specific Category Options */}
-            {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {
-              const currentCatFilter = attractionCategoryFilterByCity[selectedCityTab] || "ALL";
-              const currentTabKey = `${selectedCityTab}_${activeCategory}_${currentCatFilter}`;
-              if (currentTabKey !== prevTabKeyRef.current) {
-                prevTabKeyRef.current = currentTabKey;
-                const city = selectedCityTab;
-
-                // 1. 관광 (Attraction) 스냅샷
-                const cityAttrSel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-                const attrPinned = new Set<string>();
-                (cityAttrSel.individualSpotIds || []).forEach((sid) => attrPinned.add(normalizeSpotKey(sid)));
-                (cityAttrSel.selectedCourseIds || []).forEach((cid) => {
-                  const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                  course?.spotIds.forEach((sid) => attrPinned.add(normalizeSpotKey(sid)));
-                });
-
-                // 2. 숙소 (Accommodation) 스냅샷
-                const accOverride = preferences.accommodationByCity?.[city];
-                const isPlaceOverride = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && accOverride.kind === "PLACE";
-                const accPinned = new Set<string>();
-                if (isPlaceOverride && (accOverride as any).placeId) {
-                  accPinned.add((accOverride as any).placeId);
-                }
-                budgetPlaces.filter((p) => p.city === city && p.category === "ACCOMMODATION").forEach((p) => accPinned.add(p.id));
-
-                pinnedSnapshotRef.current[currentTabKey] = {
-                  attractions: Array.from(attrPinned),
-                  accommodations: Array.from(accPinned),
-                };
-              }
-              return null;
-            })()}
             {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (
               <div className="space-y-6">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab;
-                  const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
-                  const currentTabKey = `${city}_${activeCategory}_${currentCatFilter}`;
-                  const pinnedAccIds = pinnedSnapshotRef.current[currentTabKey]?.accommodations || [];
+                  const isSavedOnlyAcc = !!showSavedOnlyAccByCity[city];
 
                   const accOverride = preferences.accommodationByCity[city];
                   const hasOverride = !!accOverride;
@@ -2761,15 +2726,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     .filter((p) => p.city === city && p.category === "ACCOMMODATION" && !defaultAccSpots.some((d) => d.id === p.id))
                     .map(placeToAccommodationSpot);
                   const accSpotsForCity = [...customAccSpots, ...defaultAccSpots];
-                  const sortedAccSpots = [...accSpotsForCity].sort((a, b) => {
-                    const isPinnedA = pinnedAccIds.includes(a.id);
-                    const isPinnedB = pinnedAccIds.includes(b.id);
-                    if (isPinnedA && !isPinnedB) return -1;
-                    if (!isPinnedA && isPinnedB) return 1;
-                    return 0;
-                  });
+                  // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 숙소만 보기' 필터로 모아봄
+                  const filteredAccSpots = isSavedOnlyAcc
+                    ? accSpotsForCity.filter((spot) =>
+                        (isPlaceOverride && (accOverride as any).placeId === spot.id) ||
+                        budgetPlaces.some((p) => p.id === spot.id)
+                      )
+                    : accSpotsForCity;
                   const isShowMoreAcc = !!showMoreAccommodationsByCity[city];
-                  const displayedAccSpots = isShowMoreAcc ? sortedAccSpots : sortedAccSpots.slice(0, 6);
+                  const displayedAccSpots = isShowMoreAcc ? filteredAccSpots : filteredAccSpots.slice(0, 6);
                   const cityNights = draft.cityNightAllocations[city] ?? 0;
 
                   return (
@@ -2872,13 +2837,34 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* 2. In-place Candidate Accommodations Section (3x2 Desktop, 2x3 Mobile Grid) */}
                       {accSpotsForCity.length > 0 && (
                         <div className="space-y-3 pt-3 border-t border-slate-100">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                               {locale === "ko" ? `${CITY_KOREAN_NAMES[city] || city} 실제 후보 숙소 탐색` : `${CITY_ENGLISH_NAMES[city] || city} Candidate Accommodations`}
                             </span>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              {locale === "ko" ? `전체 ${accSpotsForCity.length}개 중 ${displayedAccSpots.length}개 노출` : `Showing ${displayedAccSpots.length} of ${accSpotsForCity.length}`}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              {accSpotsForCity.some((spot) => (isPlaceOverride && (accOverride as any).placeId === spot.id) || budgetPlaces.some((p) => p.id === spot.id)) && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setShowSavedOnlyAccByCity((prev) => ({
+                                      ...prev,
+                                      [city]: !prev[city],
+                                    }))
+                                  }
+                                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                                    isSavedOnlyAcc
+                                      ? "bg-rose-500 text-white shadow-xs"
+                                      : "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
+                                  }`}
+                                >
+                                  <span>🔖</span>
+                                  <span>{locale === "ko" ? "담은 숙소만 보기" : "Saved Only"}</span>
+                                </button>
+                              )}
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                {locale === "ko" ? `전체 ${filteredAccSpots.length}개 중 ${displayedAccSpots.length}개 노출` : `Showing ${displayedAccSpots.length} of ${filteredAccSpots.length}`}
+                              </span>
+                            </div>
                           </div>
 
                           {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
@@ -3230,28 +3216,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   const spotsForCity = [...customAttractionPlaces, ...baseSpotsForCity];
 
-                  const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
-                  const filteredSpotsForCity = currentCatFilter === "ALL"
-                    ? spotsForCity
-                    : spotsForCity.filter((s) => {
-                        const spotKey = s.id.replace(/^kto_/, "");
-                        const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
-                        const cat = s.categoryType || bilingual?.categoryType;
-                        return cat === currentCatFilter;
-                      });
-
-                  const currentTabKey = `${city}_${activeCategory}_${currentCatFilter}`;
-                  const pinnedAttrKeys = pinnedSnapshotRef.current[currentTabKey]?.attractions || [];
-                  const isShowMore = !!showMoreAttractionsByCity[city];
-                  const sortedSpotsForCity = [...filteredSpotsForCity].sort((a, b) => {
-                    const isPinnedA = pinnedAttrKeys.some((sid) => isSameSpot(sid, a.id));
-                    const isPinnedB = pinnedAttrKeys.some((sid) => isSameSpot(sid, b.id));
-                    if (isPinnedA && !isPinnedB) return -1;
-                    if (!isPinnedA && isPinnedB) return 1;
-                    return 0;
-                  });
-                  const displayedSpots = isShowMore ? sortedSpotsForCity : sortedSpotsForCity.slice(0, 12);
-
                   // 수집된 중복 제거 유료 Spot 계산
                   const selectedSpotKeys = new Set<string>();
                   selectedCourseIds.forEach((cid) => {
@@ -3259,6 +3223,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
                   });
                   individualSpotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+
+                  const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
+                  // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 명소만 보기' 필터로 모아봄
+                  const filteredSpotsForCity =
+                    currentCatFilter === "SAVED_ONLY"
+                      ? spotsForCity.filter((s) => selectedSpotKeys.has(normalizeSpotKey(s.id)))
+                      : currentCatFilter === "ALL"
+                        ? spotsForCity
+                        : spotsForCity.filter((s) => {
+                            const spotKey = s.id.replace(/^kto_/, "");
+                            const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+                            const cat = s.categoryType || bilingual?.categoryType;
+                            return cat === currentCatFilter;
+                          });
+
+                  const isShowMore = !!showMoreAttractionsByCity[city];
+                  const displayedSpots = isShowMore ? filteredSpotsForCity : filteredSpotsForCity.slice(0, 12);
 
                   const adultCount = draft.adultCount || 1;
                   let selectedSpotsPricePerPerson = 0;
@@ -3387,12 +3368,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                             {[
                               { key: "ALL", labelKo: "전체", labelEn: "All", icon: "" },
+                              ...(selectedSpotKeys.size > 0
+                                ? [
+                                    {
+                                      key: "SAVED_ONLY",
+                                      labelKo: `담은 명소만 (${selectedSpotKeys.size})`,
+                                      labelEn: `Saved (${selectedSpotKeys.size})`,
+                                      icon: "🔖",
+                                    },
+                                  ]
+                                : []),
                               { key: "명소", labelKo: "명소", labelEn: "Landmark", icon: "🏛️" },
                               { key: "자연", labelKo: "자연", labelEn: "Nature", icon: "🌿" },
                               { key: "엔터", labelKo: "엔터", labelEn: "Enter", icon: "🎡" },
                               { key: "쇼핑", labelKo: "쇼핑", labelEn: "Shopping", icon: "🛍️" },
                             ].map((tab) => {
                               const isActive = (attractionCategoryFilterByCity[city] || "ALL") === tab.key;
+                              const isSavedTab = tab.key === "SAVED_ONLY";
                               return (
                                 <button
                                   key={tab.key}
@@ -3405,8 +3397,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   }
                                   className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
                                     isActive
-                                      ? "bg-slate-900 text-white shadow-xs"
-                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
+                                      ? isSavedTab
+                                        ? "bg-rose-500 text-white shadow-xs"
+                                        : "bg-slate-900 text-white shadow-xs"
+                                      : isSavedTab
+                                        ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
+                                        : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
                                   }`}
                                 >
                                   {tab.icon && <span>{tab.icon}</span>}

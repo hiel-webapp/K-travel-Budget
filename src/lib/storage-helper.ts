@@ -23,7 +23,7 @@ import {
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { IntercityTransportMode } from "./transport/intercity-fares";
 import { PlaceItem } from "./places/types";
-import { normalizeSpotKey, isSameSpot } from "../features/budget/catalog/attraction-spots";
+import { normalizeSpotKey, isSameSpot, TOUR_COURSE_PRESETS } from "../features/budget/catalog/attraction-spots";
 
 const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
@@ -618,6 +618,9 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
     const storage = getStorage();
     if (!storage) return false;
     storage.setItem(PREFS_STORAGE_KEY, JSON.stringify(envelope));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("hypeheritage_planner_prefs_changed", { detail: { preferences: prefs } }));
+    }
     return true;
   } catch {
     return false;
@@ -876,6 +879,12 @@ export function toggleBudgetPlace(place: PlaceItem): { isAdded: boolean; current
         prefs.attractionSelections[city].individualSpotIds = spotIds.filter(
           (sid) => !isSameSpot(sid, normSpotKey)
         );
+        // 선택된 추천 코스에 이 관광지가 포함되어 있다면 코스 선택도 해제 (개별 취소 상호작용)
+        const courseIds = prefs.attractionSelections[city].selectedCourseIds || [];
+        prefs.attractionSelections[city].selectedCourseIds = courseIds.filter((cid) => {
+          const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+          return !course?.spotIds.some((sid) => isSameSpot(sid, normSpotKey));
+        });
       }
     } else if (place.category === "ACCOMMODATION") {
       if (!prefs.accommodationByCity) prefs.accommodationByCity = {};

@@ -8,8 +8,8 @@ import { Locale } from "../lib/i18n/locales";
 import { PlaceItem } from "../lib/places";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 import { PlaceCategory } from "../lib/kto/types";
-import { loadSavedPlaceIds, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget } from "../lib/storage-helper";
-import { isSameSpot } from "../features/budget/catalog/attraction-spots";
+import { loadSavedPlaceIds, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, loadTripDraft, loadPlannerPreferencesEx } from "../lib/storage-helper";
+import { isSameSpot, normalizeSpotKey, TOUR_COURSE_PRESETS } from "../features/budget/catalog/attraction-spots";
 
 interface PlacesContentProps {
   locale: Locale;
@@ -76,29 +76,70 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    const handle = requestAnimationFrame(() => {
-      const placesInStorage = loadBudgetPlaces();
-      setBudgetPlaces(placesInStorage);
-      setSavedPlaceIds(placesInStorage.map((p) => p.id || p.contentId));
+  const syncAllSavedIds = useCallback(() => {
+    const placesInStorage = loadBudgetPlaces();
+    const draft = loadTripDraft();
+    const prefsRes = loadPlannerPreferencesEx(draft);
+    const prefs = prefsRes.preferences;
+
+    const allIds = new Set<string>();
+    // 1. K-스팟 budgetPlaces 스토리지
+    placesInStorage.forEach((p) => {
+      if (p.id) allIds.add(p.id);
+      if (p.contentId) allIds.add(p.contentId);
+      allIds.add(normalizeSpotKey(p.contentId || p.id));
     });
-    return () => cancelAnimationFrame(handle);
+
+    // 2. 플래너의 관광지 선택 정보 (개별 명소 및 추천 코스 포함)
+    if (prefs.attractionSelections) {
+      Object.values(prefs.attractionSelections).forEach((citySel) => {
+        (citySel.individualSpotIds || []).forEach((sid) => {
+          allIds.add(sid);
+          allIds.add(normalizeSpotKey(sid));
+        });
+        (citySel.selectedCourseIds || []).forEach((cid) => {
+          const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+          if (course) {
+            course.spotIds.forEach((sid) => {
+              allIds.add(sid);
+              allIds.add(normalizeSpotKey(sid));
+            });
+          }
+        });
+      });
+    }
+
+    // 3. 플래너의 숙소 선택 정보
+    if (prefs.accommodationByCity) {
+      Object.values(prefs.accommodationByCity).forEach((acc) => {
+        if (typeof acc === "object" && acc && (acc as any).placeId) {
+          allIds.add((acc as any).placeId);
+          allIds.add(normalizeSpotKey((acc as any).placeId));
+        }
+      });
+    }
+
+    setBudgetPlaces(placesInStorage);
+    setSavedPlaceIds(Array.from(allIds));
   }, []);
 
   useEffect(() => {
-    const handleSync = (e: any) => {
-      if (e?.detail?.places) {
-        setBudgetPlaces(e.detail.places);
-        setSavedPlaceIds(e.detail.places.map((p: PlaceItem) => p.id || p.contentId));
-      } else {
-        const placesInStorage = loadBudgetPlaces();
-        setBudgetPlaces(placesInStorage);
-        setSavedPlaceIds(placesInStorage.map((p) => p.id || p.contentId));
-      }
+    syncAllSavedIds();
+  }, [syncAllSavedIds]);
+
+  useEffect(() => {
+    const handleSync = () => {
+      syncAllSavedIds();
     };
     window.addEventListener("hypeheritage_budget_places_changed", handleSync);
-    return () => window.removeEventListener("hypeheritage_budget_places_changed", handleSync);
-  }, []);
+    window.addEventListener("hypeheritage_planner_prefs_changed", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("hypeheritage_budget_places_changed", handleSync);
+      window.removeEventListener("hypeheritage_planner_prefs_changed", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, [syncAllSavedIds]);
 
   // Debounce search query
   useEffect(() => {
@@ -181,8 +222,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
 
   const handleToggleBudgetPlace = (place: PlaceItem) => {
     const res = toggleBudgetPlace(place);
-    setBudgetPlaces(res.currentPlaces);
-    setSavedPlaceIds(res.currentPlaces.map((p) => p.id || p.contentId));
+    syncAllSavedIds();
     const msg = res.isAdded
       ? (locale === "ko" ? "✓ 내 한국 여행 예산 및 영수증에 담겼습니다." : "✓ Added to trip budget & receipt.")
       : (locale === "ko" ? "예산 담기가 해제되었습니다." : "Removed from trip budget.");

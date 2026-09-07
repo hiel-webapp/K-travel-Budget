@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
-import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget } from "../lib/storage-helper";
+import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces } from "../lib/storage-helper";
 import type { PlaceItem } from "../lib/places/types";
 
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle } from "../features/budget/domain/types";
@@ -118,6 +118,52 @@ function placeToAttractionSpot(p: PlaceItem): AttractionSpot {
     closedDays: p.closedDays,
     categoryType,
     imageUrl: p.repImageUrl || (p as any).imageUrl,
+  };
+}
+
+function spotToPlaceItem(spot: AttractionSpot): PlaceItem {
+  const normKey = normalizeSpotKey(spot.id);
+  const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[normKey];
+  const titleKo = bilingual?.nameKo || spot.nameKo;
+  const titleEn = bilingual?.nameEn || spot.nameEn;
+  const descKo = bilingual?.descKo || spot.descKo;
+  const descEn = bilingual?.descEn || spot.descEn;
+  const cat = bilingual?.categoryType || spot.categoryType || "명소";
+  let placeCat: "LANDMARK" | "NATURE" | "ENTERTAINMENT" | "SHOPPING" = "LANDMARK";
+  if (cat === "자연") placeCat = "NATURE";
+  else if (cat === "엔터") placeCat = "ENTERTAINMENT";
+  else if (cat === "쇼핑") placeCat = "SHOPPING";
+
+  const repImg = bilingual?.imageUrl || (spot as any).imageUrl || "/assets/gyeongbokgung-main.jpg";
+
+  return {
+    id: `seoul_rep_${normKey}`,
+    contentId: normKey,
+    city: spot.cityCode,
+    category: placeCat,
+    categoryType: cat,
+    sourceName: "KTO",
+    qualityStatus: "READY",
+    rawUpdatedAt: "2026-09-07",
+    repImageUrl: repImg,
+    tags: [cat, "서울대표", "추천관광지", normKey.replace("seoul_", "")],
+    subwayInfo: bilingual?.subwayKo || spot.subwayInfo,
+    openingHours: bilingual?.hoursKo || spot.openingHours,
+    closedDays: bilingual?.closedKo || spot.closedDays,
+    priceKrw: spot.price || 0,
+    priceStatus: (spot.priceStatus === "PAID" || (spot.price !== undefined && spot.price > 0)) ? "OFFICIAL_PRICE" : "FREE",
+    translations: {
+      ko: {
+        title: titleKo,
+        description: descKo,
+        address: bilingual?.subwayKo || "서울특별시",
+      },
+      en: {
+        title: titleEn,
+        description: descEn,
+        address: bilingual?.subwayEn || "Seoul, Republic of Korea",
+      },
+    },
   };
 }
 
@@ -1372,6 +1418,28 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           },
         };
       });
+
+      // 코스 내 관광지들을 K-스팟 budgetPlaces 스토리지와 동기화
+      const course = TOUR_COURSE_PRESETS.find((c) => c.id === courseId);
+      if (course) {
+        const currentBudget = loadBudgetPlaces();
+        if (!isSelected) {
+          const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
+          const newItems: PlaceItem[] = [];
+          course.spotIds.forEach((sid) => {
+            if (!currentBudget.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid)) && !newItems.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid))) {
+              const sp = allSpots.find((s) => isSameSpot(s.id, sid));
+              if (sp) newItems.push(spotToPlaceItem(sp));
+            }
+          });
+          if (newItems.length > 0) {
+            saveBudgetPlaces([...currentBudget, ...newItems]);
+          }
+        } else {
+          const nextBudget = currentBudget.filter((p) => !course.spotIds.some((sid) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid)));
+          saveBudgetPlaces(nextBudget);
+        }
+      }
     } else {
       setSaveError(true);
     }
@@ -1429,9 +1497,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           },
         };
       });
-      // 기본 항목이라도 K-스팟 스토리지와 동기화가 필요한 경우
-      if (customKSpot) {
-        toggleBudgetPlace(customKSpot);
+
+      // K-스팟 budgetPlaces 스토리지와 즉시 양방향 동기화
+      const currentBudget = loadBudgetPlaces();
+      if (!isSelected) {
+        // 새로 추가됨 -> budgetPlaces에도 장소 추가
+        const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
+        const targetSpot = allSpots.find((s) => isSameSpot(s.id, spotId));
+        if (targetSpot && !currentBudget.some((p) => isSameSpot(p.id, spotId) || isSameSpot(p.contentId, spotId))) {
+          const placeItem = spotToPlaceItem(targetSpot);
+          saveBudgetPlaces([...currentBudget, placeItem]);
+        }
+      } else {
+        // 제거됨 -> budgetPlaces에서도 제거
+        const nextBudget = currentBudget.filter((p) => !isSameSpot(p.id, spotId) && !isSameSpot(p.contentId, spotId));
+        saveBudgetPlaces(nextBudget);
       }
     } else {
       setSaveError(true);

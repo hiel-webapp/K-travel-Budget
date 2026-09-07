@@ -137,6 +137,7 @@ export async function GET(request: NextRequest) {
         emoji: emojis[idx % emojis.length],
         gradientBg: gradients[idx % gradients.length],
         isFeatured: true,
+        categoryType: bilingual?.categoryType,
         imageUrl: bilingual?.imageUrl || row.image_url,
         deepLink: row.deep_link_template,
         subwayInfo: meta.subwayInfo || bilingual?.subwayKo,

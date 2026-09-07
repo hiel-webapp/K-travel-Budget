@@ -1,5 +1,7 @@
 import { SupportedCity } from "../../../lib/trip-domain";
 
+export type AttractionCategoryType = "명소" | "자연" | "엔터" | "쇼핑";
+
 export type PriceStatus = "FREE" | "PAID" | "PARTIALLY_PAID" | "UNCONFIRMED";
 
 export interface AttractionSpot {
@@ -27,9 +29,11 @@ export interface AttractionSpot {
   officialUrl?: string;
   imageUrl?: string;
   deepLink?: string;
+  categoryType?: AttractionCategoryType;
 }
 
 export interface BilingualSpotDetail {
+  categoryType?: AttractionCategoryType;
   nameKo: string;
   nameEn: string;
   descKo: string;
@@ -45,6 +49,7 @@ export interface BilingualSpotDetail {
 
 export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> = {
   seoul_gyeongbokgung: {
+    categoryType: "명소",
     nameKo: "경복궁",
     nameEn: "Gyeongbokgung Palace",
     descKo: "조선 왕조 제1의 법궁으로 수문장 교대의식과 한복 착용 시 무료 입장이 가능한 필수 명소입니다.",
@@ -57,6 +62,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed on Tuesdays",
   },
   seoul_nseoultower: {
+    categoryType: "명소",
     nameKo: "N서울타워 전망대",
     nameEn: "N Seoul Tower Observatory",
     descKo: "남산 정상에서 360도로 서울 시내 파노라마와 로맨틱한 야경을 한눈에 조망하는 대표 랜드마크입니다.",
@@ -69,6 +75,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round",
   },
   seoul_lotteworldtower: {
+    categoryType: "명소",
     nameKo: "롯데월드타워 서울스카이",
     nameEn: "Lotte World Tower Seoul Sky",
     descKo: "세계 5위 높이(555m) 118층 초고층 타워에서 만나는 압도적인 스카이데크 유리 바닥 전망대입니다.",
@@ -81,6 +88,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round",
   },
   seoul_changdeokgung: {
+    categoryType: "명소",
     nameKo: "창덕궁과 후원",
     nameEn: "Changdeokgung Palace & Secret Garden",
     descKo: "자연과 조화롭게 어우러진 유네스코 세계문화유산 궁궐로, 인정전과 왕실 정원 후원을 품고 있습니다.",
@@ -93,6 +101,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed on Mondays",
   },
   seoul_deoksugung: {
+    categoryType: "명소",
     nameKo: "덕수궁 & 돌담길",
     nameEn: "Deoksugung Palace & Stonewall Path",
     descKo: "도심 속 서양식 석조전과 전통 전각이 공존하며 낭만적인 밤 산책로 돌담길이 펼쳐지는 궁궐입니다.",
@@ -105,6 +114,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed on Mondays (Stonewall Path open 24h)",
   },
   seoul_ddp: {
+    categoryType: "명소",
     nameKo: "동대문디자인플라자 (DDP)",
     nameEn: "Dongdaemun Design Plaza (DDP)",
     descKo: "자하 하디드가 설계한 은빛 비정형 곡선 건축물로 글로벌 패션위크와 미디어아트 축제가 열립니다.",
@@ -117,6 +127,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round",
   },
   seoul_bukchon: {
+    categoryType: "명소",
     nameKo: "북촌한옥마을",
     nameEn: "Bukchon Hanok Village",
     descKo: "경복궁과 창덕궁 사이 600년 역사를 간직한 수백 채의 전통 기와집과 감고당길 골목 투어 명소입니다.",
@@ -129,6 +140,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Visiting restricted on Sundays",
   },
   seoul_seongsu: {
+    categoryType: "쇼핑",
     nameKo: "성수동 연무장길",
     nameEn: "Seongsu-dong Yeonmujang-gil",
     descKo: "서울의 브루클린으로 불리며 감각적인 패션 플래그십 팝업스토어와 트렌디한 베이커리 카페가 모여있습니다.",
@@ -141,6 +153,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round (Varies by store)",
   },
   seoul_hongdae: {
+    categoryType: "엔터",
     nameKo: "홍대 걷고싶은거리",
     nameEn: "Hongdae Walking Street",
     descKo: "청춘과 버스킹의 중심지로 K-Pop 댄스 거리공연과 개성 넘치는 인디 숍들이 활기를 띠는 명소입니다.",
@@ -153,6 +166,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round",
   },
   seoul_gwangjang: {
+    categoryType: "쇼핑",
     nameKo: "광장시장",
     nameEn: "Gwangjang Market",
     descKo: "100년 전통의 대표 먹거리 시장으로 바삭한 녹두빈대떡, 마약김밥, 신선한 육회 탕탕이가 유명합니다.",
@@ -165,6 +179,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Sundays partially closed (Food stalls open 365 days)",
   },
   seoul_namdaemun: {
+    categoryType: "쇼핑",
     nameKo: "남대문시장",
     nameEn: "Namdaemun Market",
     descKo: "600년 역사의 대한민국 최대 전통시장으로 갈치조림골목, 칼국수, 잡채호떡 등 먹거리와 잡화가 가득합니다.",
@@ -177,6 +192,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed on Sundays (Food zones open)",
   },
   seoul_yeouido_hangang: {
+    categoryType: "자연",
     nameKo: "여의도 한강공원",
     nameEn: "Yeouido Hangang Park",
     descKo: "잔디밭 피크닉, 즉석 한강 라면 먹방, 로맨틱한 한강 유람선을 즐기는 서울의 대표 수변 쉼터입니다.",
@@ -190,6 +206,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://hangang.seoul.go.kr/resources/zeroCMS/site/main/images/park_view_photo_9.jpg",
   },
   seoul_museum_korea: {
+    categoryType: "명소",
     nameKo: "국립중앙박물관",
     nameEn: "National Museum of Korea",
     descKo: "국보 반가사유상이 전시된 '사유의 방'을 비롯해 한국의 역사와 찬란한 문화재를 관람하는 무료 박물관입니다.",
@@ -202,6 +219,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed Jan 1, Lunar New Year, Chuseok",
   },
   seoul_cheonggyecheon: {
+    categoryType: "자연",
     nameKo: "청계천",
     nameEn: "Cheonggyecheon Stream",
     descKo: "광화문에서 동대문까지 이어지는 11km 도심 생태하천으로 밤이면 징검다리와 조명이 어우러진 산책로입니다.",
@@ -214,6 +232,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round (Controlled during heavy rain)",
   },
   seoul_coex_starfield_library: {
+    categoryType: "명소",
     nameKo: "코엑스 별마당도서관",
     nameEn: "Starfield Library COEX",
     descKo: "코엑스몰 중심에 위치한 13m 높이의 웅장한 곡선 서가와 수만 권의 책이 펼쳐진 도심 속 열린 문화공간입니다.",
@@ -226,6 +245,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round",
   },
   seoul_banpo_rainbow_fountain: {
+    categoryType: "엔터",
     nameKo: "반포대교 달빛무지개분수",
     nameEn: "Banpo Bridge Moonlight Rainbow Fountain",
     descKo: "기네스북에 등재된 세계 최장 교량 분수로 아름다운 음악과 조명에 맞추어 시원한 물줄기가 뿜어져 나오는 야경 명소입니다.",
@@ -238,6 +258,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Suspended in winter (Nov-Mar) and rain",
   },
   seoul_seokchonhosu_lake: {
+    categoryType: "자연",
     nameKo: "석촌호수",
     nameEn: "Seokchon Lake",
     descKo: "롯데월드 매직아일랜드와 롯데월드타워를 둘러싼 아름다운 도심 호수로, 동호와 서호로 이어지는 수변 산책로와 봄철 벚꽃 축제 및 가을 단풍으로 사랑받는 서울 대표 힐링 명소입니다.",
@@ -251,6 +272,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/686ee7a7-f3ea-4955-9beb-2744ca9f942b/it11",
   },
   seoul_some_sevit: {
+    categoryType: "엔터",
     nameKo: "세빛섬",
     nameEn: "Some Sevit Floating Islands",
     descKo: "반포한강공원 위 3개의 인공 부유섬으로 야간 미디어아트 조명과 튜브스터 보트 체험을 즐길 수 있습니다.",
@@ -264,6 +286,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=7331c90a-e6e3-4b63-9ec6-69aa9ab1426f",
   },
   seoul_ttukseom_hangang: {
+    categoryType: "자연",
     nameKo: "뚝섬한강공원",
     nameEn: "Ttukseom Hangang Park",
     descKo: "원통형 자벌레 복합문화공간, 윈드서핑존, 넓은 수변 잔디밭과 계절별 테마 축제가 열리는 시민 공원입니다.",
@@ -277,6 +300,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://hangang.seoul.go.kr/resources/zeroCMS/site/main/images/park_view_photo_4.jpg",
   },
   seoul_childrens_grand_park: {
+    categoryType: "엔터",
     nameKo: "롯데월드 어드벤처",
     nameEn: "Lotte World Adventure",
     descKo: "세계 최대 규모의 실내 테마파크 어드벤처와 석촌호수 위 야외 매직아일랜드에서 스릴 넘치는 놀이기구와 환상적인 퍼레이드를 즐기는 글로벌 테마파크입니다.",
@@ -290,6 +314,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=8da3ed81-4ae3-40f6-8fad-9cfb67aad3c5",
   },
   seoul_lotteworld: {
+    categoryType: "엔터",
     nameKo: "롯데월드 어드벤처",
     nameEn: "Lotte World Adventure",
     descKo: "세계 최대 규모의 실내 테마파크 어드벤처와 석촌호수 위 야외 매직아일랜드에서 스릴 넘치는 놀이기구와 환상적인 퍼레이드를 즐기는 글로벌 테마파크입니다.",
@@ -303,6 +328,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=8da3ed81-4ae3-40f6-8fad-9cfb67aad3c5",
   },
   seoul_changgyeonggung: {
+    categoryType: "명소",
     nameKo: "창경궁 & 대온실",
     nameEn: "Changgyeonggung Palace & Grand Greenhouse",
     descKo: "한국 최초의 서양식 식물원 대온실과 낭만적인 춘당지 연못의 은은한 야경을 감상할 수 있는 조선 궁궐입니다.",
@@ -315,6 +341,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed on Mondays",
   },
   seoul_jongmyo: {
+    categoryType: "명소",
     nameKo: "종묘",
     nameEn: "Jongmyo Shrine",
     descKo: "조선 역대 왕과 왕비의 신주를 모신 유네스코 세계유산 유교 사당으로 정전의 웅장한 건축미가 돋보입니다.",
@@ -327,6 +354,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed on Tuesdays",
   },
   seoul_namsangol: {
+    categoryType: "명소",
     nameKo: "남산골한옥마을",
     nameEn: "Namsangol Hanok Village",
     descKo: "남산 북쪽 기슭에 복원된 조선 사대부 가옥들과 전통 정원, 국악당이 어우러진 도심 속 전통문화 쉼터입니다.",
@@ -339,6 +367,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Closed on Mondays",
   },
   seoul_insadong_ssamzigil: {
+    categoryType: "쇼핑",
     nameKo: "인사동 쌈지길 & 안녕인사동",
     nameEn: "Insadong Ssamzigil & Anyoung Insadong",
     descKo: "전통 공예품과 찻집, 아기자기한 디자인 공방과 갤러리가 나선형 골목을 따라 이어지는 복합문화거리입니다.",
@@ -351,6 +380,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round",
   },
   seoul_63square: {
+    categoryType: "엔터",
     nameKo: "63스퀘어 & 63전망대",
     nameEn: "63 Square & Sky Observatory",
     descKo: "여의도의 황금빛 마천루로 한강의 아름다운 일몰과 스카이라인을 조망할 수 있는 예술 전시 공간입니다.",
@@ -364,6 +394,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://korean.visitseoul.net/comm/getImage?srvcId=MEDIA&parentSn=68046&fileTy=MEDIA&fileNo=1&thumbTy=L",
   },
   seoul_myeongdong_shopping: {
+    categoryType: "쇼핑",
     nameKo: "명동 쇼핑거리",
     nameEn: "Myeongdong Shopping Street",
     descKo: "K-뷰티 플래그십 스토어와 글로벌 패션, 저녁마다 열리는 다채로운 길거리 음식 노점이 가득한 쇼핑 성지입니다.",
@@ -376,6 +407,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     closedEn: "Open year-round",
   },
   seoul_mmca_contemporary: {
+    categoryType: "명소",
     nameKo: "국립현대미술관 서울관",
     nameEn: "MMCA Seoul - Contemporary Art",
     descKo: "삼청동에 위치하여 경복궁과 마주보며 동시대 한국과 세계의 첨단 현대미술 전시를 선보이는 복합문화예술관입니다.",
@@ -389,6 +421,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=c5fc3bbb-b17e-4327-93c7-7e7dbafd34da",
   },
   seoul_euljiro_nogari: {
+    categoryType: "엔터",
     nameKo: "을지로 노가리골목 힙지로",
     nameEn: "Euljiro Nogari Alley - Hipjiro",
     descKo: "골목길 야외 테이블에서 시원한 생맥주와 고소한 노가리를 즐기는 레트로 감성 가득한 야간 핫플레이스입니다.",
@@ -402,6 +435,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=da4c46b9-4f87-457c-89fa-e738cbd92603",
   },
   seoul_haneul_park: {
+    categoryType: "자연",
     nameKo: "하늘공원 & 억새밭",
     nameEn: "Haneul Park - World Cup Park",
     descKo: "월드컵공원 가장 높은 곳에 자리하여 가을 은빛 억새 군락과 메타세쿼이아길, 한강 노을을 한눈에 담는 생태공원입니다.",
@@ -415,6 +449,7 @@ export const SEOUL_LANDMARK_BILINGUAL_MAP: Record<string, BilingualSpotDetail> =
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=08fee415-c6dc-49db-8617-3cbf0a199183",
   },
   seoul_gwanghwamun_square: {
+    categoryType: "명소",
     nameKo: "광화문광장 & 세종대왕 동상",
     nameEn: "Gwanghwamun Square & King Sejong",
     descKo: "세종대왕과 이순신 장군 동상이 자리하고 북악산과 경복궁이 한눈에 펼쳐지는 대한민국의 역사·문화 중심 광장입니다.",

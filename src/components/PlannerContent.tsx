@@ -229,6 +229,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
   const [activityManualInput, setActivityManualInput] = useState<string>("");
   const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
+  const [attractionCategoryFilterByCity, setAttractionCategoryFilterByCity] = useState<Record<string, string>>({});
   const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
   const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
@@ -293,6 +294,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     cityCode: "SEOUL" as SupportedCity,
                     nameKo: bilingual?.nameKo || nameKo,
                     nameEn: bilingual?.nameEn || nameEn,
+                    categoryType: bilingual?.categoryType,
                     descKo: bilingual?.descKo || meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
                     descEn: bilingual?.descEn || meta.cleanDesc || "Popular sightseeing spot in Seoul",
                     price: row.price_krw || 0,
@@ -2817,8 +2819,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     ? validDbSpots
                     : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
 
+                  const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
+                  const filteredSpotsForCity = currentCatFilter === "ALL"
+                    ? spotsForCity
+                    : spotsForCity.filter((s) => {
+                        const spotKey = s.id.replace(/^kto_/, "");
+                        const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+                        const cat = s.categoryType || bilingual?.categoryType;
+                        return cat === currentCatFilter;
+                      });
+
                   const isShowMore = !!showMoreAttractionsByCity[city];
-                  const displayedSpots = isShowMore ? spotsForCity : spotsForCity.slice(0, 12);
+                  const displayedSpots = isShowMore ? filteredSpotsForCity : filteredSpotsForCity.slice(0, 12);
 
                   // 수집된 중복 제거 유료 Spot 계산
                   const selectedSpotSet = new Set<string>();
@@ -2946,10 +2958,43 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                       {/* 2. Signature City Attractions Section (3x2 Desktop, 2x3 Mobile Grid) */}
                       <div className="space-y-3 pt-3 border-t border-slate-100">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                             {locale === "ko" ? "도시 대표 관광지" : (dict.planner.cityAttractionsTitle || "City Attractions")}
                           </span>
+
+                          {/* Category Filter Tabs (전체, 명소, 자연, 엔터, 쇼핑) */}
+                          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                            {[
+                              { key: "ALL", labelKo: "전체", labelEn: "All", icon: "" },
+                              { key: "명소", labelKo: "명소", labelEn: "Landmark", icon: "🏛️" },
+                              { key: "자연", labelKo: "자연", labelEn: "Nature", icon: "🌿" },
+                              { key: "엔터", labelKo: "엔터", labelEn: "Enter", icon: "🎡" },
+                              { key: "쇼핑", labelKo: "쇼핑", labelEn: "Shopping", icon: "🛍️" },
+                            ].map((tab) => {
+                              const isActive = (attractionCategoryFilterByCity[city] || "ALL") === tab.key;
+                              return (
+                                <button
+                                  key={tab.key}
+                                  type="button"
+                                  onClick={() =>
+                                    setAttractionCategoryFilterByCity((prev) => ({
+                                      ...prev,
+                                      [city]: tab.key,
+                                    }))
+                                  }
+                                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                                    isActive
+                                      ? "bg-slate-900 text-white shadow-xs"
+                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
+                                  }`}
+                                >
+                                  {tab.icon && <span>{tab.icon}</span>}
+                                  <span>{locale === "ko" ? tab.labelKo : tab.labelEn}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
 
                         {/* Grid: 1열 2개 관광정보 카드 (1 Row 2 Columns Grid) */}
@@ -3032,7 +3077,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 {/* Body Information */}
                                 <div className="p-4 flex-1 flex flex-col justify-between gap-3">
                                   <div className="space-y-2">
-                                    {/* Title */}
+                                    {/* Title & Category Badge */}
                                     <div className="flex items-start justify-between gap-2">
                                       <h5
                                         onClick={() => setPreviewSpot(rawSpot)}
@@ -3040,6 +3085,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       >
                                         {name}
                                       </h5>
+                                      {/* Category Badge */}
+                                      {(() => {
+                                        const cat = rawSpot.categoryType || bilingual?.categoryType;
+                                        if (!cat) return null;
+                                        const badgeConfig = {
+                                          명소: { bg: "bg-blue-50 text-blue-700 border-blue-200/80", icon: "🏛️", labelKo: "명소", labelEn: "Landmark" },
+                                          자연: { bg: "bg-emerald-50 text-emerald-700 border-emerald-200/80", icon: "🌿", labelKo: "자연", labelEn: "Nature" },
+                                          엔터: { bg: "bg-purple-50 text-purple-700 border-purple-200/80", icon: "🎡", labelKo: "엔터", labelEn: "Enter" },
+                                          쇼핑: { bg: "bg-amber-50 text-amber-800 border-amber-200/80", icon: "🛍️", labelKo: "쇼핑", labelEn: "Shopping" },
+                                        }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
+                                        if (!badgeConfig) return null;
+                                        return (
+                                          <span
+                                            className={`shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${badgeConfig.bg}`}
+                                          >
+                                            <span>{badgeConfig.icon}</span>
+                                            <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
+                                          </span>
+                                        );
+                                      })()}
                                     </div>
 
                                     {/* Description */}
@@ -3116,7 +3181,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
 
                         {/* Show More / Show Less Toggle Button */}
-                        {spotsForCity.length > 12 && (
+                        {filteredSpotsForCity.length > 12 && (
                           <div className="text-center pt-2">
                             <button
                               type="button"
@@ -3988,8 +4053,27 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   ✕
                 </button>
 
-                {/* Price badge */}
-                <div className="absolute top-4 left-4 z-10">
+                {/* Price & Category badges */}
+                <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+                  {(() => {
+                    const spotKey = previewSpot.id.replace(/^kto_/, "");
+                    const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+                    const cat = previewSpot.categoryType || bilingual?.categoryType;
+                    if (!cat) return null;
+                    const badgeConfig = {
+                      명소: { bg: "bg-blue-600/90 text-white", icon: "🏛️", labelKo: "명소", labelEn: "Landmark" },
+                      자연: { bg: "bg-emerald-600/90 text-white", icon: "🌿", labelKo: "자연", labelEn: "Nature" },
+                      엔터: { bg: "bg-purple-600/90 text-white", icon: "🎡", labelKo: "엔터", labelEn: "Enter" },
+                      쇼핑: { bg: "bg-amber-600/90 text-white", icon: "🛍️", labelKo: "쇼핑", labelEn: "Shopping" },
+                    }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
+                    if (!badgeConfig) return null;
+                    return (
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-black shadow-md backdrop-blur-md flex items-center gap-1 ${badgeConfig.bg}`}>
+                        <span>{badgeConfig.icon}</span>
+                        <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
+                      </span>
+                    );
+                  })()}
                   {previewSpot.priceStatus === "FREE" || previewSpot.price === 0 ? (
                     <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500 text-white shadow-md">
                       {locale === "ko" ? "무료 입장" : "Free Admission"}

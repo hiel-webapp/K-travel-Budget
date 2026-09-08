@@ -339,7 +339,7 @@ export default function FoodPlannerPanel({
                     }
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
                   >
-                    <span>{locale === "ko" ? `더보기 (+8개) (${displayedFoodSpots.length}/${filteredFoodSpots.length})` : `Load More (+8) (${displayedFoodSpots.length}/${filteredFoodSpots.length})`}</span>
+                    <span>{dict.planner.showMore || "더보기"}</span>
                     <span>▼</span>
                   </button>
                 ) : (

@@ -539,7 +539,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [attractionCategoryFilterByCity, setAttractionCategoryFilterByCity] = useState<Record<string, string>>({});
   const [visibleAccommodationsCountByCity, setVisibleAccommodationsCountByCity] = useState<Record<string, number>>({});
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
-  const [isReceiptDetailsExpanded, setIsReceiptDetailsExpanded] = useState<boolean>(false);
+  const [expandedReceiptCities, setExpandedReceiptCities] = useState<Record<string, boolean>>({});
   const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
   const [budgetPlaces, setBudgetPlaces] = useState<PlaceItem[]>([]);
 
@@ -4032,384 +4032,336 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
                 </div>
 
-                {/* 3. Slim Category-level Expense Summary (Always Visible & Real-time) */}
-                <div className="py-3.5 space-y-2 border-b border-slate-100">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    <span>{locale === "ko" ? "카테고리별 요약" : "Category Summary"}</span>
-                    <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
-                      {locale === "ko" ? "실시간 반영" : "Real-time"}
-                    </span>
-                  </div>
+                {/* 3. Journey Timeline: City Accordions & Intercity Transit */}
+                {(() => {
+                  const allTransitItems = plan.intercitySection?.lineItems || [];
+                  const entryItems = allTransitItems.filter((i) => (i.route && i.route.startsWith("ENTRY_")) || (i.sourceLabel && i.sourceLabel.includes("[입국 공항]")));
+                  const exitItems = allTransitItems.filter((i) => (i.route && i.route.startsWith("EXIT_")) || (i.sourceLabel && i.sourceLabel.includes("[출국 공항]")));
+                  const transitItems = allTransitItems.filter((i) => !entryItems.includes(i) && !exitItems.includes(i));
 
-                  {/* 1. 숙박 */}
-                  <div className="flex items-center justify-between text-xs py-0.5">
-                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-                      <span>🏨</span>
-                      <span>{getCategoryLabel("ACCOMMODATION", dict)}</span>
-                    </span>
-                    <strong className="text-slate-800 font-bold tabular-nums">
-                      {formatKrw(plan.categoryTotals.ACCOMMODATION || 0)}
-                    </strong>
-                  </div>
+                  const cleanTransitLabel = (rawLabel: string) => {
+                    return rawLabel
+                      .replace(/\[입국 공항\]|\[도시 간\]|\[출국 공항\]/g, "")
+                      .replace(/\s*\([^)]*?(➔|->)[^)]*?\)/g, "")
+                      .trim();
+                  };
 
-                  {/* 2. 식비 */}
-                  <div className="flex items-center justify-between text-xs py-0.5">
-                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-                      <span>🍱</span>
-                      <span>{getCategoryLabel("FOOD", dict)}</span>
-                    </span>
-                    <strong className="text-slate-800 font-bold tabular-nums">
-                      {formatKrw(plan.categoryTotals.FOOD || 0)}
-                    </strong>
-                  </div>
+                  const toggleReceiptCity = (city: string) => {
+                    setExpandedReceiptCities((prev) => ({
+                      ...prev,
+                      [city]: !prev[city],
+                    }));
+                  };
 
-                  {/* 3. 교통 (시내 + 도시 간) */}
-                  <div className="flex items-center justify-between text-xs py-0.5">
-                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-                      <span>🚆</span>
-                      <span>{locale === "ko" ? "교통 (시내/도시 간)" : "Transportation"}</span>
-                    </span>
-                    <strong className="text-slate-800 font-bold tabular-nums">
-                      {formatKrw((plan.categoryTotals.CITY_TRANSPORT || 0) + (plan.categoryTotals.INTERCITY_TRANSPORT || 0))}
-                    </strong>
-                  </div>
-
-                  {/* 4. 관광 & 쇼핑 */}
-                  <div className="flex items-center justify-between text-xs py-0.5">
-                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-                      <span>🎡</span>
-                      <span>{locale === "ko" ? "관광 & 쇼핑" : "Attractions & Shopping"}</span>
-                    </span>
-                    <strong className="text-slate-800 font-bold tabular-nums">
-                      {formatKrw((plan.categoryTotals.ATTRACTION || 0) + shoppingAmountKrw)}
-                    </strong>
-                  </div>
-
-                  {/* 5. 여행 비상금 */}
-                  {computedEmergencyKrw > 0 && (
-                    <div className="flex items-center justify-between text-xs py-0.5">
-                      <span className="flex items-center gap-1.5 text-slate-600 font-medium">
-                        <span>🛡️</span>
-                        <span>{locale === "ko" ? "여행 비상금" : "Emergency Fund"}</span>
-                        {activeEmergencyPct !== undefined && activeEmergencyPct > 0 && emergencyManualInput === "" && (
-                          <span className="text-[10px] font-extrabold text-[#e25c5c] bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60 leading-none">
-                            +{Math.round(activeEmergencyPct * 100)}%
-                          </span>
-                        )}
-                      </span>
-                      <strong className="text-[#e25c5c] font-bold tabular-nums">
-                        +{formatKrw(computedEmergencyKrw)}
-                      </strong>
-                    </div>
-                  )}
-                </div>
-
-                {/* 4. Collapsible Itemized Details Toggle Button */}
-                <div className="pt-2.5 pb-1">
-                  <button
-                    type="button"
-                    onClick={() => setIsReceiptDetailsExpanded((prev) => !prev)}
-                    className="w-full py-2 px-3 rounded-xl text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition-all flex items-center justify-between cursor-pointer"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <span>📋</span>
-                      <span>
-                        {isReceiptDetailsExpanded
-                          ? (locale === "ko" ? "도시별 세부 항목 접기" : "Collapse Itemized Details")
-                          : (locale === "ko" ? "도시별 세부 항목 펼쳐보기" : "View City Itemized Details")}
-                      </span>
-                    </span>
-                    <span className="text-slate-400 font-bold text-[11px]">
-                      {isReceiptDetailsExpanded ? "▲ 접기" : "▼ 펼치기"}
-                    </span>
-                  </button>
-                </div>
-
-                {/* 5. Collapsible Itemized Details (Shown only when expanded) */}
-                {isReceiptDetailsExpanded && (
-                  <div className="py-3 space-y-4 max-h-[300px] overflow-y-auto pr-1 border-t border-slate-100 mt-2">
-                  {/* [📍 CITY-SPECIFIC EXPENSES] Header */}
-                  <div className="flex items-center gap-1.5 px-0.5 border-b border-slate-100 pb-1.5">
-                    <span className="text-xs">📍</span>
-                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-                      [📍 CITY-SPECIFIC EXPENSES]
-                    </span>
-                  </div>
-
-                  {draft.selectedCities.map((city, cityIdx) => {
-                    const section = plan.citySections[city];
-                    if (!section || section.lineItems.length === 0) return null;
-
-                    const label = CITY_KOREAN_NAMES[city] || city;
-                    const englishCityName = CITY_ENGLISH_NAMES[city] || city;
-                    const cityNights = section.nights;
-                    const cityLineItems = section.lineItems.filter((item) => item.category !== "ATTRACTION");
-
-                    // 사용자가 [+ Add]한 개별 관광지 및 추천 코스 내 관광지 추출
-                    const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-                    const spotsForCity = [
-                      ...budgetPlaces
-                        .filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
-                        .map(placeToAttractionSpot),
-                      ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
-                    ];
-                    const selectedSpotKeys = new Set<string>();
-                    (citySel.selectedCourseIds || []).forEach((cid) => {
-                      const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                      if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-                    });
-                    (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-
-                    const adultCount = draft.adultCount || 1;
-                    const addedSpotsList: AttractionSpot[] = [];
-                    let attractionsTotalKrw = 0;
-
-                    selectedSpotKeys.forEach((normKey) => {
-                      const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
-                      if (spot) {
-                        addedSpotsList.push(spot);
-                        if (spot.priceStatus === "PAID" && spot.price > 0) {
-                          attractionsTotalKrw += spot.price * adultCount;
-                        }
-                      }
-                    });
-
-                    // K-스팟에서 담은 맛집·카페 항목 추출 및 합산
-                    const cityCustomFood = budgetPlaces.filter(
-                      (p) => p.city === city && (p.category === "RESTAURANT" || p.category === "CAFE")
-                    );
-                    let cityCustomFoodTotalKrw = 0;
-                    cityCustomFood.forEach((f) => {
-                      const price = f.priceKrw ?? (f as any).estimatedPriceKrw ?? (f.category === "CAFE" ? 8000 : 18000);
-                      cityCustomFoodTotalKrw += price * adultCount;
-                    });
-
-                    const baseCitySubtotal = cityLineItems.reduce((sum, item) => sum + item.lineTotalKrw, 0);
-                    const totalCityExpenses = baseCitySubtotal + attractionsTotalKrw + cityCustomFoodTotalKrw;
-
-                    return (
-                      <div key={city} className={`space-y-2 ${cityIdx === 0 ? "" : "pt-2 border-t border-slate-100"}`}>
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                            <span className="text-[#e25c5c] font-black">■</span>
-                            <span>{englishCityName} ({label})</span>
-                            <span className="text-[11px] font-bold text-slate-400 font-normal">({cityNights}박)</span>
-                          </h4>
-                          <span className="text-xs font-black text-slate-900">{formatKrw(totalCityExpenses)}</span>
-                        </div>
-
-                        <div className="space-y-2.5 pl-2.5 border-l-2 border-slate-100">
-                          {cityLineItems.map((item) => (
-                            <div key={item.id} className="space-y-1">
-                              <div className="flex justify-between items-start text-xs">
-                                <div>
-                                  <span className="text-slate-700 font-medium block">
-                                    {item.sourceLabel || getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}
-                                  </span>
-                                  <span className="text-[10px] text-slate-400 italic">{getCalculationExpression(item, dict, locale)}</span>
-                                </div>
-                                <span className="font-sans tabular-nums font-semibold text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
-                              </div>
-                              {item.category === "FOOD" && isCalculatedMealPlan(item.mealPlan) && (
-                                <FoodReceiptDetails
-                                  mealPlan={item.mealPlan}
-                                  locale={locale}
-                                  dict={dict}
-                                />
-                              )}
+                  return (
+                    <div className="py-4 space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                      {/* 1. 입국 공항 이동 (첫 도시 전) */}
+                      {entryItems.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                              <span>🛫</span>
+                              <span>{locale === "ko" ? "입국 공항 이동" : "Arrival Transit"}</span>
+                            </span>
+                            <span className="font-sans tabular-nums font-extrabold text-slate-800">
+                              {formatKrw(entryItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
+                            </span>
+                          </div>
+                          {entryItems.map((item) => (
+                            <div key={item.id} className="flex justify-between items-center text-[11px] text-slate-500 pl-5">
+                              <span>{cleanTransitLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}</span>
+                              <span className="tabular-nums font-medium text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
                             </div>
                           ))}
-
-                          {/* [+ Add]한 관광지(Sightseeing) 실시간 영수증 연동 목록 */}
-                          {addedSpotsList.length > 0 && (
-                            <div className="pt-2 border-t border-dashed border-slate-200/80 space-y-1.5">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black text-[#e25c5c] uppercase tracking-wider flex items-center gap-1">
-                                  <span>🎡</span>
-                                  <span>{locale === "ko" ? "선택된 관광 명소" : "Added Sightseeing"} ({addedSpotsList.length})</span>
-                                </span>
-                                <span className="text-[10px] font-bold text-slate-400">
-                                  {formatKrw(attractionsTotalKrw)}
-                                </span>
-                              </div>
-                              {addedSpotsList.map((spot) => {
-                                const spotKey = normalizeSpotKey(spot.id);
-                                const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
-                                const spotName = locale === "ko" ? (bilingual?.nameKo || spot.nameKo) : (bilingual?.nameEn || spot.nameEn);
-                                const itemTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
-                                return (
-                                  <div key={spot.id} className="flex justify-between items-start text-xs pl-1">
-                                    <div className="pr-2 min-w-0">
-                                      <span className="text-slate-800 font-semibold block truncate">
-                                        {spotName}
-                                      </span>
-                                      <span className="text-[10px] text-slate-400">
-                                        {spot.priceStatus === "FREE" || spot.price === 0
-                                          ? (locale === "ko" ? "입장료 무료 (₩0)" : "Free Entry (₩0)")
-                                          : `${formatKrw(spot.price)} × ${adultCount}명`}
-                                      </span>
-                                    </div>
-                                    <span className={`font-sans tabular-nums font-bold shrink-0 ${itemTotal > 0 ? "text-slate-800" : "text-emerald-600 font-extrabold"}`}>
-                                      {itemTotal > 0 ? formatKrw(itemTotal) : "FREE"}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-
-                          {/* K-스팟에서 담은 맛집·카페 실시간 영수증 연동 목록 */}
-                          {cityCustomFood.length > 0 && (
-                            <div className="pt-2 border-t border-dashed border-slate-200/80 space-y-1.5">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider flex items-center gap-1">
-                                  <span>🍲</span>
-                                  <span>{locale === "ko" ? "선택된 K-맛집·카페" : "Added Gourmet & Cafes"} ({cityCustomFood.length})</span>
-                                </span>
-                                <span className="text-[10px] font-bold text-slate-400">
-                                  {formatKrw(cityCustomFoodTotalKrw)}
-                                </span>
-                              </div>
-                              {cityCustomFood.map((foodPlace) => {
-                                const unitPrice = foodPlace.priceKrw ?? (foodPlace as any).estimatedPriceKrw ?? (foodPlace.category === "CAFE" ? 8000 : 18000);
-                                const itemTotal = unitPrice * adultCount;
-                                const title = locale === "ko"
-                                  ? (foodPlace.translations?.ko?.title || (foodPlace as any).title)
-                                  : (foodPlace.translations?.en?.title || foodPlace.translations?.ko?.title || (foodPlace as any).title);
-                                return (
-                                  <div key={foodPlace.id} className="flex justify-between items-start text-xs pl-1">
-                                    <div className="pr-2 min-w-0">
-                                      <span className="text-slate-800 font-semibold block truncate">
-                                        {title}
-                                      </span>
-                                      <span className="text-[10px] text-slate-400">
-                                        {foodPlace.category === "CAFE" ? (locale === "ko" ? "디저트·카페" : "Cafe") : (locale === "ko" ? "맛집·식당" : "Dining")} · {formatKrw(unitPrice)} × {adultCount}{locale === "ko" ? "명" : " travelers"}
-                                      </span>
-                                    </div>
-                                    <span className="font-sans tabular-nums font-bold shrink-0 text-slate-800">
-                                      {formatKrw(itemTotal)}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {plan.intercitySection.lineItems.length > 0 && (() => {
-                    const allTransitItems = plan.intercitySection.lineItems;
-                    const entryItems = allTransitItems.filter((i) => (i.route && i.route.startsWith("ENTRY_")) || (i.sourceLabel && i.sourceLabel.includes("[입국 공항]")));
-                    const exitItems = allTransitItems.filter((i) => (i.route && i.route.startsWith("EXIT_")) || (i.sourceLabel && i.sourceLabel.includes("[출국 공항]")));
-                    const transitItems = allTransitItems.filter((i) => !entryItems.includes(i) && !exitItems.includes(i));
-
-                    const cleanLabel = (rawLabel: string) => {
-                      return rawLabel
-                        .replace(/\[입국 공항\]|\[도시 간\]|\[출국 공항\]/g, "")
-                        .replace(/\s*\([^)]*?(➔|->)[^)]*?\)/g, "")
-                        .trim();
-                    };
-
-                    return (
-                      <div className="space-y-3 pt-2.5 border-t border-slate-100">
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {dict.planner.intercityTransportation}
-                          </h4>
-                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(plan.intercitySection.subtotalKrw)}</span>
-                        </div>
-
-                        <div className="space-y-2.5 pl-1.5 border-l border-slate-100">
-                          {/* 1. [입국 공항] */}
-                          {entryItems.length > 0 && (
-                            <div className="space-y-1">
-                              <span className="text-[11px] font-extrabold text-slate-400 block">
-                                {locale === "ko" ? "[입국 공항]" : "[Arrival Gateway]"}
-                              </span>
-                              {entryItems.map((item) => (
-                                <div key={item.id} className="flex justify-between items-start text-xs pl-1">
-                                  <span className="text-slate-700 font-medium">
-                                    {cleanLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}
-                                  </span>
-                                  <span className="font-sans tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* 2. [도시 간 이동] */}
-                          {transitItems.length > 0 && (
-                            <div className="space-y-1">
-                              <span className="text-[11px] font-extrabold text-slate-400 block">
-                                {locale === "ko" ? "[도시 간 이동]" : "[Intercity Transit]"}
-                              </span>
-                              {transitItems.map((item) => (
-                                <div key={item.id} className="flex justify-between items-start text-xs pl-1">
-                                  <span className="text-slate-700 font-medium">
-                                    {cleanLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}
-                                  </span>
-                                  <span className="font-sans tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* 3. [출국 공항] */}
-                          {exitItems.length > 0 && (
-                            <div className="space-y-1">
-                              <span className="text-[11px] font-extrabold text-slate-400 block">
-                                {locale === "ko" ? "[출국 공항]" : "[Departure Gateway]"}
-                              </span>
-                              {exitItems.map((item) => (
-                                <div key={item.id} className="flex justify-between items-start text-xs pl-1">
-                                  <span className="text-slate-700 font-medium">
-                                    {cleanLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}
-                                  </span>
-                                  <span className="font-sans tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Shopping & Daily Allowance Group in Receipt */}
-                  {(shoppingAmountKrw > 0 || plan.categoryTotals.ATTRACTION > 0) && (
-                    <div className="space-y-2 pt-2 border-t border-slate-100">
-                      {shoppingAmountKrw > 0 && (
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
-                          </h4>
-                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(shoppingAmountKrw)}</span>
                         </div>
                       )}
 
-                      {plan.categoryTotals.ATTRACTION > 0 && (
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {locale === "ko" ? "일일 용돈" : "Daily Allowance"}
-                          </h4>
-                          <span className="text-xs font-extrabold text-slate-800">{formatKrw(plan.categoryTotals.ATTRACTION)}</span>
+                      {/* 2. 도시별 아코디언 및 도시 간 이동 교통 */}
+                      {draft.selectedCities.map((city, cityIdx) => {
+                        const section = plan.citySections[city];
+                        if (!section) return null;
+
+                        const label = CITY_KOREAN_NAMES[city] || city;
+                        const englishCityName = CITY_ENGLISH_NAMES[city] || city;
+                        const cityNights = section.nights;
+                        const cityLineItems = section.lineItems || [];
+
+                        // 1) 숙박
+                        const accItems = cityLineItems.filter((item) => item.category === "ACCOMMODATION");
+                        const accTotal = accItems.reduce((sum, i) => sum + i.lineTotalKrw, 0);
+
+                        // 2) 음식 (기본 식비 + K-스팟 맛집/카페)
+                        const foodItems = cityLineItems.filter((item) => item.category === "FOOD");
+                        const foodBaseTotal = foodItems.reduce((sum, i) => sum + i.lineTotalKrw, 0);
+                        const cityCustomFood = budgetPlaces.filter((p) => p.city === city && ["RESTAURANT", "CAFE"].includes(p.category));
+                        const adultCount = draft.adultCount || 1;
+                        let cityCustomFoodTotalKrw = 0;
+                        cityCustomFood.forEach((f) => {
+                          const price = f.priceKrw ?? (f as any).estimatedPriceKrw ?? (f.category === "CAFE" ? 8000 : 18000);
+                          cityCustomFoodTotalKrw += price * adultCount;
+                        });
+                        const foodTotal = foodBaseTotal + cityCustomFoodTotalKrw;
+
+                        // 3) 시내 교통
+                        const transportItems = cityLineItems.filter((item) => item.category === "CITY_TRANSPORT");
+                        const transportTotal = transportItems.reduce((sum, i) => sum + i.lineTotalKrw, 0);
+
+                        // 4) 관광 & 쇼핑
+                        const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+                        const spotsForCity = [
+                          ...budgetPlaces.filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
+                          ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
+                        ];
+                        const selectedSpotKeys = new Set<string>();
+                        (citySel.selectedCourseIds || []).forEach((cid) => {
+                          const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                          if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+                        });
+                        (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+
+                        const addedSpotsList: AttractionSpot[] = [];
+                        let attractionsAddedTotalKrw = 0;
+                        selectedSpotKeys.forEach((normKey) => {
+                          const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
+                          if (spot) {
+                            addedSpotsList.push(spot);
+                            if (spot.priceStatus === "PAID" && spot.price > 0) {
+                              attractionsAddedTotalKrw += spot.price * adultCount;
+                            }
+                          }
+                        });
+
+                        const attractionBaseItems = cityLineItems.filter((item) => item.category === "ATTRACTION");
+                        const attractionBaseTotal = attractionBaseItems.reduce((sum, i) => sum + i.lineTotalKrw, 0);
+                        const cityShoppingKrw = cityIdx === 0 ? shoppingAmountKrw : 0;
+                        const attractionShoppingTotal = attractionBaseTotal + attractionsAddedTotalKrw + cityShoppingKrw;
+
+                        // 도시 총액
+                        const cityTotal = accTotal + foodTotal + transportTotal + attractionShoppingTotal;
+
+                        // 아코디언 열림 여부 (기본: 접힘, 클릭 시 토글)
+                        const isExpanded = !!expandedReceiptCities[city];
+
+                        // 다음 도시로 이동하는 교통 아이템
+                        const nextCity = draft.selectedCities[cityIdx + 1];
+                        const transitToNext = nextCity ? (
+                          transitItems.find((i) => i.route === `${city}-${nextCity}` || i.route === `${nextCity}-${city}`) || transitItems[cityIdx]
+                        ) : null;
+
+                        return (
+                          <div key={city} className="space-y-2.5">
+                            {/* 도시 접이식 아코디언 카드 */}
+                            <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden transition-all">
+                              {/* 도시 헤더 (토글 버튼) */}
+                              <button
+                                type="button"
+                                onClick={() => toggleReceiptCity(city)}
+                                className="w-full p-3 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2.5 h-2.5 rounded-full bg-[#e25c5c]"></span>
+                                  <span className="text-sm font-extrabold text-[#0f172a]">
+                                    {locale === "ko" ? label : englishCityName}
+                                  </span>
+                                  <span className="text-[11px] font-bold text-slate-400">
+                                    ({cityNights === 0 ? (locale === "ko" ? "당일" : "Day trip") : `${cityNights}${locale === "ko" ? "박" : "N"}`})
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-black text-slate-900 tabular-nums">
+                                    {formatKrw(cityTotal)}
+                                  </span>
+                                  <span className="text-slate-400 font-bold text-[11px]">
+                                    {isExpanded ? "▲" : "▼"}
+                                  </span>
+                                </div>
+                              </button>
+
+                              {/* 도시 내부 항목 (펼쳤을 때) */}
+                              {isExpanded && (
+                                <div className="px-3 pb-3 pt-1.5 border-t border-slate-100 space-y-2.5 bg-slate-50/30 text-xs">
+                                  {/* 1. 숙박 */}
+                                  <div className="space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                                        <span>🏨</span>
+                                        <span>{getCategoryLabel("ACCOMMODATION", dict)}</span>
+                                      </span>
+                                      <span className="font-sans tabular-nums font-bold text-slate-800">
+                                        {formatKrw(accTotal)}
+                                      </span>
+                                    </div>
+                                    {accItems.map((item) => (
+                                      <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
+                                        <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
+                                        <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {/* 2. 음식 */}
+                                  <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                                        <span>🍱</span>
+                                        <span>{getCategoryLabel("FOOD", dict)}</span>
+                                      </span>
+                                      <span className="font-sans tabular-nums font-bold text-slate-800">
+                                        {formatKrw(foodTotal)}
+                                      </span>
+                                    </div>
+                                    {foodItems.map((item) => (
+                                      <div key={item.id} className="space-y-0.5 pl-5">
+                                        <div className="flex justify-between items-start text-[11px] text-slate-500">
+                                          <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
+                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                        </div>
+                                        {isCalculatedMealPlan(item.mealPlan) && (
+                                          <FoodReceiptDetails mealPlan={item.mealPlan} locale={locale} dict={dict} />
+                                        )}
+                                      </div>
+                                    ))}
+                                    {cityCustomFood.length > 0 && (
+                                      <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">
+                                        <span className="text-[10px] font-bold text-amber-700 block">
+                                          🍲 {locale === "ko" ? "담은 맛집·카페" : "Added Gourmet"} ({cityCustomFood.length})
+                                        </span>
+                                        {cityCustomFood.map((fp) => {
+                                          const uPrice = fp.priceKrw ?? (fp as any).estimatedPriceKrw ?? (fp.category === "CAFE" ? 8000 : 18000);
+                                          const iTotal = uPrice * adultCount;
+                                          const tName = locale === "ko" ? (fp.translations?.ko?.title || (fp as any).title) : (fp.translations?.en?.title || (fp as any).title);
+                                          return (
+                                            <div key={fp.id} className="flex justify-between items-center text-[10px] text-slate-500">
+                                              <span className="truncate pr-2">{tName}</span>
+                                              <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(iTotal)}</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* 3. 시내 교통 (있는 경우) */}
+                                  {transportTotal > 0 && (
+                                    <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                                          <span>🚌</span>
+                                          <span>{locale === "ko" ? "시내 교통" : "Local Transit"}</span>
+                                        </span>
+                                        <span className="font-sans tabular-nums font-bold text-slate-800">
+                                          {formatKrw(transportTotal)}
+                                        </span>
+                                      </div>
+                                      {transportItems.map((item) => (
+                                        <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
+                                          <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
+                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* 4. 관광 & 쇼핑 */}
+                                  {(attractionShoppingTotal > 0 || addedSpotsList.length > 0) && (
+                                    <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                                          <span>🎡</span>
+                                          <span>{locale === "ko" ? "관광 & 쇼핑" : "Attractions & Shopping"}</span>
+                                        </span>
+                                        <span className="font-sans tabular-nums font-bold text-slate-800">
+                                          {formatKrw(attractionShoppingTotal)}
+                                        </span>
+                                      </div>
+                                      {attractionBaseItems.map((item) => (
+                                        <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
+                                          <span className="truncate pr-2">{locale === "ko" ? "일일 활동 용돈" : "Daily Allowance"}</span>
+                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                        </div>
+                                      ))}
+                                      {cityShoppingKrw > 0 && (
+                                        <div className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
+                                          <span className="truncate pr-2">{locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}</span>
+                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(cityShoppingKrw)}</span>
+                                        </div>
+                                      )}
+                                      {addedSpotsList.length > 0 && (
+                                        <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">
+                                          <span className="text-[10px] font-bold text-[#e25c5c] block">
+                                            🎡 {locale === "ko" ? "담은 관광 명소" : "Added Sightseeing"} ({addedSpotsList.length})
+                                          </span>
+                                          {addedSpotsList.map((spot) => {
+                                            const spotKey = normalizeSpotKey(spot.id);
+                                            const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+                                            const sName = locale === "ko" ? (bilingual?.nameKo || spot.nameKo) : (bilingual?.nameEn || spot.nameEn);
+                                            const sTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
+                                            return (
+                                              <div key={spot.id} className="flex justify-between items-center text-[10px] text-slate-500">
+                                                <span className="truncate pr-2">{sName}</span>
+                                                <span className="tabular-nums font-medium text-slate-700 shrink-0">
+                                                  {sTotal > 0 ? formatKrw(sTotal) : "무료"}
+                                                </span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* 도시 간 이동 교통 (도시와 다음 도시 사이에 위치!) */}
+                            {transitToNext && (
+                              <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-1.5 text-slate-700 font-bold">
+                                  <span>🚆</span>
+                                  <span>
+                                    {cleanTransitLabel(transitToNext.sourceLabel || getBasketLabel(transitToNext.basketId, dict, locale))}
+                                  </span>
+                                </div>
+                                <span className="font-sans tabular-nums font-extrabold text-slate-800">
+                                  {formatKrw(transitToNext.lineTotalKrw)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {/* 3. 출국 공항 이동 (마지막 도시 나온 후) */}
+                      {exitItems.length > 0 && (
+                        <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                              <span>🛫</span>
+                              <span>{locale === "ko" ? "출국 공항 이동" : "Departure Transit"}</span>
+                            </span>
+                            <span className="font-sans tabular-nums font-bold text-slate-800">
+                              {formatKrw(exitItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
+                            </span>
+                          </div>
+                          {exitItems.map((item) => (
+                            <div key={item.id} className="flex justify-between items-center text-[11px] text-slate-500 pl-5">
+                              <span>{cleanTransitLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}</span>
+                              <span className="tabular-nums font-medium text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
+                            </div>
+                          ))}
                         </div>
                       )}
+
+                      <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {locale === "ko"
+                            ? "💡 카테고리별 종합 지출 분석 및 인쇄용 리포트는 [예산 리포트 만들기]에서 지원됩니다."
+                            : "💡 Category analytics & printable report are available in [Generate Budget Report]."}
+                        </p>
+                      </div>
                     </div>
-                  )}
-
-                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-center">
-                    <p className="text-[11px] text-slate-500">
-                      {locale === "ko"
-                        ? "💡 더 자세한 일자별 상세 일정표 및 인쇄용 지출 분석표는 [예산 리포트 만들기]에서 한눈에 확인하실 수 있습니다."
-                        : "💡 Detailed daily itinerary & itemized print sheets are available in [Generate Budget Report]."}
-                    </p>
-                  </div>
-
-                </div>
-                )}
+                  );
+                })()}
 
                 {/* Bottom Calculation Breakdown: Base Expenses + Emergency Fund = Grand Total */}
                 <div className="pt-4 border-t border-dashed border-slate-200 space-y-3.5">

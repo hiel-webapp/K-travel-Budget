@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
@@ -240,6 +240,93 @@ function isDefaultAccommodationSpot(spotId: string): boolean {
   return ACCOMMODATION_SPOTS_CATALOG.some((s) => s.id === spotId);
 }
 
+// 모던 스켈레톤 & 페이드인 적용 관광지 카드 이미지 컴포넌트
+function SpotCardImage({
+  src,
+  alt,
+  isPriority,
+  locale,
+}: {
+  src?: string;
+  alt: string;
+  isPriority?: boolean;
+  locale: Locale;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const hasValidSrc = !!src && src.trim() !== "" && src !== "/assets/default-place.jpg";
+
+  if (!hasValidSrc || hasError) {
+    return (
+      <div className="w-full h-full bg-slate-100 flex flex-col items-center justify-center text-slate-400 gap-1.5 p-4 select-none">
+        <div className="w-9 h-9 rounded-full bg-slate-200/80 flex items-center justify-center text-slate-400">
+          <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <span className="text-[10px] font-semibold text-slate-500">
+          {locale === "ko" ? "대표 사진 준비 중" : "Photo in preparation"}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full bg-slate-100 overflow-hidden">
+      {/* 은은한 펄스 스켈레톤 뼈대: 이미지가 다운로드되는 동안 어색한 목업/빈화면 방지 */}
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-200/70 to-slate-100 animate-pulse" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        loading={isPriority ? "eager" : "lazy"}
+        // @ts-ignore
+        fetchPriority={isPriority ? "high" : "auto"}
+        decoding="async"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          setHasError(true);
+        }}
+        className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${
+          isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
+        }`}
+      />
+    </div>
+  );
+}
+
+// 관광지 카드 목록 로딩 시 노출되는 스켈레톤 그리드
+function SpotCardSkeletonGrid() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-slate-200/80 bg-white flex flex-col overflow-hidden shadow-xs animate-pulse"
+        >
+          <div className="w-full aspect-[16/10] bg-slate-200/80" />
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="h-4 bg-slate-200/90 rounded w-1/2" />
+              <div className="h-4 bg-slate-100 rounded w-12" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="h-3 bg-slate-100 rounded w-full" />
+              <div className="h-3 bg-slate-100 rounded w-4/5" />
+            </div>
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <div className="h-3 bg-slate-100 rounded w-1/3" />
+              <div className="h-7 bg-slate-200/80 rounded-xl w-20" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
   const [state, setState] = useState<PlannerState>(() => {
@@ -457,115 +544,132 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   }, [state, budgetPlaces, showSavedOnlyAccByCity]);
 
-  // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태
+  // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태 & 로딩 상태
   const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]>>({});
+  const [isFetchingCityAttractions, setIsFetchingCityAttractions] = useState<Record<string, boolean>>({});
+  const fetchedCitiesRef = useRef<Set<string>>(new Set());
 
-  // 도시 탭 선택 시 Supabase DB에 저장된 최신 관광지 데이터 실시간 연동
-  useEffect(() => {
-    if (selectedCityTab === "ALL" || selectedCityTab === "TRANSPORT") return;
-    const city = selectedCityTab;
-    if (dbAttractionsByCity[city] && dbAttractionsByCity[city].length > 0) return;
+  // 도시별 관광지 카탈로그 패치 및 프리페치(Prefetch) 함수
+  const fetchCityAttractions = useCallback(async (city: string) => {
+    if (fetchedCitiesRef.current.has(city)) return;
+    fetchedCitiesRef.current.add(city);
 
-    let isMounted = true;
-    fetch(`/api/catalog/attractions?city=${city}`)
-      .then((res) => res.json())
-      .then(async (json) => {
-        if (!isMounted) return;
-        const validData = Array.isArray(json.data)
-          ? json.data.filter((spot: any) => spot.cityCode === city)
-          : [];
+    setIsFetchingCityAttractions((prev) => ({ ...prev, [city]: true }));
+    try {
+      const res = await fetch(`/api/catalog/attractions?city=${city}`);
+      const json = await res.json();
+      const validData = Array.isArray(json.data)
+        ? json.data.filter((spot: any) => spot.cityCode === city)
+        : [];
 
-        if (json.success && validData.length > 0) {
-          registerCustomAttractionSpots(validData);
-          setDbAttractionsByCity((prev) => ({
-            ...prev,
-            [city]: validData,
-          }));
-        } else if (city === "SEOUL") {
-          // 서울만 Supabase 직접 조회 폴백 (area_code=1) 허용
-          try {
-            const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=id.asc&limit=50`;
-            const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=item_id.asc&limit=50`;
-            const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
-            let directRes = await fetch(sbUrl1, {
+      if (json.success && validData.length > 0) {
+        registerCustomAttractionSpots(validData);
+        setDbAttractionsByCity((prev) => ({
+          ...prev,
+          [city]: validData,
+        }));
+      } else if (city === "SEOUL") {
+        // 서울만 Supabase 직접 조회 폴백 (area_code=1) 허용
+        try {
+          const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=id.asc&limit=50`;
+          const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=item_id.asc&limit=50`;
+          const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
+          let directRes = await fetch(sbUrl1, {
+            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+          });
+          if (!directRes.ok) {
+            directRes = await fetch(sbUrl2, {
               headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
             });
-            if (!directRes.ok) {
-              directRes = await fetch(sbUrl2, {
-                headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-              });
-            }
-            if (directRes.ok && isMounted) {
-              const rows = await directRes.json();
-              if (Array.isArray(rows) && rows.length > 0) {
-                const gradients = [
-                  "from-rose-500/15 to-pink-500/15",
-                  "from-blue-500/15 to-indigo-500/15",
-                  "from-emerald-500/15 to-teal-500/15",
-                  "from-amber-500/15 to-orange-500/15",
-                  "from-purple-500/15 to-fuchsia-500/15",
-                ];
-                const emojis = ["🎡", "🏞️", "🏙️", "🏛️", "☕", "📸", "🌉", "🎨"];
-                const directSpots = rows.map((row: any, idx: number) => {
-                  const match = (row.title_en || "").match(/^(.*?)\s*\((.*?)\)$/);
-                  const nameEn = match ? match[1].trim() : row.title_en;
-                  const nameKo = match ? match[2].trim() : row.title_en;
-                  const meta = parseAttractionMetadata(row.desc_en || "");
-                  const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[row.content_id];
-                  return {
-                    id: `kto_${row.content_id || row.id}`,
-                    cityCode: "SEOUL" as SupportedCity,
-                    nameKo: bilingual?.nameKo || nameKo,
-                    nameEn: bilingual?.nameEn || nameEn,
-                    categoryType: bilingual?.categoryType,
-                    descKo: bilingual?.descKo || meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
-                    descEn: bilingual?.descEn || meta.cleanDesc || "Popular sightseeing spot in Seoul",
-                    price: row.price_krw || 0,
-                    priceStatus: (row.price_krw || 0) > 0 ? ("PAID" as const) : ("FREE" as const),
-                    tag: row.sub_category || "Attraction",
-                    emoji: emojis[idx % emojis.length],
-                    gradientBg: gradients[idx % gradients.length],
-                    isFeatured: true,
-                    imageUrl: bilingual?.imageUrl || row.image_url,
-                    deepLink: row.deep_link_template,
-                    subwayInfo: meta.subwayInfo || bilingual?.subwayKo,
-                    openingHours: meta.openingHours || bilingual?.hoursKo,
-                    closedDays: meta.closedDays || bilingual?.closedKo,
-                    officialUrl: meta.officialUrl,
-                  };
-                });
-                registerCustomAttractionSpots(directSpots);
-                setDbAttractionsByCity((prev) => ({
-                  ...prev,
-                  SEOUL: directSpots,
-                }));
-              }
-            }
-          } catch (directErr) {
-            console.warn("[Planner] Direct Supabase Fallback 실패:", directErr);
           }
-        } else {
-          // 타 도시(부산, 제주 등)는 DB 데이터가 없는 경우 해당 도시 전용 카탈로그로 안전하게 바인딩
-          const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
-          setDbAttractionsByCity((prev) => ({
-            ...prev,
-            [city]: localSpots,
-          }));
+          if (directRes.ok) {
+            const rows = await directRes.json();
+            if (Array.isArray(rows) && rows.length > 0) {
+              const gradients = [
+                "from-rose-500/15 to-pink-500/15",
+                "from-blue-500/15 to-indigo-500/15",
+                "from-emerald-500/15 to-teal-500/15",
+                "from-amber-500/15 to-orange-500/15",
+                "from-purple-500/15 to-fuchsia-500/15",
+              ];
+              const emojis = ["🎡", "🏞️", "🏙️", "🏛️", "☕", "📸", "🌉", "🎨"];
+              const directSpots = rows.map((row: any, idx: number) => {
+                const match = (row.title_en || "").match(/^(.*?)\s*\((.*?)\)$/);
+                const nameEn = match ? match[1].trim() : row.title_en;
+                const nameKo = match ? match[2].trim() : row.title_en;
+                const meta = parseAttractionMetadata(row.desc_en || "");
+                const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[row.content_id];
+                return {
+                  id: `kto_${row.content_id || row.id}`,
+                  cityCode: "SEOUL" as SupportedCity,
+                  nameKo: bilingual?.nameKo || nameKo,
+                  nameEn: bilingual?.nameEn || nameEn,
+                  categoryType: bilingual?.categoryType,
+                  descKo: bilingual?.descKo || meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
+                  descEn: bilingual?.descEn || meta.cleanDesc || "Popular sightseeing spot in Seoul",
+                  price: row.price_krw || 0,
+                  priceStatus: (row.price_krw || 0) > 0 ? ("PAID" as const) : ("FREE" as const),
+                  tag: row.sub_category || "Attraction",
+                  emoji: emojis[idx % emojis.length],
+                  gradientBg: gradients[idx % gradients.length],
+                  isFeatured: true,
+                  imageUrl: bilingual?.imageUrl || row.image_url,
+                  deepLink: row.deep_link_template,
+                  subwayInfo: meta.subwayInfo || bilingual?.subwayKo,
+                  openingHours: meta.openingHours || bilingual?.hoursKo,
+                  closedDays: meta.closedDays || bilingual?.closedKo,
+                  officialUrl: meta.officialUrl,
+                };
+              });
+              registerCustomAttractionSpots(directSpots);
+              setDbAttractionsByCity((prev) => ({
+                ...prev,
+                SEOUL: directSpots,
+              }));
+            }
+          }
+        } catch (directErr) {
+          console.warn("[Planner] Direct Supabase Fallback 실패:", directErr);
         }
-      })
-      .catch((err) => {
-        console.warn("[Planner] DB 관광지 연동 오류:", err);
+      } else {
+        // 타 도시(부산, 제주 등)는 기본 카탈로그로 바인딩
         const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
         setDbAttractionsByCity((prev) => ({
           ...prev,
           [city]: localSpots,
         }));
-      });
+      }
+    } catch (err) {
+      console.warn("[Planner] DB 관광지 연동 오류:", err);
+      const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+      setDbAttractionsByCity((prev) => ({
+        ...prev,
+        [city]: localSpots,
+      }));
+    } finally {
+      setIsFetchingCityAttractions((prev) => ({ ...prev, [city]: false }));
+    }
+  }, []);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedCityTab, dbAttractionsByCity]);
+  // 1. 플래너 진입 시 여행 대상 도시들의 관광지 데이터를 백그라운드에서 사전 프리페치(Prefetch)
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const prefetchCities = new Set<string>();
+    if (state.draft.selectedCities && state.draft.selectedCities.length > 0) {
+      state.draft.selectedCities.forEach((c) => prefetchCities.add(c));
+    }
+    prefetchCities.add("SEOUL");
+    prefetchCities.add("BUSAN");
+    prefetchCities.forEach((city) => {
+      fetchCityAttractions(city);
+    });
+  }, [state, fetchCityAttractions]);
+
+  // 2. 사용자가 도시 탭을 클릭했을 때 혹시 아직 패치되지 않은 도시라면 즉시 패치
+  useEffect(() => {
+    if (selectedCityTab === "ALL" || selectedCityTab === "TRANSPORT") return;
+    fetchCityAttractions(selectedCityTab);
+  }, [selectedCityTab, fetchCityAttractions]);
 
   // 여행 개요 섹션용 Option B Info 뱃지 및 툴팁 렌더러
   const renderOverviewSectionHeader = (
@@ -3453,81 +3557,74 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
 
                         {/* Grid: 1열 2개 관광정보 카드 (1 Row 2 Columns Grid) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {displayedSpots.map((rawSpot) => {
-                            const spotKey = rawSpot.id.replace(/^kto_/, "");
-                            const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+                        {isFetchingCityAttractions[city] && (!dbAttractionsByCity[city] || dbAttractionsByCity[city].length === 0) ? (
+                          <SpotCardSkeletonGrid />
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {displayedSpots.map((rawSpot, spotIdx) => {
+                              const spotKey = rawSpot.id.replace(/^kto_/, "");
+                              const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
 
-                            const name = locale === "ko" ? (bilingual?.nameKo || rawSpot.nameKo) : (bilingual?.nameEn || rawSpot.nameEn);
-                            const desc = locale === "ko"
-                              ? (bilingual?.descKo || rawSpot.descKo || rawSpot.descEn)
-                              : (bilingual?.descEn || rawSpot.descEn || rawSpot.descKo);
-                            const subway = locale === "ko"
-                              ? (bilingual?.subwayKo || rawSpot.subwayInfoKo || rawSpot.subwayInfo)
-                              : (bilingual?.subwayEn || rawSpot.subwayInfoEn || rawSpot.subwayInfo);
-                            const hours = locale === "ko"
-                              ? (bilingual?.hoursKo || rawSpot.openingHoursKo || rawSpot.openingHours)
-                              : (bilingual?.hoursEn || rawSpot.openingHoursEn || rawSpot.openingHours);
-                            const closed = locale === "ko"
-                              ? (bilingual?.closedKo || rawSpot.closedDaysKo || rawSpot.closedDays)
-                              : (bilingual?.closedEn || rawSpot.closedDaysEn || rawSpot.closedDays);
+                              const name = locale === "ko" ? (bilingual?.nameKo || rawSpot.nameKo) : (bilingual?.nameEn || rawSpot.nameEn);
+                              const desc = locale === "ko"
+                                ? (bilingual?.descKo || rawSpot.descKo || rawSpot.descEn)
+                                : (bilingual?.descEn || rawSpot.descEn || rawSpot.descKo);
+                              const subway = locale === "ko"
+                                ? (bilingual?.subwayKo || rawSpot.subwayInfoKo || rawSpot.subwayInfo)
+                                : (bilingual?.subwayEn || rawSpot.subwayInfoEn || rawSpot.subwayInfo);
+                              const hours = locale === "ko"
+                                ? (bilingual?.hoursKo || rawSpot.openingHoursKo || rawSpot.openingHours)
+                                : (bilingual?.hoursEn || rawSpot.openingHoursEn || rawSpot.openingHours);
+                              const closed = locale === "ko"
+                                ? (bilingual?.closedKo || rawSpot.closedDaysKo || rawSpot.closedDays)
+                                : (bilingual?.closedEn || rawSpot.closedDaysEn || rawSpot.closedDays);
 
-                            const isSpotSelected = individualSpotIds.some((sid) => isSameSpot(sid, rawSpot.id));
-                            const isIncludedInCourse = selectedCourseIds.some((cid) => {
-                              const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                              return course?.spotIds.some((sid) => isSameSpot(sid, rawSpot.id));
-                            });
-                            const isAdded = isSpotSelected || isIncludedInCourse;
-                            const hasImage = (rawSpot as any).imageUrl && (rawSpot as any).imageUrl !== "/assets/default-place.jpg";
+                              const isSpotSelected = individualSpotIds.some((sid) => isSameSpot(sid, rawSpot.id));
+                              const isIncludedInCourse = selectedCourseIds.some((cid) => {
+                                const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                                return course?.spotIds.some((sid) => isSameSpot(sid, rawSpot.id));
+                              });
+                              const isAdded = isSpotSelected || isIncludedInCourse;
 
-                            return (
-                              <div
-                                key={rawSpot.id}
-                                className={`rounded-2xl border bg-white flex flex-col overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 ${
-                                  isAdded ? "border-rose-300 ring-1 ring-rose-200 bg-rose-50/10" : "border-slate-200 hover:border-slate-300"
-                                }`}
-                              >
-                                {/* Photo Container: 클릭 시 상세 팝업 오픈 */}
+                              return (
                                 <div
-                                  onClick={() => setPreviewSpot(rawSpot)}
-                                  className="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden cursor-pointer group"
-                                  title={locale === "ko" ? "클릭하여 사진 및 상세정보 크게 보기" : "Click to view photo & details"}
+                                  key={rawSpot.id}
+                                  className={`rounded-2xl border bg-white flex flex-col overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 ${
+                                    isAdded ? "border-rose-300 ring-1 ring-rose-200 bg-rose-50/10" : "border-slate-200 hover:border-slate-300"
+                                  }`}
                                 >
-                                  {hasImage ? (
-                                    <img
+                                  {/* Photo Container: 클릭 시 상세 팝업 오픈 */}
+                                  <div
+                                    onClick={() => setPreviewSpot(rawSpot)}
+                                    className="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden cursor-pointer group"
+                                    title={locale === "ko" ? "클릭하여 사진 및 상세정보 크게 보기" : "Click to view photo & details"}
+                                  >
+                                    <SpotCardImage
                                       src={(rawSpot as any).imageUrl}
                                       alt={name}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                      loading="lazy"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=600&q=80";
-                                      }}
+                                      isPriority={spotIdx < 4}
+                                      locale={locale}
                                     />
-                                  ) : (
-                                    <div className={`h-full w-full bg-gradient-to-r ${rawSpot.gradientBg} flex items-center justify-center`}>
-                                      <span className="text-4xl">{rawSpot.emoji}</span>
+
+                                    {/* Hover overlay hint */}
+                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px] pointer-events-none">
+                                      <span className="text-base">🔍</span>
+                                      <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
                                     </div>
-                                  )}
 
-                                  {/* Hover overlay hint */}
-                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px]">
-                                    <span className="text-base">🔍</span>
-                                    <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
+                                    {/* Price Tag Pill on Image */}
+                                    <div className="absolute top-3 right-3 z-10 pointer-events-none">
+                                      {rawSpot.priceStatus === "FREE" || rawSpot.price === 0 ? (
+                                        <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500/90 text-white backdrop-blur-md shadow-xs">
+                                          {locale === "ko" ? "무료" : "FREE"}
+                                        </span>
+                                      ) : (
+                                        <span className="px-2.5 py-1 rounded-full text-xs font-black bg-slate-900/85 text-white backdrop-blur-md shadow-xs">
+                                          {formatKrw(rawSpot.price)}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
-
-                                  {/* Price Tag Pill on Image */}
-                                  <div className="absolute top-3 right-3 z-10">
-                                    {rawSpot.priceStatus === "FREE" || rawSpot.price === 0 ? (
-                                      <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500/90 text-white backdrop-blur-md shadow-xs">
-                                        {locale === "ko" ? "무료" : "FREE"}
-                                      </span>
-                                    ) : (
-                                      <span className="px-2.5 py-1 rounded-full text-xs font-black bg-slate-900/85 text-white backdrop-blur-md shadow-xs">
-                                        {formatKrw(rawSpot.price)}
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
 
                                 {/* Body Information */}
                                 <div className="p-4 flex-1 flex flex-col justify-between gap-3">
@@ -3634,6 +3731,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             );
                           })}
                         </div>
+                        )}
 
                         {/* Show More / Show Less Toggle Button */}
                         {filteredSpotsForCity.length > 12 && (

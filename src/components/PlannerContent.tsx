@@ -4451,8 +4451,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
                         <p className="text-[11px] text-slate-500 font-medium">
                           {locale === "ko"
-                            ? "💡 카테고리별 종합 지출 분석 및 인쇄용 리포트는 [예산 리포트 만들기]에서 지원됩니다."
-                            : "💡 Category analytics & printable report are available in [Generate Budget Report]."}
+                            ? "💡 상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
+                            : "💡 Detailed analytics & report are in [Generate Budget Report]."}
                         </p>
                       </div>
                     </div>

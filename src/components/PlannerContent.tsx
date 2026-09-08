@@ -539,6 +539,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [attractionCategoryFilterByCity, setAttractionCategoryFilterByCity] = useState<Record<string, string>>({});
   const [visibleAccommodationsCountByCity, setVisibleAccommodationsCountByCity] = useState<Record<string, number>>({});
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
+  const [isReceiptDetailsExpanded, setIsReceiptDetailsExpanded] = useState<boolean>(false);
   const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
   const [budgetPlaces, setBudgetPlaces] = useState<PlaceItem[]>([]);
 
@@ -4031,7 +4032,102 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
                 </div>
 
-                <div className="py-4 space-y-5 max-h-[360px] overflow-y-auto pr-1">
+                {/* 3. Slim Category-level Expense Summary (Always Visible & Real-time) */}
+                <div className="py-3.5 space-y-2 border-b border-slate-100">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <span>{locale === "ko" ? "카테고리별 요약" : "Category Summary"}</span>
+                    <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      {locale === "ko" ? "실시간 반영" : "Real-time"}
+                    </span>
+                  </div>
+
+                  {/* 1. 숙박 */}
+                  <div className="flex items-center justify-between text-xs py-0.5">
+                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+                      <span>🏨</span>
+                      <span>{getCategoryLabel("ACCOMMODATION", dict)}</span>
+                    </span>
+                    <strong className="text-slate-800 font-bold tabular-nums">
+                      {formatKrw(plan.categoryTotals.ACCOMMODATION || 0)}
+                    </strong>
+                  </div>
+
+                  {/* 2. 식비 */}
+                  <div className="flex items-center justify-between text-xs py-0.5">
+                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+                      <span>🍱</span>
+                      <span>{getCategoryLabel("FOOD", dict)}</span>
+                    </span>
+                    <strong className="text-slate-800 font-bold tabular-nums">
+                      {formatKrw(plan.categoryTotals.FOOD || 0)}
+                    </strong>
+                  </div>
+
+                  {/* 3. 교통 (시내 + 도시 간) */}
+                  <div className="flex items-center justify-between text-xs py-0.5">
+                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+                      <span>🚆</span>
+                      <span>{locale === "ko" ? "교통 (시내/도시 간)" : "Transportation"}</span>
+                    </span>
+                    <strong className="text-slate-800 font-bold tabular-nums">
+                      {formatKrw((plan.categoryTotals.CITY_TRANSPORT || 0) + (plan.categoryTotals.INTERCITY_TRANSPORT || 0))}
+                    </strong>
+                  </div>
+
+                  {/* 4. 관광 & 쇼핑 */}
+                  <div className="flex items-center justify-between text-xs py-0.5">
+                    <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+                      <span>🎡</span>
+                      <span>{locale === "ko" ? "관광 & 쇼핑" : "Attractions & Shopping"}</span>
+                    </span>
+                    <strong className="text-slate-800 font-bold tabular-nums">
+                      {formatKrw((plan.categoryTotals.ATTRACTION || 0) + shoppingAmountKrw)}
+                    </strong>
+                  </div>
+
+                  {/* 5. 여행 비상금 */}
+                  {computedEmergencyKrw > 0 && (
+                    <div className="flex items-center justify-between text-xs py-0.5">
+                      <span className="flex items-center gap-1.5 text-slate-600 font-medium">
+                        <span>🛡️</span>
+                        <span>{locale === "ko" ? "여행 비상금" : "Emergency Fund"}</span>
+                        {activeEmergencyPct !== undefined && activeEmergencyPct > 0 && emergencyManualInput === "" && (
+                          <span className="text-[10px] font-extrabold text-[#e25c5c] bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200/60 leading-none">
+                            +{Math.round(activeEmergencyPct * 100)}%
+                          </span>
+                        )}
+                      </span>
+                      <strong className="text-[#e25c5c] font-bold tabular-nums">
+                        +{formatKrw(computedEmergencyKrw)}
+                      </strong>
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. Collapsible Itemized Details Toggle Button */}
+                <div className="pt-2.5 pb-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsReceiptDetailsExpanded((prev) => !prev)}
+                    className="w-full py-2 px-3 rounded-xl text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition-all flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span>📋</span>
+                      <span>
+                        {isReceiptDetailsExpanded
+                          ? (locale === "ko" ? "도시별 세부 항목 접기" : "Collapse Itemized Details")
+                          : (locale === "ko" ? "도시별 세부 항목 펼쳐보기" : "View City Itemized Details")}
+                      </span>
+                    </span>
+                    <span className="text-slate-400 font-bold text-[11px]">
+                      {isReceiptDetailsExpanded ? "▲ 접기" : "▼ 펼치기"}
+                    </span>
+                  </button>
+                </div>
+
+                {/* 5. Collapsible Itemized Details (Shown only when expanded) */}
+                {isReceiptDetailsExpanded && (
+                  <div className="py-3 space-y-4 max-h-[300px] overflow-y-auto pr-1 border-t border-slate-100 mt-2">
                   {/* [📍 CITY-SPECIFIC EXPENSES] Header */}
                   <div className="flex items-center gap-1.5 px-0.5 border-b border-slate-100 pb-1.5">
                     <span className="text-xs">📍</span>
@@ -4304,7 +4400,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     </div>
                   )}
 
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-center">
+                    <p className="text-[11px] text-slate-500">
+                      {locale === "ko"
+                        ? "💡 더 자세한 일자별 상세 일정표 및 인쇄용 지출 분석표는 [예산 리포트 만들기]에서 한눈에 확인하실 수 있습니다."
+                        : "💡 Detailed daily itinerary & itemized print sheets are available in [Generate Budget Report]."}
+                    </p>
+                  </div>
+
                 </div>
+                )}
 
                 {/* Bottom Calculation Breakdown: Base Expenses + Emergency Fund = Grand Total */}
                 <div className="pt-4 border-t border-dashed border-slate-200 space-y-3.5">
@@ -4352,23 +4457,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               <div className="space-y-2 pt-1">
                 <button
-                  onClick={handleCopySummary}
-                  className="w-full h-10 px-4 rounded-xl bg-white border border-slate-350 text-[#0f172a] hover:bg-slate-50 font-bold text-sm text-center transition-colors cursor-pointer"
-                >
-                  <span>{dict.planner.copySummaryButton}</span>
-                </button>
-                <button
-                  onClick={() => setIsSaveModalOpen(true)}
-                  className="w-full h-10 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-bold text-sm text-center transition-colors cursor-pointer"
-                >
-                  <span>{dict.planner.saveTrip}</span>
-                </button>
-                <button
                   onClick={() => router.push(`/${locale}/report`)}
-                  className="w-full h-10 px-4 rounded-xl bg-white border border-slate-350 text-[#0f172a] hover:bg-slate-50 font-bold text-sm text-center transition-colors cursor-pointer"
+                  className="w-full h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
+                  <span>📊</span>
                   <span>{dict.planner.generateReport}</span>
                 </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setIsSaveModalOpen(true)}
+                    className="h-10 px-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs text-center transition-colors cursor-pointer"
+                  >
+                    <span>{dict.planner.saveTrip}</span>
+                  </button>
+                  <button
+                    onClick={handleCopySummary}
+                    className="h-10 px-3 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs text-center transition-colors cursor-pointer"
+                  >
+                    <span>{dict.planner.copySummaryButton}</span>
+                  </button>
+                </div>
                 {[
                   { label: dict.planner.shareReceipt, key: "share" }
                 ].map((btn) => (

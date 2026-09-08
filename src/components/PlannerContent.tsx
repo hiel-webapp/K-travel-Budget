@@ -4039,11 +4039,70 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const exitItems = allTransitItems.filter((i) => (i.route && i.route.startsWith("EXIT_")) || (i.sourceLabel && i.sourceLabel.includes("[출국 공항]")));
                   const transitItems = allTransitItems.filter((i) => !entryItems.includes(i) && !exitItems.includes(i));
 
-                  const cleanTransitLabel = (rawLabel: string) => {
-                    return rawLabel
-                      .replace(/\[입국 공항\]|\[도시 간\]|\[출국 공항\]/g, "")
-                      .replace(/\s*\([^)]*?(➔|->)[^)]*?\)/g, "")
-                      .trim();
+                  const formatSimplifiedTransit = (item: any) => {
+                    let raw = item.sourceLabel || getBasketLabel(item.basketId, dict, locale) || "";
+                    raw = raw.replace(/\[입국 공항\]|\[도시 간\]|\[출국 공항\]/g, "").trim();
+
+                    // 수단(Mode) 정제
+                    let mode = "";
+                    let icon = "🚆";
+                    if (raw.includes("항공") && (raw.includes("버스") || raw.includes("시외"))) {
+                      mode = locale === "ko" ? "항공+버스" : "Flight+Bus";
+                      icon = "🛫";
+                    } else if (raw.includes("항공") || raw.includes("비행기") || raw.toLowerCase().includes("flight")) {
+                      mode = locale === "ko" ? "국내선 항공" : "Domestic Flight";
+                      icon = "🛫";
+                    } else if (raw.includes("KTX") || raw.includes("고속철도") || raw.includes("기차")) {
+                      mode = "KTX";
+                      icon = "🚆";
+                    } else if (raw.includes("공항철도") || raw.includes("AREX")) {
+                      mode = locale === "ko" ? "공항철도" : "Airport Express";
+                      icon = "🚆";
+                    } else if (raw.includes("고속버스") || raw.includes("우등")) {
+                      mode = locale === "ko" ? "고속버스" : "Express Bus";
+                      icon = "🚌";
+                    } else if (raw.includes("시외버스") || raw.includes("공항버스") || raw.toLowerCase().includes("bus")) {
+                      mode = locale === "ko" ? "공항/시외버스" : "Bus";
+                      icon = "🚌";
+                    } else {
+                      const match = raw.match(/\(([^)]+)\)/);
+                      if (match) {
+                        mode = match[1].replace(/표준\/정규형|일반석|우등|직통|버스타고/g, "").trim();
+                      }
+                    }
+
+                    // 구간(Route) 정제
+                    let routeName = "";
+                    if (item.route) {
+                      if (item.route.startsWith("ENTRY_")) {
+                        const parts = item.route.replace("ENTRY_", "").split("-");
+                        const airportCode = parts[0] || "INCHEON";
+                        const targetCity = parts[1] || "";
+                        const airportName = airportCode === "INCHEON" ? (locale === "ko" ? "인천공항" : "Incheon Airport") : (locale === "ko" ? "공항" : "Airport");
+                        const cityName = (locale === "ko" ? CITY_KOREAN_NAMES[targetCity as SupportedCity] : CITY_ENGLISH_NAMES[targetCity as SupportedCity]) || targetCity;
+                        routeName = `${airportName} ➔ ${cityName}`;
+                      } else if (item.route.startsWith("EXIT_")) {
+                        const parts = item.route.replace("EXIT_", "").split("-");
+                        const sourceCity = parts[0] || "";
+                        const airportCode = parts[1] || "INCHEON";
+                        const cityName = (locale === "ko" ? CITY_KOREAN_NAMES[sourceCity as SupportedCity] : CITY_ENGLISH_NAMES[sourceCity as SupportedCity]) || sourceCity;
+                        const airportName = airportCode === "INCHEON" ? (locale === "ko" ? "인천공항" : "Incheon Airport") : (locale === "ko" ? "공항" : "Airport");
+                        routeName = `${cityName} ➔ ${airportName}`;
+                      } else {
+                        const parts = item.route.split("-");
+                        if (parts.length === 2) {
+                          const fromName = (locale === "ko" ? CITY_KOREAN_NAMES[parts[0] as SupportedCity] : CITY_ENGLISH_NAMES[parts[0] as SupportedCity]) || parts[0];
+                          const toName = (locale === "ko" ? CITY_KOREAN_NAMES[parts[1] as SupportedCity] : CITY_ENGLISH_NAMES[parts[1] as SupportedCity]) || parts[1];
+                          routeName = `${fromName} ➔ ${toName}`;
+                        }
+                      }
+                    }
+
+                    if (!routeName) {
+                      routeName = raw.replace(/\([^)]*\)/g, "").trim();
+                    }
+
+                    return { routeName, modeName: mode, icon };
                   };
 
                   const toggleReceiptCity = (city: string) => {
@@ -4067,12 +4126,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               {formatKrw(entryItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
                             </span>
                           </div>
-                          {entryItems.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center text-[11px] text-slate-500 pl-5">
-                              <span>{cleanTransitLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}</span>
-                              <span className="tabular-nums font-medium text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
-                            </div>
-                          ))}
+                          {entryItems.map((item) => {
+                            const transitInfo = formatSimplifiedTransit(item);
+                            return (
+                              <div key={item.id} className="flex justify-between items-center text-[11px] text-slate-600 pl-4 gap-2">
+                                <div className="flex items-center gap-1.5 min-w-0 truncate">
+                                  <span className="font-semibold text-slate-800 truncate">{transitInfo.routeName}</span>
+                                  {transitInfo.modeName && (
+                                    <span className="text-[10px] text-slate-500 font-normal shrink-0">
+                                      ({transitInfo.modeName})
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="tabular-nums font-bold text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
@@ -4314,19 +4383,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             </div>
 
                             {/* 도시 간 이동 교통 (도시와 다음 도시 사이에 위치!) */}
-                            {transitToNext && (
-                              <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
-                                <div className="flex items-center gap-1.5 text-slate-700 font-bold">
-                                  <span>🚆</span>
-                                  <span>
-                                    {cleanTransitLabel(transitToNext.sourceLabel || getBasketLabel(transitToNext.basketId, dict, locale))}
+                            {transitToNext && (() => {
+                              const transitInfo = formatSimplifiedTransit(transitToNext);
+                              return (
+                                <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2 text-xs">
+                                  <div className="flex items-center gap-1.5 min-w-0 truncate text-slate-800 font-bold">
+                                    <span className="shrink-0">{transitInfo.icon}</span>
+                                    <span className="truncate">{transitInfo.routeName}</span>
+                                    {transitInfo.modeName && (
+                                      <span className="text-[11px] font-medium text-slate-500 shrink-0">
+                                        ({transitInfo.modeName})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="font-sans tabular-nums font-extrabold text-slate-800 shrink-0">
+                                    {formatKrw(transitToNext.lineTotalKrw)}
                                   </span>
                                 </div>
-                                <span className="font-sans tabular-nums font-extrabold text-slate-800">
-                                  {formatKrw(transitToNext.lineTotalKrw)}
-                                </span>
-                              </div>
-                            )}
+                              );
+                            })()}
                           </div>
                         );
                       })}
@@ -4343,12 +4418,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               {formatKrw(exitItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
                             </span>
                           </div>
-                          {exitItems.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center text-[11px] text-slate-500 pl-5">
-                              <span>{cleanTransitLabel(item.sourceLabel || getBasketLabel(item.basketId, dict, locale))}</span>
-                              <span className="tabular-nums font-medium text-slate-700">{formatKrw(item.lineTotalKrw)}</span>
-                            </div>
-                          ))}
+                          {exitItems.map((item) => {
+                            const transitInfo = formatSimplifiedTransit(item);
+                            return (
+                              <div key={item.id} className="flex justify-between items-center text-[11px] text-slate-600 pl-4 gap-2">
+                                <div className="flex items-center gap-1.5 min-w-0 truncate">
+                                  <span className="font-semibold text-slate-800 truncate">{transitInfo.routeName}</span>
+                                  {transitInfo.modeName && (
+                                    <span className="text-[10px] text-slate-500 font-normal shrink-0">
+                                      ({transitInfo.modeName})
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="tabular-nums font-bold text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 

@@ -85,7 +85,7 @@ export default function FoodPlannerPanel({
 }: FoodPlannerPanelProps) {
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
   const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
-  const [showMoreFood, setShowMoreFood] = useState<boolean>(false);
+  const [visibleFoodCountByCity, setVisibleFoodCountByCity] = useState<Record<string, number>>({});
   const [activeSlotPickerSpotId, setActiveSlotPickerSpotId] = useState<string | null>(null);
   const [showReplacedOnly, setShowReplacedOnly] = useState<boolean>(false);
 
@@ -173,7 +173,8 @@ export default function FoodPlannerPanel({
             )
           : foodSpotsForCity;
 
-        const displayedFoodSpots = showMoreFood ? filteredFoodSpots : filteredFoodSpots.slice(0, 6);
+        const visibleFoodCount = visibleFoodCountByCity[currentCity] ?? 8;
+        const displayedFoodSpots = filteredFoodSpots.slice(0, visibleFoodCount);
 
         return (
           <div className="space-y-3 pt-3 border-t border-slate-100">
@@ -324,16 +325,38 @@ export default function FoodPlannerPanel({
               })}
             </div>
 
-            {/* Show More / Show Less Toggle Button */}
-            {foodSpotsForCity.length > 6 && (
+            {/* Stepwise Show More (+8) / Show Less Toggle Button */}
+            {filteredFoodSpots.length > 8 && (
               <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowMoreFood((prev) => !prev)}
-                  className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                >
-                  {showMoreFood ? (dict.planner.showLess || "접기 ▲") : (dict.planner.showMore || "더보기 ▼")}
-                </button>
+                {visibleFoodCount < filteredFoodSpots.length ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisibleFoodCountByCity((prev) => ({
+                        ...prev,
+                        [currentCity]: (prev[currentCity] ?? 8) + 8,
+                      }))
+                    }
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                  >
+                    <span>{locale === "ko" ? `더보기 (+8개) (${displayedFoodSpots.length}/${filteredFoodSpots.length})` : `Load More (+8) (${displayedFoodSpots.length}/${filteredFoodSpots.length})`}</span>
+                    <span>▼</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisibleFoodCountByCity((prev) => ({
+                        ...prev,
+                        [currentCity]: 8,
+                      }))
+                    }
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                  >
+                    <span>{dict.planner.showLess || "접기"}</span>
+                    <span>▲</span>
+                  </button>
+                )}
               </div>
             )}
           </div>

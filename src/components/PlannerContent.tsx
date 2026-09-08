@@ -535,9 +535,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
   const [activityManualInput, setActivityManualInput] = useState<string>("");
-  const [showMoreAttractionsByCity, setShowMoreAttractionsByCity] = useState<Record<string, boolean>>({});
+  const [visibleAttractionsCountByCity, setVisibleAttractionsCountByCity] = useState<Record<string, number>>({});
   const [attractionCategoryFilterByCity, setAttractionCategoryFilterByCity] = useState<Record<string, string>>({});
-  const [showMoreAccommodationsByCity, setShowMoreAccommodationsByCity] = useState<Record<string, boolean>>({});
+  const [visibleAccommodationsCountByCity, setVisibleAccommodationsCountByCity] = useState<Record<string, number>>({});
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
   const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
   const [budgetPlaces, setBudgetPlaces] = useState<PlaceItem[]>([]);
@@ -2929,8 +2929,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         budgetPlaces.some((p) => p.id === spot.id)
                       )
                     : accSpotsForCity;
-                  const isShowMoreAcc = !!showMoreAccommodationsByCity[city];
-                  const displayedAccSpots = isShowMoreAcc ? filteredAccSpots : filteredAccSpots.slice(0, 6);
+                  const visibleAccCount = visibleAccommodationsCountByCity[city] ?? 8;
+                  const displayedAccSpots = filteredAccSpots.slice(0, visibleAccCount);
                   const cityNights = draft.cityNightAllocations[city] ?? 0;
 
                   return (
@@ -3156,21 +3156,38 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             })}
                           </div>
 
-                          {/* Show More / Show Less Toggle Button */}
-                          {accSpotsForCity.length > 6 && (
+                          {/* Stepwise Show More (+8) / Show Less Toggle Button */}
+                          {filteredAccSpots.length > 8 && (
                             <div className="text-center pt-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setShowMoreAccommodationsByCity((prev) => ({
-                                    ...prev,
-                                    [city]: !prev[city],
-                                  }))
-                                }
-                                className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                              >
-                                {isShowMoreAcc ? (dict.planner.showLess || "접기 ▲") : (dict.planner.showMore || "더보기 ▼")}
-                              </button>
+                              {visibleAccCount < filteredAccSpots.length ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setVisibleAccommodationsCountByCity((prev) => ({
+                                      ...prev,
+                                      [city]: (prev[city] ?? 8) + 8,
+                                    }))
+                                  }
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                                >
+                                  <span>{locale === "ko" ? `더보기 (+8개) (${displayedAccSpots.length}/${filteredAccSpots.length})` : `Load More (+8) (${displayedAccSpots.length}/${filteredAccSpots.length})`}</span>
+                                  <span>▼</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setVisibleAccommodationsCountByCity((prev) => ({
+                                      ...prev,
+                                      [city]: 8,
+                                    }))
+                                  }
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                                >
+                                  <span>{dict.planner.showLess || "접기"}</span>
+                                  <span>▲</span>
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -3435,8 +3452,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             return cat === effectiveCatFilter;
                           });
 
-                  const isShowMore = !!showMoreAttractionsByCity[city];
-                  const displayedSpots = isShowMore ? filteredSpotsForCity : filteredSpotsForCity.slice(0, 12);
+                  const visibleAttractionsCount = visibleAttractionsCountByCity[city] ?? 8;
+                  const displayedSpots = filteredSpotsForCity.slice(0, visibleAttractionsCount);
 
                   const adultCount = draft.adultCount || 1;
                   let selectedSpotsPricePerPerson = 0;
@@ -3787,21 +3804,38 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         </div>
                         )}
 
-                        {/* Show More / Show Less Toggle Button */}
-                        {filteredSpotsForCity.length > 12 && (
+                        {/* Stepwise Show More (+8) / Show Less Toggle Button */}
+                        {filteredSpotsForCity.length > 8 && (
                           <div className="text-center pt-2">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setShowMoreAttractionsByCity((prev) => ({
-                                  ...prev,
-                                  [city]: !prev[city],
-                                }))
-                              }
-                              className="inline-flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                            >
-                              {isShowMore ? (dict.planner.showLess || "접기 ▲") : (dict.planner.showMore || "더보기 ▼")}
-                            </button>
+                            {visibleAttractionsCount < filteredSpotsForCity.length ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setVisibleAttractionsCountByCity((prev) => ({
+                                    ...prev,
+                                    [city]: (prev[city] ?? 8) + 8,
+                                  }))
+                                }
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                              >
+                                <span>{locale === "ko" ? `더보기 (+8개) (${displayedSpots.length}/${filteredSpotsForCity.length})` : `Load More (+8) (${displayedSpots.length}/${filteredSpotsForCity.length})`}</span>
+                                <span>▼</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setVisibleAttractionsCountByCity((prev) => ({
+                                    ...prev,
+                                    [city]: 8,
+                                  }))
+                                }
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+                              >
+                                <span>{dict.planner.showLess || "접기"}</span>
+                                <span>▲</span>
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>

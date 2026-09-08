@@ -443,18 +443,9 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
         </span>
       </div>
 
-      {/* Loading Skeleton */}
+      {/* Loading Skeleton: 실제 카드와 완벽히 동일한 높이/구조로 레이아웃 깜빡임 및 크기 변형 0% 방지 */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-200/70 p-4 space-y-3 animate-pulse">
-              <div className="h-44 bg-slate-200 rounded-xl w-full"></div>
-              <div className="h-5 bg-slate-200 rounded w-3/4"></div>
-              <div className="h-4 bg-slate-100 rounded w-full"></div>
-              <div className="h-4 bg-slate-100 rounded w-1/2"></div>
-            </div>
-          ))}
-        </div>
+        <PlaceCardSkeletonGrid />
       ) : displayedPlaces.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200/70 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl font-bold">
@@ -484,7 +475,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {displayedPlaces.map((place) => {
+          {displayedPlaces.map((place, idx) => {
             const isSaved = savedPlaceIds.some(
               (sid) =>
                 isSameSpot(sid, place.id) ||
@@ -499,6 +490,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 locale={locale}
                 dict={dict}
                 isSaved={isSaved}
+                isPriority={idx < 6}
                 onToggleSave={() => handleToggleBudgetPlace(place)}
                 onPreview={() => setPreviewPlace(place)}
               />
@@ -736,11 +728,107 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   );
 }
 
+// 모던 스켈레톤 & 페이드인 적용 K-스팟 카드 이미지 컴포넌트
+function PlaceCardImage({
+  src,
+  alt,
+  isPriority,
+  badgeIcon,
+  noImageText,
+}: {
+  src?: string;
+  alt: string;
+  isPriority?: boolean;
+  badgeIcon: string;
+  noImageText: string;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const hasValidSrc = !!src && src.trim() !== "" && src !== "/assets/default-place.jpg";
+
+  if (!hasValidSrc || hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 text-slate-400 space-y-1.5 text-center w-full h-full bg-slate-100 select-none">
+        <div className="w-10 h-10 rounded-full bg-slate-200/80 flex items-center justify-center text-xl">
+          {badgeIcon || "📍"}
+        </div>
+        <span className="text-[11px] font-bold text-slate-500">{noImageText}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full bg-slate-100 overflow-hidden">
+      {!isLoaded && (
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-200/70 to-slate-100 animate-pulse" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        loading={isPriority ? "eager" : "lazy"}
+        // @ts-ignore
+        fetchPriority={isPriority ? "high" : "auto"}
+        decoding="async"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setHasError(true)}
+        className={`h-full w-full object-cover transition-all duration-500 group-hover:scale-105 ${
+          isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
+        }`}
+      />
+    </div>
+  );
+}
+
+// 실제 PlaceCard와 100% 동일한 외형/높이/패딩으로 레이아웃 깜빡임(CLS)을 방지하는 스켈레톤 그리드
+function PlaceCardSkeletonGrid() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between animate-pulse"
+        >
+          {/* 상단 이미지 영역: 실제 카드 h-48 w-full과 완벽히 동일 */}
+          <div className="relative h-48 w-full bg-slate-200/80 shrink-0">
+            <div className="absolute top-2.5 left-2.5 flex items-center space-x-1.5">
+              <div className="h-5 w-14 bg-slate-300/80 rounded-md" />
+              <div className="h-5 w-16 bg-slate-300/80 rounded-md" />
+            </div>
+            <div className="absolute top-2.5 right-2.5 h-7 w-20 bg-slate-300/80 rounded-xl" />
+          </div>
+
+          {/* 본문 콘텐츠 영역: 실제 카드 p-4 space-y-3과 완벽히 동일 */}
+          <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="h-4 w-20 bg-rose-100 rounded-md" />
+                <div className="h-4 w-16 bg-slate-100 rounded-full" />
+              </div>
+              <div className="h-5 bg-slate-200/90 rounded-md w-3/4 mb-2" />
+              <div className="space-y-1.5">
+                <div className="h-3.5 bg-slate-100 rounded w-full" />
+                <div className="h-3.5 bg-slate-100 rounded w-5/6" />
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              <div className="h-3 bg-slate-100 rounded w-1/3" />
+              <div className="h-4 bg-slate-200/70 rounded w-20" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface PlaceCardProps {
   place: PlaceItem;
   locale: Locale;
   dict: Dictionary;
   isSaved: boolean;
+  isPriority?: boolean;
   onToggleSave: () => void;
   onPreview: () => void;
 }
@@ -750,6 +838,7 @@ function PlaceCard({
   locale,
   dict,
   isSaved,
+  isPriority,
   onToggleSave,
   onPreview,
 }: PlaceCardProps) {
@@ -781,26 +870,16 @@ function PlaceCard({
         className="relative h-48 w-full bg-slate-100 overflow-hidden flex items-center justify-center cursor-pointer"
         title={locale === "ko" ? "클릭하여 사진 및 상세정보 크게 보기" : "Click to view photo & details"}
       >
-        {place.repImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={place.repImageUrl}
-            alt={trans.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=600&q=80";
-            }}
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center p-4 text-slate-400 space-y-1 text-center">
-            <span className="text-3xl">{badge.icon}</span>
-            <span className="text-xs font-bold">{dict.places.noImage}</span>
-          </div>
-        )}
+        <PlaceCardImage
+          src={place.repImageUrl}
+          alt={trans.title}
+          isPriority={isPriority}
+          badgeIcon={badge.icon}
+          noImageText={dict.places.noImage}
+        />
 
         {/* Hover zoom overlay hint */}
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px]">
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px] pointer-events-none">
           <span className="text-base">🔍</span>
           <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
         </div>

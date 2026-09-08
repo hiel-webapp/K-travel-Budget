@@ -327,6 +327,60 @@ function SpotCardSkeletonGrid() {
   );
 }
 
+// 모던 스켈레톤 & 페이드인 적용 숙소 카드 상단 비주얼 컴포넌트
+function AccSpotHeaderVisual({
+  imageUrl,
+  emoji,
+  location,
+  isPriority,
+}: {
+  imageUrl?: string;
+  emoji: string;
+  location: string;
+  isPriority?: boolean;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const hasValidImage = !!imageUrl && imageUrl.trim() !== "" && imageUrl !== "/assets/default-hotel.jpg" && imageUrl !== "/assets/default-place.jpg";
+
+  if (hasValidImage && !hasError) {
+    return (
+      <div className="relative h-16 w-full rounded-xl overflow-hidden bg-slate-100 shadow-2xs">
+        {!isLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-200/70 to-slate-100 animate-pulse" />
+        )}
+        <img
+          src={imageUrl}
+          alt={location}
+          loading={isPriority ? "eager" : "lazy"}
+          // @ts-ignore
+          fetchPriority={isPriority ? "high" : "auto"}
+          decoding="async"
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setHasError(true)}
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
+          }`}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+        <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-black/60 backdrop-blur-md text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
+          📍 {location}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-12 w-full rounded-xl bg-gradient-to-r from-indigo-500/10 via-slate-100 to-indigo-500/10 border border-indigo-200/40 flex items-center justify-between px-3">
+      <span className="text-2xl">{emoji}</span>
+      <span className="text-[9px] bg-white/95 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs border border-slate-100">
+        📍 {location}
+      </span>
+    </div>
+  );
+}
+
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
   const [state, setState] = useState<PlannerState>(() => {
@@ -3011,7 +3065,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                           {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            {displayedAccSpots.map((spot) => {
+                            {displayedAccSpots.map((spot, spotIdx) => {
                               const isSelectedSpot =
                                 (isPlaceOverride && (accOverride as any).placeId === spot.id) ||
                                 budgetPlaces.some((p) => p.id === spot.id);
@@ -3028,13 +3082,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   }`}
                                 >
                                   <div className="space-y-2">
-                                    {/* Visual Header */}
-                                    <div className={`h-12 w-full rounded-xl bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
-                                      <span className="text-2xl">{spot.emoji}</span>
-                                      <span className="text-[9px] bg-white/90 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
-                                        📍 {locale === "ko" ? spot.locationKo : spot.locationEn}
-                                      </span>
-                                    </div>
+                                    {/* Visual Header: 이미지 스켈레톤 & 페이드인 적용 */}
+                                    <AccSpotHeaderVisual
+                                      imageUrl={(spot as any).imageUrl}
+                                      emoji={spot.emoji}
+                                      location={locale === "ko" ? spot.locationKo : spot.locationEn}
+                                      isPriority={spotIdx < 6}
+                                    />
 
                                     <div>
                                       <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">

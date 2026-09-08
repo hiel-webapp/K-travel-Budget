@@ -20,6 +20,59 @@ interface FoodPlannerPanelProps {
   onChangeAddOnQuantity?: (slotId: string, addOnItemId: string, quantity: number) => void;
 }
 
+function FoodSpotHeaderVisual({
+  imageUrl,
+  emoji,
+  tag,
+  isPriority,
+}: {
+  imageUrl?: string;
+  emoji: string;
+  tag: string;
+  isPriority?: boolean;
+}) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const hasValidImage = !!imageUrl && imageUrl.trim() !== "" && imageUrl !== "/assets/default-food.jpg";
+
+  if (hasValidImage && !hasError) {
+    return (
+      <div className="relative h-16 w-full rounded-xl overflow-hidden bg-slate-100 shadow-2xs">
+        {!isLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-200/70 to-slate-100 animate-pulse" />
+        )}
+        <img
+          src={imageUrl}
+          alt={tag}
+          loading={isPriority ? "eager" : "lazy"}
+          // @ts-ignore
+          fetchPriority={isPriority ? "high" : "auto"}
+          decoding="async"
+          onLoad={() => setIsLoaded(true)}
+          onError={() => setHasError(true)}
+          className={`w-full h-full object-cover transition-all duration-500 ${
+            isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
+          }`}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+        <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-black/60 backdrop-blur-md text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
+          🏷️ {tag}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-12 w-full rounded-xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-200/50 flex items-center justify-between px-3">
+      <span className="text-2xl">{emoji}</span>
+      <span className="text-[9px] bg-white/95 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs border border-slate-100">
+        🏷️ {tag}
+      </span>
+    </div>
+  );
+}
+
 export default function FoodPlannerPanel({
   locale,
   dict,
@@ -155,7 +208,7 @@ export default function FoodPlannerPanel({
 
             {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {displayedFoodSpots.map((spot) => {
+              {displayedFoodSpots.map((spot, spotIdx) => {
                 const replacedSlot = mealPlan.slots.find(
                   (s) => s.replacedByFoodItemId === spot.id || s.replacedByFoodItemId === spot.nameKo
                 );
@@ -181,13 +234,13 @@ export default function FoodPlannerPanel({
                     }`}
                   >
                     <div className="space-y-2">
-                      {/* Visual Header */}
-                      <div className={`h-12 w-full rounded-xl bg-gradient-to-r ${spot.gradientBg} flex items-center justify-between px-3`}>
-                        <span className="text-2xl">{spot.emoji}</span>
-                        <span className="text-[9px] bg-white/90 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
-                          🏷️ {spot.tag}
-                        </span>
-                      </div>
+                      {/* Visual Header: 이미지 스켈레톤 & 페이드인 적용 */}
+                      <FoodSpotHeaderVisual
+                        imageUrl={(spot as any).imageUrl}
+                        emoji={spot.emoji}
+                        tag={spot.tag}
+                        isPriority={spotIdx < 6}
+                      />
 
                       <div>
                         <div className="flex items-center justify-between gap-1">

@@ -3782,19 +3782,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                     <button
                                       type="button"
-                                      onClick={() => handleToggleSpot(city, rawSpot.id)}
+                                      onClick={() => {
+                                        if (isIncludedInCourse && !isSpotSelected) {
+                                          setToastMessage(
+                                            locale === "ko"
+                                              ? "선택된 추천 코스 프리셋에 포함되어 이미 예산에 담긴 장소입니다."
+                                              : "Already included in your budget via the selected tour course preset."
+                                          );
+                                          setTimeout(() => setToastMessage(null), 2500);
+                                          return;
+                                        }
+                                        handleToggleSpot(city, rawSpot.id);
+                                      }}
                                       className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
-                                        isSpotSelected
+                                        isSpotSelected || isIncludedInCourse
                                           ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
-                                          : isIncludedInCourse
-                                          ? "bg-slate-100 text-slate-500 cursor-default"
                                           : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
                                       }`}
                                     >
-                                      {isSpotSelected
+                                      {isSpotSelected || isIncludedInCourse
                                         ? (locale === "ko" ? "✓ 담김" : "✓ Added")
-                                        : isIncludedInCourse
-                                        ? (locale === "ko" ? "코스 포함" : "In Course")
                                         : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
                                     </button>
                                   </div>
@@ -5019,20 +5026,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <button
                     type="button"
                     onClick={() => {
+                      if (isIncludedInCourse && !isSpotSelected) {
+                        setToastMessage(
+                          locale === "ko"
+                            ? "선택된 추천 코스 프리셋에 포함되어 이미 예산에 담긴 장소입니다."
+                            : "Already included in your budget via the selected tour course preset."
+                        );
+                        setTimeout(() => setToastMessage(null), 2500);
+                        return;
+                      }
                       handleToggleSpot(spotCity, previewSpot.id);
                     }}
                     className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shadow-xs ${
-                      isSpotSelected
+                      isSpotSelected || isIncludedInCourse
                         ? "bg-rose-500 text-white hover:bg-rose-600"
-                        : isIncludedInCourse
-                        ? "bg-slate-100 text-slate-500 cursor-default"
                         : "bg-[#0f172a] text-white hover:bg-slate-800"
                     }`}
                   >
-                    {isSpotSelected
+                    {isSpotSelected || isIncludedInCourse
                       ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
-                      : isIncludedInCourse
-                      ? (locale === "ko" ? "코스에 포함됨" : "Included in Course")
                       : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
                   </button>
                 </div>

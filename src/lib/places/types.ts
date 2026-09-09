@@ -28,6 +28,7 @@ export interface PlaceItem {
   openingHours?: string;
   closedDays?: string;
   categoryType?: "명소" | "자연" | "엔터" | "쇼핑";
+  isLocal?: boolean;
 }
 
 export interface PlaceFilterOptions {

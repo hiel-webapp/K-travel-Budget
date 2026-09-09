@@ -29,6 +29,7 @@ export const ALL_CITY_CATALOG_PLACES: PlaceItem[] = ATTRACTION_SPOTS_CATALOG.map
     priceStatus: spot.priceStatus === "PAID" ? ("OFFICIAL_PRICE" as const) : ("FREE" as const),
     priceKrw: spot.price,
     officialLink: spot.officialUrl,
+    isLocal: spot.isLocal || false,
     translations: {
       ko: {
         title: spot.nameKo,

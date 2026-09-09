@@ -152,6 +152,7 @@ function spotToPlaceItem(spot: AttractionSpot): PlaceItem {
     closedDays: bilingual?.closedKo || spot.closedDays,
     priceKrw: spot.price || 0,
     priceStatus: (spot.priceStatus === "PAID" || (spot.price !== undefined && spot.price > 0)) ? "OFFICIAL_PRICE" : "FREE",
+    isLocal: spot.isLocal || false,
     translations: {
       ko: {
         title: titleKo,
@@ -3790,8 +3791,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
                                     </div>
 
-                                    {/* Price Tag Pill on Image */}
-                                    <div className="absolute top-3 right-3 z-10 pointer-events-none">
+                                    {/* Price Tag Pill & Local Badge on Image */}
+                                    <div className="absolute top-3 right-3 z-10 pointer-events-none flex items-center gap-1.5">
+                                      {/* 로컬 명소 뱃지 (추후 문구/디자인 손쉽게 변경 가능) */}
+                                      {rawSpot.isLocal && (
+                                        <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-500 text-white backdrop-blur-md shadow-xs flex items-center gap-1">
+                                          <span>🇰🇷</span>
+                                          <span>로컬</span>
+                                        </span>
+                                      )}
                                       {rawSpot.priceStatus === "FREE" || rawSpot.price === 0 ? (
                                         <span className="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-500/90 text-white backdrop-blur-md shadow-xs">
                                           {locale === "ko" ? "무료" : "FREE"}
@@ -3815,26 +3823,35 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       >
                                         {name}
                                       </h5>
-                                      {/* Category Badge */}
-                                      {(() => {
-                                        const cat = rawSpot.categoryType || bilingual?.categoryType;
-                                        if (!cat) return null;
-                                        const badgeConfig = {
-                                          명소: { bg: "bg-blue-50 text-blue-700 border-blue-200/80", icon: "🏛️", labelKo: "명소", labelEn: "Landmark" },
-                                          자연: { bg: "bg-emerald-50 text-emerald-700 border-emerald-200/80", icon: "🌿", labelKo: "자연", labelEn: "Nature" },
-                                          엔터: { bg: "bg-purple-50 text-purple-700 border-purple-200/80", icon: "🎡", labelKo: "엔터", labelEn: "Enter" },
-                                          쇼핑: { bg: "bg-amber-50 text-amber-800 border-amber-200/80", icon: "🛍️", labelKo: "쇼핑", labelEn: "Shopping" },
-                                        }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
-                                        if (!badgeConfig) return null;
-                                        return (
-                                          <span
-                                            className={`shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${badgeConfig.bg}`}
-                                          >
-                                            <span>{badgeConfig.icon}</span>
-                                            <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
+                                      {/* Category & Local Badges */}
+                                      <div className="flex items-center gap-1 shrink-0">
+                                        {/* 로컬 명소 뱃지 (추후 문구/디자인 손쉽게 변경 가능) */}
+                                        {rawSpot.isLocal && (
+                                          <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-0.5">
+                                            <span>🇰🇷</span>
+                                            <span>로컬</span>
                                           </span>
-                                        );
-                                      })()}
+                                        )}
+                                        {(() => {
+                                          const cat = rawSpot.categoryType || bilingual?.categoryType;
+                                          if (!cat) return null;
+                                          const badgeConfig = {
+                                            명소: { bg: "bg-blue-50 text-blue-700 border-blue-200/80", icon: "🏛️", labelKo: "명소", labelEn: "Landmark" },
+                                            자연: { bg: "bg-emerald-50 text-emerald-700 border-emerald-200/80", icon: "🌿", labelKo: "자연", labelEn: "Nature" },
+                                            엔터: { bg: "bg-purple-50 text-purple-700 border-purple-200/80", icon: "🎡", labelKo: "엔터", labelEn: "Enter" },
+                                            쇼핑: { bg: "bg-amber-50 text-amber-800 border-amber-200/80", icon: "🛍️", labelKo: "쇼핑", labelEn: "Shopping" },
+                                          }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
+                                          if (!badgeConfig) return null;
+                                          return (
+                                            <span
+                                              className={`text-[11px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${badgeConfig.bg}`}
+                                            >
+                                              <span>{badgeConfig.icon}</span>
+                                              <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
+                                            </span>
+                                          );
+                                        })()}
+                                      </div>
                                     </div>
 
                                     {/* Description */}
@@ -5031,6 +5048,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   ) : (
                     <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-900/90 text-white shadow-md backdrop-blur-md">
                       {formatKrw(previewSpot.price)}
+                    </span>
+                  )}
+
+                  {/* 로컬 명소 뱃지 (추후 문구/디자인 손쉽게 변경 가능) */}
+                  {previewSpot.isLocal && (
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-md flex items-center gap-1">
+                      <span>🇰🇷</span>
+                      <span>로컬</span>
                     </span>
                   )}
                 </div>

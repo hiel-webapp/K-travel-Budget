@@ -574,6 +574,14 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                     {locale === "ko" ? "무료 입장" : "Free Admission"}
                   </span>
                 )}
+
+                {/* 로컬 명소 뱃지 (추후 문구/디자인 변경 가능) */}
+                {previewPlace.isLocal && (
+                  <span className="bg-amber-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1">
+                    <span>🇰🇷</span>
+                    <span>로컬</span>
+                  </span>
+                )}
               </div>
 
               {/* Title on bottom of image */}
@@ -893,6 +901,13 @@ function PlaceCard({
             <span>{badge.icon}</span>
             <span>{badge.label}</span>
           </span>
+          {/* 로컬 명소 뱃지 (추후 문구/디자인 손쉽게 변경 가능) */}
+          {place.isLocal && (
+            <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs flex items-center gap-0.5">
+              <span>🇰🇷</span>
+              <span>로컬</span>
+            </span>
+          )}
         </div>
 
         {/* Budget Add / Toggle Button */}

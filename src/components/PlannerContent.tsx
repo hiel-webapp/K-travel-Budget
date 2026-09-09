@@ -4131,26 +4131,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   };
 
                   return (
-                    <div className="py-4 space-y-3 max-h-[460px] overflow-y-auto pr-1">
+                    <div className="py-1 space-y-1.5 max-h-[580px] overflow-y-auto pr-0.5">
                       {/* 1. 입국 공항 이동 (첫 도시 전 타임라인 구분선 커넥터) */}
                       {entryItems.length > 0 && (
-                        <div className="relative py-1.5 flex items-center justify-center my-0.5">
+                        <div className="relative py-1 flex items-center justify-center">
                           <div className="absolute inset-0 flex items-center" aria-hidden="true">
                             <div className="w-full border-t border-dashed border-slate-300"></div>
                           </div>
-                          <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-3 py-1 rounded-full bg-slate-100/95 border border-slate-300/80 text-xs shadow-2xs text-slate-700">
-                            <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[11px]">
+                          <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-2.5 py-0.5 rounded-full bg-slate-100/95 border border-slate-300/80 text-[11px] shadow-2xs text-slate-700">
+                            <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[10px]">
                               <span className="shrink-0 text-xs">🛫</span>
                               <span className="truncate text-slate-800">
                                 {entryItems.map((i) => formatSimplifiedTransit(i).routeName).join(", ")}
                               </span>
                               {entryItems[0] && formatSimplifiedTransit(entryItems[0]).modeName && (
-                                <span className="text-[10px] text-slate-500 font-medium shrink-0">
+                                <span className="text-[9.5px] text-slate-500 font-medium shrink-0">
                                   ({formatSimplifiedTransit(entryItems[0]).modeName})
                                 </span>
                               )}
                             </div>
-                            <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-xs pl-1.5 border-l border-slate-300/70">
+                            <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-[11px] pl-1.5 border-l border-slate-300/70">
                               {formatKrw(entryItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
                             </span>
                           </div>
@@ -4230,21 +4230,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         ) : null;
 
                         return (
-                          <div key={city} className="space-y-2.5">
+                          <div key={city} className="space-y-1.5">
                             {/* 도시 접이식 아코디언 카드 */}
-                            <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden transition-all">
+                            <div className="rounded-lg border border-slate-200/90 bg-white shadow-2xs overflow-hidden transition-all">
                               {/* 도시 헤더 (토글 버튼) */}
                               <button
                                 type="button"
                                 onClick={() => toggleReceiptCity(city)}
-                                className="w-full p-3 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
+                                className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
                               >
                                 <div className="flex items-center gap-2">
-                                  <span className="w-2.5 h-2.5 rounded-full bg-[#e25c5c]"></span>
-                                  <span className="text-sm font-extrabold text-[#0f172a]">
+                                  <span className="w-2 h-2 rounded-full bg-[#e25c5c]"></span>
+                                  <span className="text-[13px] font-extrabold text-[#0f172a]">
                                     {locale === "ko" ? label : englishCityName}
                                   </span>
-                                  <span className="text-[11px] font-bold text-slate-400">
+                                  <span className="text-[10.5px] font-bold text-slate-400">
                                     ({cityNights === 0 ? (locale === "ko" ? "당일" : "Day trip") : `${cityNights}${locale === "ko" ? "박" : "N"}`})
                                   </span>
                                 </div>
@@ -4252,7 +4252,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <span className="text-xs font-black text-slate-900 tabular-nums">
                                     {formatKrw(cityTotal)}
                                   </span>
-                                  <span className="text-slate-400 font-bold text-[11px]">
+                                  <span className="text-slate-400 font-bold text-[10px]">
                                     {isExpanded ? "▲" : "▼"}
                                   </span>
                                 </div>
@@ -4260,7 +4260,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                               {/* 도시 내부 항목 (펼쳤을 때) */}
                               {isExpanded && (
-                                <div className="px-3 pb-3 pt-1.5 border-t border-slate-100 space-y-2.5 bg-slate-50/30 text-xs">
+                                <div className="px-3 pb-3 pt-1.5 border-t border-slate-100 space-y-2 bg-slate-50/30 text-xs">
                                   {/* 1. 숙박 */}
                                   <div className="space-y-1">
                                     <div className="flex items-center justify-between">
@@ -4396,23 +4396,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             {transitToNext && (() => {
                               const transitInfo = formatSimplifiedTransit(transitToNext);
                               return (
-                                <div className="relative py-2 flex items-center justify-center my-0.5">
+                                <div className="relative py-0.5 flex items-center justify-center">
                                   {/* 양옆으로 뻗어 도시를 구분해주는 대시 구분선 */}
                                   <div className="absolute inset-0 flex items-center" aria-hidden="true">
                                     <div className="w-full border-t border-dashed border-slate-300"></div>
                                   </div>
                                   {/* 중앙에 위치하는 도시 간 연결 뱃지 라벨 */}
-                                  <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-3 py-1 rounded-full bg-slate-100/95 border border-slate-300/80 text-xs shadow-2xs text-slate-700 hover:bg-slate-200/80 transition-colors">
-                                    <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[11px]">
+                                  <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-2.5 py-0.5 rounded-full bg-slate-100/95 border border-slate-300/80 text-[10.5px] shadow-2xs text-slate-700 hover:bg-slate-200/80 transition-colors">
+                                    <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[10px]">
                                       <span className="shrink-0 text-xs">{transitInfo.icon}</span>
                                       <span className="truncate text-slate-800">{transitInfo.routeName}</span>
                                       {transitInfo.modeName && (
-                                        <span className="text-[10px] text-slate-500 font-medium shrink-0">
+                                        <span className="text-[9.5px] text-slate-500 font-medium shrink-0">
                                           ({transitInfo.modeName})
                                         </span>
                                       )}
                                     </div>
-                                    <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-xs pl-1.5 border-l border-slate-300/70">
+                                    <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-[11px] pl-1.5 border-l border-slate-300/70">
                                       {formatKrw(transitToNext.lineTotalKrw)}
                                     </span>
                                   </div>
@@ -4425,23 +4425,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                       {/* 3. 출국 공항 이동 (마지막 도시 나온 후 타임라인 구분선 커넥터) */}
                       {exitItems.length > 0 && (
-                        <div className="relative py-1.5 flex items-center justify-center my-0.5">
+                        <div className="relative py-1 flex items-center justify-center">
                           <div className="absolute inset-0 flex items-center" aria-hidden="true">
                             <div className="w-full border-t border-dashed border-slate-300"></div>
                           </div>
-                          <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-3 py-1 rounded-full bg-slate-100/95 border border-slate-300/80 text-xs shadow-2xs text-slate-700">
-                            <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[11px]">
+                          <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-2.5 py-0.5 rounded-full bg-slate-100/95 border border-slate-300/80 text-[11px] shadow-2xs text-slate-700">
+                            <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[10px]">
                               <span className="shrink-0 text-xs">🛫</span>
                               <span className="truncate text-slate-800">
                                 {exitItems.map((i) => formatSimplifiedTransit(i).routeName).join(", ")}
                               </span>
                               {exitItems[0] && formatSimplifiedTransit(exitItems[0]).modeName && (
-                                <span className="text-[10px] text-slate-500 font-medium shrink-0">
+                                <span className="text-[9.5px] text-slate-500 font-medium shrink-0">
                                   ({formatSimplifiedTransit(exitItems[0]).modeName})
                                 </span>
                               )}
                             </div>
-                            <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-xs pl-1.5 border-l border-slate-300/70">
+                            <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-[11px] pl-1.5 border-l border-slate-300/70">
                               {formatKrw(exitItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
                             </span>
                           </div>

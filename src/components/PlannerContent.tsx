@@ -673,7 +673,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   subwayInfo: meta.subwayInfo || bilingual?.subwayKo,
                   openingHours: meta.openingHours || bilingual?.hoursKo,
                   closedDays: meta.closedDays || bilingual?.closedKo,
-                  officialUrl: meta.officialUrl,
+                  officialUrl: meta.officialUrl || bilingual?.officialUrl,
                 };
               });
               registerCustomAttractionSpots(directSpots);
@@ -5096,17 +5096,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               {/* Modal Footer Actions */}
               <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3 shrink-0">
                 <div>
-                  {previewSpot.officialUrl ? (
-                    <a
-                      href={previewSpot.officialUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors"
-                    >
-                      <span>🌐</span>
-                      <span>{locale === "ko" ? "공식 홈페이지 방문" : "Official Website"}</span>
-                    </a>
-                  ) : <div />}
+                  {(() => {
+                    const targetUrl = previewSpot.officialUrl || (locale === "ko"
+                      ? `https://korean.visitkorea.or.kr/search/search_list.do?keyword=${encodeURIComponent(previewSpot.nameKo)}`
+                      : `https://english.visitkorea.or.kr/svc/search/searchList.do?keyword=${encodeURIComponent(previewSpot.nameEn || previewSpot.nameKo)}`);
+                    return (
+                      <a
+                        href={targetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors shadow-2xs"
+                      >
+                        <span>🌐</span>
+                        <span>{locale === "ko" ? "공식 홈페이지 방문" : "Official Website"}</span>
+                      </a>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex items-center gap-2">

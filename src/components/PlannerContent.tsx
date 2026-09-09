@@ -4447,14 +4447,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </div>
                         </div>
                       )}
-
-                      <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
-                        <p className="text-[11px] text-slate-500 font-medium">
-                          {locale === "ko"
-                            ? "💡 상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
-                            : "💡 Detailed analytics & report are in [Generate Budget Report]."}
-                        </p>
-                      </div>
                     </div>
                   );
                 })()}
@@ -4499,8 +4491,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
                 </div>
 
-              <div className="text-[10px] text-slate-400 leading-relaxed bg-[#faf9f6] p-2.5 rounded-lg border border-slate-100">
-                {dict.planner.mockDisclaimer}
+              <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {locale === "ko"
+                    ? "💡 상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
+                    : "💡 Detailed analytics & report are in [Generate Budget Report]."}
+                </p>
               </div>
 
               <div className="space-y-2 pt-1">

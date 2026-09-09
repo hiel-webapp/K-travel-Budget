@@ -16,6 +16,11 @@ export class PlacesService implements IPlacesService {
   async getPlaces(options: PlaceFilterOptions = {}): Promise<PlaceItem[]> {
     const { city = "ALL", category = "ALL", query = "", locale = "ko" } = options;
 
+    // 숙소, 음식점, 카페 카테고리는 향후 신규 데이터 준비 전까지 비움 처리
+    if (category === "ACCOMMODATION" || category === "RESTAURANT" || category === "CAFE") {
+      return [];
+    }
+
     // 플래너와 일치하는 도시별 카탈로그 관광지 (선택된 도시 필터 조건 자동 적용)
     const catalogPlaces = listPlaces(options).filter(
       (p) => p.id.startsWith("catalog_") || p.id.startsWith("seoul_rep_")
@@ -79,10 +84,13 @@ export class PlacesService implements IPlacesService {
             };
           });
 
-          // 도시별 카탈로그 명소와 DB 결과 중복 없이 병합 (카탈로그 명소 우선 노출)
+          // 도시별 카탈로그 명소와 DB 결과 중복 없이 병합 (숙소/음식점/카페 제외)
+          const filteredItems = items.filter(
+            (it) => !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(it.category)
+          );
           const merged = [
             ...catalogPlaces,
-            ...items.filter((it) => !catalogPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
+            ...filteredItems.filter((it) => !catalogPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
           ];
 
           if (query.trim().length > 0) {
@@ -109,9 +117,12 @@ export class PlacesService implements IPlacesService {
       try {
         const liveKtoPlaces = await this.fetchLiveKtoPlaces(options);
         if (liveKtoPlaces.length > 0) {
+          const filteredLive = liveKtoPlaces.filter(
+            (it) => !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(it.category)
+          );
           const merged = [
             ...catalogPlaces,
-            ...liveKtoPlaces.filter((it) => !catalogPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
+            ...filteredLive.filter((it) => !catalogPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
           ];
           return merged;
         }
@@ -224,9 +235,13 @@ export class PlacesService implements IPlacesService {
  */
 export function listPlaces(options: PlaceFilterOptions = {}): PlaceItem[] {
   const { city = "ALL", category = "ALL", query = "", locale = "ko" } = options;
+  if (category === "ACCOMMODATION" || category === "RESTAURANT" || category === "CAFE") {
+    return [];
+  }
   const normalizedQuery = query.trim().toLowerCase();
 
   return MOCK_PLACES.filter((place) => {
+    if (["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(place.category)) return false;
     if (city !== "ALL" && place.city !== city) return false;
     if (category !== "ALL") {
       if (place.category !== category) {

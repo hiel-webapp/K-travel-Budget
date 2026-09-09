@@ -449,13 +449,23 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       ) : displayedPlaces.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200/70 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl font-bold">
-            ?
+            {selectedCategory === "ACCOMMODATION"
+              ? "🏨"
+              : selectedCategory === "RESTAURANT"
+              ? "🍽️"
+              : selectedCategory === "CAFE"
+              ? "☕"
+              : "?"}
           </div>
           <h3 className="text-base font-bold text-slate-800">
-            {dict.places.noResultsTitle}
+            {["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(selectedCategory)
+              ? (locale === "ko" ? "장소 정보 준비 중입니다" : "Places coming soon")
+              : dict.places.noResultsTitle}
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-            {errorMsg || dict.places.noResultsDesc}
+            {["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(selectedCategory)
+              ? (locale === "ko" ? "숙소, 음식점, 카페 정보는 새롭게 준비 중입니다." : "We are preparing new listings for this category.")
+              : (errorMsg || dict.places.noResultsDesc)}
           </p>
           {(searchQuery || selectedCity !== "ALL" || selectedCategory !== "ALL" || showSavedOnly) && (
             <button

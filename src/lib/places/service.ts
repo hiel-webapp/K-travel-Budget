@@ -16,8 +16,10 @@ export class PlacesService implements IPlacesService {
   async getPlaces(options: PlaceFilterOptions = {}): Promise<PlaceItem[]> {
     const { city = "ALL", category = "ALL", query = "", locale = "ko" } = options;
 
-    // 플래너와 일치하는 서울 대표 30개 관광지 (필터 조건 매칭)
-    const seoulRepPlaces = listPlaces(options).filter((p) => p.id.startsWith("seoul_rep_"));
+    // 플래너와 일치하는 도시별 카탈로그 관광지 (선택된 도시 필터 조건 자동 적용)
+    const catalogPlaces = listPlaces(options).filter(
+      (p) => p.id.startsWith("catalog_") || p.id.startsWith("seoul_rep_")
+    );
 
     // 1단계: Supabase DB 조회 시도
     try {
@@ -77,10 +79,10 @@ export class PlacesService implements IPlacesService {
             };
           });
 
-          // 서울 대표 명소와 DB 결과 중복 없이 병합 (서울 대표 명소 우선 노출)
+          // 도시별 카탈로그 명소와 DB 결과 중복 없이 병합 (카탈로그 명소 우선 노출)
           const merged = [
-            ...seoulRepPlaces,
-            ...items.filter((it) => !seoulRepPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
+            ...catalogPlaces,
+            ...items.filter((it) => !catalogPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
           ];
 
           if (query.trim().length > 0) {
@@ -108,8 +110,8 @@ export class PlacesService implements IPlacesService {
         const liveKtoPlaces = await this.fetchLiveKtoPlaces(options);
         if (liveKtoPlaces.length > 0) {
           const merged = [
-            ...seoulRepPlaces,
-            ...liveKtoPlaces.filter((it) => !seoulRepPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
+            ...catalogPlaces,
+            ...liveKtoPlaces.filter((it) => !catalogPlaces.some((s) => s.contentId === it.contentId || s.id === it.id)),
           ];
           return merged;
         }

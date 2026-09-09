@@ -663,10 +663,10 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                     href={previewPlace.officialLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-emerald-700 bg-white hover:bg-emerald-50/50 border border-slate-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors"
                   >
-                    <span>🗺️</span>
-                    <span>{locale === "ko" ? "네이버 지도" : "Map Link"}</span>
+                    <span>🌐</span>
+                    <span>{locale === "ko" ? "공식 홈페이지 방문" : "Official Website"}</span>
                     <span>↗</span>
                   </a>
                 )}

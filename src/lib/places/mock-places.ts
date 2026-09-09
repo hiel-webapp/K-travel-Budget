@@ -1,55 +1,59 @@
 import { PlaceItem } from "./types";
-import { SEOUL_LANDMARK_BILINGUAL_MAP } from "../../features/budget/catalog/attraction-spots";
+import { ATTRACTION_SPOTS_CATALOG } from "../../features/budget/catalog/attraction-spots";
 import { PlaceCategory } from "../kto/types";
 
-// 30개 서울 대표 관광지 (명소, 자연, 엔터, 쇼핑 4대 분류 체계)
-export const SEOUL_30_REPRESENTATIVE_PLACES: PlaceItem[] = Object.entries(SEOUL_LANDMARK_BILINGUAL_MAP)
-  .filter(([key]) => key !== "seoul_childrens_grand_park") // seoul_lotteworld와 중복 방지
-  .map(([key, item]) => {
-    const cat = item.categoryType || "명소";
-    let category: PlaceCategory = "LANDMARK";
-    if (cat === "명소") category = "LANDMARK";
-    else if (cat === "자연") category = "NATURE";
-    else if (cat === "엔터") category = "ENTERTAINMENT";
-    else if (cat === "쇼핑") category = "SHOPPING";
+// 플래너 10대 도시 관광지 카탈로그 (각 도시별 완벽 분리 및 공식 웹사이트 연동)
+export const ALL_CITY_CATALOG_PLACES: PlaceItem[] = ATTRACTION_SPOTS_CATALOG.map((spot) => {
+  let category: PlaceCategory = "LANDMARK";
+  if (spot.categoryType === "명소") category = "LANDMARK";
+  else if (spot.categoryType === "자연") category = "NATURE";
+  else if (spot.categoryType === "엔터") category = "ENTERTAINMENT";
+  else if (spot.categoryType === "쇼핑") category = "SHOPPING";
 
-    const repImg = item.imageUrl || "/assets/gyeongbokgung-main.jpg";
+  const repImg = spot.imageUrl || "/assets/gyeongbokgung-main.jpg";
 
-    return {
-      id: `seoul_rep_${key}`,
-      contentId: key,
-      city: "SEOUL" as const,
-      category,
-      categoryType: cat,
-      sourceName: "KTO" as const,
-      qualityStatus: "READY" as const,
-      rawUpdatedAt: "2026-09-07",
-      repImageUrl: repImg,
-      tags: [cat, "서울대표", "추천관광지", key.replace("seoul_", "")],
-      subwayInfo: item.subwayKo,
-      openingHours: item.hoursKo,
-      closedDays: item.closedKo,
-      priceStatus: "FREE" as const,
-      translations: {
-        ko: {
-          title: item.nameKo,
-          description: item.descKo,
-          address: item.subwayKo || "서울특별시",
-        },
-        en: {
-          title: item.nameEn,
-          description: item.descEn,
-          address: item.subwayEn || "Seoul, Republic of Korea",
-        },
+  return {
+    id: `catalog_${spot.id}`,
+    contentId: spot.id,
+    city: spot.cityCode,
+    category,
+    categoryType: spot.categoryType,
+    sourceName: "KTO" as const,
+    qualityStatus: "READY" as const,
+    rawUpdatedAt: "2026-09-10",
+    repImageUrl: repImg,
+    tags: [spot.tag, spot.cityCode, spot.categoryType || "명소"],
+    subwayInfo: spot.subwayInfo,
+    openingHours: spot.openingHours,
+    closedDays: spot.closedDays,
+    priceStatus: spot.priceStatus === "PAID" ? ("OFFICIAL_PRICE" as const) : ("FREE" as const),
+    priceKrw: spot.price,
+    officialLink: spot.officialUrl,
+    translations: {
+      ko: {
+        title: spot.nameKo,
+        description: spot.descKo,
+        address: spot.subwayInfo || `${spot.cityCode}, 대한민국`,
       },
-    };
-  });
+      en: {
+        title: spot.nameEn,
+        description: spot.descEn,
+        address: spot.subwayInfo || `${spot.cityCode}, Republic of Korea`,
+      },
+    },
+  };
+});
+
+// 하위 호환성을 위해 서울 전용 목록 유지
+export const SEOUL_30_REPRESENTATIVE_PLACES: PlaceItem[] = ALL_CITY_CATALOG_PLACES.filter(
+  (p) => p.city === "SEOUL"
+);
 
 export const MOCK_PLACES: PlaceItem[] = [
   // ==========================================
-  // SEOUL 30 Representative Attractions (명소, 자연, 엔터, 쇼핑)
+  // ALL 10 Cities Representative Attractions (플래너 공식 카탈로그 동기화)
   // ==========================================
-  ...SEOUL_30_REPRESENTATIVE_PLACES,
+  ...ALL_CITY_CATALOG_PLACES,
 
   // ==========================================
   // SEOUL Accommodations & Food

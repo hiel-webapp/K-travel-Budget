@@ -276,7 +276,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
   ];
 
   return (
-    <div className="space-y-6 pb-16 max-w-[1280px] mx-auto px-4 sm:px-6">
+    <div className="w-full space-y-6 pb-16">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
@@ -447,7 +447,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       {isLoading ? (
         <PlaceCardSkeletonGrid />
       ) : displayedPlaces.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/70 p-12 text-center space-y-3">
+        <div className="w-full bg-white rounded-2xl border border-slate-200/70 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl font-bold">
             {selectedCategory === "ACCOMMODATION"
               ? "🏨"
@@ -484,7 +484,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayedPlaces.map((place, idx) => {
             const isSaved = savedPlaceIds.some(
               (sid) =>
@@ -801,7 +801,7 @@ function PlaceCardImage({
 // 실제 PlaceCard와 100% 동일한 외형/높이/패딩으로 레이아웃 깜빡임(CLS)을 방지하는 스켈레톤 그리드
 function PlaceCardSkeletonGrid() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {[1, 2, 3, 4, 5, 6].map((i) => (
         <div
           key={i}

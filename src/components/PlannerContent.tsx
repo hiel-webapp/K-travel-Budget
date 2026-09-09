@@ -1605,16 +1605,75 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleToggleCourse = (city: SupportedCity, courseId: string) => {
     const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-    const isSelected = currentCitySel.selectedCourseIds.includes(courseId);
-    const nextCourseIds = isSelected
-      ? currentCitySel.selectedCourseIds.filter((id) => id !== courseId)
-      : [...currentCitySel.selectedCourseIds, courseId];
+    const course = TOUR_COURSE_PRESETS.find((c) => c.id === courseId);
+    if (!course) return;
+
+    // 현재 이 코스에 속한 장소 중 담겨있는 장소가 하나라도 있는지 검사
+    const isExplicitlySelected = currentCitySel.selectedCourseIds.includes(courseId);
+    const includedIndividualSpots = course.spotIds.filter((sid) =>
+      currentCitySel.individualSpotIds.some((id) => isSameSpot(id, sid))
+    );
+    const hasAnySpotInCourse = isExplicitlySelected || includedIndividualSpots.length > 0;
+
+    let nextCourseIds = currentCitySel.selectedCourseIds.filter((id) => id !== courseId);
+    let nextIndividualSpotIds = [...currentCitySel.individualSpotIds];
+
+    const courseTitle = locale === "ko" ? course.nameKo : course.nameEn;
+
+    // [상황 1] 완전 선택 또는 일부 담김 상태에서 클릭 시 -> 코스 및 관련 장소 전부 일괄 해제 (초기 미선택 무표시 상태로 리셋)
+    if (hasAnySpotInCourse) {
+      nextIndividualSpotIds = nextIndividualSpotIds.filter(
+        (id) => !course.spotIds.some((sid) => isSameSpot(sid, id))
+      );
+
+      setToastMessage(
+        locale === "ko"
+          ? `[${courseTitle}]의 모든 장소가 예산에서 제외되었습니다.`
+          : `All spots in [${courseTitle}] removed from budget.`
+      );
+      setTimeout(() => setToastMessage(null), 2500);
+
+      // K-스팟 budgetPlaces에서도 해당 코스 장소들 일괄 제거
+      const currentBudget = loadBudgetPlaces();
+      const nextBudget = currentBudget.filter(
+        (p) => !course.spotIds.some((sid) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid))
+      );
+      saveBudgetPlaces(nextBudget);
+    }
+    // [상황 2] 미선택(표시 없음) 상태에서 클릭 시 -> 코스 전체 담기
+    else {
+      nextCourseIds.push(courseId);
+
+      setToastMessage(
+        locale === "ko"
+          ? `[${courseTitle}]의 장소들이 예산에 담겼습니다.`
+          : `[${courseTitle}] spots added to budget.`
+      );
+      setTimeout(() => setToastMessage(null), 2500);
+
+      // K-스팟 budgetPlaces에 해당 코스 장소들 추가
+      const currentBudget = loadBudgetPlaces();
+      const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
+      const newItems: PlaceItem[] = [];
+      course.spotIds.forEach((sid) => {
+        if (
+          !currentBudget.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid)) &&
+          !newItems.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid))
+        ) {
+          const sp = allSpots.find((s) => isSameSpot(s.id, sid));
+          if (sp) newItems.push(spotToPlaceItem(sp));
+        }
+      });
+      if (newItems.length > 0) {
+        saveBudgetPlaces([...currentBudget, ...newItems]);
+      }
+    }
 
     const nextAttractionSelections = {
       ...preferences.attractionSelections,
       [city]: {
-        ...currentCitySel,
         selectedCourseIds: nextCourseIds,
+        individualSpotIds: nextIndividualSpotIds,
       },
     };
 
@@ -1642,28 +1701,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           },
         };
       });
-
-      // 코스 내 관광지들을 K-스팟 budgetPlaces 스토리지와 동기화
-      const course = TOUR_COURSE_PRESETS.find((c) => c.id === courseId);
-      if (course) {
-        const currentBudget = loadBudgetPlaces();
-        if (!isSelected) {
-          const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
-          const newItems: PlaceItem[] = [];
-          course.spotIds.forEach((sid) => {
-            if (!currentBudget.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid)) && !newItems.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid))) {
-              const sp = allSpots.find((s) => isSameSpot(s.id, sid));
-              if (sp) newItems.push(spotToPlaceItem(sp));
-            }
-          });
-          if (newItems.length > 0) {
-            saveBudgetPlaces([...currentBudget, ...newItems]);
-          }
-        } else {
-          const nextBudget = currentBudget.filter((p) => !course.spotIds.some((sid) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid)));
-          saveBudgetPlaces(nextBudget);
-        }
-      }
     } else {
       setSaveError(true);
     }

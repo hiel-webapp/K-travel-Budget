@@ -1671,28 +1671,89 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleToggleSpot = (city: SupportedCity, spotId: string) => {
     const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-    const isSelected = currentCitySel.individualSpotIds.some((sid) => isSameSpot(sid, spotId));
     const customKSpot = budgetPlaces.find((p) => isSameSpot(p.id, spotId) || isSameSpot(p.contentId, spotId));
 
-    // K-스팟에서 유입된 비기본 커스텀 관광지의 담기 취소 시: 플래너 목록 및 예산에서 완전 제거
-    if (!isDefaultAttractionSpot(spotId)) {
-      if (isSelected && customKSpot) {
+    // 이 spotId가 속한 코스 프리셋 중 현재 선택되어 있는 코스가 있는지 확인
+    const matchingSelectedCourses = (currentCitySel.selectedCourseIds || []).filter((cid) => {
+      const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+      return course?.spotIds.some((sid) => isSameSpot(sid, spotId));
+    });
+
+    const isIndividualSelected = currentCitySel.individualSpotIds.some((sid) => isSameSpot(sid, spotId));
+    const isIncludedInSelectedCourse = matchingSelectedCourses.length > 0;
+    const isCurrentlyActive = isIndividualSelected || isIncludedInSelectedCourse;
+
+    const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
+    const targetSpot = allSpots.find((s) => isSameSpot(s.id, spotId));
+    const spotName = locale === "ko" ? (targetSpot?.nameKo || "관광지") : (targetSpot?.nameEn || "Attraction");
+
+    let nextCourseIds = [...(currentCitySel.selectedCourseIds || [])];
+    let nextSpotIds: string[] = [];
+
+    // [CASE 1] 코스 프리셋에 포함되어 담긴 장소를 제외하려는 경우 (하이브리드 언번들링)
+    if (isIncludedInSelectedCourse) {
+      // 1) 해당 코스들의 모든 spotIds를 추출하여 기존 individualSpotIds와 합병
+      const spotsFromCourses: string[] = [];
+      matchingSelectedCourses.forEach((cid) => {
+        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+        if (course) {
+          course.spotIds.forEach((sid) => spotsFromCourses.push(normalizeSpotKey(sid)));
+        }
+      });
+
+      const mergedSpotIdsSet = new Set<string>([
+        ...currentCitySel.individualSpotIds.map(normalizeSpotKey),
+        ...spotsFromCourses,
+      ]);
+
+      // 2) 클릭한 장소만 쏙 제외
+      mergedSpotIdsSet.delete(normalizeSpotKey(spotId));
+      nextSpotIds = Array.from(mergedSpotIdsSet);
+
+      // 3) 해당 코스는 개별 장소들로 분해되었으므로 selectedCourseIds에서 제외
+      nextCourseIds = nextCourseIds.filter((cid) => !matchingSelectedCourses.includes(cid));
+
+      setToastMessage(
+        locale === "ko"
+          ? `💡 코스가 개별 선택으로 전환되며 [${spotName}]이(가) 예산에서 제외되었습니다.`
+          : `💡 Course converted to individual spots, and [${spotName}] was removed.`
+      );
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+    // [CASE 2] 개별적으로 이미 담겨 있던 장소를 제외하려는 경우
+    else if (isIndividualSelected) {
+      // K-스팟에서 유입된 비기본 커스텀 관광지의 담기 취소 시: 플래너 목록 및 예산에서 완전 제거
+      if (!isDefaultAttractionSpot(spotId) && customKSpot) {
         toggleBudgetPlace(customKSpot);
         setToastMessage(locale === "ko" ? "선택된 관광지가 예산 및 목록에서 제외되었습니다." : "Attraction removed from budget and list.");
         setTimeout(() => setToastMessage(null), 2500);
         return;
       }
-    }
 
-    const normSpotId = normalizeSpotKey(spotId);
-    const nextSpotIds = isSelected
-      ? currentCitySel.individualSpotIds.filter((id) => !isSameSpot(id, spotId))
-      : [...currentCitySel.individualSpotIds, normSpotId];
+      nextSpotIds = currentCitySel.individualSpotIds.filter((id) => !isSameSpot(id, spotId));
+      setToastMessage(
+        locale === "ko"
+          ? `[${spotName}]이(가) 예산에서 제외되었습니다.`
+          : `[${spotName}] removed from budget.`
+      );
+      setTimeout(() => setToastMessage(null), 2000);
+    }
+    // [CASE 3] 담겨 있지 않던 장소를 새로 예산에 담는 경우
+    else {
+      const normSpotId = normalizeSpotKey(spotId);
+      nextSpotIds = [...currentCitySel.individualSpotIds, normSpotId];
+      setToastMessage(
+        locale === "ko"
+          ? `[${spotName}]이(가) 예산에 담겼습니다.`
+          : `[${spotName}] added to budget.`
+      );
+      setTimeout(() => setToastMessage(null), 2000);
+    }
 
     const nextAttractionSelections = {
       ...preferences.attractionSelections,
       [city]: {
-        ...currentCitySel,
+        selectedCourseIds: nextCourseIds,
         individualSpotIds: nextSpotIds,
       },
     };
@@ -1724,16 +1785,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
       // K-스팟 budgetPlaces 스토리지와 즉시 양방향 동기화
       const currentBudget = loadBudgetPlaces();
-      if (!isSelected) {
+      if (!isCurrentlyActive) {
         // 새로 추가됨 -> budgetPlaces에도 장소 추가
-        const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
-        const targetSpot = allSpots.find((s) => isSameSpot(s.id, spotId));
         if (targetSpot && !currentBudget.some((p) => isSameSpot(p.id, spotId) || isSameSpot(p.contentId, spotId))) {
           const placeItem = spotToPlaceItem(targetSpot);
           saveBudgetPlaces([...currentBudget, placeItem]);
         }
       } else {
-        // 제거됨 -> budgetPlaces에서도 제거
+        // 제외됨 -> budgetPlaces에서도 제거
         const nextBudget = currentBudget.filter((p) => !isSameSpot(p.id, spotId) && !isSameSpot(p.contentId, spotId));
         saveBudgetPlaces(nextBudget);
       }
@@ -3519,6 +3578,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {coursesForCity.map((course) => {
                             const isSelected = selectedCourseIds.includes(course.id);
+                            const includedCount = course.spotIds.filter((sid) => selectedSpotKeys.has(normalizeSpotKey(sid))).length;
+                            const isFullySelected = isSelected || (course.spotIds.length > 0 && includedCount === course.spotIds.length);
+                            const isPartiallySelected = !isFullySelected && includedCount > 0;
+
                             // 코스 내 유료 관광지 1인 합산가 계산
                             let coursePricePerPerson = 0;
                             course.spotIds.forEach((sid) => {
@@ -3534,8 +3597,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 type="button"
                                 onClick={() => handleToggleCourse(city, course.id)}
                                 className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${
-                                  isSelected
+                                  isFullySelected
                                     ? "bg-rose-50/40 border border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+                                    : isPartiallySelected
+                                    ? "bg-amber-50/30 border border-amber-300 ring-1 ring-amber-200/70 shadow-2xs"
                                     : "bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
                                 }`}
                               >
@@ -3544,13 +3609,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-extrabold">
                                       {course.courseType === "AREA_ROUTE" ? (locale === "ko" ? "권역 동선 코스" : "Route Course") : (locale === "ko" ? "도시 대표 코스" : "City Highlights")}
                                     </span>
-                                    {isSelected && (
+                                    {isFullySelected ? (
                                       <span className="text-[10px] bg-[#e25c5c] text-white px-2 py-0.5 rounded-md font-extrabold flex items-center gap-0.5">
                                         ✓ {locale === "ko" ? "선택됨" : "Selected"}
                                       </span>
-                                    )}
+                                    ) : isPartiallySelected ? (
+                                      <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md font-extrabold flex items-center gap-0.5">
+                                        {locale === "ko" ? `일부 담김 (${includedCount}/${course.spotIds.length})` : `Partial (${includedCount}/${course.spotIds.length})`}
+                                      </span>
+                                    ) : null}
                                   </div>
-                                  <h5 className={`text-xs font-extrabold ${isSelected ? "text-[#e25c5c]" : "text-[#0f172a]"}`}>
+                                  <h5 className={`text-xs font-extrabold ${isFullySelected ? "text-[#e25c5c]" : isPartiallySelected ? "text-amber-900" : "text-[#0f172a]"}`}>
                                     {locale === "ko" ? course.nameKo : course.nameEn}
                                   </h5>
                                   <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">
@@ -3782,18 +3851,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                     <button
                                       type="button"
-                                      onClick={() => {
-                                        if (isIncludedInCourse && !isSpotSelected) {
-                                          setToastMessage(
-                                            locale === "ko"
-                                              ? "선택된 추천 코스 프리셋에 포함되어 이미 예산에 담긴 장소입니다."
-                                              : "Already included in your budget via the selected tour course preset."
-                                          );
-                                          setTimeout(() => setToastMessage(null), 2500);
-                                          return;
-                                        }
-                                        handleToggleSpot(city, rawSpot.id);
-                                      }}
+                                      onClick={() => handleToggleSpot(city, rawSpot.id)}
                                       className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
                                         isSpotSelected || isIncludedInCourse
                                           ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
@@ -5026,15 +5084,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <button
                     type="button"
                     onClick={() => {
-                      if (isIncludedInCourse && !isSpotSelected) {
-                        setToastMessage(
-                          locale === "ko"
-                            ? "선택된 추천 코스 프리셋에 포함되어 이미 예산에 담긴 장소입니다."
-                            : "Already included in your budget via the selected tour course preset."
-                        );
-                        setTimeout(() => setToastMessage(null), 2500);
-                        return;
-                      }
                       handleToggleSpot(spotCity, previewSpot.id);
                     }}
                     className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shadow-xs ${

@@ -188,17 +188,6 @@ export default function FoodPlannerPanel({
                       {isExceeded ? (locale === "ko" ? ` · ${basketPlan.totalSelectedQuantity - basketPlan.expectedMealsCount}끼 초과` : ` · +${basketPlan.totalSelectedQuantity - basketPlan.expectedMealsCount} exceeded`) : ""})
                     </span>
                   </span>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("BASKET")}
-                    className={`hover:underline cursor-pointer flex items-center gap-1 ${isExceeded ? "text-rose-600 font-bold" : "text-[#e25c5c]"}`}
-                  >
-                    <span>🛒 {locale === "ko" ? "바스켓 보기" : "View Basket"}</span>
-                    <span className={`text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px] font-black ${isExceeded ? "bg-rose-600" : "bg-[#e25c5c]"}`}>
-                      {basketPlan.totalSelectedQuantity}
-                    </span>
-                  </button>
                 </div>
 
                 {/* Progress Bar: 권장 끼니 초과 시 선명한 빨간색(bg-rose-500)으로 변경 */}
@@ -267,7 +256,15 @@ export default function FoodPlannerPanel({
           >
             <span>🛒</span>
             <span>{locale === "ko" ? "담은 바스켓" : "My Basket"}</span>
-            <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-white/20">
+            <span
+              className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeTab === "BASKET"
+                  ? "bg-white/25 text-white"
+                  : basketPlan.totalSelectedQuantity > 0
+                  ? "bg-rose-50 text-rose-600 border border-rose-200"
+                  : "bg-slate-100 text-slate-500"
+              }`}
+            >
               {basketPlan.totalSelectedQuantity}
             </span>
           </button>

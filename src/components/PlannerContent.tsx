@@ -4514,17 +4514,53 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         {formatKrw(foodTotal)}
                                       </span>
                                     </div>
-                                    {foodItems.map((item) => (
-                                      <div key={item.id} className="space-y-0.5 pl-5">
-                                        <div className="flex justify-between items-start text-[11px] text-slate-500">
-                                          <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
+                                    {/* 음식 품목 리스트 (관광 & 쇼핑과 동일한 직관적 플랫 리스트) */}
+                                    {(() => {
+                                      const primaryFood = foodItems[0];
+                                      const basketPlan = isCalculatedMealPlan(primaryFood?.mealPlan)
+                                        ? primaryFood.mealPlan.foodBasketPlan
+                                        : undefined;
+
+                                      if (basketPlan) {
+                                        return (
+                                          <div className="space-y-1 pl-5">
+                                            {/* 선택된 대표 음식 목록 */}
+                                            {basketPlan.selectedItems.map((item) => {
+                                              const name = locale === "ko" ? item.food.nameKo : item.food.nameEn;
+                                              return (
+                                                <div key={item.food.id} className="flex justify-between items-center text-[11px] text-slate-600">
+                                                  <span className="truncate pr-2">{name} x{item.quantity}</span>
+                                                  <span className="tabular-nums font-medium text-slate-700 shrink-0">
+                                                    {formatKrw(item.subtotalKrw)}
+                                                  </span>
+                                                </div>
+                                              );
+                                            })}
+
+                                            {/* 부족 끼니 완충 식비 (선택한 음식이 끼니보다 적을 때만 간단명료하게 1줄 표시) */}
+                                            {basketPlan.baseAllowanceTotalKrw > 0 && (
+                                              <div className="flex justify-between items-center text-[11px] text-slate-500">
+                                                <span className="truncate pr-2 text-slate-400">
+                                                  {locale === "ko"
+                                                    ? `기본 일상 식비 (${basketPlan.uncoveredMealsCount}끼)`
+                                                    : `Base Allowance (${basketPlan.uncoveredMealsCount} meals)`}
+                                                </span>
+                                                <span className="tabular-nums font-medium text-slate-700 shrink-0">
+                                                  {formatKrw(basketPlan.baseAllowanceTotalKrw)}
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      }
+
+                                      return foodItems.map((item) => (
+                                        <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
+                                          <span className="truncate pr-2">{locale === "ko" ? "기본 식비" : "Base Meal Allowance"}</span>
                                           <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
                                         </div>
-                                        {isCalculatedMealPlan(item.mealPlan) && (
-                                          <FoodReceiptDetails mealPlan={item.mealPlan} locale={locale} dict={dict} />
-                                        )}
-                                      </div>
-                                    ))}
+                                      ));
+                                    })()}
                                     {cityCustomFood.length > 0 && (
                                       <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">
                                         <span className="text-[10px] font-bold text-amber-700 block">

@@ -574,9 +574,27 @@ export default function FoodPlannerPanel({
           onClick={() => setPreviewFood(null)}
         >
           <div
-            className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* 고화질 KTO 실사 사진 배너 */}
+            {previewFood.imageUrl && (
+              <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+                <img
+                  src={previewFood.imageUrl}
+                  alt={locale === "ko" ? previewFood.nameKo : previewFood.nameEn}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                <span className="absolute bottom-2.5 right-3 text-[10px] font-bold text-white/90 bg-black/40 px-2 py-0.5 rounded-md backdrop-blur-xs">
+                  Photo: 한국관광공사 (TourAPI)
+                </span>
+              </div>
+            )}
+
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5">
                 <span className="text-3xl">{previewFood.emoji || "🍽️"}</span>
@@ -657,7 +675,7 @@ function FoodItemCard({
 
   return (
     <div
-      className={`rounded-2xl border p-3.5 flex flex-col justify-between transition-all duration-200 bg-white ${
+      className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 bg-white overflow-hidden ${
         isHighlighted
           ? isSelected
             ? "border-rose-400 ring-2 ring-rose-200 shadow-md bg-rose-50/10"
@@ -668,16 +686,52 @@ function FoodItemCard({
       }`}
     >
       <div className="space-y-2">
-        {/* 상단 뱃지 및 이모지 */}
+        {/* KTO TourAPI 공식 실사 이미지 썸네일 */}
+        {food.imageUrl ? (
+          <div
+            className="relative w-full h-32 rounded-xl overflow-hidden bg-slate-100 cursor-pointer group shadow-2xs"
+            onClick={onPreview}
+          >
+            <img
+              src={food.imageUrl}
+              alt={locale === "ko" ? food.nameKo : food.nameEn}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              loading="lazy"
+              onError={(e) => {
+                // 이미지 로드 실패 시 숨김 처리
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+            
+            {food.isMustEatTop3 && (
+              <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-md">
+                ★ Must-Eat
+              </span>
+            )}
+
+            {food.scope === "CITY_LOCAL" && !food.isMustEatTop3 && (
+              <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-black/60 text-white backdrop-blur-xs">
+                로컬 7선
+              </span>
+            )}
+
+            <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
+              KTO
+            </span>
+          </div>
+        ) : null}
+
+        {/* 상단 뱃지 및 가격 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <span className="text-xl">{food.emoji || "🍽️"}</span>
-            {food.isMustEatTop3 && (
+            <span className="text-lg">{food.emoji || "🍽️"}</span>
+            {!food.imageUrl && food.isMustEatTop3 && (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-2xs">
                 ★ Must-Eat
               </span>
             )}
-            {food.scope === "CITY_LOCAL" && !food.isMustEatTop3 && (
+            {!food.imageUrl && food.scope === "CITY_LOCAL" && (
               <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80">
                 로컬
               </span>

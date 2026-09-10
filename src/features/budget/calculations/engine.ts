@@ -21,7 +21,7 @@ import {
   MOCK_MEAL_SLOT_PRICES,
   LOCAL_TRANSIT_OPTIONS,
 } from "../catalog/mock-catalog";
-import { applyFoodReplacements, applyFoodAddOns, calculateFoodBasketPlan } from "./food-engine";
+import { applyFoodReplacements, applyFoodAddOns, calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "./food-engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
 import { getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } from "../../../lib/transport/intercity-fares";
 
@@ -101,15 +101,21 @@ export function generateInitialBudgetPlan(
         // 신규 장바구니형 푸드 바스켓(Food Basket) 연산 지원
         if (overrides?.foodBasketSelections !== undefined) {
           const totalTripNights = Math.max(1, totalNights);
-          const basketPlan = calculateFoodBasketPlan(
+          const totalBasketPlan = calculateFoodBasketPlan(
             overrides.foodBasketSelections,
             totalTripNights,
             adultCount
           );
-          // 도시별 체류 일수 비율에 따라 식비 배분
-          const cityRatio = nights > 0 ? nights / totalTripNights : 1 / Math.max(1, selectedCities.length);
-          lineTotalKrw = Math.round(basketPlan.grandTotalKrw * cityRatio);
-          mealPlan.foodBasketPlan = basketPlan;
+          // 도시별 체류 일수 기준 바스켓 플랜 산출 (해당 도시 음식 + 도시 분배 완충금)
+          const cityBasketPlan = calculateCityFoodBasketPlan(
+            city,
+            nights,
+            totalTripNights,
+            totalBasketPlan,
+            adultCount
+          );
+          lineTotalKrw = cityBasketPlan.grandTotalKrw;
+          mealPlan.foodBasketPlan = cityBasketPlan;
           mealPlan.lineTotalKrw = lineTotalKrw;
         }
 

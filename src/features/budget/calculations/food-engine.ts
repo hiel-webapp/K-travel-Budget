@@ -523,3 +523,77 @@ export function calculateFoodBasketPlan(
   };
 }
 
+/**
+ * 도시별 푸드 바스켓 연산 (도시 영수증 아코디언 연동용)
+ * - 해당 도시에 해당하는 선택 음식과 도시 체류 일수 기준 남은 끼니 완충금 산출
+ * - 각 도시의 선택 음식 + 남은 끼니 식비의 합이 도시 식비 소계와 100% 일치하도록 보장
+ */
+export function calculateCityFoodBasketPlan(
+  city: import("../../../lib/trip-domain").SupportedCity,
+  cityNights: number,
+  totalNights: number,
+  totalBasketPlan: CalculatedFoodBasketPlan,
+  adultCount: number = 1
+): CalculatedFoodBasketPlan {
+  const safeAdultCount = Math.max(1, adultCount);
+  const safeTotalNights = Math.max(1, totalNights);
+  const cityRatio = cityNights > 0 ? cityNights / safeTotalNights : 1;
+
+  // 1. 해당 도시에 명시적으로 속한 로컬 음식
+  const cityLocalItems = totalBasketPlan.selectedItems.filter(
+    (item) => item.food.scope === "CITY_LOCAL" && item.food.cityCode === city
+  );
+
+  // 2. 전국 대표 미식: 도시 비율로 배분 (단수 없는 정수화)
+  const nationalItems = totalBasketPlan.selectedItems.filter(
+    (item) => item.food.scope === "NATIONAL"
+  );
+
+  const displayItems: Array<{
+    food: FoodItemDefinition;
+    quantity: number;
+    subtotalKrw: number;
+  }> = [
+    ...cityLocalItems,
+  ];
+
+  // 도시별 로컬 음식이 없거나 적을 때, 전국 음식도 비율에 맞춰 표시
+  if (cityLocalItems.length === 0 && nationalItems.length > 0) {
+    nationalItems.forEach((ni) => {
+      displayItems.push({
+        ...ni,
+        subtotalKrw: Math.round(ni.subtotalKrw * cityRatio),
+      });
+    });
+  }
+
+  const citySelectedFoodTotalKrw = displayItems.reduce((sum, item) => sum + item.subtotalKrw, 0);
+  const citySelectedQty = displayItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // 도시별 기준 끼니 수 (도시 체류 일수 기준, 1일 2끼 점심/저녁)
+  const cityTravelDays = Math.max(1, cityNights);
+  const cityExpectedMeals = cityTravelDays * 2;
+  const cityUncoveredMeals = Math.max(0, cityExpectedMeals - citySelectedQty);
+
+  // 도시별 기본 일상 식비 완충금 (도시 비율 및 남은 끼니 기준)
+  const cityBaseAllowanceTotalKrw = Math.max(
+    0,
+    Math.round(totalBasketPlan.baseAllowanceTotalKrw * cityRatio)
+  );
+
+  const cityGrandTotalKrw = citySelectedFoodTotalKrw + cityBaseAllowanceTotalKrw;
+
+  return {
+    selectedItems: displayItems,
+    totalSelectedQuantity: citySelectedQty,
+    expectedMealsCount: cityExpectedMeals,
+    uncoveredMealsCount: cityUncoveredMeals,
+    baseAllowanceUnitPriceKrw: totalBasketPlan.baseAllowanceUnitPriceKrw,
+    baseAllowanceTotalKrw: cityBaseAllowanceTotalKrw,
+    selectedFoodTotalKrw: citySelectedFoodTotalKrw,
+    grandTotalKrw: cityGrandTotalKrw,
+    status: totalBasketPlan.status,
+  };
+}
+
+

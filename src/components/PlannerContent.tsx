@@ -3498,6 +3498,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         locale={locale}
                         dict={dict}
                         currentCity={city}
+                        cityNights={foodLine?.durationCount ?? Math.max(1, Math.floor((draft.totalNights || 3) / Math.max(1, draft.selectedCities.length)))}
                         selectedCities={draft.selectedCities}
                         travelNights={draft.totalNights || 3}
                         adultCount={draft.adultCount || 1}

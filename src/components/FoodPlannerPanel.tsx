@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Locale } from "../lib/i18n/locales";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
@@ -16,13 +16,14 @@ import {
   ALL_FOOD_ITEMS,
   FOOD_CATALOG_BY_ID,
 } from "../features/budget/catalog/food-catalog";
-import { calculateFoodBasketPlan } from "../features/budget/calculations/food-engine";
+import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import { formatKrw } from "../features/budget/presentation/formatters";
 
 interface FoodPlannerPanelProps {
   locale: Locale;
   dict: Dictionary;
   currentCity?: SupportedCity;
+  cityNights?: number;
   selectedCities?: SupportedCity[];
   travelNights?: number;
   adultCount?: number;
@@ -44,10 +45,12 @@ export default function FoodPlannerPanel({
   locale,
   dict,
   currentCity = "SEOUL",
+  cityNights,
   selectedCities = ["SEOUL"],
   travelNights = 3,
   adultCount = 1,
   basketSelections = [],
+  foodBasketPlan,
   onUpdateQuantity,
   onSetQuantity,
   onClearBasket,
@@ -62,10 +65,31 @@ export default function FoodPlannerPanel({
     return selectedCities && selectedCities.length > 0 ? selectedCities : [currentCity];
   }, [selectedCities, currentCity]);
 
-  // 푸드 바스켓 연산 결과
+  // 상단 탭에서 도시 변경 시 내부 활성 도시 즉시 동기화
+  useEffect(() => {
+    setActiveCityTab(currentCity);
+  }, [currentCity]);
+
+  const safeCityNights = Math.max(1, cityNights ?? Math.floor(travelNights / Math.max(1, selectedCities.length)));
+
+  // 푸드 바스켓 연산 결과: 전달된 도시 플랜 우선 사용 또는 해당 도시 기준 연산
   const basketPlan = useMemo(() => {
-    return calculateFoodBasketPlan(basketSelections, travelNights, adultCount);
-  }, [basketSelections, travelNights, adultCount]);
+    if (foodBasketPlan) return foodBasketPlan;
+    const totalPlan = calculateFoodBasketPlan(basketSelections, travelNights, adultCount);
+    return calculateCityFoodBasketPlan(currentCity, safeCityNights, travelNights, totalPlan, adultCount);
+  }, [foodBasketPlan, basketSelections, travelNights, adultCount, currentCity, safeCityNights]);
+
+  // 원클릭 토글 핸들러 (담기 / 취소)
+  const handleToggle = (foodId: string) => {
+    const currentQty = selectionMap.get(foodId) || 0;
+    if (currentQty > 0) {
+      if (onSetQuantity) onSetQuantity(foodId, 0);
+      else if (onUpdateQuantity) onUpdateQuantity(foodId, -currentQty);
+    } else {
+      if (onSetQuantity) onSetQuantity(foodId, 1);
+      else if (onUpdateQuantity) onUpdateQuantity(foodId, 1);
+    }
+  };
 
   // 선택된 항목 맵 (foodId -> quantity)
   const selectionMap = useMemo(() => {
@@ -138,7 +162,7 @@ export default function FoodPlannerPanel({
           {/* 총 식비 표시 */}
           <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
             <span className="text-[11px] font-bold text-slate-400">
-              {locale === "ko" ? `예상 식비 총액 (${adultCount}인)` : `Total Food Budget (${adultCount}p)`}
+              {locale === "ko" ? `${cityName} 예상 식비 (${adultCount}인)` : `${cityName} Food Budget (${adultCount}p)`}
             </span>
             <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
               {formatKrw(basketPlan.grandTotalKrw)}
@@ -289,26 +313,7 @@ export default function FoodPlannerPanel({
           </button>
         </div>
 
-        {/* 도시 전환 알약 버튼들 (다구간 여행 시) */}
-        {activeTab === "CITY" && availableCities.length > 1 && (
-          <div className="flex items-center gap-1 overflow-x-auto py-1">
-            <span className="text-[11px] font-bold text-slate-400 shrink-0">도시 전환:</span>
-            {availableCities.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setActiveCityTab(c)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeCityTab === c
-                    ? "bg-rose-100 text-[#e25c5c] font-black border border-rose-300"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c}
-              </button>
-            ))}
-          </div>
-        )}
+        
       </div>
 
       {/* 3-A. [도시별 대표 로컬 음식] 탭 콘텐츠: 계층형 UI (★ 필수 Top 3 + 탐색 7선) */}
@@ -343,8 +348,7 @@ export default function FoodPlannerPanel({
                     count={count}
                     adultCount={adultCount}
                     isHighlighted={true}
-                    onAdd={() => handleAdd(food.id)}
-                    onSubtract={() => handleSubtract(food.id)}
+                    onToggle={() => handleToggle(food.id)}
                     onPreview={() => setPreviewFood(food)}
                   />
                 );
@@ -378,8 +382,7 @@ export default function FoodPlannerPanel({
                     count={count}
                     adultCount={adultCount}
                     isHighlighted={false}
-                    onAdd={() => handleAdd(food.id)}
-                    onSubtract={() => handleSubtract(food.id)}
+                    onToggle={() => handleToggle(food.id)}
                     onPreview={() => setPreviewFood(food)}
                   />
                 );
@@ -428,8 +431,7 @@ export default function FoodPlannerPanel({
                   count={count}
                   adultCount={adultCount}
                   isHighlighted={food.isMustEatTop3 || false}
-                  onAdd={() => handleAdd(food.id)}
-                  onSubtract={() => handleSubtract(food.id)}
+                  onToggle={() => handleToggle(food.id)}
                   onPreview={() => setPreviewFood(food)}
                 />
               );
@@ -507,35 +509,14 @@ export default function FoodPlannerPanel({
                         {formatKrw(subtotalKrw)}
                       </span>
 
-                      {/* Quantity Controller */}
-                      <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden shadow-2xs">
-                        <button
-                          type="button"
-                          onClick={() => handleSubtract(food.id)}
-                          className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                        >
-                          -
-                        </button>
-                        <span className="w-8 text-center text-xs font-black text-slate-800">
-                          {quantity}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleAdd(food.id)}
-                          className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
-                        >
-                          +
-                        </button>
-                      </div>
-
                       {/* Remove Button */}
                       <button
                         type="button"
                         onClick={() => handleRemove(food.id)}
-                        className="text-slate-300 hover:text-rose-500 font-bold text-sm cursor-pointer px-1"
-                        title={locale === "ko" ? "삭제" : "Remove"}
+                        className="px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer flex items-center gap-1"
                       >
-                        ✕
+                        <span>✕</span>
+                        <span>{locale === "ko" ? "취소" : "Remove"}</span>
                       </button>
                     </div>
                   </div>
@@ -548,16 +529,7 @@ export default function FoodPlannerPanel({
                   <span>{locale === "ko" ? "선택한 음식 합계" : "Selected Food Subtotal"}:</span>
                   <span className="font-bold text-slate-800">{formatKrw(basketPlan.selectedFoodTotalKrw)}</span>
                 </div>
-                {basketPlan.uncoveredMealsCount > 0 && (
-                  <div className="flex justify-between text-amber-700 font-medium">
-                    <span>
-                      {locale === "ko"
-                        ? `남은 끼니 기본 일상 식비 (${basketPlan.uncoveredMealsCount}끼 × ₩10,000 × ${adultCount}인)`
-                        : `Base Allowance for ${basketPlan.uncoveredMealsCount} Uncovered Meals`}:
-                    </span>
-                    <span className="font-bold">+{formatKrw(basketPlan.baseAllowanceTotalKrw)}</span>
-                  </div>
-                )}
+
                 <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline text-sm font-black text-[#0f172a]">
                   <span>{locale === "ko" ? "최종 식비 합계" : "Total Food Budget"}:</span>
                   <span className="text-base sm:text-lg text-[#e25c5c]">
@@ -634,16 +606,25 @@ export default function FoodPlannerPanel({
 
             {/* 액션 버튼 */}
             <div className="pt-2 flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  handleAdd(previewFood.id);
-                  setPreviewFood(null);
-                }}
-                className="w-full py-2.5 bg-[#e25c5c] hover:bg-[#c94949] text-white text-xs font-black rounded-xl transition-colors cursor-pointer shadow-sm"
-              >
-                {locale === "ko" ? "바스켓에 담기 (+1)" : "Add to Basket (+1)"}
-              </button>
+              {(() => {
+                const isSelected = (selectionMap.get(previewFood.id) || 0) > 0;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleToggle(previewFood.id);
+                      setPreviewFood(null);
+                    }}
+                    className={`w-full py-2.5 text-white text-xs font-black rounded-xl transition-colors cursor-pointer shadow-sm ${
+                      isSelected ? "bg-slate-600 hover:bg-slate-700" : "bg-[#e25c5c] hover:bg-[#c94949]"
+                    }`}
+                  >
+                    {isSelected
+                      ? (locale === "ko" ? "✓ 바스켓에서 빼기" : "✓ Remove from Basket")
+                      : (locale === "ko" ? "+ 바스켓에 담기" : "+ Add to Basket")}
+                  </button>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -661,8 +642,7 @@ function FoodItemCard({
   count,
   adultCount,
   isHighlighted,
-  onAdd,
-  onSubtract,
+  onToggle,
   onPreview,
 }: {
   food: FoodItemDefinition;
@@ -670,8 +650,7 @@ function FoodItemCard({
   count: number;
   adultCount: number;
   isHighlighted?: boolean;
-  onAdd: () => void;
-  onSubtract: () => void;
+  onToggle: () => void;
   onPreview: () => void;
 }) {
   const isSelected = count > 0;
@@ -771,36 +750,27 @@ function FoodItemCard({
           {locale === "ko" ? "상세보기 🔍" : "Details 🔍"}
         </button>
 
-        {isSelected ? (
-          <div className="flex items-center border border-rose-200 rounded-lg bg-rose-50/50 overflow-hidden shadow-2xs">
-            <button
-              type="button"
-              onClick={onSubtract}
-              className="w-6 h-6 flex items-center justify-center text-rose-700 hover:bg-rose-100 font-black text-xs cursor-pointer"
-            >
-              -
-            </button>
-            <span className="px-2 text-center text-xs font-black text-rose-800">
-              {count}
-            </span>
-            <button
-              type="button"
-              onClick={onAdd}
-              className="w-6 h-6 flex items-center justify-center text-rose-700 hover:bg-rose-100 font-black text-xs cursor-pointer"
-            >
-              +
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onAdd}
-            className="px-2.5 py-1 rounded-lg text-xs font-extrabold text-white bg-[#0f172a] hover:bg-slate-800 transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
-          >
-            <span>+</span>
-            <span>{locale === "ko" ? "담기" : "Add"}</span>
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onToggle}
+          className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
+            isSelected
+              ? "bg-[#e25c5c] text-white hover:bg-[#c94949] ring-2 ring-rose-200"
+              : "bg-[#0f172a] text-white hover:bg-slate-800"
+          }`}
+        >
+          {isSelected ? (
+            <>
+              <span className="font-bold">✓</span>
+              <span>{locale === "ko" ? "담김" : "Added"}</span>
+            </>
+          ) : (
+            <>
+              <span className="font-bold">+</span>
+              <span>{locale === "ko" ? "담기" : "Add"}</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

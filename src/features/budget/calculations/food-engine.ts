@@ -468,7 +468,7 @@ export function calculateFoodBasketPlan(
 ): CalculatedFoodBasketPlan {
   const safeAdultCount = Math.max(1, adultCount);
   const travelDays = Math.max(1, nights > 0 ? nights + 1 : 1);
-  const expectedMealsCount = travelDays * 2; // 점심, 저녁 2끼 기준 필수 식사 기회
+  const expectedMealsCount = travelDays * 3; // 1일 3끼(아침, 점심, 저녁) 기준 권장 식사 기회
 
   const selectedItems: Array<{
     food: FoodItemDefinition;
@@ -572,7 +572,7 @@ export function calculateCityFoodBasketPlan(
   const citySelectedQty = displayItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const cityTravelDays = Math.max(1, cityNights);
-  const cityExpectedMeals = cityTravelDays * 2;
+  const cityExpectedMeals = cityTravelDays * 3; // 1일 3끼(아침, 점심, 저녁) 기준 권장 식사 기회
 
   // 기본 일상 식비 완충금 없음 (0원)
   const cityBaseAllowanceTotalKrw = 0;

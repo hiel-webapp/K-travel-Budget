@@ -464,7 +464,7 @@ export function calculateFoodBasketPlan(
   nights: number,
   adultCount: number = 1,
   catalog: FoodItemDefinition[] = ALL_FOOD_ITEMS,
-  baseAllowanceUnitPriceKrw: number = 10000
+  baseAllowanceUnitPriceKrw: number = 0
 ): CalculatedFoodBasketPlan {
   const safeAdultCount = Math.max(1, adultCount);
   const travelDays = Math.max(1, nights > 0 ? nights + 1 : 1);
@@ -495,14 +495,14 @@ export function calculateFoodBasketPlan(
     selectedFoodTotalKrw += subtotalKrw;
   }
 
-  // 부족한 끼니 수 산출
-  const uncoveredMealsCount = Math.max(0, expectedMealsCount - totalSelectedQuantity);
-  const baseAllowanceTotalKrw = uncoveredMealsCount * baseAllowanceUnitPriceKrw * safeAdultCount;
-  const grandTotalKrw = selectedFoodTotalKrw + baseAllowanceTotalKrw;
+  // 기본 일상 식비 완충금 완전 제거: 오직 사용자가 바스켓에 담은 음식 실비만 계산
+  const baseAllowanceTotalKrw = 0;
+  const uncoveredMealsCount = 0;
+  const grandTotalKrw = selectedFoodTotalKrw;
 
-  // 플랜 상태 판별
+  // 플랜 상태 판별 (담은 수량 기준)
   let status: "UNDER_SELECTED" | "BALANCED" | "FOODIE_TOUR" = "BALANCED";
-  if (totalSelectedQuantity === 0 || totalSelectedQuantity < Math.ceil(expectedMealsCount * 0.6)) {
+  if (totalSelectedQuantity === 0) {
     status = "UNDER_SELECTED";
   } else if (totalSelectedQuantity > expectedMealsCount * 1.5) {
     status = "FOODIE_TOUR";
@@ -514,9 +514,9 @@ export function calculateFoodBasketPlan(
     selectedItems,
     totalSelectedQuantity,
     expectedMealsCount,
-    uncoveredMealsCount,
-    baseAllowanceUnitPriceKrw,
-    baseAllowanceTotalKrw,
+    uncoveredMealsCount: 0,
+    baseAllowanceUnitPriceKrw: 0,
+    baseAllowanceTotalKrw: 0,
     selectedFoodTotalKrw,
     grandTotalKrw,
     status,
@@ -525,8 +525,8 @@ export function calculateFoodBasketPlan(
 
 /**
  * 도시별 푸드 바스켓 연산 (도시 영수증 아코디언 연동용)
- * - 해당 도시에 해당하는 선택 음식과 도시 체류 일수 기준 남은 끼니 완충금 산출
- * - 각 도시의 선택 음식 + 남은 끼니 식비의 합이 도시 식비 소계와 100% 일치하도록 보장
+ * - 해당 도시에 해당하는 선택 음식 실비 합산
+ * - 기본 일상 식비 완충금 없이 사용자가 담은 음식만 100% 정직하게 계산
  */
 export function calculateCityFoodBasketPlan(
   city: import("../../../lib/trip-domain").SupportedCity,
@@ -553,43 +553,38 @@ export function calculateCityFoodBasketPlan(
     food: FoodItemDefinition;
     quantity: number;
     subtotalKrw: number;
-  }> = [
-    ...cityLocalItems,
-  ];
+  }> = [...cityLocalItems];
 
-  // 도시별 로컬 음식이 없거나 적을 때, 전국 음식도 비율에 맞춰 표시
-  if (cityLocalItems.length === 0 && nationalItems.length > 0) {
+  // 전국 음식도 도시 비율에 맞춰 배분하여 표시
+  if (nationalItems.length > 0) {
     nationalItems.forEach((ni) => {
-      displayItems.push({
-        ...ni,
-        subtotalKrw: Math.round(ni.subtotalKrw * cityRatio),
-      });
+      const allocatedSubtotal = Math.round(ni.subtotalKrw * cityRatio);
+      if (allocatedSubtotal > 0) {
+        displayItems.push({
+          ...ni,
+          subtotalKrw: allocatedSubtotal,
+        });
+      }
     });
   }
 
   const citySelectedFoodTotalKrw = displayItems.reduce((sum, item) => sum + item.subtotalKrw, 0);
   const citySelectedQty = displayItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  // 도시별 기준 끼니 수 (도시 체류 일수 기준, 1일 2끼 점심/저녁)
   const cityTravelDays = Math.max(1, cityNights);
   const cityExpectedMeals = cityTravelDays * 2;
-  const cityUncoveredMeals = Math.max(0, cityExpectedMeals - citySelectedQty);
 
-  // 도시별 기본 일상 식비 완충금 (도시 비율 및 남은 끼니 기준)
-  const cityBaseAllowanceTotalKrw = Math.max(
-    0,
-    Math.round(totalBasketPlan.baseAllowanceTotalKrw * cityRatio)
-  );
-
-  const cityGrandTotalKrw = citySelectedFoodTotalKrw + cityBaseAllowanceTotalKrw;
+  // 기본 일상 식비 완충금 없음 (0원)
+  const cityBaseAllowanceTotalKrw = 0;
+  const cityGrandTotalKrw = citySelectedFoodTotalKrw;
 
   return {
     selectedItems: displayItems,
     totalSelectedQuantity: citySelectedQty,
     expectedMealsCount: cityExpectedMeals,
-    uncoveredMealsCount: cityUncoveredMeals,
-    baseAllowanceUnitPriceKrw: totalBasketPlan.baseAllowanceUnitPriceKrw,
-    baseAllowanceTotalKrw: cityBaseAllowanceTotalKrw,
+    uncoveredMealsCount: 0,
+    baseAllowanceUnitPriceKrw: 0,
+    baseAllowanceTotalKrw: 0,
     selectedFoodTotalKrw: citySelectedFoodTotalKrw,
     grandTotalKrw: cityGrandTotalKrw,
     status: totalBasketPlan.status,

@@ -98,26 +98,25 @@ export function generateInitialBudgetPlan(
 
         let lineTotalKrw = mealPlan.lineTotalKrw;
 
-        // 신규 장바구니형 푸드 바스켓(Food Basket) 연산 지원
-        if (overrides?.foodBasketSelections !== undefined) {
-          const totalTripNights = Math.max(1, totalNights);
-          const totalBasketPlan = calculateFoodBasketPlan(
-            overrides.foodBasketSelections,
-            totalTripNights,
-            adultCount
-          );
-          // 도시별 체류 일수 기준 바스켓 플랜 산출 (해당 도시 음식 + 도시 분배 완충금)
-          const cityBasketPlan = calculateCityFoodBasketPlan(
-            city,
-            nights,
-            totalTripNights,
-            totalBasketPlan,
-            adultCount
-          );
-          lineTotalKrw = cityBasketPlan.grandTotalKrw;
-          mealPlan.foodBasketPlan = cityBasketPlan;
-          mealPlan.lineTotalKrw = lineTotalKrw;
-        }
+        // 장바구니형 푸드 바스켓(Food Basket) 연산: 사용자가 담은 음식 실비로만 계산 (기본 식비 제거)
+        const basketSelections = overrides?.foodBasketSelections || [];
+        const totalTripNights = Math.max(1, totalNights);
+        const totalBasketPlan = calculateFoodBasketPlan(
+          basketSelections,
+          totalTripNights,
+          adultCount
+        );
+        // 도시별 바스켓 플랜 산출 (해당 도시 음식 실비)
+        const cityBasketPlan = calculateCityFoodBasketPlan(
+          city,
+          nights,
+          totalTripNights,
+          totalBasketPlan,
+          adultCount
+        );
+        lineTotalKrw = cityBasketPlan.grandTotalKrw;
+        mealPlan.foodBasketPlan = cityBasketPlan;
+        mealPlan.lineTotalKrw = lineTotalKrw;
 
         const id = `${city}_${basket.id}`.toUpperCase();
 

@@ -152,11 +152,14 @@ export default function FoodPlannerPanel({
             <span className="text-slate-700 flex items-center gap-1.5">
               <span>🍽️</span>
               <span>
-                {locale === "ko" ? "여행 식사 계획 채움도:" : "Meal Schedule Coverage:"}
+                {locale === "ko" ? "담은 미식 아이템:" : "Selected Foods:"}
               </span>
               <span className="text-[#e25c5c] font-black">
-                {basketPlan.totalSelectedQuantity} / {basketPlan.expectedMealsCount}
-                {locale === "ko" ? " 끼니 선택됨" : " meals selected"}
+                {basketPlan.totalSelectedQuantity}
+                {locale === "ko" ? "개 담김" : " items"}
+              </span>
+              <span className="text-[11px] font-normal text-slate-400">
+                ({locale === "ko" ? `일정 권장 ${basketPlan.expectedMealsCount}끼` : `Target: ${basketPlan.expectedMealsCount} meals`})
               </span>
             </span>
 
@@ -190,17 +193,17 @@ export default function FoodPlannerPanel({
 
           {/* 가이드 안내 알림 (과소 / 적정 / 과다) */}
           <div className="pt-1">
-            {basketPlan.status === "UNDER_SELECTED" ? (
-              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
-                <span className="text-base shrink-0">ⓘ</span>
+            {basketPlan.totalSelectedQuantity === 0 ? (
+              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 leading-relaxed">
+                <span className="text-base shrink-0">💡</span>
                 <div>
-                  <span className="font-bold block text-amber-950">
-                    {locale === "ko" ? "부족한 끼니 기본 식비 자동 완충 중" : "Base Meal Allowance Auto-Applied"}
+                  <span className="font-bold block text-slate-800">
+                    {locale === "ko" ? "선택된 음식이 없습니다" : "No Foods Selected Yet"}
                   </span>
                   <span>
                     {locale === "ko"
-                      ? `일정 대비 아직 지정되지 않은 ${basketPlan.uncoveredMealsCount}끼는 굶지 않고 여행할 수 있도록 한 끼 10,000원의 기본 일상 식비(총 ${formatKrw(basketPlan.baseAllowanceTotalKrw)})가 안전하게 포함되어 있습니다.`
-                      : `The remaining ${basketPlan.uncoveredMealsCount} unplanned meals have been covered with a realistic base daily allowance of ₩10,000/meal so you don't travel hungry.`}
+                      ? "먹고 싶은 한국 대표 미식과 로컬 음식을 바스켓에 담아보세요. 담으신 음식의 실비만 정확하게 합산됩니다."
+                      : "Choose delicious local specialties or national K-dishes to add to your basket. Only selected foods are counted in your budget."}
                   </span>
                 </div>
               </div>

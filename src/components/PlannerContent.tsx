@@ -4537,29 +4537,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                               );
                                             })}
 
-                                            {/* 부족 끼니 완충 식비 (선택한 음식이 끼니보다 적을 때만 간단명료하게 1줄 표시) */}
-                                            {basketPlan.baseAllowanceTotalKrw > 0 && (
-                                              <div className="flex justify-between items-center text-[11px] text-slate-500">
-                                                <span className="truncate pr-2 text-slate-400">
-                                                  {locale === "ko"
-                                                    ? `기본 일상 식비 (${basketPlan.uncoveredMealsCount}끼)`
-                                                    : `Base Allowance (${basketPlan.uncoveredMealsCount} meals)`}
-                                                </span>
-                                                <span className="tabular-nums font-medium text-slate-700 shrink-0">
-                                                  {formatKrw(basketPlan.baseAllowanceTotalKrw)}
-                                                </span>
-                                              </div>
-                                            )}
                                           </div>
                                         );
                                       }
 
-                                      return foodItems.map((item) => (
-                                        <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
-                                          <span className="truncate pr-2">{locale === "ko" ? "기본 식비" : "Base Meal Allowance"}</span>
-                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
-                                        </div>
-                                      ));
+                                       return (
+                                         <div className="text-[11px] text-slate-400 pl-5 italic">
+                                           {locale === "ko" ? "담은 음식 없음" : "No foods selected"}
+                                         </div>
+                                       );
                                     })()}
                                     {cityCustomFood.length > 0 && (
                                       <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">

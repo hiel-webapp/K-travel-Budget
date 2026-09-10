@@ -14,8 +14,12 @@ import {
   FoodAddOnOverrides,
   EffectiveFoodAddOn,
   FoodAddOnIssue,
+  FoodBasketItemSelection,
+  CalculatedFoodBasketPlan,
+  FoodItemDefinition,
 } from "../domain/types";
 import { MOCK_FOOD_ITEMS, MOCK_FOOD_ADD_ONS } from "../catalog/mock-catalog";
+import { ALL_FOOD_ITEMS, FOOD_CATALOG_BY_ID } from "../catalog/food-catalog";
 
 /**
  * 테마 컬렉션별로 음식을 조회합니다.
@@ -447,3 +451,75 @@ export function applyFoodAddOns(
     lineTotalKrw: calculatedMealPlan.lineTotalKrw + addOnsTotalKrw,
   };
 }
+
+/**
+ * 장바구니형 푸드 바스켓(Food Basket) 식비 연산 엔진
+ * - 사용자가 선택한 음식 수량 및 실비 합산
+ * - 여행 일수 대비 필요 끼니 수(1일 2끼 점심/저녁 기준) 계산
+ * - 과소 선택 시: 부족한 끼니에 대해 1끼 10,000원의 기본 일상 식비 자동 완충
+ * - 과다 선택 시: 식도락(Foodie Tour) 모드로 전환, 실비 전액 합산 반영
+ */
+export function calculateFoodBasketPlan(
+  selections: FoodBasketItemSelection[] = [],
+  nights: number,
+  adultCount: number = 1,
+  catalog: FoodItemDefinition[] = ALL_FOOD_ITEMS,
+  baseAllowanceUnitPriceKrw: number = 10000
+): CalculatedFoodBasketPlan {
+  const safeAdultCount = Math.max(1, adultCount);
+  const travelDays = Math.max(1, nights > 0 ? nights + 1 : 1);
+  const expectedMealsCount = travelDays * 2; // 점심, 저녁 2끼 기준 필수 식사 기회
+
+  const selectedItems: Array<{
+    food: FoodItemDefinition;
+    quantity: number;
+    subtotalKrw: number;
+  }> = [];
+
+  let totalSelectedQuantity = 0;
+  let selectedFoodTotalKrw = 0;
+
+  for (const sel of selections) {
+    if (!sel || sel.quantity <= 0) continue;
+    const food = FOOD_CATALOG_BY_ID.get(sel.foodId) || catalog.find((f) => f.id === sel.foodId);
+    if (!food) continue;
+
+    const subtotalKrw = food.unitPriceKrw * sel.quantity * safeAdultCount;
+    selectedItems.push({
+      food,
+      quantity: sel.quantity,
+      subtotalKrw,
+    });
+
+    totalSelectedQuantity += sel.quantity;
+    selectedFoodTotalKrw += subtotalKrw;
+  }
+
+  // 부족한 끼니 수 산출
+  const uncoveredMealsCount = Math.max(0, expectedMealsCount - totalSelectedQuantity);
+  const baseAllowanceTotalKrw = uncoveredMealsCount * baseAllowanceUnitPriceKrw * safeAdultCount;
+  const grandTotalKrw = selectedFoodTotalKrw + baseAllowanceTotalKrw;
+
+  // 플랜 상태 판별
+  let status: "UNDER_SELECTED" | "BALANCED" | "FOODIE_TOUR" = "BALANCED";
+  if (totalSelectedQuantity === 0 || totalSelectedQuantity < Math.ceil(expectedMealsCount * 0.6)) {
+    status = "UNDER_SELECTED";
+  } else if (totalSelectedQuantity > expectedMealsCount * 1.5) {
+    status = "FOODIE_TOUR";
+  } else {
+    status = "BALANCED";
+  }
+
+  return {
+    selectedItems,
+    totalSelectedQuantity,
+    expectedMealsCount,
+    uncoveredMealsCount,
+    baseAllowanceUnitPriceKrw,
+    baseAllowanceTotalKrw,
+    selectedFoodTotalKrw,
+    grandTotalKrw,
+    status,
+  };
+}
+

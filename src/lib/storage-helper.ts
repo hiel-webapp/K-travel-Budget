@@ -19,6 +19,7 @@ import {
   FoodOverrides,
   FoodAddOnOverrides,
   LocalTransitStyle,
+  FoodBasketItemSelection,
 } from "../features/budget/domain/types";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { IntercityTransportMode } from "./transport/intercity-fares";
@@ -459,6 +460,7 @@ export function parsePlannerPreferences(
 
       const returnPrefs: PlannerPreferences = {
         ...prefs,
+        foodBasketSelections: Array.isArray(prefs.foodBasketSelections) ? prefs.foodBasketSelections : undefined,
         attractionByCity: prefs.attractionByCity || {},
         attractionSelections: prefs.attractionSelections || {},
         attractionCustomDailyKrw: isEmergencyValValid(prefs.attractionCustomDailyKrw) ? prefs.attractionCustomDailyKrw : undefined,
@@ -557,6 +559,7 @@ export interface SavePlannerPreferencesInput {
   foodTier?: BudgetTier;
   foodOverrides?: FoodOverrides;
   foodAddOnOverrides?: FoodAddOnOverrides;
+  foodBasketSelections?: FoodBasketItemSelection[];
   attractionByCity?: AttractionOverridesByCity;
   attractionSelections?: AttractionSelectionsByCity;
   attractionCustomDailyKrw?: number;
@@ -581,6 +584,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
     foodTier,
     foodOverrides = {},
     foodAddOnOverrides = {},
+    foodBasketSelections,
     attractionByCity = {},
     attractionSelections = {},
     draft,
@@ -598,6 +602,7 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       foodTier,
       foodOverrides,
       addOnSelections: foodAddOnOverrides,
+      foodBasketSelections,
       attractionByCity,
       attractionSelections,
       attractionCustomDailyKrw: isValValid(input.attractionCustomDailyKrw) ? input.attractionCustomDailyKrw : undefined,

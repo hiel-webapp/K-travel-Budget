@@ -1,17 +1,37 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Locale } from "../lib/i18n/locales";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
-import { CalculatedMealPlan, EffectiveMealSlot } from "../features/budget/domain/types";
+import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
+import {
+  FoodItemDefinition,
+  FoodBasketItemSelection,
+  CalculatedMealPlan,
+  FoodCategoryTag,
+} from "../features/budget/domain/types";
+import {
+  NATIONAL_K_FOODS,
+  CITY_SPECIALTY_FOODS,
+  ALL_FOOD_ITEMS,
+  FOOD_CATALOG_BY_ID,
+} from "../features/budget/catalog/food-catalog";
+import { calculateFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import { formatKrw } from "../features/budget/presentation/formatters";
-import { FOOD_SPOTS_CATALOG, FoodCandidateSpot } from "../features/budget/catalog/food-spots";
-import { MOCK_FOOD_ITEMS, MOCK_FOOD_ADD_ONS } from "../features/budget/catalog/mock-catalog";
-import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 
 interface FoodPlannerPanelProps {
   locale: Locale;
   dict: Dictionary;
+  currentCity?: SupportedCity;
+  selectedCities?: SupportedCity[];
+  travelNights?: number;
+  adultCount?: number;
+  basketSelections?: FoodBasketItemSelection[];
+  foodBasketPlan?: import("../features/budget/domain/types").CalculatedFoodBasketPlan;
+  onUpdateQuantity?: (foodId: string, delta: number) => void;
+  onSetQuantity?: (foodId: string, quantity: number) => void;
+  onClearBasket?: () => void;
+  // 하위 호환성 레거시 props
   mealPlan?: CalculatedMealPlan;
   onSelectReplacement?: (slotId: string, foodItemId: string) => void;
   onClearReplacement?: (slotId: string) => void;
@@ -20,805 +40,710 @@ interface FoodPlannerPanelProps {
   onChangeAddOnQuantity?: (slotId: string, addOnItemId: string, quantity: number) => void;
 }
 
-function FoodSpotHeaderVisual({
-  imageUrl,
-  emoji,
-  tag,
-  isPriority,
-}: {
-  imageUrl?: string;
-  emoji: string;
-  tag: string;
-  isPriority?: boolean;
-}) {
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+export default function FoodPlannerPanel({
+  locale,
+  dict,
+  currentCity = "SEOUL",
+  selectedCities = ["SEOUL"],
+  travelNights = 3,
+  adultCount = 1,
+  basketSelections = [],
+  onUpdateQuantity,
+  onSetQuantity,
+  onClearBasket,
+}: FoodPlannerPanelProps) {
+  const [activeTab, setActiveTab] = useState<"NATIONAL" | "CITY" | "BASKET">("CITY");
+  const [activeCityTab, setActiveCityTab] = useState<SupportedCity>(currentCity);
+  const [nationalCategoryFilter, setNationalCategoryFilter] = useState<"ALL" | FoodCategoryTag>("ALL");
+  const [previewFood, setPreviewFood] = useState<FoodItemDefinition | null>(null);
 
-  const hasValidImage = !!imageUrl && imageUrl.trim() !== "" && imageUrl !== "/assets/default-food.jpg";
+  // 현재 활성화된 도시 목록 (전달된 selectedCities 기준 또는 기본 도시)
+  const availableCities = useMemo(() => {
+    return selectedCities && selectedCities.length > 0 ? selectedCities : [currentCity];
+  }, [selectedCities, currentCity]);
 
-  if (hasValidImage && !hasError) {
-    return (
-      <div className="relative h-16 w-full rounded-xl overflow-hidden bg-slate-100 shadow-2xs">
-        {!isLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-200/70 to-slate-100 animate-pulse" />
-        )}
-        <img
-          src={imageUrl}
-          alt={tag}
-          loading={isPriority ? "eager" : "lazy"}
-          // @ts-ignore
-          fetchPriority={isPriority ? "high" : "auto"}
-          decoding="async"
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setHasError(true)}
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
-          }`}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-        <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-black/60 backdrop-blur-md text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
-          🏷️ {tag}
-        </span>
-      </div>
-    );
-  }
+  // 푸드 바스켓 연산 결과
+  const basketPlan = useMemo(() => {
+    return calculateFoodBasketPlan(basketSelections, travelNights, adultCount);
+  }, [basketSelections, travelNights, adultCount]);
+
+  // 선택된 항목 맵 (foodId -> quantity)
+  const selectionMap = useMemo(() => {
+    const map = new Map<string, number>();
+    basketSelections.forEach((s) => {
+      if (s.quantity > 0) map.set(s.foodId, s.quantity);
+    });
+    return map;
+  }, [basketSelections]);
+
+  // 활성 도시의 10대 대표 음식 (Top 3 vs 탐색 7선)
+  const cityFoods = useMemo(() => {
+    const list = CITY_SPECIALTY_FOODS[activeCityTab] || [];
+    const top3 = list.filter((f) => f.isMustEatTop3);
+    const explore7 = list.filter((f) => !f.isMustEatTop3);
+    return { all: list, top3, explore7 };
+  }, [activeCityTab]);
+
+  // 한국 대표 음식 필터링
+  const filteredNationalFoods = useMemo(() => {
+    if (nationalCategoryFilter === "ALL") return NATIONAL_K_FOODS;
+    return NATIONAL_K_FOODS.filter((f) => f.categoryTag === nationalCategoryFilter);
+  }, [nationalCategoryFilter]);
+
+  const handleAdd = (foodId: string) => {
+    if (onUpdateQuantity) {
+      onUpdateQuantity(foodId, 1);
+    }
+  };
+
+  const handleSubtract = (foodId: string) => {
+    if (onUpdateQuantity) {
+      onUpdateQuantity(foodId, -1);
+    }
+  };
+
+  const handleRemove = (foodId: string) => {
+    if (onSetQuantity) {
+      onSetQuantity(foodId, 0);
+    }
+  };
+
+  const cityName =
+    locale === "ko"
+      ? CITY_KOREAN_NAMES[activeCityTab] || activeCityTab
+      : CITY_ENGLISH_NAMES[activeCityTab] || activeCityTab;
 
   return (
-    <div className="h-12 w-full rounded-xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-200/50 flex items-center justify-between px-3">
-      <span className="text-2xl">{emoji}</span>
-      <span className="text-[9px] bg-white/95 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs border border-slate-100">
-        🏷️ {tag}
-      </span>
+    <div className="w-full space-y-5">
+      {/* 1. 푸드 바스켓 요약 바 (Summary Bar) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🍱</span>
+              <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                {locale === "ko" ? "식도락 바스켓 플래너" : "Food Basket Planner"}
+              </h3>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-[#e25c5c] border border-rose-100">
+                {locale === "ko" ? "장바구니 담기형" : "Wishlist Mode"}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500">
+              {locale === "ko"
+                ? "먹고 싶은 음식을 자유롭게 담으면 일정에 맞춰 총 식비가 자동으로 계산됩니다."
+                : "Add foods you wish to eat. Total budget auto-adjusts to your trip duration."}
+            </p>
+          </div>
+
+          {/* 총 식비 표시 */}
+          <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
+            <span className="text-[11px] font-bold text-slate-400">
+              {locale === "ko" ? `예상 식비 총액 (${adultCount}인)` : `Total Food Budget (${adultCount}p)`}
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+              {formatKrw(basketPlan.grandTotalKrw)}
+            </span>
+          </div>
+        </div>
+
+        {/* 끼니 채움도 프로그레스 바 & 상태 뱃지 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-700 flex items-center gap-1.5">
+              <span>🍽️</span>
+              <span>
+                {locale === "ko" ? "여행 식사 계획 채움도:" : "Meal Schedule Coverage:"}
+              </span>
+              <span className="text-[#e25c5c] font-black">
+                {basketPlan.totalSelectedQuantity} / {basketPlan.expectedMealsCount}
+                {locale === "ko" ? " 끼니 선택됨" : " meals selected"}
+              </span>
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("BASKET")}
+              className="text-[#e25c5c] hover:underline cursor-pointer flex items-center gap-1"
+            >
+              <span>🛒 {locale === "ko" ? "바스켓 보기" : "View Basket"}</span>
+              <span className="bg-[#e25c5c] text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px] font-black">
+                {basketPlan.totalSelectedQuantity}
+              </span>
+            </button>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
+            <div
+              className={`h-full transition-all duration-300 rounded-full ${
+                basketPlan.status === "FOODIE_TOUR"
+                  ? "bg-amber-500"
+                  : basketPlan.status === "BALANCED"
+                  ? "bg-emerald-500"
+                  : "bg-rose-400"
+              }`}
+              style={{
+                width: `${Math.min(100, Math.round((basketPlan.totalSelectedQuantity / Math.max(1, basketPlan.expectedMealsCount)) * 100))}%`,
+              }}
+            />
+          </div>
+
+          {/* 가이드 안내 알림 (과소 / 적정 / 과다) */}
+          <div className="pt-1">
+            {basketPlan.status === "UNDER_SELECTED" ? (
+              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
+                <span className="text-base shrink-0">ⓘ</span>
+                <div>
+                  <span className="font-bold block text-amber-950">
+                    {locale === "ko" ? "부족한 끼니 기본 식비 자동 완충 중" : "Base Meal Allowance Auto-Applied"}
+                  </span>
+                  <span>
+                    {locale === "ko"
+                      ? `일정 대비 아직 지정되지 않은 ${basketPlan.uncoveredMealsCount}끼는 굶지 않고 여행할 수 있도록 한 끼 10,000원의 기본 일상 식비(총 ${formatKrw(basketPlan.baseAllowanceTotalKrw)})가 안전하게 포함되어 있습니다.`
+                      : `The remaining ${basketPlan.uncoveredMealsCount} unplanned meals have been covered with a realistic base daily allowance of ₩10,000/meal so you don't travel hungry.`}
+                  </span>
+                </div>
+              </div>
+            ) : basketPlan.status === "FOODIE_TOUR" ? (
+              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/80 text-xs text-purple-900 leading-relaxed">
+                <span className="text-base shrink-0">🔥</span>
+                <div>
+                  <span className="font-bold block text-purple-950">
+                    {locale === "ko" ? "풍성한 식도락 집중 투어 모드" : "Foodie Gourmet Tour Mode"}
+                  </span>
+                  <span>
+                    {locale === "ko"
+                      ? `여행 끼니 수보다 많은 ${basketPlan.totalSelectedQuantity}개의 음식이 담겼습니다! 미식 위주 여행으로 산출되며 선택하신 모든 음식의 실비가 정직하게 합산되었습니다.`
+                      : `You selected ${basketPlan.totalSelectedQuantity} dishes! All selected foods are calculated into your total budget for a feast-filled culinary adventure.`}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs text-emerald-900 leading-relaxed">
+                <span className="text-base shrink-0">✨</span>
+                <div>
+                  <span className="font-bold block text-emerald-950">
+                    {locale === "ko" ? "균형 잡힌 완벽한 미식 플랜" : "Well-Balanced Meal Plan"}
+                  </span>
+                  <span>
+                    {locale === "ko"
+                      ? `여행 일정(${travelNights + 1}일)에 딱 맞는 완벽한 식사 조합입니다. 대표 미식과 로컬 음식을 골고루 즐길 수 있습니다.`
+                      : `Great choice! Your food selections match your ${travelNights + 1}-day itinerary schedule perfectly.`}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. 네비게이션 탭 (도시별 로컬 10선 / 한국 대표 20선 / 내 바스켓) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          {/* 도시별 대표 로컬 음식 탭 */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("CITY")}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "CITY"
+                ? "bg-[#0f172a] text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>🏙️</span>
+            <span>{cityName} {locale === "ko" ? "대표 미식 (10선)" : "Specialties (10)"}</span>
+          </button>
+
+          {/* 한국 대표 20선 탭 */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("NATIONAL")}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "NATIONAL"
+                ? "bg-[#0f172a] text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>🇰🇷</span>
+            <span>{locale === "ko" ? "한국 대표 미식 (20선)" : "K-Signatures (20)"}</span>
+          </button>
+
+          {/* 담은 바스켓 탭 */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("BASKET")}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "BASKET"
+                ? "bg-[#e25c5c] text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>🛒</span>
+            <span>{locale === "ko" ? "담은 바스켓" : "My Basket"}</span>
+            <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-white/20">
+              {basketPlan.totalSelectedQuantity}
+            </span>
+          </button>
+        </div>
+
+        {/* 도시 전환 알약 버튼들 (다구간 여행 시) */}
+        {activeTab === "CITY" && availableCities.length > 1 && (
+          <div className="flex items-center gap-1 overflow-x-auto py-1">
+            <span className="text-[11px] font-bold text-slate-400 shrink-0">도시 전환:</span>
+            {availableCities.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setActiveCityTab(c)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeCityTab === c
+                    ? "bg-rose-100 text-[#e25c5c] font-black border border-rose-300"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 3-A. [도시별 대표 로컬 음식] 탭 콘텐츠: 계층형 UI (★ 필수 Top 3 + 탐색 7선) */}
+      {activeTab === "CITY" && (
+        <div className="space-y-6">
+          {/* 섹션 1: ★ Must-Eat Top 3 (필수 미식) */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-amber-500 font-extrabold text-sm">★</span>
+                <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                  {cityName} {locale === "ko" ? "방문 시 꼭 먹어야 할 3대 필수 미식" : "Must-Eat Top 3"}
+                </h4>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                  Top Pick
+                </span>
+              </div>
+              <span className="text-xs text-slate-400">
+                {locale === "ko" ? "외국인이 가장 선호하는 시그니처" : "Top Foreigner Favorites"}
+              </span>
+            </div>
+
+            {/* Top 3 강조 카드 그리드 */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              {cityFoods.top3.map((food) => {
+                const count = selectionMap.get(food.id) || 0;
+                return (
+                  <FoodItemCard
+                    key={food.id}
+                    food={food}
+                    locale={locale}
+                    count={count}
+                    adultCount={adultCount}
+                    isHighlighted={true}
+                    onAdd={() => handleAdd(food.id)}
+                    onSubtract={() => handleSubtract(food.id)}
+                    onPreview={() => setPreviewFood(food)}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 섹션 2: Explore More 7 (로컬 탐색 7선) */}
+          <div className="space-y-3 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-400 text-sm">✦</span>
+                <h4 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">
+                  {cityName} {locale === "ko" ? "로컬 추천 미식 탐색 (7선)" : "Explore Local Favorites (7)"}
+                </h4>
+              </div>
+              <span className="text-xs text-slate-400">
+                {locale === "ko" ? "취향에 따라 골라 담기" : "Explore by Preference"}
+              </span>
+            </div>
+
+            {/* 탐색 7선 카드 그리드 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {cityFoods.explore7.map((food) => {
+                const count = selectionMap.get(food.id) || 0;
+                return (
+                  <FoodItemCard
+                    key={food.id}
+                    food={food}
+                    locale={locale}
+                    count={count}
+                    adultCount={adultCount}
+                    isHighlighted={false}
+                    onAdd={() => handleAdd(food.id)}
+                    onSubtract={() => handleSubtract(food.id)}
+                    onPreview={() => setPreviewFood(food)}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3-B. [한국 대표 미식 20선] 탭 콘텐츠 */}
+      {activeTab === "NATIONAL" && (
+        <div className="space-y-4">
+          {/* 카테고리 필터 태그 */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            {[
+              { id: "ALL", label: locale === "ko" ? "전체 (20)" : "All (20)" },
+              { id: "MEAL", label: locale === "ko" ? "정식 & 찌개" : "Meals & Stews" },
+              { id: "BBQ_FEAST", label: locale === "ko" ? "K-BBQ & 고기" : "K-BBQ & Meat" },
+              { id: "STREET_SNACK", label: locale === "ko" ? "분식 & 길거리" : "Street Food" },
+              { id: "DESSERT_CAFE", label: locale === "ko" ? "디저트 & 빙수" : "Dessert & Cafe" },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setNationalCategoryFilter(cat.id as any)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  nationalCategoryFilter === cat.id
+                    ? "bg-slate-900 text-white shadow-2xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 한국 대표 음식 그리드 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredNationalFoods.map((food) => {
+              const count = selectionMap.get(food.id) || 0;
+              return (
+                <FoodItemCard
+                  key={food.id}
+                  food={food}
+                  locale={locale}
+                  count={count}
+                  adultCount={adultCount}
+                  isHighlighted={food.isMustEatTop3 || false}
+                  onAdd={() => handleAdd(food.id)}
+                  onSubtract={() => handleSubtract(food.id)}
+                  onPreview={() => setPreviewFood(food)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 3-C. [담은 바스켓] 탭 콘텐츠 */}
+      {activeTab === "BASKET" && (
+        <div className="space-y-4">
+          {basketPlan.selectedItems.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-10 text-center space-y-3">
+              <span className="text-4xl block">🛒</span>
+              <h4 className="text-base font-bold text-slate-800">
+                {locale === "ko" ? "아직 담은 음식이 없습니다" : "Your food basket is empty"}
+              </h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                {locale === "ko"
+                  ? "도시별 대표 미식이나 한국 대표 음식 탭에서 먹고 싶은 요리를 골라 담아보세요!"
+                  : "Explore city specialties and national K-food favorites to add to your trip wishlist!"}
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab("CITY")}
+                className="mt-2 px-4 py-2 bg-[#0f172a] text-white text-xs font-extrabold rounded-xl hover:bg-slate-800 transition-colors cursor-pointer shadow-xs"
+              >
+                {cityName} {locale === "ko" ? "대표 음식 담으러 가기 ➔" : "Browse City Foods ➔"}
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+                <span className="text-xs font-black text-slate-800">
+                  {locale === "ko" ? "담은 음식 목록" : "Selected Food Items"} ({basketPlan.selectedItems.length}종, 총 {basketPlan.totalSelectedQuantity}개)
+                </span>
+                {onClearBasket && (
+                  <button
+                    type="button"
+                    onClick={onClearBasket}
+                    className="text-xs text-rose-500 hover:text-rose-700 font-bold hover:underline cursor-pointer"
+                  >
+                    {locale === "ko" ? "전체 비우기" : "Clear All"}
+                  </button>
+                )}
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {basketPlan.selectedItems.map(({ food, quantity, subtotalKrw }) => (
+                  <div
+                    key={food.id}
+                    className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-2xl shrink-0">{food.emoji || "🍽️"}</span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <h5 className="text-xs sm:text-sm font-extrabold text-[#0f172a] truncate">
+                            {locale === "ko" ? food.nameKo : food.nameEn}
+                          </h5>
+                          {food.scope === "CITY_LOCAL" && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
+                              {food.cityCode}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-400 block">
+                          1인 ₩{food.unitPriceKrw.toLocaleString()} × {quantity}개 × {adultCount}인
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-xs sm:text-sm font-black text-[#e25c5c]">
+                        {formatKrw(subtotalKrw)}
+                      </span>
+
+                      {/* Quantity Controller */}
+                      <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden shadow-2xs">
+                        <button
+                          type="button"
+                          onClick={() => handleSubtract(food.id)}
+                          className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center text-xs font-black text-slate-800">
+                          {quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleAdd(food.id)}
+                          className="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 font-bold text-xs cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(food.id)}
+                        className="text-slate-300 hover:text-rose-500 font-bold text-sm cursor-pointer px-1"
+                        title={locale === "ko" ? "삭제" : "Remove"}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 하단 완충 금액 및 총계 푸터 */}
+              <div className="p-4 bg-slate-50 border-t border-slate-200/80 space-y-2 text-xs">
+                <div className="flex justify-between text-slate-500 font-medium">
+                  <span>{locale === "ko" ? "선택한 음식 합계" : "Selected Food Subtotal"}:</span>
+                  <span className="font-bold text-slate-800">{formatKrw(basketPlan.selectedFoodTotalKrw)}</span>
+                </div>
+                {basketPlan.uncoveredMealsCount > 0 && (
+                  <div className="flex justify-between text-amber-700 font-medium">
+                    <span>
+                      {locale === "ko"
+                        ? `남은 끼니 기본 일상 식비 (${basketPlan.uncoveredMealsCount}끼 × ₩10,000 × ${adultCount}인)`
+                        : `Base Allowance for ${basketPlan.uncoveredMealsCount} Uncovered Meals`}:
+                    </span>
+                    <span className="font-bold">+{formatKrw(basketPlan.baseAllowanceTotalKrw)}</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline text-sm font-black text-[#0f172a]">
+                  <span>{locale === "ko" ? "최종 식비 합계" : "Total Food Budget"}:</span>
+                  <span className="text-base sm:text-lg text-[#e25c5c]">
+                    {formatKrw(basketPlan.grandTotalKrw)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 4. 음식 상세 모달 (Popup Modal) */}
+      {previewFood && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setPreviewFood(null)}
+        >
+          <div
+            className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <span className="text-3xl">{previewFood.emoji || "🍽️"}</span>
+                <div>
+                  <h4 className="text-base sm:text-lg font-black text-[#0f172a]">
+                    {locale === "ko" ? previewFood.nameKo : previewFood.nameEn}
+                  </h4>
+                  <span className="text-[11px] font-bold text-slate-400">
+                    {previewFood.scope === "NATIONAL"
+                      ? (locale === "ko" ? "🇰🇷 한국 대표 미식" : "🇰🇷 Korean National Dish")
+                      : `🏙️ ${previewFood.cityCode} ${locale === "ko" ? "대표 로컬 미식" : "Local Specialty"}`}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewFood(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+              {locale === "ko" ? previewFood.descKo : previewFood.descEn}
+            </p>
+
+            <div className="flex items-center justify-between p-3 rounded-xl bg-rose-50/60 border border-rose-100 text-xs font-bold text-slate-700">
+              <span>{locale === "ko" ? "1인 평균 가격" : "Estimated Price per Person"}:</span>
+              <span className="text-sm font-black text-[#e25c5c]">
+                {formatKrw(previewFood.unitPriceKrw)}
+              </span>
+            </div>
+
+            {/* 액션 버튼 */}
+            <div className="pt-2 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAdd(previewFood.id);
+                  setPreviewFood(null);
+                }}
+                className="w-full py-2.5 bg-[#e25c5c] hover:bg-[#c94949] text-white text-xs font-black rounded-xl transition-colors cursor-pointer shadow-sm"
+              >
+                {locale === "ko" ? "바스켓에 담기 (+1)" : "Add to Basket (+1)"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default function FoodPlannerPanel({
+// =========================================================================
+// 공통 음식 아이템 카드 컴포넌트
+// =========================================================================
+function FoodItemCard({
+  food,
   locale,
-  dict,
-  mealPlan,
-  onSelectReplacement,
-  onClearReplacement,
-  onSelectAddOn,
-  onRemoveAddOn,
-  onChangeAddOnQuantity,
-}: FoodPlannerPanelProps) {
-  const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
-  const [quantityErrors, setQuantityErrors] = useState<Record<string, string>>({});
-  const [visibleFoodCountByCity, setVisibleFoodCountByCity] = useState<Record<string, number>>({});
-  const [activeSlotPickerSpotId, setActiveSlotPickerSpotId] = useState<string | null>(null);
-  const [showReplacedOnly, setShowReplacedOnly] = useState<boolean>(false);
-
-  // 담은/대체된 메뉴가 0개가 되었을 때 showReplacedOnly 필터가 켜져 있으면 자동으로 전체로 복귀
-  const replacedSlotsTotalCount = mealPlan?.slots?.filter((s) => s.replacedByFoodItemId).length ?? 0;
-  useEffect(() => {
-    if (showReplacedOnly && replacedSlotsTotalCount === 0) {
-      setShowReplacedOnly(false);
-    }
-  }, [showReplacedOnly, replacedSlotsTotalCount]);
-
-  if (!mealPlan || !mealPlan.slots || mealPlan.slots.length === 0) {
-    return (
-      <div className="p-8 text-center bg-slate-50/50 rounded-2xl border border-slate-200">
-        <p className="text-sm font-medium text-slate-500">{dict.planner.emptyMealPlanNotice}</p>
-      </div>
-    );
-  }
-
-  // 1. dayIndex 기준으로 slots 그룹핑
-  const daysMap: Record<number, EffectiveMealSlot[]> = {};
-  mealPlan.slots.forEach((slot) => {
-    if (!daysMap[slot.dayIndex]) {
-      daysMap[slot.dayIndex] = [];
-    }
-    daysMap[slot.dayIndex].push(slot);
-  });
-
-  const sortedDayIndices = Object.keys(daysMap)
-    .map(Number)
-    .sort((a, b) => a - b);
-
-  const slotOrder = ["BREAKFAST", "LUNCH", "DINNER", "SNACK_CAFE"];
-
-  const getSlotLabel = (slotType: string) => {
-    switch (slotType) {
-      case "BREAKFAST":
-        return dict.planner.mealSlotBreakfast;
-      case "LUNCH":
-        return dict.planner.mealSlotLunch;
-      case "DINNER":
-        return dict.planner.mealSlotDinner;
-      case "SNACK_CAFE":
-        return dict.planner.mealSlotSnack;
-      default:
-        return slotType;
-    }
-  };
-
-  const currentCity = mealPlan.slots[0].city;
-  const currentCityLabel = locale === "ko" ? CITY_KOREAN_NAMES[currentCity] || currentCity : CITY_ENGLISH_NAMES[currentCity] || currentCity;
+  count,
+  adultCount,
+  isHighlighted,
+  onAdd,
+  onSubtract,
+  onPreview,
+}: {
+  food: FoodItemDefinition;
+  locale: Locale;
+  count: number;
+  adultCount: number;
+  isHighlighted?: boolean;
+  onAdd: () => void;
+  onSubtract: () => void;
+  onPreview: () => void;
+}) {
+  const isSelected = count > 0;
 
   return (
-    <div className="space-y-6">
-      {/* Wish-First 3-Step Guide Banner */}
-      <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/70 space-y-2 text-xs">
-        <div className="flex items-center justify-between font-extrabold text-[#0f172a]">
-          <span className="flex items-center gap-1.5 text-sm">
-            <span>🍱</span>
-            <span>{currentCityLabel} {locale === "ko" ? "식단 및 한식 위시리스트" : "Meal Plan & Wishlist"}</span>
-          </span>
-          <span className="text-[11px] text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
-            {locale === "ko" ? "선택 안 해도 예산 100% 자동 완성" : "Auto-completed"}
-          </span>
-        </div>
-        <p className="text-[11px] text-slate-600 leading-relaxed">
-          {locale === "ko"
-            ? "기본 예산 스타일(실속/일반/프리미엄)에 따라 아침/점심/저녁 기본 식사 슬롯이 자동 배치되어 있습니다. 드시고 싶은 한식 메뉴가 있다면 아래 슬롯의 '위시리스트 메뉴'를 펼쳐 바로 교체하세요."
-            : "Meal slots are automatically populated based on your budget tier. Expand 'Wishlist Menu' on any slot to substitute signature Korean dishes."}
-        </p>
-      </div>
-
-      {/* 2. In-place Candidate K-Food Menu Section (3x2 Desktop, 2x3 Mobile Grid) */}
-      {(() => {
-        const foodSpotsForCity = FOOD_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity);
-        const replacedSlotsCount = mealPlan.slots.filter((s) => s.replacedByFoodItemId).length;
-        const effectiveShowReplacedOnly = showReplacedOnly && replacedSlotsCount > 0;
-
-        // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 항목' 필터로 모아봄
-        const filteredFoodSpots = effectiveShowReplacedOnly
-          ? foodSpotsForCity.filter((spot) =>
-              mealPlan.slots.some(
-                (s) => s.replacedByFoodItemId === spot.id || s.replacedByFoodItemId === spot.nameKo
-              )
-            )
-          : foodSpotsForCity;
-
-        const visibleFoodCount = visibleFoodCountByCity[currentCity] ?? 8;
-        const displayedFoodSpots = filteredFoodSpots.slice(0, visibleFoodCount);
-
-        return (
-          <div className="space-y-3 pt-3 border-t border-slate-100">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                🍱 {locale === "ko" ? `${currentCityLabel} 대표 시그니처 K-Food & 맛집 탐색` : `${currentCityLabel} Signature K-Food Candidates`}
+    <div
+      className={`rounded-2xl border p-3.5 flex flex-col justify-between transition-all duration-200 bg-white ${
+        isHighlighted
+          ? isSelected
+            ? "border-rose-400 ring-2 ring-rose-200 shadow-md bg-rose-50/10"
+            : "border-amber-300 shadow-xs hover:border-amber-400 hover:shadow-sm"
+          : isSelected
+          ? "border-rose-400 ring-1 ring-rose-200 shadow-xs bg-rose-50/10"
+          : "border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
+      }`}
+    >
+      <div className="space-y-2">
+        {/* 상단 뱃지 및 이모지 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xl">{food.emoji || "🍽️"}</span>
+            {food.isMustEatTop3 && (
+              <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-2xs">
+                ★ Must-Eat
               </span>
-              <div className="flex items-center gap-2">
-                {replacedSlotsCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowReplacedOnly((prev) => !prev)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                      effectiveShowReplacedOnly
-                        ? "bg-amber-500 text-white shadow-xs"
-                        : "bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100"
-                    }`}
-                  >
-                    <span>🔖</span>
-                    <span>
-                      {locale === "ko"
-                        ? `담은 항목 (${replacedSlotsCount})`
-                        : `Saved (${replacedSlotsCount})`}
-                    </span>
-                  </button>
-                )}
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {locale === "ko" ? `전체 ${filteredFoodSpots.length}개 중 ${displayedFoodSpots.length}개 노출` : `Showing ${displayedFoodSpots.length} of ${filteredFoodSpots.length}`}
-                </span>
-              </div>
-            </div>
-
-            {/* Grid: 2 cols on mobile (2x3), 3 cols on desktop (3x2) */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {displayedFoodSpots.map((spot, spotIdx) => {
-                const replacedSlot = mealPlan.slots.find(
-                  (s) => s.replacedByFoodItemId === spot.id || s.replacedByFoodItemId === spot.nameKo
-                );
-                const isReplaced = !!replacedSlot;
-                const isPickerActive = activeSlotPickerSpotId === spot.id;
-
-                const slotBadgeLabel =
-                  spot.recommendedSlot === "BREAKFAST"
-                    ? (locale === "ko" ? "아침 추천" : "Breakfast")
-                    : spot.recommendedSlot === "LUNCH"
-                    ? (locale === "ko" ? "점심 추천" : "Lunch")
-                    : spot.recommendedSlot === "DINNER"
-                    ? (locale === "ko" ? "저녁 추천" : "Dinner")
-                    : (locale === "ko" ? "간식/디저트" : "Snack/Cafe");
-
-                return (
-                  <div
-                    key={spot.id}
-                    className={`p-3.5 rounded-2xl border bg-white flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all relative ${
-                      isReplaced
-                        ? "border-amber-400 ring-2 ring-amber-200 bg-amber-50/20"
-                        : "border-slate-200 hover:border-slate-300"
-                    }`}
-                  >
-                    <div className="space-y-2">
-                      {/* Visual Header: 이미지 스켈레톤 & 페이드인 적용 */}
-                      <FoodSpotHeaderVisual
-                        imageUrl={(spot as any).imageUrl}
-                        emoji={spot.emoji}
-                        tag={spot.tag}
-                        isPriority={spotIdx < 6}
-                      />
-
-                      <div>
-                        <div className="flex items-center justify-between gap-1">
-                          <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
-                            {locale === "ko" ? spot.nameKo : spot.nameEn}
-                          </h5>
-                        </div>
-                        <p className="text-[10px] text-slate-400 leading-snug line-clamp-2 mt-0.5">
-                          {locale === "ko" ? spot.descKo : spot.descEn}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 pt-2 border-t border-slate-100 space-y-2">
-                      <div className="flex items-baseline justify-between text-xs">
-                        <span className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-bold">
-                          {slotBadgeLabel}
-                        </span>
-                        <strong className="font-extrabold text-[#e25c5c]">
-                          {formatKrw(spot.pricePerPerson)}
-                        </strong>
-                      </div>
-
-                      <div className="relative pt-1 border-t border-slate-50">
-                        {isReplaced ? (
-                          <button
-                            type="button"
-                            onClick={() => replacedSlot && onClearReplacement && onClearReplacement(replacedSlot.id)}
-                            className="w-full py-1.5 px-2 rounded-lg text-xs font-extrabold bg-amber-500 text-white hover:bg-amber-600 transition-colors shadow-2xs flex items-center justify-center gap-1 cursor-pointer"
-                          >
-                            <span>✓ Day {replacedSlot.dayIndex + 1} 대체됨 (취소 ✕)</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setActiveSlotPickerSpotId(isPickerActive ? null : spot.id)}
-                            className="w-full py-1.5 px-2 rounded-lg text-xs font-extrabold bg-[#0f172a] text-white hover:bg-slate-800 transition-colors flex items-center justify-center gap-1 cursor-pointer"
-                          >
-                            <span>식사 슬롯에 담기</span>
-                          </button>
-                        )}
-
-                        {/* Slot Picker Dropdown Popover */}
-                        {isPickerActive && !isReplaced && (
-                          <div className="absolute bottom-full left-0 right-0 mb-2 p-2.5 bg-white border border-slate-200 rounded-xl shadow-xl z-30 space-y-1.5 text-left">
-                            <div className="flex items-center justify-between text-[10px] font-extrabold text-slate-700 border-b border-slate-100 pb-1">
-                              <span>어느 슬롯에 담을까요?</span>
-                              <button
-                                type="button"
-                                onClick={() => setActiveSlotPickerSpotId(null)}
-                                className="text-slate-400 hover:text-slate-600"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                            <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
-                              {mealPlan.slots.map((s) => {
-                                const slotName = getSlotLabel(s.slot);
-                                return (
-                                  <button
-                                    key={s.id}
-                                    type="button"
-                                    onClick={() => {
-                                      onSelectReplacement && onSelectReplacement(s.id, spot.id);
-                                      setActiveSlotPickerSpotId(null);
-                                    }}
-                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[11px] font-bold text-slate-800 bg-slate-50 hover:bg-[#faf5f5] hover:text-[#e25c5c] border border-slate-100 transition-colors flex items-center justify-between cursor-pointer"
-                                  >
-                                    <span>Day {s.dayIndex + 1} {slotName}</span>
-                                    <span className="text-[10px] text-slate-400 font-medium">대체 →</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Stepwise Show More (+8) / Show Less Toggle Button */}
-            {filteredFoodSpots.length > 8 && (
-              <div className="text-center pt-2">
-                {visibleFoodCount < filteredFoodSpots.length ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setVisibleFoodCountByCity((prev) => ({
-                        ...prev,
-                        [currentCity]: (prev[currentCity] ?? 8) + 8,
-                      }))
-                    }
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                  >
-                    <span>{dict.planner.showMore || "더보기"}</span>
-                    <span>▼</span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setVisibleFoodCountByCity((prev) => ({
-                        ...prev,
-                        [currentCity]: 8,
-                      }))
-                    }
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                  >
-                    <span>{dict.planner.showLess || "접기"}</span>
-                    <span>▲</span>
-                  </button>
-                )}
-              </div>
+            )}
+            {food.scope === "CITY_LOCAL" && !food.isMustEatTop3 && (
+              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80">
+                로컬
+              </span>
             )}
           </div>
-        );
-      })()}
 
-      {/* Day-by-Day Meal Slots */}
-      <div className="space-y-4">
-        {sortedDayIndices.map((dayIdx) => {
-          const daySlots = [...daysMap[dayIdx]].sort(
-            (a, b) => slotOrder.indexOf(a.slot) - slotOrder.indexOf(b.slot)
-          );
+          <span className="text-xs font-black text-[#e25c5c]">
+            {formatKrw(food.unitPriceKrw)}
+          </span>
+        </div>
 
-          return (
-            <div key={dayIdx} className="space-y-3">
-              <h4 className="text-xs font-extrabold text-[#0f172a] tracking-wider uppercase">
-                {dict.planner.dayLabel} {dayIdx + 1}
-              </h4>
+        {/* 제목 & 설명 */}
+        <div>
+          <h5
+            onClick={onPreview}
+            className="text-xs sm:text-sm font-black text-[#0f172a] hover:text-indigo-600 transition-colors cursor-pointer line-clamp-1"
+            title={locale === "ko" ? food.nameKo : food.nameEn}
+          >
+            {locale === "ko" ? food.nameKo : food.nameEn}
+          </h5>
+          <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed mt-0.5">
+            {locale === "ko" ? food.descKo : food.descEn}
+          </p>
+        </div>
+      </div>
 
-              <div className="grid grid-cols-1 gap-3">
-                {daySlots.map((slot) => {
-                  const isReplaced = !!slot.replacedByFoodItemId;
-                  const displayName = isReplaced
-                    ? (locale === "ko"
-                        ? MOCK_FOOD_ITEMS.find((f) => f.id === slot.replacedByFoodItemId)?.nameKo
-                        : MOCK_FOOD_ITEMS.find((f) => f.id === slot.replacedByFoodItemId)?.nameEn) || slot.replacedByFoodItemId
-                    : dict.planner.baseMealLabel;
+      {/* 하단 카운터 / 담기 버튼 */}
+      <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={onPreview}
+          className="text-[10px] text-slate-400 hover:text-slate-600 font-bold hover:underline cursor-pointer"
+        >
+          {locale === "ko" ? "상세보기 🔍" : "Details 🔍"}
+        </button>
 
-                  const hasIssues =
-                    mealPlan.issues?.some((i) => i.slotId === slot.id) ||
-                    mealPlan.addOnIssues?.some((i) => i.slotId === slot.id);
-
-                  const slotAddOnIssues = mealPlan.addOnIssues?.filter((i) => i.slotId === slot.id) || [];
-
-                  return (
-                    <div
-                      key={slot.id}
-                      className="p-4 rounded-xl border border-slate-150 bg-white shadow-sm space-y-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-extrabold text-slate-800 uppercase tracking-tight">
-                            {getSlotLabel(slot.slot)}
-                          </span>
-                          <span
-                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                              isReplaced
-                                ? "bg-[#faf5f5] text-[#e25c5c] border border-[#fce8e8]"
-                                : "bg-slate-100 text-slate-500"
-                            }`}
-                          >
-                            {isReplaced ? dict.planner.selectedReplacement : dict.planner.baseMealLabel}
-                          </span>
-                          {slot.includedInBaseBudget ? (
-                            <span className="text-[10px] bg-[#eef7f3] text-[#4d7c67] px-1.5 py-0.5 rounded font-bold">
-                              {locale === "ko" ? "총 예산 포함" : "Included in Budget"}
-                            </span>
-                          ) : (
-                            <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-bold border border-amber-100">
-                              {locale === "ko" ? "현장 별도 지출" : "Pay On-Site"}
-                            </span>
-                          )}
-                          {hasIssues && (
-                            <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded font-bold border border-red-100">
-                              {dict.planner.excludedSelectionNotice}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-right flex items-center gap-2">
-                          <span className="text-xs text-slate-400 font-medium">Per Person</span>
-                          <strong className="text-sm font-extrabold text-[#0f172a]">
-                            {formatKrw(slot.unitPriceKrw)}
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-50 pt-2">
-                        <span className="font-semibold text-slate-700">{displayName}</span>
-                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 font-extrabold uppercase scale-90">
-                          {isReplaced ? (locale === "ko" ? "공식 검증가" : "Verified Price") : (locale === "ko" ? "추정 평균가" : "Est. Average")}
-                        </span>
-                      </div>
-
-                      {/* Add-ons read-only view */}
-                      {slot.addOns && slot.addOns.length > 0 && (
-                        <div className="mt-2.5 pt-2.5 border-t border-slate-100 space-y-1.5">
-                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                            {dict.planner.addOnsLabel}
-                          </span>
-                          <div className="space-y-1 pl-1.5 border-l border-slate-100">
-                            {slot.addOns.map((addon) => {
-                              const name = locale === "ko" ? addon.nameKo : addon.nameEn;
-                              return (
-                                <div key={addon.addOnItemId} className="flex items-center justify-between text-[11px] text-slate-500">
-                                  <span>
-                                    {name} (x{addon.quantity})
-                                  </span>
-                                  <strong className="font-semibold font-mono text-slate-700">
-                                    +{formatKrw(addon.lineTotalKrw)}
-                                  </strong>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Add-on Options Editor UI */}
-                      {(() => {
-                        const showAddOnEditor = isReplaced && !hasIssues;
-                        const addonCandidates = showAddOnEditor
-                          ? MOCK_FOOD_ADD_ONS.filter(
-                              (addon) =>
-                                addon.parentFoodItemIds.includes(slot.replacedByFoodItemId!) &&
-                                addon.applicableCities.includes(slot.city)
-                            )
-                          : [];
-
-                        if (!showAddOnEditor || addonCandidates.length === 0) return null;
-
-                        return (
-                          <div className="mt-3.5 pt-3.5 border-t border-slate-100 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                {dict.planner.addOnsTitle}
-                              </span>
-                              <span className="text-[9px] text-slate-400 font-semibold italic">
-                                {dict.planner.explicitSelectionNotice}
-                              </span>
-                            </div>
-
-                            <div className="space-y-2">
-                              {addonCandidates.map((addon) => {
-                                const addonName = locale === "ko" ? addon.nameKo : addon.nameEn;
-                                const currentAddOn = slot.addOns?.find((a) => a.addOnItemId === addon.id);
-                                const isSelected = !!currentAddOn;
-
-                                const draftKey = `${slot.id}_${addon.id}`;
-                                const rawDraftVal = quantityDrafts[draftKey];
-                                const displayQtyStr = rawDraftVal !== undefined ? rawDraftVal : (currentAddOn?.quantity ?? 1).toString();
-                                const hasInputError = !!quantityErrors[draftKey];
-                                const errorMsg = quantityErrors[draftKey];
-
-                                const handleSelectClick = () => {
-                                  onSelectAddOn?.(slot.id, addon.id, 1);
-                                };
-
-                                const handleRemoveClick = () => {
-                                  onRemoveAddOn?.(slot.id, addon.id);
-                                  setQuantityDrafts((prev) => {
-                                    const next = { ...prev };
-                                    delete next[draftKey];
-                                    return next;
-                                  });
-                                  setQuantityErrors((prev) => {
-                                    const next = { ...prev };
-                                    delete next[draftKey];
-                                    return next;
-                                  });
-                                };
-
-                                const handleQtyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                                  const val = e.target.value;
-                                  setQuantityDrafts((prev) => ({ ...prev, [draftKey]: val }));
-
-                                  const num = Number(val);
-                                  if (val.trim() === "") {
-                                    setQuantityErrors((prev) => ({ ...prev, [draftKey]: dict.planner.invalidQuantityNotice }));
-                                    return;
-                                  }
-                                  if (isNaN(num) || num <= 0 || !Number.isInteger(num) || num > addon.maxQuantity) {
-                                    setQuantityErrors((prev) => ({
-                                      ...prev,
-                                      [draftKey]: `${dict.planner.invalidQuantityNotice} (Max: ${addon.maxQuantity})`,
-                                    }));
-                                    return;
-                                  }
-
-                                  setQuantityErrors((prev) => {
-                                    const next = { ...prev };
-                                    delete next[draftKey];
-                                    return next;
-                                  });
-                                  onChangeAddOnQuantity?.(slot.id, addon.id, num);
-                                };
-
-                                const handleStep = (step: number) => {
-                                  const currentQty = currentAddOn?.quantity ?? 1;
-                                  const nextQty = currentQty + step;
-                                  if (nextQty >= 1 && nextQty <= addon.maxQuantity) {
-                                    setQuantityDrafts((prev) => ({ ...prev, [draftKey]: nextQty.toString() }));
-                                    setQuantityErrors((prev) => {
-                                      const next = { ...prev };
-                                      delete next[draftKey];
-                                      return next;
-                                    });
-                                    onChangeAddOnQuantity?.(slot.id, addon.id, nextQty);
-                                  }
-                                };
-
-                                const isPersonPrice = addon.pricingUnit === "PER_PERSON";
-
-                                return (
-                                  <div
-                                    key={addon.id}
-                                    className={`p-3 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
-                                      isSelected
-                                        ? "border-emerald-500 bg-emerald-50/10"
-                                        : "border-slate-100 bg-slate-50/40"
-                                    }`}
-                                  >
-                                    <div className="space-y-1">
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="text-[11px] font-bold text-slate-800">
-                                          {addonName}
-                                        </span>
-                                        {addon.isAlcohol && (
-                                          <span className="text-[8px] bg-red-50 text-red-600 px-1 py-0.2 rounded font-bold border border-red-100">
-                                            {dict.planner.alcoholBadge}
-                                          </span>
-                                        )}
-                                        {addon.isBeverage && (
-                                          <span className="text-[8px] bg-blue-50 text-blue-600 px-1 py-0.2 rounded font-bold border border-blue-100">
-                                            {dict.planner.beverageBadge}
-                                          </span>
-                                        )}
-                                        <span className="text-[8px] text-slate-400 font-mono scale-90">
-                                          MOCK
-                                        </span>
-                                      </div>
-                                      <p className="text-[10px] text-slate-400 font-medium">
-                                        {isPersonPrice ? dict.planner.perPersonNotice : dict.planner.itemQuantityNotice}:{" "}
-                                        <strong className="text-slate-600 font-semibold">{formatKrw(addon.representativePriceKrw)}</strong>
-                                      </p>
-                                      {isSelected && currentAddOn && (
-                                        <p className="text-[10px] text-emerald-700 font-extrabold">
-                                          + {formatKrw(currentAddOn.lineTotalKrw)}
-                                        </p>
-                                      )}
-                                    </div>
-
-                                    <div className="flex items-center gap-2.5 self-end sm:self-auto">
-                                      {isSelected && currentAddOn ? (
-                                        <div className="flex flex-col items-end gap-1.5">
-                                          <div className="flex items-center gap-1.5">
-                                            <div className="flex items-center border border-slate-200 rounded overflow-hidden bg-white">
-                                              <button
-                                                type="button"
-                                                onClick={() => handleStep(-1)}
-                                                disabled={currentAddOn.quantity <= 1}
-                                                aria-label={`Decrease ${addonName} quantity`}
-                                                className="px-2 py-0.5 text-xs font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 disabled:opacity-50"
-                                              >
-                                                -
-                                              </button>
-                                              <input
-                                                type="number"
-                                                min={1}
-                                                max={addon.maxQuantity}
-                                                step={1}
-                                                value={displayQtyStr}
-                                                onChange={handleQtyChange}
-                                                aria-invalid={hasInputError}
-                                                aria-describedby={hasInputError ? `err_${draftKey}` : undefined}
-                                                aria-label={`${addonName} quantity`}
-                                                className="w-10 text-center text-xs font-bold border-none outline-none focus:ring-0 p-0"
-                                              />
-                                              <button
-                                                type="button"
-                                                onClick={() => handleStep(1)}
-                                                disabled={currentAddOn.quantity >= addon.maxQuantity}
-                                                aria-label={`Increase ${addonName} quantity`}
-                                                className="px-2 py-0.5 text-xs font-bold text-slate-500 bg-slate-50 hover:bg-slate-100 disabled:opacity-50"
-                                              >
-                                                +
-                                              </button>
-                                            </div>
-
-                                            <button
-                                              type="button"
-                                              onClick={handleRemoveClick}
-                                              aria-pressed={true}
-                                              aria-label={`${addonName} selection`}
-                                              className="py-1 px-2.5 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-bold transition-all"
-                                            >
-                                              {dict.planner.removeAddOnButton}
-                                            </button>
-                                          </div>
-                                          {hasInputError && (
-                                            <span
-                                              id={`err_${draftKey}`}
-                                              role="alert"
-                                              className="text-[8px] text-red-500 font-semibold block text-right max-w-[150px] leading-tight"
-                                            >
-                                              {errorMsg}
-                                            </span>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          onClick={handleSelectClick}
-                                          aria-pressed={false}
-                                          aria-label={`${addonName} selection`}
-                                          className="py-1.5 px-3.5 rounded bg-[#e25c5c] text-white hover:bg-[#d14b4b] text-[10px] font-bold transition-all shadow-sm"
-                                        >
-                                          {dict.planner.selectAddOnButton}
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                       {/* Orphan Add-on warning banner */}
-                      {slotAddOnIssues.length > 0 && (
-                        <div className="mt-2.5 p-2.5 bg-rose-50 border border-rose-100 rounded-lg text-[11px] text-rose-600 font-semibold leading-relaxed">
-                          {dict.planner.orphanAddOnWarning}
-                        </div>
-                      )}
-
-                      {/* Collapsible Food Wishlist Collections for THIS Slot */}
-                      <div className="pt-2 border-t border-slate-100">
-                        <details className="group space-y-3">
-                          <summary className="flex items-center justify-between font-bold text-[11px] text-slate-500 cursor-pointer p-1 rounded hover:bg-slate-50/50 transition-colors focus-visible:outline-2 focus-visible:outline-[#e25c5c]">
-                            <span>{dict.planner.wishlistCollectionsTitle}</span>
-                            <svg className="h-3 w-3 text-slate-400 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </summary>
-
-                          <div className="pt-1.5 text-[10px] text-slate-400 leading-relaxed bg-[#faf9f6]/80 p-2.5 rounded-lg border border-slate-100 space-y-3">
-                            {(["ESSENTIALS", "INTERNATIONAL", "TRENDING", "SPECIALTIES"] as const).map((colId) => {
-                              // 현재 도시, 현재 슬롯, 컬렉션 세 가지를 모두 충족하는 음식 필터링
-                              const items = MOCK_FOOD_ITEMS.filter(
-                                (item) =>
-                                  item.collectionIds.includes(colId) &&
-                                  item.applicableCities.includes(currentCity) &&
-                                  item.applicableSlots.includes(slot.slot)
-                              );
-
-                              // ID 기준 중복 제거
-                              const uniqueItems = items.filter(
-                                (value, index, self) => self.findIndex((t) => t.id === value.id) === index
-                              );
-
-                              return (
-                                <div key={colId} className="space-y-1.5 border-t border-slate-100/60 pt-2 first:border-t-0 first:pt-0">
-                                  <span className="font-extrabold text-slate-600 block">
-                                    {colId === "ESSENTIALS" && "Essentials"}
-                                    {colId === "INTERNATIONAL" && "Popular"}
-                                    {colId === "TRENDING" && `Trending (${dict.planner.badgeMock})`}
-                                    {colId === "SPECIALTIES" && `Specialties (${currentCityLabel})`}
-                                  </span>
-
-                                  {uniqueItems.length === 0 ? (
-                                    <div className="text-[9px] text-slate-400 italic pl-1">
-                                      {dict.planner.noWishlistCandidates}
-                                    </div>
-                                  ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
-                                      {uniqueItems.map((food) => {
-                                        const name = locale === "ko" ? food.nameKo : food.nameEn;
-                                        const isSupported = food.pricingUnit === "PER_PERSON";
-                                        const isCurrentlySelected = slot.replacedByFoodItemId === food.id;
-                                        const isAnyReplacementActive = !!slot.replacedByFoodItemId;
-
-                                        let buttonText = dict.planner.selectReplacementButton;
-                                        let buttonAction = () => onSelectReplacement?.(slot.id, food.id);
-                                        let ariaLabel = locale === "ko"
-                                          ? `${name}을 ${getSlotLabel(slot.slot)}으로 선택`
-                                          : `Select ${name} for ${getSlotLabel(slot.slot)}`;
-
-                                        if (isCurrentlySelected) {
-                                          buttonText = dict.planner.restoreBaseMealButton;
-                                          buttonAction = () => onClearReplacement?.(slot.id);
-                                          ariaLabel = locale === "ko"
-                                            ? `${name} 선택 해제하고 기본식으로 복원`
-                                            : `Deselect ${name} and restore to base meal`;
-                                        } else if (isAnyReplacementActive) {
-                                          buttonText = dict.planner.changeReplacementButton;
-                                          buttonAction = () => onSelectReplacement?.(slot.id, food.id);
-                                          ariaLabel = locale === "ko"
-                                            ? `${name}으로 대체 식사 변경`
-                                            : `Change replacement meal to ${name}`;
-                                        }
-
-                                        if (!isSupported) {
-                                          buttonText = dict.planner.unsupportedPriceUnitLabel;
-                                          ariaLabel = locale === "ko"
-                                            ? `${name} (기본 예산 미지원 요금제)`
-                                            : `${name} (Pricing unit not supported)`;
-                                        }
-
-                                        return (
-                                          <div
-                                            key={food.id}
-                                            className={`p-2.5 rounded border flex flex-col justify-between gap-2 transition-all ${
-                                              isCurrentlySelected
-                                                ? "border-emerald-500 bg-emerald-50/20"
-                                                : "border-slate-100 bg-white"
-                                            }`}
-                                          >
-                                            <div className="flex items-start justify-between gap-1">
-                                              <span className="font-semibold text-slate-800 text-[10px]">
-                                                {name}
-                                                {isCurrentlySelected && (
-                                                  <span className="ml-1 text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-bold">
-                                                    {dict.planner.selectedReplacement}
-                                                  </span>
-                                                )}
-                                              </span>
-                                              <strong className="text-slate-900 shrink-0 text-[10px]">
-                                                {formatKrw(food.representativePriceKrw)}
-                                              </strong>
-                                            </div>
-
-                                            <div className="flex flex-col gap-1">
-                                              <button
-                                                type="button"
-                                                disabled={!isSupported}
-                                                onClick={buttonAction}
-                                                aria-pressed={isCurrentlySelected}
-                                                aria-label={ariaLabel}
-                                                className={`w-full py-1 px-2 rounded text-[9px] font-bold transition-all ${
-                                                  !isSupported
-                                                    ? "bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed"
-                                                    : isCurrentlySelected
-                                                    ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                                    : "bg-[#e25c5c] text-white hover:bg-[#d14b4b]"
-                                                }`}
-                                              >
-                                                {buttonText}
-                                              </button>
-                                              {!isSupported && (
-                                                <span className="text-[8px] text-red-500 font-semibold text-center leading-none">
-                                                  *{dict.planner.unsupportedPriceUnitLabel}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </details>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+        {isSelected ? (
+          <div className="flex items-center border border-rose-200 rounded-lg bg-rose-50/50 overflow-hidden shadow-2xs">
+            <button
+              type="button"
+              onClick={onSubtract}
+              className="w-6 h-6 flex items-center justify-center text-rose-700 hover:bg-rose-100 font-black text-xs cursor-pointer"
+            >
+              -
+            </button>
+            <span className="px-2 text-center text-xs font-black text-rose-800">
+              {count}
+            </span>
+            <button
+              type="button"
+              onClick={onAdd}
+              className="w-6 h-6 flex items-center justify-center text-rose-700 hover:bg-rose-100 font-black text-xs cursor-pointer"
+            >
+              +
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="px-2.5 py-1 rounded-lg text-xs font-extrabold text-white bg-[#0f172a] hover:bg-slate-800 transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
+          >
+            <span>+</span>
+            <span>{locale === "ko" ? "담기" : "Add"}</span>
+          </button>
+        )}
       </div>
     </div>
   );

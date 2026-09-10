@@ -182,6 +182,7 @@ export interface BudgetPlanOverrides {
   localTransitStyle?: LocalTransitStyle;
   cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
+  foodBasketSelections?: FoodBasketItemSelection[];
 }
 
 export type FoodCollectionId = "ESSENTIALS" | "INTERNATIONAL" | "TRENDING" | "SPECIALTIES";
@@ -295,6 +296,46 @@ export interface FoodAddOnIssue {
   reason: FoodAddOnIssueReason;
 }
 
+export type FoodCategoryTag = "MEAL" | "BBQ_FEAST" | "STREET_SNACK" | "SEAFOOD" | "DESSERT_CAFE";
+
+export interface FoodItemDefinition {
+  id: string;
+  scope: "NATIONAL" | "CITY_LOCAL";
+  cityCode?: SupportedCity;
+  nameKo: string;
+  nameEn: string;
+  descKo: string;
+  descEn: string;
+  categoryTag: FoodCategoryTag;
+  unitPriceKrw: number;
+  priceMinKrw: number;
+  priceMaxKrw: number;
+  isMustEatTop3?: boolean;
+  emoji?: string;
+  imageUrl?: string;
+}
+
+export interface FoodBasketItemSelection {
+  foodId: string;
+  quantity: number;
+}
+
+export interface CalculatedFoodBasketPlan {
+  selectedItems: Array<{
+    food: FoodItemDefinition;
+    quantity: number;
+    subtotalKrw: number;
+  }>;
+  totalSelectedQuantity: number;
+  expectedMealsCount: number;
+  uncoveredMealsCount: number;
+  baseAllowanceUnitPriceKrw: number;
+  baseAllowanceTotalKrw: number;
+  selectedFoodTotalKrw: number;
+  grandTotalKrw: number;
+  status: "UNDER_SELECTED" | "BALANCED" | "FOODIE_TOUR";
+}
+
 export interface CalculatedMealPlan {
   slots: EffectiveMealSlot[];
   perPersonBaseTotalKrw: number;
@@ -302,6 +343,7 @@ export interface CalculatedMealPlan {
   issues: FoodReplacementIssue[];
   addOnIssues?: FoodAddOnIssue[];
   addOnsTotalKrw?: number;
+  foodBasketPlan?: CalculatedFoodBasketPlan;
 }
 
 export interface PlannerPreferencesV1 {
@@ -354,6 +396,7 @@ export interface PlannerPreferences {
   localTransitStyle?: LocalTransitStyle;
   cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
+  foodBasketSelections?: FoodBasketItemSelection[];
 }
 
 export interface PlannerPreferencesEnvelope {

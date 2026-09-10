@@ -215,52 +215,7 @@ export default function FoodPlannerPanel({
             />
           </div>
 
-          {/* 가이드 안내 알림 (과소 / 적정 / 과다) */}
-          <div className="pt-1">
-            {basketPlan.totalSelectedQuantity === 0 ? (
-              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 leading-relaxed">
-                <span className="text-base shrink-0">💡</span>
-                <div>
-                  <span className="font-bold block text-slate-800">
-                    {locale === "ko" ? "선택된 음식이 없습니다" : "No Foods Selected Yet"}
-                  </span>
-                  <span>
-                    {locale === "ko"
-                      ? "먹고 싶은 한국 대표 미식과 로컬 음식을 바스켓에 담아보세요. 담으신 음식의 실비만 정확하게 합산됩니다."
-                      : "Choose delicious local specialties or national K-dishes to add to your basket. Only selected foods are counted in your budget."}
-                  </span>
-                </div>
-              </div>
-            ) : basketPlan.status === "FOODIE_TOUR" ? (
-              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-purple-50/70 border border-purple-200/80 text-xs text-purple-900 leading-relaxed">
-                <span className="text-base shrink-0">🔥</span>
-                <div>
-                  <span className="font-bold block text-purple-950">
-                    {locale === "ko" ? "풍성한 식도락 집중 투어 모드" : "Foodie Gourmet Tour Mode"}
-                  </span>
-                  <span>
-                    {locale === "ko"
-                      ? `여행 끼니 수보다 많은 ${basketPlan.totalSelectedQuantity}개의 음식이 담겼습니다! 미식 위주 여행으로 산출되며 선택하신 모든 음식의 실비가 정직하게 합산되었습니다.`
-                      : `You selected ${basketPlan.totalSelectedQuantity} dishes! All selected foods are calculated into your total budget for a feast-filled culinary adventure.`}
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 text-xs text-emerald-900 leading-relaxed">
-                <span className="text-base shrink-0">✨</span>
-                <div>
-                  <span className="font-bold block text-emerald-950">
-                    {locale === "ko" ? "균형 잡힌 완벽한 미식 플랜" : "Well-Balanced Meal Plan"}
-                  </span>
-                  <span>
-                    {locale === "ko"
-                      ? `여행 일정(${travelNights + 1}일)에 딱 맞는 완벽한 식사 조합입니다. 대표 미식과 로컬 음식을 골고루 즐길 수 있습니다.`
-                      : `Great choice! Your food selections match your ${travelNights + 1}-day itinerary schedule perfectly.`}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
+
         </div>
       </div>
 

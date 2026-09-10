@@ -11,6 +11,7 @@ import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPla
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata, SEOUL_LANDMARK_BILINGUAL_MAP, isSameSpot, normalizeSpotKey } from "../features/budget/catalog/attraction-spots";
+import { SHOW_LOCAL_SPOTS } from "../lib/config/spots-visibility";
 import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
 import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
@@ -689,7 +690,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         }
       } else {
         // 타 도시(부산, 제주 등)는 기본 카탈로그로 바인딩
-        const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+        const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city && (SHOW_LOCAL_SPOTS || !s.isLocal));
         setDbAttractionsByCity((prev) => ({
           ...prev,
           [city]: localSpots,
@@ -697,7 +698,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
     } catch (err) {
       console.warn("[Planner] DB 관광지 연동 오류:", err);
-      const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+      const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city && (SHOW_LOCAL_SPOTS || !s.isLocal));
       setDbAttractionsByCity((prev) => ({
         ...prev,
         [city]: localSpots,
@@ -3512,9 +3513,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const coursesForCity = TOUR_COURSE_PRESETS.filter((c) => c.cityCode === city);
                   const dbSpots = dbAttractionsByCity[city];
                   const validDbSpots = dbSpots?.filter((s) => s.cityCode === city);
-                  const baseSpotsForCity = (validDbSpots && validDbSpots.length > 0)
+                  const baseSpotsForCity = ((validDbSpots && validDbSpots.length > 0)
                     ? validDbSpots
-                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city);
+                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)).filter((s) => SHOW_LOCAL_SPOTS || !s.isLocal);
 
                   // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합
                   const customAttractionPlaces = budgetPlaces

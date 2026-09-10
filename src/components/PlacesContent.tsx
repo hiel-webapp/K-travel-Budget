@@ -10,6 +10,7 @@ import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_ENGLISH_NAMES } from "../lib/
 import { PlaceCategory } from "../lib/kto/types";
 import { loadSavedPlaceIds, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, loadTripDraft, loadPlannerPreferencesEx } from "../lib/storage-helper";
 import { isSameSpot, normalizeSpotKey, TOUR_COURSE_PRESETS } from "../features/budget/catalog/attraction-spots";
+import { SHOW_LOCAL_SPOTS } from "../lib/config/spots-visibility";
 
 interface PlacesContentProps {
   locale: Locale;
@@ -252,8 +253,9 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
 
   // 방안 3: 목록 순서는 기본 추천순으로 항상 고정, 담은 장소는 '담은 항목' 필터로 모아봄
   const displayedPlaces = useMemo(() => {
-    if (!effectiveShowSavedOnly) return places;
-    return places.filter((p) =>
+    const baseList = places.filter((p) => SHOW_LOCAL_SPOTS || !p.isLocal);
+    if (!effectiveShowSavedOnly) return baseList;
+    return baseList.filter((p) =>
       savedPlaceIds.some(
         (sid) =>
           isSameSpot(sid, p.id) ||

@@ -148,9 +148,6 @@ export default function FoodPlannerPanel({
               <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
                 {locale === "ko" ? "식도락 바스켓 플래너" : "Food Basket Planner"}
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-50 text-[#e25c5c] border border-rose-100">
-                {locale === "ko" ? "장바구니 담기형" : "Wishlist Mode"}
-              </span>
             </div>
             <p className="text-xs text-slate-500">
               {locale === "ko"
@@ -172,48 +169,56 @@ export default function FoodPlannerPanel({
 
         {/* 끼니 채움도 프로그레스 바 & 상태 뱃지 */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold">
-            <span className="text-slate-700 flex items-center gap-1.5">
-              <span>🍽️</span>
-              <span>
-                {locale === "ko" ? "담은 미식 아이템:" : "Selected Foods:"}
-              </span>
-              <span className="text-[#e25c5c] font-black">
-                {basketPlan.totalSelectedQuantity}
-                {locale === "ko" ? "개 담김" : " items"}
-              </span>
-              <span className="text-[11px] font-normal text-slate-400">
-                ({locale === "ko" ? `일정 권장 ${basketPlan.expectedMealsCount}끼` : `Target: ${basketPlan.expectedMealsCount} meals`})
-              </span>
-            </span>
+          {(() => {
+            const isExceeded = basketPlan.totalSelectedQuantity > basketPlan.expectedMealsCount;
+            return (
+              <>
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-slate-700 flex items-center gap-1.5">
+                    <span>🍽️</span>
+                    <span>
+                      {locale === "ko" ? "담은 미식 아이템:" : "Selected Foods:"}
+                    </span>
+                    <span className={`font-black ${isExceeded ? "text-rose-600" : "text-emerald-600"}`}>
+                      {basketPlan.totalSelectedQuantity}
+                      {locale === "ko" ? "개 담김" : " items"}
+                    </span>
+                    <span className={`text-[11px] ${isExceeded ? "text-rose-500 font-bold" : "text-slate-400 font-normal"}`}>
+                      ({locale === "ko" ? `일정 권장 ${basketPlan.expectedMealsCount}끼` : `Target: ${basketPlan.expectedMealsCount} meals`}
+                      {isExceeded ? (locale === "ko" ? ` · ${basketPlan.totalSelectedQuantity - basketPlan.expectedMealsCount}끼 초과` : ` · +${basketPlan.totalSelectedQuantity - basketPlan.expectedMealsCount} exceeded`) : ""})
+                    </span>
+                  </span>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab("BASKET")}
-              className="text-[#e25c5c] hover:underline cursor-pointer flex items-center gap-1"
-            >
-              <span>🛒 {locale === "ko" ? "바스켓 보기" : "View Basket"}</span>
-              <span className="bg-[#e25c5c] text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px] font-black">
-                {basketPlan.totalSelectedQuantity}
-              </span>
-            </button>
-          </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("BASKET")}
+                    className={`hover:underline cursor-pointer flex items-center gap-1 ${isExceeded ? "text-rose-600 font-bold" : "text-[#e25c5c]"}`}
+                  >
+                    <span>🛒 {locale === "ko" ? "바스켓 보기" : "View Basket"}</span>
+                    <span className={`text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px] font-black ${isExceeded ? "bg-rose-600" : "bg-[#e25c5c]"}`}>
+                      {basketPlan.totalSelectedQuantity}
+                    </span>
+                  </button>
+                </div>
 
-          {/* Progress Bar */}
-          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
-            <div
-              className={`h-full transition-all duration-300 rounded-full ${
-                basketPlan.status === "FOODIE_TOUR"
-                  ? "bg-amber-500"
-                  : basketPlan.status === "BALANCED"
-                  ? "bg-emerald-500"
-                  : "bg-rose-400"
-              }`}
-              style={{
-                width: `${Math.min(100, Math.round((basketPlan.totalSelectedQuantity / Math.max(1, basketPlan.expectedMealsCount)) * 100))}%`,
-              }}
-            />
-          </div>
+                {/* Progress Bar: 권장 끼니 초과 시 선명한 빨간색(bg-rose-500)으로 변경 */}
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
+                  <div
+                    className={`h-full transition-all duration-300 rounded-full ${
+                      isExceeded
+                        ? "bg-rose-500 shadow-xs shadow-rose-200"
+                        : basketPlan.totalSelectedQuantity === 0
+                        ? "bg-slate-300"
+                        : "bg-emerald-500"
+                    }`}
+                    style={{
+                      width: `${Math.min(100, Math.round((basketPlan.totalSelectedQuantity / Math.max(1, basketPlan.expectedMealsCount)) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </>
+            );
+          })()}
 
 
         </div>

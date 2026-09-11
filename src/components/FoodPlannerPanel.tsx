@@ -528,7 +528,7 @@ export default function FoodPlannerPanel({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                 <span className="absolute bottom-2.5 right-3 text-[10px] font-bold text-white/90 bg-black/40 px-2 py-0.5 rounded-md backdrop-blur-xs">
-                  Photo: {previewFood.imageUrl.includes("wikimedia") ? "Wikimedia Commons" : "한국관광공사 (TourAPI)"}
+                  Photo: {previewFood.imageUrl.includes("wikimedia") ? "Wikimedia Commons" : previewFood.imageUrl.startsWith("/assets") ? "Photo" : "한국관광공사 (TourAPI)"}
                 </span>
               </div>
             )}
@@ -662,7 +662,7 @@ function FoodItemCard({
             )}
 
             <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
-              {food.imageUrl.includes("wikimedia") ? "Wikimedia" : "KTO"}
+              {food.imageUrl.includes("wikimedia") ? "Wikimedia" : food.imageUrl.startsWith("/assets") ? "Photo" : "KTO"}
             </span>
           </div>
         ) : null}

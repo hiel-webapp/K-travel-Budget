@@ -66,7 +66,7 @@ export default function FoodReceiptDetails({
                 {basketPlan.selectedItems.map((item) => {
                   const name = locale === "ko" ? item.food.nameKo : item.food.nameEn;
                   return (
-                    <div key={item.food.id} className="flex justify-between items-center text-slate-700">
+                    <div key={`${item.food.id}_${item.cityCode || ''}`} className="flex justify-between items-center text-slate-700">
                       <div className="space-x-1.5 truncate max-w-[200px]">
                         <span className="font-semibold text-slate-800">{name}</span>
                         <span className="text-[10px] text-slate-400">x{item.quantity}</span>

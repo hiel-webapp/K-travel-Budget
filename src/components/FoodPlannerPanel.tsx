@@ -29,9 +29,9 @@ interface FoodPlannerPanelProps {
   adultCount?: number;
   basketSelections?: FoodBasketItemSelection[];
   foodBasketPlan?: import("../features/budget/domain/types").CalculatedFoodBasketPlan;
-  onUpdateQuantity?: (foodId: string, delta: number) => void;
-  onSetQuantity?: (foodId: string, quantity: number) => void;
-  onClearBasket?: () => void;
+  onUpdateQuantity?: (foodId: string, delta: number, cityCode?: SupportedCity) => void;
+  onSetQuantity?: (foodId: string, quantity: number, cityCode?: SupportedCity) => void;
+  onClearBasket?: (cityCode?: SupportedCity) => void;
   // 하위 호환성 레거시 props
   mealPlan?: CalculatedMealPlan;
   onSelectReplacement?: (slotId: string, foodItemId: string) => void;
@@ -72,33 +72,37 @@ export default function FoodPlannerPanel({
 
   const safeCityNights = Math.max(1, cityNights ?? Math.floor(travelNights / Math.max(1, selectedCities.length)));
 
-  // 푸드 바스켓 연산 결과: 전달된 도시 플랜 우선 사용 또는 해당 도시 기준 연산
+  // 푸드 바스켓 연산 결과: 해당 활성 도시 기준 연산 (다른 도시 선택 항목과 철저 분리)
   const basketPlan = useMemo(() => {
-    if (foodBasketPlan) return foodBasketPlan;
     const totalPlan = calculateFoodBasketPlan(basketSelections, travelNights, adultCount);
-    return calculateCityFoodBasketPlan(currentCity, safeCityNights, travelNights, totalPlan, adultCount);
-  }, [foodBasketPlan, basketSelections, travelNights, adultCount, currentCity, safeCityNights]);
+    return calculateCityFoodBasketPlan(activeCityTab, safeCityNights, travelNights, totalPlan, adultCount);
+  }, [basketSelections, travelNights, adultCount, activeCityTab, safeCityNights]);
 
   // 원클릭 토글 핸들러 (담기 / 취소)
   const handleToggle = (foodId: string) => {
     const currentQty = selectionMap.get(foodId) || 0;
     if (currentQty > 0) {
-      if (onSetQuantity) onSetQuantity(foodId, 0);
-      else if (onUpdateQuantity) onUpdateQuantity(foodId, -currentQty);
+      if (onSetQuantity) onSetQuantity(foodId, 0, activeCityTab);
+      else if (onUpdateQuantity) onUpdateQuantity(foodId, -currentQty, activeCityTab);
     } else {
-      if (onSetQuantity) onSetQuantity(foodId, 1);
-      else if (onUpdateQuantity) onUpdateQuantity(foodId, 1);
+      if (onSetQuantity) onSetQuantity(foodId, 1, activeCityTab);
+      else if (onUpdateQuantity) onUpdateQuantity(foodId, 1, activeCityTab);
     }
   };
 
-  // 선택된 항목 맵 (foodId -> quantity)
+  // 선택된 항목 맵 (foodId -> quantity): 오직 현재 activeCityTab에 담긴 음식만 매핑
   const selectionMap = useMemo(() => {
     const map = new Map<string, number>();
     basketSelections.forEach((s) => {
-      if (s.quantity > 0) map.set(s.foodId, s.quantity);
+      if (s.quantity <= 0) return;
+      const foodDef = FOOD_CATALOG_BY_ID.get(s.foodId);
+      const targetCity = s.cityCode || foodDef?.cityCode || currentCity;
+      if (targetCity === activeCityTab) {
+        map.set(s.foodId, (map.get(s.foodId) || 0) + s.quantity);
+      }
     });
     return map;
-  }, [basketSelections]);
+  }, [basketSelections, activeCityTab, currentCity]);
 
   // 활성 도시의 10대 대표 음식 (Top 3 vs 탐색 7선)
   const cityFoods = useMemo(() => {
@@ -114,21 +118,25 @@ export default function FoodPlannerPanel({
     return NATIONAL_K_FOODS.filter((f) => f.categoryTag === nationalCategoryFilter);
   }, [nationalCategoryFilter]);
 
-  const handleAdd = (foodId: string) => {
+  const handleAdd = (foodId: string, cityCode?: SupportedCity) => {
     if (onUpdateQuantity) {
-      onUpdateQuantity(foodId, 1);
+      onUpdateQuantity(foodId, 1, cityCode || activeCityTab);
     }
   };
 
-  const handleSubtract = (foodId: string) => {
+  const handleSubtract = (foodId: string, cityCode?: SupportedCity) => {
     if (onUpdateQuantity) {
-      onUpdateQuantity(foodId, -1);
+      onUpdateQuantity(foodId, -1, cityCode || activeCityTab);
     }
   };
 
-  const handleRemove = (foodId: string) => {
+  const handleRemove = (foodId: string, cityCode?: SupportedCity) => {
+    const targetCity = cityCode || activeCityTab;
     if (onSetQuantity) {
-      onSetQuantity(foodId, 0);
+      onSetQuantity(foodId, 0, targetCity);
+    } else if (onUpdateQuantity) {
+      const currentQty = selectionMap.get(foodId) || 1;
+      onUpdateQuantity(foodId, -currentQty, targetCity);
     }
   };
 
@@ -428,18 +436,18 @@ export default function FoodPlannerPanel({
                 {onClearBasket && (
                   <button
                     type="button"
-                    onClick={onClearBasket}
+                    onClick={() => onClearBasket(activeCityTab)}
                     className="text-xs text-rose-500 hover:text-rose-700 font-bold hover:underline cursor-pointer"
                   >
-                    {locale === "ko" ? "전체 비우기" : "Clear All"}
+                    {locale === "ko" ? `${cityName} 바스켓 비우기` : `Clear ${cityName} Basket`}
                   </button>
                 )}
               </div>
 
               <div className="divide-y divide-slate-100">
-                {basketPlan.selectedItems.map(({ food, quantity, subtotalKrw }) => (
+                {basketPlan.selectedItems.map(({ food, quantity, subtotalKrw, cityCode }) => (
                   <div
-                    key={food.id}
+                    key={`${food.id}_${cityCode || activeCityTab}`}
                     className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -449,11 +457,9 @@ export default function FoodPlannerPanel({
                           <h5 className="text-xs sm:text-sm font-extrabold text-[#0f172a] truncate">
                             {locale === "ko" ? food.nameKo : food.nameEn}
                           </h5>
-                          {food.scope === "CITY_LOCAL" && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
-                              {food.cityCode}
-                            </span>
-                          )}
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
+                            {CITY_KOREAN_NAMES[cityCode || activeCityTab] || cityCode || activeCityTab}
+                          </span>
                         </div>
                         <span className="text-[11px] text-slate-400 block">
                           1인 ₩{food.unitPriceKrw.toLocaleString()} × {quantity}개 × {adultCount}인
@@ -469,7 +475,7 @@ export default function FoodPlannerPanel({
                       {/* Remove Button */}
                       <button
                         type="button"
-                        onClick={() => handleRemove(food.id)}
+                        onClick={() => handleRemove(food.id, cityCode || activeCityTab)}
                         className="px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer flex items-center gap-1"
                       >
                         <span>✕</span>

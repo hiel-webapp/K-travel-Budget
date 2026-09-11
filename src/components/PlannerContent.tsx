@@ -13,6 +13,7 @@ import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata, SEOUL_LANDMARK_BILINGUAL_MAP, isSameSpot, normalizeSpotKey } from "../features/budget/catalog/attraction-spots";
 import { SHOW_LOCAL_SPOTS } from "../lib/config/spots-visibility";
 import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
+import { FOOD_CATALOG_BY_ID } from "../features/budget/catalog/food-catalog";
 import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } from "../lib/transport/intercity-fares";
 import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
@@ -1854,25 +1855,36 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const handleFoodBasketUpdateQuantity = (foodId: string, delta: number) => {
+  const handleFoodBasketUpdateQuantity = (foodId: string, delta: number, cityCode?: SupportedCity) => {
     if (!latestPrefsRef.current) return;
 
     const currentBasket = latestPrefsRef.current.foodBasketSelections || [];
-    const existingIndex = currentBasket.findIndex((item) => item.foodId === foodId);
+    const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
+    const fallbackCity: SupportedCity =
+      selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT"
+        ? (selectedCityTab as SupportedCity)
+        : (draft.selectedCities[0] || "SEOUL");
+    const targetCity: SupportedCity = cityCode || foodDef?.cityCode || fallbackCity;
+
+    const existingIndex = currentBasket.findIndex((item) => {
+      if (item.foodId !== foodId) return false;
+      const itemCity = item.cityCode || FOOD_CATALOG_BY_ID.get(item.foodId)?.cityCode || fallbackCity;
+      return itemCity === targetCity;
+    });
 
     let nextBasket: FoodBasketItemSelection[];
     if (existingIndex >= 0) {
       const nextQty = Math.max(0, currentBasket[existingIndex].quantity + delta);
       if (nextQty === 0) {
-        nextBasket = currentBasket.filter((item) => item.foodId !== foodId);
+        nextBasket = currentBasket.filter((_, idx) => idx !== existingIndex);
       } else {
         nextBasket = currentBasket.map((item, idx) =>
-          idx === existingIndex ? { ...item, quantity: nextQty } : item
+          idx === existingIndex ? { ...item, quantity: nextQty, cityCode: targetCity } : item
         );
       }
     } else {
       if (delta > 0) {
-        nextBasket = [...currentBasket, { foodId, quantity: delta }];
+        nextBasket = [...currentBasket, { foodId, quantity: delta, cityCode: targetCity }];
       } else {
         nextBasket = currentBasket;
       }
@@ -1916,22 +1928,37 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const handleFoodBasketSetQuantity = (foodId: string, quantity: number) => {
+  const handleFoodBasketSetQuantity = (foodId: string, quantity: number, cityCode?: SupportedCity) => {
     if (!latestPrefsRef.current) return;
 
     const currentBasket = latestPrefsRef.current.foodBasketSelections || [];
-    const existingIndex = currentBasket.findIndex((item) => item.foodId === foodId);
+    const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
+    const fallbackCity: SupportedCity =
+      selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT"
+        ? (selectedCityTab as SupportedCity)
+        : (draft.selectedCities[0] || "SEOUL");
+    const targetCity: SupportedCity = cityCode || foodDef?.cityCode || fallbackCity;
+
+    const existingIndex = currentBasket.findIndex((item) => {
+      if (item.foodId !== foodId) return false;
+      const itemCity = item.cityCode || FOOD_CATALOG_BY_ID.get(item.foodId)?.cityCode || fallbackCity;
+      return itemCity === targetCity;
+    });
 
     let nextBasket: FoodBasketItemSelection[];
     const validQty = Math.max(0, Math.floor(quantity));
     if (validQty === 0) {
-      nextBasket = currentBasket.filter((item) => item.foodId !== foodId);
+      if (existingIndex >= 0) {
+        nextBasket = currentBasket.filter((_, idx) => idx !== existingIndex);
+      } else {
+        nextBasket = currentBasket;
+      }
     } else if (existingIndex >= 0) {
       nextBasket = currentBasket.map((item, idx) =>
-        idx === existingIndex ? { ...item, quantity: validQty } : item
+        idx === existingIndex ? { ...item, quantity: validQty, cityCode: targetCity } : item
       );
     } else {
-      nextBasket = [...currentBasket, { foodId, quantity: validQty }];
+      nextBasket = [...currentBasket, { foodId, quantity: validQty, cityCode: targetCity }];
     }
 
     const nextPrefs: PlannerPreferences = {
@@ -1972,12 +1999,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const handleFoodBasketClear = () => {
+  const handleFoodBasketClear = (cityCode?: SupportedCity) => {
     if (!latestPrefsRef.current) return;
+
+    let nextBasket: FoodBasketItemSelection[];
+    if (cityCode) {
+      const fallbackCity: SupportedCity = draft.selectedCities[0] || "SEOUL";
+      nextBasket = (latestPrefsRef.current.foodBasketSelections || []).filter((item) => {
+        const itemCity = item.cityCode || FOOD_CATALOG_BY_ID.get(item.foodId)?.cityCode || fallbackCity;
+        return itemCity !== cityCode;
+      });
+    } else {
+      nextBasket = [];
+    }
 
     const nextPrefs: PlannerPreferences = {
       ...latestPrefsRef.current,
-      foodBasketSelections: [],
+      foodBasketSelections: nextBasket,
     };
 
     const saved = savePlannerPreferences({

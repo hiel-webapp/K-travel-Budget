@@ -318,6 +318,7 @@ export interface FoodItemDefinition {
 export interface FoodBasketItemSelection {
   foodId: string;
   quantity: number;
+  cityCode?: SupportedCity;
 }
 
 export interface CalculatedFoodBasketPlan {
@@ -325,6 +326,7 @@ export interface CalculatedFoodBasketPlan {
     food: FoodItemDefinition;
     quantity: number;
     subtotalKrw: number;
+    cityCode?: SupportedCity;
   }>;
   totalSelectedQuantity: number;
   expectedMealsCount: number;

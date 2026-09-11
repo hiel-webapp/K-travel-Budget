@@ -470,11 +470,7 @@ export function calculateFoodBasketPlan(
   const travelDays = Math.max(1, nights > 0 ? nights + 1 : 1);
   const expectedMealsCount = travelDays * 3; // 1일 3끼(아침, 점심, 저녁) 기준 권장 식사 기회
 
-  const selectedItems: Array<{
-    food: FoodItemDefinition;
-    quantity: number;
-    subtotalKrw: number;
-  }> = [];
+  const selectedItems: CalculatedFoodBasketPlan["selectedItems"] = [];
 
   let totalSelectedQuantity = 0;
   let selectedFoodTotalKrw = 0;
@@ -489,6 +485,7 @@ export function calculateFoodBasketPlan(
       food,
       quantity: sel.quantity,
       subtotalKrw,
+      cityCode: sel.cityCode || food.cityCode,
     });
 
     totalSelectedQuantity += sel.quantity;
@@ -537,27 +534,31 @@ export function calculateCityFoodBasketPlan(
 ): CalculatedFoodBasketPlan {
   const safeAdultCount = Math.max(1, adultCount);
   const safeTotalNights = Math.max(1, totalNights);
-  const cityRatio = cityNights > 0 ? cityNights / safeTotalNights : 1;
 
-  // 1. 해당 도시에 명시적으로 속한 로컬 음식
-  const cityLocalItems = totalBasketPlan.selectedItems.filter(
-    (item) => item.food.scope === "CITY_LOCAL" && item.food.cityCode === city
-  );
-
-  // 2. 전국 대표 미식: 도시 비율로 배분 (단수 없는 정수화)
-  const nationalItems = totalBasketPlan.selectedItems.filter(
-    (item) => item.food.scope === "NATIONAL"
-  );
-
+  // 1. 해당 도시에 명시적으로 속하거나, 사용자가 해당 도시 탭에서 담은 음식 (로컬 및 전국 음식)
   const displayItems: Array<{
     food: FoodItemDefinition;
     quantity: number;
     subtotalKrw: number;
-  }> = [...cityLocalItems];
+    cityCode?: import("../../../lib/trip-domain").SupportedCity;
+  }> = totalBasketPlan.selectedItems.filter((item) => {
+    if (item.cityCode) {
+      return item.cityCode === city;
+    }
+    if (item.food.scope === "CITY_LOCAL") {
+      return item.food.cityCode === city;
+    }
+    return false;
+  });
 
-  // 전국 음식도 도시 비율에 맞춰 배분하여 표시
-  if (nationalItems.length > 0) {
-    nationalItems.forEach((ni) => {
+  // 2. 레거시 데이터 (cityCode가 없는 구버전 전국 음식)만 도시 비율로 분할 배분
+  const legacyNationalItems = totalBasketPlan.selectedItems.filter(
+    (item) => !item.cityCode && item.food.scope === "NATIONAL"
+  );
+
+  if (legacyNationalItems.length > 0) {
+    const cityRatio = cityNights > 0 ? cityNights / safeTotalNights : 1;
+    legacyNationalItems.forEach((ni) => {
       const allocatedSubtotal = Math.round(ni.subtotalKrw * cityRatio);
       if (allocatedSubtotal > 0) {
         displayItems.push({

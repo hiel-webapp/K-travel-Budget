@@ -327,7 +327,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 12000,
       isMustEatTop3: true,
       emoji: "🥞",
-      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Bindae-tteok_1.jpg",
+      imageUrl: "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/Korea_GwangjangMarket_Eats_01_%2813885110035%29.jpg/960px-Korea_GwangjangMarket_Eats_01_%2813885110035%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     },
     {
       id: "seoul_seolleongtang",
@@ -359,7 +359,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 14000,
       isMustEatTop3: true,
       emoji: "🥘",
-      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b5/Jeukseok-tteok-bokki.jpg",
+      imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=3428735f-d5de-4d49-9d67-37e6168c242a",
     },
     {
       id: "seoul_mapo_galbi",
@@ -375,7 +375,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 21000,
       isMustEatTop3: false,
       emoji: "🥩",
-      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Korean_barbecue-Dwaeji_galbi-01.jpg",
+      imageUrl: "http://tong.visitkorea.or.kr/cms/resource/25/2858125_image2_1.jpg",
     },
     {
       id: "seoul_dongdaemun_dakhanmari",
@@ -391,7 +391,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 19000,
       isMustEatTop3: false,
       emoji: "🍲",
-      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Dak-han-mari_1.jpg",
+      imageUrl: "http://tong.visitkorea.or.kr/cms/resource/43/2869643_image2_1.jpg",
     },
     {
       id: "seoul_namdaemun_galchijorim",
@@ -407,7 +407,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 15000,
       isMustEatTop3: false,
       emoji: "🐟",
-      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Galchi-jorim_1.jpg",
+      imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/7f241234-ee93-4ff5-a445-7429d95cdf6f/it11",
     },
     {
       id: "seoul_euljiro_golbaengi",

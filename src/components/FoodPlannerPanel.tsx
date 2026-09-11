@@ -241,7 +241,7 @@ export default function FoodPlannerPanel({
             }`}
           >
             <span>🇰🇷</span>
-            <span>{locale === "ko" ? "한국 대표 미식 (20선)" : "K-Signatures (20)"}</span>
+            <span>{locale === "ko" ? `한국 대표 미식 (${NATIONAL_K_FOODS.length}선)` : `K-Signatures (${NATIONAL_K_FOODS.length})`}</span>
           </button>
 
           {/* 담은 바스켓 탭 */}
@@ -355,7 +355,7 @@ export default function FoodPlannerPanel({
           {/* 카테고리 필터 태그 */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
             {[
-              { id: "ALL", label: locale === "ko" ? "전체 (20)" : "All (20)" },
+              { id: "ALL", label: locale === "ko" ? `전체 (${NATIONAL_K_FOODS.length})` : `All (${NATIONAL_K_FOODS.length})` },
               { id: "MEAL", label: locale === "ko" ? "정식 & 찌개" : "Meals & Stews" },
               { id: "BBQ_FEAST", label: locale === "ko" ? "K-BBQ & 고기" : "K-BBQ & Meat" },
               { id: "STREET_SNACK", label: locale === "ko" ? "분식 & 길거리" : "Street Food" },

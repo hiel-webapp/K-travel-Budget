@@ -235,7 +235,7 @@ export default function FoodPlannerPanel({
             }`}
           >
             <span>🏙️</span>
-            <span>{cityName} {locale === "ko" ? "대표 미식 (10선)" : "Specialties (10)"}</span>
+            <span>{cityName} {locale === "ko" ? `대표 미식 (${cityFoods.all.length}선)` : `Specialties (${cityFoods.all.length})`}</span>
           </button>
 
           {/* 한국 대표 20선 탭 */}
@@ -327,7 +327,7 @@ export default function FoodPlannerPanel({
               <div className="flex items-center gap-1.5">
                 <span className="text-slate-400 text-sm">✦</span>
                 <h4 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">
-                  {cityName} {locale === "ko" ? "로컬 추천 미식 탐색 (7선)" : "Explore Local Favorites (7)"}
+                  {cityName} {locale === "ko" ? `로컬 추천 미식 탐색 (${cityFoods.explore7.length}선)` : `Explore Local Favorites (${cityFoods.explore7.length})`}
                 </h4>
               </div>
               <span className="text-xs text-slate-400">
@@ -657,7 +657,7 @@ function FoodItemCard({
 
             {food.scope === "CITY_LOCAL" && !food.isMustEatTop3 && (
               <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-black/60 text-white backdrop-blur-xs">
-                로컬 7선
+                로컬 추천
               </span>
             )}
 

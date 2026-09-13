@@ -2621,9 +2621,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               )}
             </div>
 
-            {/* 2단: 도시 이동 동선 탭 트랙 ([1 서울] -> [2 부산] -> [3 제주] -> [4 수원]) */}
+            {/* 2단: 도시 이동 동선 탭 트랙 ([공항] -> [1 서울] -> [2 부산] -> [3 제주] -> [4 수원] -> [공항]) */}
             <div className="flex items-center justify-start border-b border-slate-200/90 pb-px" role="tablist" aria-label="City route tabs">
               <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0 w-full">
+                {/* 출발 공항 고정 뱃지 */}
+                <span
+                  className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0 text-[11px] font-extrabold shadow-2xs select-none"
+                  title={locale === "ko" ? "입국 공항 (여정의 시작)" : "Arrival Airport"}
+                >
+                  <span>🛫</span>
+                  <span>{locale === "ko" ? "공항" : "Airport"}</span>
+                </span>
+
+                <span className="text-slate-300 text-xs font-bold shrink-0 select-none px-0.5" aria-hidden="true">
+                  ➔
+                </span>
+
                 {(() => {
                   const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
                   const isMultiCity = draft.selectedCities.length > 1;
@@ -2694,6 +2707,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     );
                   });
                 })()}
+
+                <span className="text-slate-300 text-xs font-bold shrink-0 select-none px-0.5" aria-hidden="true">
+                  ➔
+                </span>
+
+                {/* 귀국 공항 고정 뱃지 */}
+                <span
+                  className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0 text-[11px] font-extrabold shadow-2xs select-none"
+                  title={locale === "ko" ? "귀국 공항 (여정의 마무리)" : "Departure Airport"}
+                >
+                  <span>🛫</span>
+                  <span>{locale === "ko" ? "공항" : "Airport"}</span>
+                </span>
               </div>
             </div>
           </div>

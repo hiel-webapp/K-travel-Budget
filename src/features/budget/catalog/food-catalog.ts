@@ -726,7 +726,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 32000,
       isMustEatTop3: true,
       emoji: "🥩",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://tong.visitkorea.or.kr/cms/resource/12/3477212_image2_1.jpg",
     },
     {
       id: "jeju_gogi_guksu",
@@ -742,7 +742,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 12000,
       isMustEatTop3: true,
       emoji: "🍜",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://tong.visitkorea.or.kr/cms/resource/36/2833236_image2_1.JPG",
     },
     {
       id: "jeju_galchi_jorim",
@@ -758,7 +758,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 42000,
       isMustEatTop3: true,
       emoji: "🐟",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://tong.visitkorea.or.kr/cms/resource/75/4005575_image2_1.jpg",
     },
     {
       id: "jeju_abalone_porridge",
@@ -774,7 +774,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 20000,
       isMustEatTop3: false,
       emoji: "🥣",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://tong.visitkorea.or.kr/cms/resource/20/2868420_image2_1.jpg",
     },
     {
       id: "jeju_ttaksaewoo_sashimi",
@@ -790,7 +790,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 32000,
       isMustEatTop3: false,
       emoji: "🦐",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/4f/%EB%94%B1%EC%83%88%EC%9A%B0.jpg",
     },
     {
       id: "jeju_bomal_kalguksu",
@@ -806,7 +806,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 14000,
       isMustEatTop3: false,
       emoji: "🍜",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://tong.visitkorea.or.kr/cms/resource/22/4075322_image2_1.jpg",
     },
     {
       id: "jeju_citrus_omegi",
@@ -822,7 +822,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 8000,
       isMustEatTop3: false,
       emoji: "🍊",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/47/%EC%98%A4%EB%A9%94%EA%B8%B0%EB%96%A1_%EC%A0%95%EB%A9%B4.jpg",
     },
     {
       id: "jeju_dombe_gogi",
@@ -838,7 +838,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 28000,
       isMustEatTop3: false,
       emoji: "🥩",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://tong.visitkorea.or.kr/cms/resource/68/2836968_image2_1.jpg",
     },
     {
       id: "jeju_hanchi_mulhoe",
@@ -854,7 +854,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 20000,
       isMustEatTop3: false,
       emoji: "🥣",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://tong.visitkorea.or.kr/cms/resource/15/2872615_image2_1.JPG",
     },
     {
       id: "jeju_okdom_gui",
@@ -870,7 +870,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMaxKrw: 28000,
       isMustEatTop3: false,
       emoji: "🐟",
-    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/33/2870533_image2_1.jpg",
+      imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/bc/Korean_cuisine-Jeju_Island-Okdom_gui-Grilled_Tilefish-01.jpg",
     },
   ],
 

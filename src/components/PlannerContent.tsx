@@ -2816,10 +2816,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
           {/* Active Category Panel */}
           <div
-            className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6"
+            className={
+              selectedCityTab === "ALL" || selectedCityTab === "TRANSPORT"
+                ? "space-y-6"
+                : "bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6"
+            }
             role="tabpanel"
-            id={`cat-panel-${selectedCityTab === "ALL" ? "summary" : activeCategory}`}
-            aria-labelledby={`cat-tab-${selectedCityTab === "ALL" ? "summary" : activeCategory}`}
+            id={`cat-panel-${selectedCityTab === "ALL" ? "summary" : selectedCityTab === "TRANSPORT" ? "transport" : activeCategory}`}
+            aria-labelledby={`cat-tab-${selectedCityTab === "ALL" ? "summary" : selectedCityTab === "TRANSPORT" ? "transport" : activeCategory}`}
             aria-live="polite"
           >
 

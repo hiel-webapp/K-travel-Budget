@@ -3916,27 +3916,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const visibleAttractionsCount = visibleAttractionsCountByCity[city] ?? 8;
                   const displayedSpots = filteredSpotsForCity.slice(0, visibleAttractionsCount);
 
-                  const adultCount = draft.adultCount || 1;
-                  let selectedSpotsPricePerPerson = 0;
-                  const selectedSpotDetails: AttractionSpot[] = [];
-
-                  selectedSpotKeys.forEach((normKey) => {
-                    const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
-                    if (spot) {
-                      selectedSpotDetails.push(spot);
-                      if (spot.priceStatus === "PAID") {
-                        selectedSpotsPricePerPerson += spot.price;
-                      }
-                    }
-                  });
-
-                  // 완충비 단가 (Basket 기준)
-                  const bufferUnitPrice =
-                    activeBasketId === "MOSTLY_FREE" ? 10000 : activeBasketId === "EXPERIENCE_RICH" ? 120000 : 50000;
-                  const bufferTotal = bufferUnitPrice * adultCount;
-                  const spotsTotal = selectedSpotsPricePerPerson * adultCount;
-                  const totalAttractionBudget = spotsTotal + bufferTotal;
-
                   return (
                     <div className="space-y-6">
                       {/* Header & Reset */}
@@ -4322,79 +4301,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </div>
                         )}
                       </div>
-
-                      {/* 3. My Attraction Budget Summary Panel */}
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                          <span className="text-xs font-extrabold text-[#0f172a] flex items-center gap-1">
-                            {dict.planner.myAttractionSummaryTitle || "📋 내 여행 관광 예산 요약"}
-                          </span>
-                          <span className="text-xs font-black text-[#e25c5c]">
-                            {formatKrw(totalAttractionBudget)}
-                          </span>
-                        </div>
-
-                        <div className="space-y-1.5 text-xs text-slate-600">
-                          {/* Course breakdown */}
-                          <div className="flex justify-between items-start">
-                            <span className="font-bold text-slate-700">
-                              {dict.planner.selectedCoursesLabel || "선택 코스"} ({selectedCourseIds.length}{locale === "ko" ? "개" : ""}):
-                            </span>
-                            <span className="font-medium text-right text-slate-800">
-                              {selectedCourseIds.length === 0
-                                ? (locale === "ko" ? "선택 없음" : "None selected")
-                                : selectedCourseIds
-                                    .map((cid) => {
-                                      const c = TOUR_COURSE_PRESETS.find((course) => course.id === cid);
-                                      return locale === "ko" ? c?.nameKo : c?.nameEn;
-                                    })
-                                    .join(", ")}
-                            </span>
-                          </div>
-
-                          {/* Spot breakdown */}
-                          <div className="flex justify-between items-start">
-                            <span className="font-bold text-slate-700">
-                              {dict.planner.individualSpotsLabel || "담은 유료 관광지"} ({selectedSpotDetails.filter(s => s.priceStatus === "PAID").length}{locale === "ko" ? "개" : ""}):
-                            </span>
-                            <span className="font-extrabold text-[#e25c5c]">
-                              {formatKrw(spotsTotal)} ({adultCount}{locale === "ko" ? "인 기준" : " travelers"})
-                            </span>
-                          </div>
-
-                          {/* Buffer budget (Basket) */}
-                          <div className="flex justify-between items-center pt-1 border-t border-slate-200/40">
-                            <span className="font-bold text-slate-700 flex items-center gap-1">
-                              <span>🎟️</span>
-                              <span>{dict.planner.bufferBudgetLabel || "현지 활동 용돈 & 자유 예비비"}:</span>
-                            </span>
-                            <span className="font-extrabold text-slate-800">
-                              {formatKrw(bufferTotal)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Notice for unconfirmed/partially paid spots */}
-                        {selectedSpotDetails.some((s) => s.priceStatus === "UNCONFIRMED" || s.priceStatus === "PARTIALLY_PAID") && (
-                          <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200/60 text-[11px] text-amber-900 font-medium flex items-center gap-1.5">
-                            <span>⚠️</span>
-                            <span>{dict.planner.priceUnconfirmedWarning || "일부 유료 또는 가격 미확인 항목은 자동 예산 합산에서 제외되어 있습니다."}</span>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   );
                 })()}
               </div>
             )}
 
-
-
             {(() => {
               const activeNotice =
                 (activeCategory === "FOOD" && dict.planner.foodNotice) ||
                 (activeCategory === "CITY_TRANSPORT" && dict.planner.transportNotice) ||
-                (activeCategory === "ATTRACTION" && dict.planner.attractionOverrideNotice) ||
                 (activeCategory === "EMERGENCY_FUND" && dict.planner.emergencyNotice);
 
               if (!activeNotice) return null;

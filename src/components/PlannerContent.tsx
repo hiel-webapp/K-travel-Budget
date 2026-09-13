@@ -457,6 +457,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   // 방안 3: 목록 순서는 기본 추천순 고정, 필요 시 '담은 항목만 보기' 필터 제공
   const [showSavedOnlyAccByCity, setShowSavedOnlyAccByCity] = useState<Record<string, boolean>>({});
 
+  // 상단 도시 탭 좌우 드래그 앤 드롭 동선 정렬 상태
+  const [dragCityTab, setDragCityTab] = useState<SupportedCity | null>(null);
+  const [reorderCityTabs, setReorderCityTabs] = useState<SupportedCity[]>([]);
+  const [showTabRouteInfo, setShowTabRouteInfo] = useState(false);
+  const isDraggingTabRef = useRef(false);
+
   // 도시 탭 및 카테고리 변경 시 sessionStorage 및 URL 쿼리 파라미터 동기화
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -999,6 +1005,88 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       ...state,
       draft: nextDraft,
     });
+  };
+
+  // 상단 도시 탭 Drag & Drop 및 동선 순서 제어 핸들러
+  const handleTabDragStart = (e: React.DragEvent, city: SupportedCity) => {
+    if (state.status !== "ready") return;
+    isDraggingTabRef.current = true;
+    setDragCityTab(city);
+    setReorderCityTabs([...state.draft.selectedCities]);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", city);
+
+    // 반투명 커스텀 고스트 엘리먼트 생성
+    const ghostEl = document.createElement("div");
+    ghostEl.style.position = "absolute";
+    ghostEl.style.top = "-9999px";
+    ghostEl.style.left = "-9999px";
+    ghostEl.style.padding = "6px 14px";
+    ghostEl.style.borderRadius = "12px";
+    ghostEl.style.backgroundColor = "#0f172a";
+    ghostEl.style.color = "#ffffff";
+    ghostEl.style.border = "1.5px solid #334155";
+    ghostEl.style.boxShadow = "0 10px 15px -3px rgba(0,0,0,0.25)";
+    ghostEl.style.fontSize = "12px";
+    ghostEl.style.fontWeight = "800";
+    ghostEl.style.display = "flex";
+    ghostEl.style.alignItems = "center";
+    ghostEl.style.gap = "6px";
+    ghostEl.style.zIndex = "9999";
+    const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
+    ghostEl.innerHTML = `<span style="color:#94a3b8;font-weight:bold;">⋮⋮</span><span>${cityName}</span>`;
+    document.body.appendChild(ghostEl);
+
+    e.dataTransfer.setDragImage(ghostEl, 20, 15);
+    setTimeout(() => {
+      if (document.body.contains(ghostEl)) {
+        document.body.removeChild(ghostEl);
+      }
+    }, 0);
+  };
+
+  const handleTabDragOver = (e: React.DragEvent, targetCity: SupportedCity) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+
+    if (!dragCityTab || dragCityTab === targetCity) return;
+
+    const currentList = [...reorderCityTabs];
+    const fromIndex = currentList.indexOf(dragCityTab);
+    const toIndex = currentList.indexOf(targetCity);
+
+    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+      currentList.splice(fromIndex, 1);
+      currentList.splice(toIndex, 0, dragCityTab);
+      setReorderCityTabs(currentList);
+    }
+  };
+
+  const handleTabDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (reorderCityTabs.length > 0) {
+      handleReorderCities(reorderCityTabs);
+    }
+    setDragCityTab(null);
+    setTimeout(() => {
+      isDraggingTabRef.current = false;
+    }, 50);
+  };
+
+  const handleTabDragEnd = () => {
+    if (reorderCityTabs.length > 0) {
+      handleReorderCities(reorderCityTabs);
+    }
+    setDragCityTab(null);
+    setTimeout(() => {
+      isDraggingTabRef.current = false;
+    }, 50);
+  };
+
+  const handleTabOptimizeRoute = () => {
+    if (state.status !== "ready") return;
+    const sorted = sortCitiesByStandardOrder(state.draft.selectedCities);
+    handleReorderCities(sorted);
   };
 
   const handleModalToggleCity = (cityCode: SupportedCity) => {
@@ -2440,73 +2528,162 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-start">
         {/* ================= LEFT WORKSPACE (60%) ================= */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Summary Tab & City Visit Tabs */}
-          <div className="flex items-center justify-start border-b border-slate-200 pb-px" role="tablist" aria-label="City tabs">
-            {/* Left: Distinctive Summary & Transport Tabs with Right Divider */}
-            <div className="flex items-center gap-1.5 border-r border-slate-200/80 pr-2.5 mr-2 shrink-0">
-              <button
-                role="tab"
-                aria-selected={selectedCityTab === "ALL"}
-                id="city-tab-ALL"
-                aria-controls="city-panel-ALL"
-                onClick={() => setSelectedCityTab("ALL")}
-                className={`h-8 px-3.5 rounded-t-xl text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap ${
-                  selectedCityTab === "ALL"
-                    ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
-                    : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
-                }`}
-              >
-                <span>{dict.planner.summaryTab || (locale === "ko" ? "여행 개요" : "Trip Overview")}</span>
-              </button>
+          {/* Summary Tab & City Visit Tabs (동선 순서 좌우 드래그 정렬 통합) */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between border-b border-slate-200 pb-px gap-2" role="tablist" aria-label="City tabs">
+            {/* Left: Summary & Transport Tabs + Reorderable City Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0">
+              {/* Summary & Transport Tabs with Right Divider */}
+              <div className="flex items-center gap-1.5 border-r border-slate-200/80 pr-2 mr-1 shrink-0">
+                <button
+                  role="tab"
+                  aria-selected={selectedCityTab === "ALL"}
+                  id="city-tab-ALL"
+                  aria-controls="city-panel-ALL"
+                  onClick={() => setSelectedCityTab("ALL")}
+                  className={`h-8 px-3 rounded-t-xl text-[12px] sm:text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap ${
+                    selectedCityTab === "ALL"
+                      ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
+                      : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
+                  }`}
+                >
+                  <span>{dict.planner.summaryTab || (locale === "ko" ? "여행 개요" : "Trip Overview")}</span>
+                </button>
 
-              <button
-                role="tab"
-                aria-selected={selectedCityTab === "TRANSPORT"}
-                id="city-tab-TRANSPORT"
-                aria-controls="city-panel-TRANSPORT"
-                onClick={() => setSelectedCityTab("TRANSPORT")}
-                className={`h-8 px-3.5 rounded-t-xl text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap ${
-                  selectedCityTab === "TRANSPORT"
-                    ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
-                    : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
-                }`}
-              >
-                <span>{locale === "ko" ? "교통" : "Transport"}</span>
-              </button>
-            </div>
+                <button
+                  role="tab"
+                  aria-selected={selectedCityTab === "TRANSPORT"}
+                  id="city-tab-TRANSPORT"
+                  aria-controls="city-panel-TRANSPORT"
+                  onClick={() => setSelectedCityTab("TRANSPORT")}
+                  className={`h-8 px-3 rounded-t-xl text-[12px] sm:text-[13px] font-extrabold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap ${
+                    selectedCityTab === "TRANSPORT"
+                      ? "bg-[#0f172a] text-white border-[#0f172a] border-b-[#0f172a] shadow-xs z-10"
+                      : "bg-slate-100/90 text-slate-700 border-slate-200 hover:bg-slate-200/80"
+                  }`}
+                >
+                  <span>{locale === "ko" ? "교통" : "Transport"}</span>
+                </button>
+              </div>
 
-            {/* Right: City Tabs (Scrollbar hidden) */}
-            <div className="flex items-center space-x-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
-              {sortCitiesByStandardOrder(draft.selectedCities).map((city) => {
-                const isActive = selectedCityTab === city;
-                const label = locale === "ko"
-                  ? CITY_KOREAN_NAMES[city] || city
-                  : CITY_ENGLISH_NAMES[city] || city;
+              {/* City Tabs with Sequential Route Number Badge & Drag-and-Drop Reorder */}
+              {(() => {
+                const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
+                const isMultiCity = draft.selectedCities.length > 1;
 
-                return (
-                  <button
-                    key={city}
-                    role="tab"
-                    aria-selected={isActive}
-                    id={`city-tab-${city}`}
-                    aria-controls={`city-panel-${city}`}
-                    onClick={() => {
-                      setSelectedCityTab(city);
-                      if (activeCategory === "CITY_TRANSPORT") {
-                        setActiveCategory("ACCOMMODATION");
+                return displayCityTabs.map((city, idx) => {
+                  const isActive = selectedCityTab === city;
+                  const isDraggingThis = dragCityTab === city;
+                  const label = locale === "ko"
+                    ? CITY_KOREAN_NAMES[city] || city
+                    : CITY_ENGLISH_NAMES[city] || city;
+
+                  return (
+                    <button
+                      key={city}
+                      role="tab"
+                      aria-selected={isActive}
+                      id={`city-tab-${city}`}
+                      aria-controls={`city-panel-${city}`}
+                      draggable={isMultiCity}
+                      onDragStart={(e) => handleTabDragStart(e, city)}
+                      onDragOver={(e) => handleTabDragOver(e, city)}
+                      onDrop={handleTabDrop}
+                      onDragEnd={handleTabDragEnd}
+                      onClick={() => {
+                        if (isDraggingTabRef.current) return;
+                        setSelectedCityTab(city);
+                        if (activeCategory === "CITY_TRANSPORT") {
+                          setActiveCategory("ACCOMMODATION");
+                        }
+                      }}
+                      title={
+                        isMultiCity
+                          ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
+                          : label
                       }
-                    }}
-                    className={`h-8 px-3 rounded-t-xl text-[13px] font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer whitespace-nowrap ${
-                      isActive
-                        ? "bg-[#e25c5c] text-white border-[#e25c5c] border-b-[#e25c5c] shadow-2xs z-10 font-extrabold"
-                        : "bg-[#faf9f6]/60 text-slate-600 border-slate-200/50 border-b-slate-200 hover:text-slate-900 hover:bg-white"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+                      className={`h-8 px-2.5 sm:px-3 rounded-t-xl text-[12px] sm:text-[13px] font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none whitespace-nowrap flex items-center gap-1.5 ${
+                        isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                      } ${
+                        isDraggingThis
+                          ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
+                          : isActive
+                          ? "bg-[#e25c5c] text-white border-[#e25c5c] border-b-[#e25c5c] shadow-2xs z-10 font-extrabold"
+                          : "bg-[#faf9f6]/70 text-slate-600 border-slate-200/60 border-b-slate-200 hover:text-slate-900 hover:bg-white"
+                      }`}
+                    >
+                      {/* 동선 순서 번호 뱃지 */}
+                      {isMultiCity && (
+                        <span
+                          className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 transition-colors ${
+                            isActive
+                              ? "bg-white text-[#e25c5c]"
+                              : "bg-rose-100 text-[#e25c5c]"
+                          }`}
+                        >
+                          {idx + 1}
+                        </span>
+                      )}
+                      <span>{label}</span>
+                    </button>
+                  );
+                });
+              })()}
             </div>
+
+            {/* Right: Route Auto-Optimize & Info Tooltip (병합된 동선 컨트롤러) */}
+            {draft.selectedCities.length > 1 && (
+              <div className="flex items-center gap-1.5 shrink-0 pb-1 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={handleTabOptimizeRoute}
+                  className="px-2 py-1 text-[11px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
+                  title={locale === "ko" ? "지리적 동선에 맞게 최적 순서로 자동 정렬합니다" : "Auto optimize route sequence"}
+                >
+                  <span>⚡</span>
+                  <span className="hidden sm:inline">{locale === "ko" ? "최적 동선 정렬" : "Auto Optimize"}</span>
+                  <span className="sm:hidden">{locale === "ko" ? "최적 동선" : "Optimize"}</span>
+                </button>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowTabRouteInfo(!showTabRouteInfo)}
+                    className={`inline-flex items-center px-1.5 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer shadow-2xs ${
+                      showTabRouteInfo
+                        ? "bg-[#0f172a] text-white border-[#0f172a]"
+                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                    title={locale === "ko" ? "동선 안내 보기" : "Route Info"}
+                  >
+                    Info
+                  </button>
+
+                  {showTabRouteInfo && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-30"
+                        onClick={() => setShowTabRouteInfo(false)}
+                      />
+                      <div className="absolute right-0 top-full mt-1.5 w-64 sm:w-72 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                        <p className="font-extrabold text-amber-300">
+                          🗺️ {locale === "ko" ? "도시 탭 이동 동선 안내" : "Route Sequence Guide"}
+                        </p>
+                        <p className="text-slate-200">
+                          • {locale === "ko"
+                            ? "도시 탭을 마우스로 잡고 좌우로 끌어당기면 여행 방문 순서가 실시간으로 변경됩니다."
+                            : "Drag & drop city tabs left or right to reorder your itinerary."}
+                        </p>
+                        <p className="text-slate-300">
+                          • {locale === "ko"
+                            ? "순서가 바뀌면 도시 간 교통 구간과 일정이 최신 동선에 맞춰 자동 재계산됩니다."
+                            : "Transit routes and costs automatically update according to your custom sequence."}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Individual City Night Allocation Quick Stepper Banner */}

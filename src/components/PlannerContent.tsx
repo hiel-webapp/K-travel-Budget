@@ -2622,17 +2622,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
 
             {/* 2단: 도시 이동 동선 탭 트랙 ([공항] -> [1 서울] -> [2 부산] -> [3 제주] -> [4 수원] -> [공항]) */}
-            <div className="flex items-center justify-start border-b border-slate-200/90 pb-px" role="tablist" aria-label="City route tabs">
-              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0 w-full">
-                {/* 출발 공항 고정 뱃지 */}
-                <span
-                  className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0 text-[11px] font-extrabold shadow-2xs select-none"
-                  title={locale === "ko" ? "입국 공항 (여정의 시작)" : "Arrival Airport"}
-                >
-                  <span>🛫</span>
-                  <span>{locale === "ko" ? "공항" : "Airport"}</span>
-                </span>
+            <div className="flex items-center justify-between border-b border-slate-200/90 pb-px gap-1 sm:gap-2 w-full" role="tablist" aria-label="City route tabs">
+              {/* 출발 공항 고정 뱃지 (왼쪽 끝: 1단 여행 개요 탭 시작점과 수직 일치) */}
+              <div
+                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center gap-1.5 shrink-0 select-none"
+                title={locale === "ko" ? "입국 공항 (여정의 시작)" : "Arrival Airport"}
+              >
+                <span className="text-sm">🛫</span>
+                <span>{locale === "ko" ? "공항" : "Airport"}</span>
+              </div>
 
+              {/* 중간: 도시 탭들과 이동 화살표 (중앙 균형 배치 및 오버플로우 스크롤 지원) */}
+              <div className="flex-1 flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0">
                 <span className="text-slate-300 text-xs font-bold shrink-0 select-none px-0.5" aria-hidden="true">
                   ➔
                 </span>
@@ -2711,15 +2712,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 <span className="text-slate-300 text-xs font-bold shrink-0 select-none px-0.5" aria-hidden="true">
                   ➔
                 </span>
+              </div>
 
-                {/* 귀국 공항 고정 뱃지 */}
-                <span
-                  className="px-2.5 py-1 rounded-lg bg-[#0f172a] text-white flex items-center gap-1 shrink-0 text-[11px] font-extrabold shadow-2xs select-none"
-                  title={locale === "ko" ? "귀국 공항 (여정의 마무리)" : "Departure Airport"}
-                >
-                  <span>🛫</span>
-                  <span>{locale === "ko" ? "공항" : "Airport"}</span>
-                </span>
+              {/* 귀국 공항 고정 뱃지 (오른쪽 끝: 1단 Info 버튼 끝점과 수직 일치) */}
+              <div
+                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center gap-1.5 shrink-0 select-none"
+                title={locale === "ko" ? "귀국 공항 (여정의 마무리)" : "Departure Airport"}
+              >
+                <span className="text-sm">🛫</span>
+                <span>{locale === "ko" ? "공항" : "Airport"}</span>
               </div>
             </div>
           </div>

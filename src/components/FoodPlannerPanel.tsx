@@ -724,7 +724,7 @@ function FoodItemCard({
             e.stopPropagation();
             onPreview();
           }}
-          className="text-[11px] text-slate-500 hover:text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer"
         >
           <span>🔍</span>
           <span>{locale === "ko" ? "상세보기" : "Details"}</span>

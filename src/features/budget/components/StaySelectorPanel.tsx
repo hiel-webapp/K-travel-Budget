@@ -1,0 +1,400 @@
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../../../lib/trip-domain";
+import type { Dictionary } from "../../../lib/i18n/dictionaries/ko";
+import { formatKrw } from "../presentation/formatters";
+import {
+  STAY_ARCHETYPES,
+  StayArchetypeId,
+  OccupancyMode,
+  getStayArchetypePrice,
+  generateStayOtaUrl,
+} from "../catalog/stay-archetypes";
+
+export interface StaySelectorPanelProps {
+  city: SupportedCity;
+  locale: "ko" | "en";
+  dict: Dictionary;
+  adultCount: number;
+  totalNights: number;
+  cityNights: number;
+  totalAllocatedNights: number;
+  onCityNightsChange: (city: SupportedCity, delta: number) => void;
+  selectedArchetypeId: StayArchetypeId;
+  onSelectArchetype: (city: SupportedCity, archetypeId: StayArchetypeId) => void;
+  occupancyMode: OccupancyMode;
+  onSelectOccupancyMode: (city: SupportedCity, mode: OccupancyMode) => void;
+  onResetToRecommended?: (city: SupportedCity) => void;
+  hasCustomOverride?: boolean;
+}
+
+export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
+  city,
+  locale,
+  dict,
+  adultCount,
+  totalNights,
+  cityNights,
+  totalAllocatedNights,
+  onCityNightsChange,
+  selectedArchetypeId,
+  onSelectArchetype,
+  occupancyMode,
+  onSelectOccupancyMode,
+  onResetToRecommended,
+  hasCustomOverride = false,
+}) => {
+  const [addedNotice, setAddedNotice] = useState(false);
+
+  const cityName = locale === "ko"
+    ? CITY_KOREAN_NAMES[city] || city
+    : CITY_ENGLISH_NAMES[city] || city;
+
+  const currentArchetype = STAY_ARCHETYPES.find((a) => a.id === selectedArchetypeId) || STAY_ARCHETYPES[1];
+  const nightlyRoomPrice = getStayArchetypePrice(city, currentArchetype.id);
+
+  // 안 1 로직:
+  // 1인 여행자: 방 1개 = 1인 부담 100%
+  // 2인 이상 여행자:
+  // - SHARED_PAIR (기본): 2인 1실 (총 객실비 = 1개 방 * 박수, 1인당 부담 = 1/2)
+  // - SOLO: 1인 1실 (총 객실비 = adultCount개 방 * 박수, 1인당 부담 = 방 1개 전액)
+  const isSoloTraveler = adultCount <= 1;
+  const isPairSplit = !isSoloTraveler && occupancyMode === "SHARED_PAIR";
+
+  // 여행 전체 숙박비 (총 결제액)
+  const roomCount = isSoloTraveler ? 1 : isPairSplit ? Math.ceil(adultCount / 2) : adultCount;
+  const totalStayCostKrw = nightlyRoomPrice * roomCount * cityNights;
+  const perPersonStayCostKrw = Math.round(totalStayCostKrw / adultCount);
+
+  // USD 환율 (1 USD ≈ ₩1,350 기준 정수 환산)
+  const totalStayCostUsd = Math.round(totalStayCostKrw / 1350);
+  const perPersonStayCostUsd = Math.round(perPersonStayCostKrw / 1350);
+
+  const canIncreaseNights = totalAllocatedNights < totalNights;
+  const canDecreaseNights = cityNights > 0;
+
+  const handleAddToReceiptClick = () => {
+    setAddedNotice(true);
+    setTimeout(() => setAddedNotice(false), 2500);
+  };
+
+  const otaUrl = generateStayOtaUrl(currentArchetype.id, city);
+
+  return (
+    <div className="space-y-6">
+      {/* 1. Header & Reset Bar */}
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
+        <div>
+          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+            <span>🏨</span>
+            <span>
+              {cityName} {dict.planner?.stayPlannerTitle?.replace("🏨 ", "") || (locale === "ko" ? "숙소 플래너" : "Stay Planner")}
+            </span>
+          </h4>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {dict.planner?.stayPlannerSubtitle || (locale === "ko"
+              ? "외국인 여행자 맞춤 4대 숙소 스타일과 체류 조건을 설정하세요."
+              : "Choose your stay archetype and room sharing preferences.")}
+          </p>
+        </div>
+        {onResetToRecommended && (
+          <button
+            type="button"
+            onClick={() => onResetToRecommended(city)}
+            disabled={!hasCustomOverride}
+            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
+              hasCustomOverride
+                ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
+                : "text-slate-300 border-slate-100 bg-slate-50 cursor-not-allowed"
+            }`}
+          >
+            {dict.planner?.resetToRecommended || (locale === "ko" ? "추천 숙소로 초기화" : "Reset")}
+          </button>
+        )}
+      </div>
+
+      {/* 2. Step 1: 4-Tier Stay Archetype Cards Grid */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
+            {dict.planner?.stayStep1Title || (locale === "ko" ? "Step 1. 당신이 원하는 숙소 스타일은?" : "Step 1. Choose your preferred stay style")}
+          </span>
+          <span className="text-[11px] text-slate-400 font-medium">
+            {locale === "ko" ? "도시별 표준 실측 평균가 적용" : "Verified city average rates"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {STAY_ARCHETYPES.map((archetype) => {
+            const isSelected = archetype.id === selectedArchetypeId;
+            const price = getStayArchetypePrice(city, archetype.id);
+            const title = locale === "ko" ? archetype.titleKo : archetype.titleEn;
+            const desc = locale === "ko" ? archetype.descKo : archetype.descEn;
+            const badge = locale === "ko" ? archetype.badgeKo : archetype.badgeEn;
+
+            return (
+              <button
+                key={archetype.id}
+                type="button"
+                onClick={() => onSelectArchetype(city, archetype.id)}
+                className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
+                  isSelected
+                    ? "bg-[#fff7f7] border border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+                    : "bg-white border-slate-200/90 text-slate-600 hover:border-slate-300 hover:bg-slate-50/60"
+                }`}
+              >
+                {/* Image Container with Badge */}
+                <div className="relative w-full h-32 rounded-xl overflow-hidden mb-2.5 bg-slate-100 shrink-0">
+                  <Image
+                    src={archetype.imageUrl}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {badge && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-white/95 text-slate-900 shadow-2xs backdrop-blur-xs border border-white/60">
+                        {badge}
+                      </span>
+                    </div>
+                  )}
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
+                        ✓
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="space-y-1 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm shrink-0">{archetype.icon}</span>
+                      <h5 className={`text-xs font-black leading-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-900"}`}>
+                        {title}
+                      </h5>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-slate-500 mt-1 line-clamp-2">
+                      {desc}
+                    </p>
+                  </div>
+
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-baseline justify-between w-full">
+                    <span className="text-[10px] font-bold text-slate-400">
+                      {locale === "ko" ? "1박 평균" : "Per Night"}
+                    </span>
+                    <strong className="text-xs font-black text-[#e25c5c]">
+                      {formatKrw(price)}
+                    </strong>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Step 2: Nights Stepper */}
+      <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🗓️</span>
+            <span className="text-xs font-extrabold text-slate-800">
+              {dict.planner?.stayStep2Title || (locale === "ko" ? `Step 2. 몇 박을 머무르시나요? (${cityName})` : `Step 2. How many nights in ${cityName}?`)}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 font-medium">
+            {locale === "ko"
+              ? `전체 ${totalNights}박 일정 중 현재 ${totalAllocatedNights}박 배분됨`
+              : `${totalAllocatedNights} of ${totalNights} total nights allocated`}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
+          <button
+            type="button"
+            disabled={!canDecreaseNights}
+            onClick={() => onCityNightsChange(city, -1)}
+            className="w-7 h-7 rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200 transition-colors cursor-pointer"
+            title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
+          >
+            -
+          </button>
+          <span className="px-2 text-xs font-black text-slate-900 min-w-[50px] text-center whitespace-nowrap">
+            {cityNights === 0 ? (locale === "ko" ? "당일치기" : "Day Trip") : `${cityNights}${locale === "ko" ? "박" : " Nights"}`}
+          </span>
+          <button
+            type="button"
+            disabled={!canIncreaseNights}
+            onClick={() => onCityNightsChange(city, 1)}
+            className="w-7 h-7 rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200 transition-colors cursor-pointer"
+            title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* 4. Step 3: Room Occupancy Option (안 1: 인원수 자동 감지) */}
+      {!isSoloTraveler ? (
+        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">👥</span>
+              <span className="text-xs font-extrabold text-slate-800">
+                {dict.planner?.stayStep3Title || (locale === "ko" ? "Step 3. 객실 이용 방식을 선택하세요" : "Step 3. Select Room Sharing Preference")}
+              </span>
+            </div>
+            <span className="text-[11px] font-bold text-[#e25c5c]">
+              {locale === "ko" ? `여행 인원 ${adultCount}명 기준` : `${adultCount} Travelers`}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Option A: SHARED_PAIR (1/2 분할) */}
+            <button
+              type="button"
+              onClick={() => onSelectOccupancyMode(city, "SHARED_PAIR")}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                isPairSplit
+                  ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+                  : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+              }`}
+            >
+              <span className="text-base mt-0.5">🛏️</span>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-xs font-black ${isPairSplit ? "text-[#e25c5c]" : "text-slate-800"}`}>
+                    {adultCount === 2
+                      ? (locale === "ko" ? "2인 1실 (추천: 비용 1/2 분할 계산)" : "Share 1 Room (Split 1/2)")
+                      : (locale === "ko" ? `2인 1실 기준 쉐어 (${adultCount}명 분할 계산)` : `Share Rooms (Split across ${adultCount})`)}
+                  </span>
+                  {isPairSplit && (
+                    <span className="text-[10px] bg-[#e25c5c] text-white px-1.5 py-0.2 rounded font-black">
+                      ✓
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  {locale === "ko"
+                    ? `방 1개를 함께 투숙하여 1인당 숙박비를 50% 분할 절약합니다.`
+                    : `Share a double/twin room with your companion and split the cost.`}
+                </p>
+              </div>
+            </button>
+
+            {/* Option B: SOLO (각자 방 사용) */}
+            <button
+              type="button"
+              onClick={() => onSelectOccupancyMode(city, "SOLO")}
+              className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-2.5 ${
+                !isPairSplit
+                  ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+                  : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
+              }`}
+            >
+              <span className="text-base mt-0.5">🚪</span>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-xs font-black ${!isPairSplit ? "text-[#e25c5c]" : "text-slate-800"}`}>
+                    {locale === "ko" ? `1인 1실 (각자 방 사용: 방 ${adultCount}개)` : `Private Rooms (${adultCount} Rooms)`}
+                  </span>
+                  {!isPairSplit && (
+                    <span className="text-[10px] bg-[#e25c5c] text-white px-1.5 py-0.2 rounded font-black">
+                      ✓
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  {locale === "ko"
+                    ? `각자 독립된 개인실을 예약하여 1인당 객실 1개 비용을 전액 부담합니다.`
+                    : `Each traveler reserves their own private room for full privacy.`}
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs text-slate-600 font-medium">
+          <div className="flex items-center gap-2">
+            <span>👤</span>
+            <span>{locale === "ko" ? "1인 나홀로 여행: 1인 1실 단독 투숙이 자동 적용 중입니다." : "Solo Traveler: 1 private room rate automatically applied."}</span>
+          </div>
+          <span className="text-[11px] font-bold text-slate-500">방 1개</span>
+        </div>
+      )}
+
+      {/* 5. Bottom Live Cost Summary & Action Buttons */}
+      <div className="p-4.5 rounded-2xl bg-[#faf9f8] border border-slate-200/90 shadow-2xs space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200/70 pb-3.5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-slate-500 font-bold">
+                {dict.planner?.stayEstimatedNightly || (locale === "ko" ? "예상 1박 비용" : "Est. Nightly Rate")}:
+              </span>
+              <strong className="text-xs font-extrabold text-slate-900">
+                {formatKrw(nightlyRoomPrice)}
+              </strong>
+              <span className="text-[11px] text-slate-400">|</span>
+              <span className="text-xs text-slate-500 font-bold">
+                {locale === "ko" ? `총 ${cityName} 숙박비 (${cityNights}박):` : `Total ${cityName} Stay (${cityNights} Nts):`}
+              </span>
+              <strong className="text-sm font-black text-[#e25c5c]">
+                {formatKrw(totalStayCostKrw)}
+              </strong>
+              <span className="text-xs font-bold text-slate-500">
+                (${totalStayCostUsd.toLocaleString()} USD)
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-500 font-medium">
+              💡 {locale === "ko"
+                ? `1인당 부담액: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
+                    isPairSplit ? "2인 1실 1/2 분할 반영" : "1인 1실 기준"
+                  }`
+                : `Per traveler: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
+                    isPairSplit ? "1/2 split applied" : "1 room per traveler"
+                  }`}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-0.5">
+          {/* Add to Receipt Button */}
+          <button
+            type="button"
+            onClick={handleAddToReceiptClick}
+            className="w-full sm:w-auto flex-1 h-10 px-4 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-2xs cursor-pointer"
+          >
+            <span>🛍️</span>
+            <span>
+              {addedNotice
+                ? (locale === "ko" ? "✓ 영수증에 실시간 반영 완료" : "✓ Applied to Receipt")
+                : (dict.planner?.stayAddToReceipt || (locale === "ko" ? "영수증에 숙박비 담기" : "Add Stay to Receipt"))}
+            </span>
+          </button>
+
+          {/* Deep Link to OTA Button */}
+          <a
+            href={otaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto flex-1 h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group"
+          >
+            <span>🔗</span>
+            <span>
+              {dict.planner?.staySearchOta || (locale === "ko" ? "아고다/에어비앤비에서 이 조건으로 검색" : "Search on Agoda/Airbnb with these filters")}
+            </span>
+            <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};

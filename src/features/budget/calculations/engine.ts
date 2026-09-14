@@ -13,6 +13,7 @@ import {
   BaseMealSlot,
   BaseMealPlan,
   LocalTransitStyle,
+  OccupancyMode,
 } from "../domain/types";
 import {
   MOCK_PRICE_CATALOG,
@@ -146,6 +147,8 @@ export function generateInitialBudgetPlan(
         let accPlaceOverrideItem: BudgetLineItem | null = null;
         let attractionOverrideItem: BudgetLineItem | null = null;
 
+        const cityOccupancyMode = overrides?.occupancyMode?.[city] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
+
         if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
           const accSelection = overrides.accommodation[city]!;
           if (typeof accSelection === "object" && accSelection !== null && "kind" in accSelection) {
@@ -153,6 +156,10 @@ export function generateInitialBudgetPlan(
               const fallbackBasketId = accSelection.basketId || BUDGET_TIER_DEFAULT_BASKETS[budgetTier]["ACCOMMODATION"];
               const basket = findBasket(catalog, fallbackBasketId, category, city) || catalog.find((b) => b.category === "ACCOMMODATION");
               if (basket) {
+                const isSoloTraveler = adultCount <= 1;
+                const isPairSplit = !isSoloTraveler && cityOccupancyMode === "SHARED_PAIR";
+                const roomCount = isSoloTraveler ? 1 : isPairSplit ? Math.ceil(adultCount / 2) : adultCount;
+
                 const baseItem = calculateLineItem({
                   basket,
                   cityCode: city,
@@ -160,11 +167,13 @@ export function generateInitialBudgetPlan(
                   adultCount,
                   duration: nights,
                   cityCount: selectedCities.length,
+                  occupancyMode: cityOccupancyMode,
                 });
                 accPlaceOverrideItem = {
                   ...baseItem,
+                  quantity: roomCount,
                   unitPriceKrw: accSelection.nightlyPriceKrw,
-                  lineTotalKrw: accSelection.nightlyPriceKrw * nights,
+                  lineTotalKrw: accSelection.nightlyPriceKrw * roomCount * nights,
                   confidence: accSelection.priceSource,
                   sourceLabel: accSelection.placeNameKo,
                 };
@@ -329,6 +338,7 @@ export function generateInitialBudgetPlan(
               adultCount,
               duration: nights,
               cityCount: selectedCities.length,
+              occupancyMode: cityOccupancyMode,
             });
           }
         }
@@ -595,6 +605,7 @@ interface CalculateLineItemParams {
   adultCount: number;
   duration: number; // 숙박 일수 또는 기간
   cityCount: number;
+  occupancyMode?: OccupancyMode;
 }
 
 /**
@@ -607,6 +618,7 @@ export function calculateLineItem({
   adultCount,
   duration,
   cityCount,
+  occupancyMode,
 }: CalculateLineItemParams): BudgetLineItem {
   let quantity = 0;
   let participantCount = adultCount;
@@ -619,8 +631,10 @@ export function calculateLineItem({
 
   switch (basket.calculationStrategy) {
     case "ROOM_NIGHT": {
-      // HypeHeritage MVP: roomCount is fixed to exactly 1 room.
-      const roomCount = 1;
+      // 안 1: 1인은 1객실, 2인 이상은 SHARED_PAIR(기본) 시 ceil(N/2), SOLO 시 N개 객실
+      const isSoloTraveler = adultCount <= 1;
+      const isPairSplit = !isSoloTraveler && (occupancyMode === "SHARED_PAIR" || !occupancyMode);
+      const roomCount = isSoloTraveler ? 1 : isPairSplit ? Math.ceil(adultCount / 2) : adultCount;
       quantity = roomCount;
       lineTotalKrw = unitPrice * roomCount * duration;
       priceMinKrw = basket.priceMinKrw * roomCount * duration;

@@ -428,40 +428,57 @@ export function parsePlannerPreferences(
         return { status: "fingerprint-mismatch", preferences: defaultPrefs };
       }
 
-      if (!validateAccommodation(prefs.accommodationByCity, draft)) {
-        return { status: "invalid", preferences: defaultPrefs };
-      }
-
-      if (prefs.attractionByCity && !validateAttraction(prefs.attractionByCity, draft)) {
-        return { status: "invalid", preferences: defaultPrefs };
-      }
-
-      for (const [key, value] of Object.entries(prefs.foodOverrides)) {
-        if (typeof key !== "string" || typeof value !== "string") {
-          return { status: "invalid", preferences: defaultPrefs };
+      // Sanitize accommodation: keep only valid city overrides instead of failing whole preferences
+      const sanitizedAcc: AccommodationOverridesByCity = {};
+      if (prefs.accommodationByCity && typeof prefs.accommodationByCity === "object") {
+        for (const [cityKey, val] of Object.entries(prefs.accommodationByCity)) {
+          const city = cityKey as SupportedCity;
+          if (validateSingleAccommodation(city, val, draft)) {
+            sanitizedAcc[city] = val;
+          }
         }
       }
 
-      for (const [key, list] of Object.entries(prefs.addOnSelections)) {
-        if (typeof key !== "string" || !Array.isArray(list)) {
-          return { status: "invalid", preferences: defaultPrefs };
+      // Sanitize attraction: keep only valid city overrides instead of failing whole preferences
+      const sanitizedAttr: AttractionOverridesByCity = {};
+      if (prefs.attractionByCity && typeof prefs.attractionByCity === "object") {
+        for (const [cityKey, basketId] of Object.entries(prefs.attractionByCity)) {
+          const city = cityKey as SupportedCity;
+          if (validateSingleAttraction(city, basketId, draft)) {
+            sanitizedAttr[city] = basketId;
+          }
         }
-        for (const item of list) {
-          if (
-            !item ||
-            typeof item !== "object" ||
-            typeof item.addOnItemId !== "string" ||
-            typeof item.quantity !== "number"
-          ) {
-            return { status: "invalid", preferences: defaultPrefs };
+      }
+
+      // Sanitize foodOverrides
+      const sanitizedFood: FoodOverrides = {};
+      if (prefs.foodOverrides && typeof prefs.foodOverrides === "object") {
+        for (const [key, value] of Object.entries(prefs.foodOverrides)) {
+          if (typeof key === "string" && typeof value === "string") {
+            sanitizedFood[key] = value;
+          }
+        }
+      }
+
+      // Sanitize addOnSelections
+      const sanitizedAddOns: FoodAddOnOverrides = {};
+      if (prefs.addOnSelections && typeof prefs.addOnSelections === "object") {
+        for (const [key, list] of Object.entries(prefs.addOnSelections)) {
+          if (typeof key === "string" && Array.isArray(list)) {
+            sanitizedAddOns[key] = list.filter(
+              (item) => item && typeof item === "object" && typeof item.addOnItemId === "string" && typeof item.quantity === "number"
+            );
           }
         }
       }
 
       const returnPrefs: PlannerPreferences = {
         ...prefs,
+        accommodationByCity: sanitizedAcc,
+        attractionByCity: sanitizedAttr,
+        foodOverrides: sanitizedFood,
+        addOnSelections: sanitizedAddOns,
         foodBasketSelections: Array.isArray(prefs.foodBasketSelections) ? prefs.foodBasketSelections : undefined,
-        attractionByCity: prefs.attractionByCity || {},
         attractionSelections: prefs.attractionSelections || {},
         attractionCustomDailyKrw: isEmergencyValValid(prefs.attractionCustomDailyKrw) ? prefs.attractionCustomDailyKrw : undefined,
         emergencyFundKrw: isEmergencyValValid(prefs.emergencyFundKrw) ? prefs.emergencyFundKrw : 0,
@@ -479,47 +496,68 @@ export function parsePlannerPreferences(
   }
 }
 
+function validateSingleAccommodation(
+  city: SupportedCity,
+  val: unknown,
+  draft: TripDraft
+): boolean {
+  if (!draft.selectedCities.includes(city)) return false;
+  if (!val) return false;
+
+  if (typeof val === "object" && val !== null && "kind" in val) {
+    const obj = val as any;
+    if (obj.kind === "PLACE") {
+      return !(!obj.placeId || typeof obj.nightlyPriceKrw !== "number" || obj.nightlyPriceKrw < 0);
+    }
+    return MOCK_PRICE_CATALOG.some(
+      (b) =>
+        b.category === "ACCOMMODATION" &&
+        b.id === obj.basketId &&
+        (b.applicableCity === city || b.applicableCity === "SEOUL" || !b.applicableCity) &&
+        b.isActive
+    );
+  }
+
+  if (typeof val === "string") {
+    return MOCK_PRICE_CATALOG.some(
+      (b) =>
+        b.category === "ACCOMMODATION" &&
+        b.id === val &&
+        (b.applicableCity === city || b.applicableCity === "SEOUL" || !b.applicableCity) &&
+        b.isActive
+    );
+  }
+
+  return false;
+}
+
+function validateSingleAttraction(
+  city: SupportedCity,
+  basketId: unknown,
+  draft: TripDraft
+): boolean {
+  if (!draft.selectedCities.includes(city)) return false;
+  if (!basketId || typeof basketId !== "string") return false;
+  if (basketId === "NONE") return true;
+
+  return MOCK_PRICE_CATALOG.some(
+    (b) =>
+      b.category === "ATTRACTION" &&
+      b.id === basketId &&
+      (b.applicableCity === city || b.applicableCity === "SEOUL" || !b.applicableCity) &&
+      b.isActive
+  );
+}
+
 function validateAccommodation(
   acc: AccommodationOverridesByCity,
   draft: TripDraft
 ): boolean {
   for (const [cityKey, val] of Object.entries(acc)) {
     const city = cityKey as SupportedCity;
-
-    if (!draft.selectedCities.includes(city)) {
-      continue;
-    }
-
+    if (!draft.selectedCities.includes(city)) continue;
     if (!val) continue;
-
-    if (typeof val === "object" && val !== null && "kind" in val) {
-      if (val.kind === "PLACE") {
-        if (!val.placeId || typeof val.nightlyPriceKrw !== "number" || val.nightlyPriceKrw < 0) {
-          return false;
-        }
-        continue;
-      }
-      const basket = MOCK_PRICE_CATALOG.find(
-        (b) =>
-          b.category === "ACCOMMODATION" &&
-          b.id === val.basketId &&
-          b.applicableCity === city &&
-          b.isActive
-      );
-      if (!basket) return false;
-      continue;
-    }
-
-    if (typeof val === "string") {
-      const basket = MOCK_PRICE_CATALOG.find(
-        (b) =>
-          b.category === "ACCOMMODATION" &&
-          b.id === val &&
-          b.applicableCity === city &&
-          b.isActive
-      );
-      if (!basket) return false;
-    }
+    if (!validateSingleAccommodation(city, val, draft)) return false;
   }
   return true;
 }
@@ -530,26 +568,9 @@ function validateAttraction(
 ): boolean {
   for (const [cityKey, basketId] of Object.entries(attr)) {
     const city = cityKey as SupportedCity;
-
-    if (!draft.selectedCities.includes(city)) {
-      continue;
-    }
-
-    if ((basketId as string) === "NONE") {
-      continue;
-    }
-
-    const basket = MOCK_PRICE_CATALOG.find(
-      (b) =>
-        b.category === "ATTRACTION" &&
-        b.id === basketId &&
-        b.applicableCity === city &&
-        b.isActive
-    );
-
-    if (!basket) {
-      return false;
-    }
+    if (!draft.selectedCities.includes(city)) continue;
+    if (!basketId) continue;
+    if (!validateSingleAttraction(city, basketId, draft)) return false;
   }
   return true;
 }

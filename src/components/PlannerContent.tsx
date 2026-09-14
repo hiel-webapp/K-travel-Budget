@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
-import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces } from "../lib/storage-helper";
+import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
+import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces, generateTripFingerprint } from "../lib/storage-helper";
 import type { PlaceItem } from "../lib/places/types";
 
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle, FoodBasketItemSelection } from "../features/budget/domain/types";
@@ -394,20 +394,38 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
 
     try {
-      const draft = loadTripDraft();
-      const validation = validateTripDraft(draft);
+      let draft = loadTripDraft();
+      let validation = validateTripDraft(draft);
 
+      // 만약 draft의 일부분이 살짝 어긋난 경우, 기본값과 규칙에 맞게 자동 보정(Auto-repair)
       if (!validation.success) {
-        return { status: "invalid" };
+        const repaired = sanitizeTripDraft(draft);
+        const reCheck = validateTripDraft(repaired);
+        if (reCheck.success) {
+          saveTripDraft(repaired);
+          draft = repaired;
+          validation = reCheck;
+        } else {
+          return { status: "invalid" };
+        }
       }
 
       const res = loadPlannerPreferencesEx(draft);
-      if (res.status === "invalid") {
-        return { status: "invalid" };
-      }
+      let preferences = res.preferences;
 
-      const preferences = res.preferences;
-      if (res.status === "fingerprint-mismatch" || res.status === "missing") {
+      // 만약 preferences가 invalid이거나 mismatch이거나 missing 등 온전하지 않은 경우,
+      // 화면을 invalid 에러로 막지 않고, 안전하게 기본 preferences로 즉시 초기화하여 정상 플래너로 직행
+      if (res.status !== "valid") {
+        preferences = {
+          schemaVersion: 5,
+          tripFingerprint: generateTripFingerprint(draft),
+          accommodationByCity: {},
+          foodOverrides: {},
+          addOnSelections: {},
+          attractionByCity: {},
+          attractionSelections: {},
+          emergencyFundPct: 0.10,
+        };
         savePlannerPreferences({
           draft,
           accommodationByCity: {},
@@ -1272,15 +1290,49 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           </div>
           <h2 className="mt-5 text-2xl font-bold text-slate-900 tracking-tight">{dict.planner.invalidTitle}</h2>
           <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-sm">{dict.planner.invalidDescription}</p>
-          <Link
-            href={`/${locale}`}
-            className="mt-8 flex w-full items-center justify-center gap-2 h-12 px-6 rounded-xl bg-[#e25c5c] text-white font-bold text-base shadow-md hover:bg-[#d14b4b] hover:shadow-lg transition-all focus-visible:outline-2 focus-visible:outline-[#e25c5c] focus-visible:outline-offset-2"
-          >
-            <span>{dict.planner.invalidButton}</span>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </Link>
+          <div className="mt-8 flex flex-col w-full gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                const defaultDraft = DEFAULT_TRIP_DRAFT;
+                saveTripDraft(defaultDraft);
+                savePlannerPreferences({
+                  draft: defaultDraft,
+                  accommodationByCity: {},
+                  foodOverrides: {},
+                  foodAddOnOverrides: {},
+                  attractionByCity: {},
+                });
+                setState({
+                  status: "ready",
+                  draft: defaultDraft,
+                  preferences: {
+                    schemaVersion: 5,
+                    tripFingerprint: generateTripFingerprint(defaultDraft),
+                    accommodationByCity: {},
+                    foodOverrides: {},
+                    addOnSelections: {},
+                    attractionByCity: {},
+                    attractionSelections: {},
+                    emergencyFundPct: 0.10,
+                  },
+                });
+              }}
+              className="flex w-full items-center justify-center gap-2 h-12 px-6 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all cursor-pointer"
+            >
+              <span>🔄</span>
+              <span>{locale === "ko" ? "기본 추천 일정으로 바로 시작하기" : "Start with Recommended Trip"}</span>
+            </button>
+            <Link
+              href={`/${locale}`}
+              className="flex w-full items-center justify-center gap-2 h-11 px-6 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition-all"
+            >
+              <span>{dict.planner.invalidButton}</span>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </div>
     );

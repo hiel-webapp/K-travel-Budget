@@ -262,12 +262,15 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
     let allocatedSum = 0;
     const selectedCitiesList = selectedCities || [];
 
-    // 선택하지 않은 도시의 할당이 존재하는지 확인
+    // 선택하지 않은 도시의 할당이 존재하는지 확인 (0박인 경우는 오류로 취급하지 않음)
     for (const city in cityNightAllocations) {
-      if (!selectedCitiesList.includes(city as SupportedCity)) {
-        errors.push("unselected_city_allocated");
-      }
       const nights = cityNightAllocations[city as SupportedCity];
+      if (!selectedCitiesList.includes(city as SupportedCity)) {
+        if (nights && nights > 0) {
+          errors.push("unselected_city_allocated");
+        }
+        continue;
+      }
       if (typeof nights !== "number" || nights < 0 || !Number.isInteger(nights)) {
         errors.push("invalid_allocation_nights");
       } else {
@@ -307,6 +310,88 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
   return {
     success: errors.length === 0,
     errors,
+  };
+}
+
+/**
+ * TripDraft가 일부 손상되었거나 불완전할 때 안전하게 정상 규격으로 자동 복구(보정)합니다.
+ */
+export function sanitizeTripDraft(draft: unknown): TripDraft {
+  if (!draft || typeof draft !== "object") {
+    return DEFAULT_TRIP_DRAFT;
+  }
+
+  const d = draft as Record<string, unknown>;
+
+  // 1. totalNights 복구 (1~14 정수, 기본값 5)
+  const rawNights = d.totalNights;
+  const totalNights =
+    typeof rawNights === "number" && Number.isInteger(rawNights) && rawNights >= 1 && rawNights <= 14
+      ? rawNights
+      : 5;
+
+  // 2. adultCount 복구 (1~10 정수, 기본값 2)
+  const rawAdults = d.adultCount;
+  const adultCount =
+    typeof rawAdults === "number" && Number.isInteger(rawAdults) && rawAdults >= 1 && rawAdults <= 10
+      ? rawAdults
+      : 2;
+
+  // 3. selectedCities 복구 (유효한 도시 1~4개, 기본값 ["SEOUL"])
+  let selectedCities: SupportedCity[] = [];
+  if (Array.isArray(d.selectedCities)) {
+    selectedCities = d.selectedCities.filter((c): c is SupportedCity => ALL_SUPPORTED_CITIES.includes(c));
+    selectedCities = Array.from(new Set(selectedCities)).slice(0, 4);
+  }
+  if (selectedCities.length === 0) {
+    selectedCities = ["SEOUL"];
+  }
+
+  // 4. cityNightAllocations 복구
+  const rawAlloc = (d.cityNightAllocations && typeof d.cityNightAllocations === "object")
+    ? (d.cityNightAllocations as Record<string, unknown>)
+    : {};
+  const cityNightAllocations: CityNightAllocation = {};
+  let currentSum = 0;
+
+  for (const city of selectedCities) {
+    const val = rawAlloc[city];
+    if (typeof val === "number" && Number.isInteger(val) && val >= 0) {
+      cityNightAllocations[city] = val;
+      currentSum += val;
+    } else {
+      cityNightAllocations[city] = 0;
+    }
+  }
+
+  // 합계가 totalNights를 초과하거나 0인 경우 기본 분배 재연산
+  if (currentSum > totalNights || currentSum === 0) {
+    const defaultAlloc = calculateDefaultNightAllocation(selectedCities, totalNights);
+    Object.assign(cityNightAllocations, defaultAlloc);
+  }
+
+  // 5. budgetTier 복구
+  const allowedTiers: BudgetTier[] = ["BUDGET", "STANDARD", "PREMIUM"];
+  const budgetTier = allowedTiers.includes(d.budgetTier as BudgetTier)
+    ? (d.budgetTier as BudgetTier)
+    : "STANDARD";
+
+  // 6. targetBudgetKrw 복구
+  const defaultBudget = getDefaultTargetBudgetByNights(totalNights, adultCount);
+  const rawBudget = d.targetBudgetKrw;
+  const targetBudgetKrw =
+    typeof rawBudget === "number" && rawBudget > 0 && Number.isInteger(rawBudget)
+      ? rawBudget
+      : defaultBudget.targetBudgetKrw;
+
+  return {
+    totalNights,
+    adultCount,
+    selectedCities,
+    cityNightAllocations,
+    budgetTier,
+    targetBudgetKrw,
+    schemaVersion: 1,
   };
 }
 

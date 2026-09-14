@@ -149,10 +149,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 {cityName} {dict.planner?.stayPlannerTitle?.replace("🏨 ", "") || (locale === "ko" ? "숙소 플래너" : "Stay Planner")}
               </span>
             </h4>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-50 text-[#e25c5c] border border-rose-200/80">
-              <span>🗓️</span>
-              <span>{cityNights === 0 ? (locale === "ko" ? "당일치기" : "Day trip") : (locale === "ko" ? `${cityNights}박 체류 기준` : `${cityNights} Nights`)}</span>
-            </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
             {dict.planner?.stayPlannerSubtitle || (locale === "ko"
@@ -287,21 +283,35 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </div>
             </div>
 
-            {isCustomActive && onResetCustomStay && (
-              <button
-                type="button"
-                onClick={handleResetToTier}
-                className="text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-300 bg-white text-amber-800 hover:bg-amber-100/60 transition-colors cursor-pointer self-start sm:self-auto shrink-0"
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+              {isCustomActive && onResetCustomStay && (
+                <button
+                  type="button"
+                  onClick={handleResetToTier}
+                  className="text-xs font-bold px-2.5 py-1.5 rounded-xl border border-amber-300 bg-white text-amber-800 hover:bg-amber-100/60 transition-colors cursor-pointer"
+                >
+                  {locale === "ko" ? "티어 평균가로 복귀" : "Reset to Tier"}
+                </button>
+              )}
+              {/* 아고다에서 검색 버튼 (헤더 우측 배치) */}
+              <a
+                href={agodaSearchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-8.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
+                title={locale === "ko" ? `${cityName} 숙소 아고다에서 검색` : `Search ${cityName} stays on Agoda`}
               >
-                {locale === "ko" ? "티어 평균가로 복귀" : "Reset to Tier"}
-              </button>
-            )}
+                <span>🔗</span>
+                <span>{locale === "ko" ? "아고다에서 검색" : "Search on Agoda"}</span>
+                <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
+              </a>
+            </div>
           </div>
 
           <form onSubmit={handleApplyCustomStay} className="mt-3.5 space-y-2">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
               {/* 숙소 이름 입력 */}
-              <div className="sm:col-span-4 space-y-1">
+              <div className="sm:col-span-6 space-y-1">
                 <label className="block text-[11px] font-bold text-slate-700">
                   {locale === "ko" ? "숙소 이름" : "Stay Name"}
                 </label>
@@ -319,7 +329,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </div>
 
               {/* 1박 요금 입력 */}
-              <div className="sm:col-span-3 space-y-1">
+              <div className="sm:col-span-4 space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="block text-[11px] font-bold text-slate-700">
                     {locale === "ko" ? "1박 요금" : "Nightly Rate"}
@@ -359,21 +369,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                       : (locale === "ko" ? "반영" : "Apply")}
                   </span>
                 </button>
-              </div>
-
-              {/* 아고다에서 검색 버튼 */}
-              <div className="sm:col-span-3">
-                <a
-                  href={agodaSearchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full h-10 px-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
-                  title={locale === "ko" ? `${cityName} 숙소 아고다에서 검색` : `Search ${cityName} stays on Agoda`}
-                >
-                  <span>🔗</span>
-                  <span>{locale === "ko" ? "아고다에서 검색" : "Search on Agoda"}</span>
-                  <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
-                </a>
               </div>
             </div>
 

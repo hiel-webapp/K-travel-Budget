@@ -505,11 +505,8 @@ export default function FoodPlannerPanel({
                 ✕
               </button>
 
-              {/* Price & Category badges */}
+              {/* Category badges */}
               <div className="absolute top-4 left-4 z-10 flex items-center gap-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-900/90 text-white shadow-md backdrop-blur-md">
-                  {formatKrw(previewFood.unitPriceKrw)}
-                </span>
                 {previewFood.scope === "NATIONAL" ? (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-600/90 text-white shadow-md backdrop-blur-md">
                     {locale === "ko" ? "🇰🇷 한국 대표 미식" : "🇰🇷 National Dish"}
@@ -717,41 +714,38 @@ function FoodItemCard({
           </div>
         ) : null}
 
-        {/* 상단 뱃지 및 가격 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg">{food.emoji || "🍽️"}</span>
+        {/* 제목 & 가격: [음식명]             [가격] */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
             {!food.imageUrl && isSelected && (
-              <span className="w-4 h-4 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-[10px] font-black">
+              <span className="w-4 h-4 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-[10px] font-black shrink-0">
                 ✓
               </span>
             )}
             {!food.imageUrl && !isSelected && food.isMustEatTop3 && (
-              <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-2xs">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500 text-white shadow-2xs shrink-0">
                 ★ Must-Eat
               </span>
             )}
+            <h5
+              className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
+                isSelected ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
+              }`}
+              title={locale === "ko" ? food.nameKo : food.nameEn}
+            >
+              {locale === "ko" ? food.nameKo : food.nameEn}
+            </h5>
           </div>
 
-          <span className="text-xs font-black text-[#e25c5c]">
+          <span className="text-xs sm:text-sm font-black text-[#e25c5c] shrink-0 whitespace-nowrap">
             {formatKrw(food.unitPriceKrw)}
           </span>
         </div>
 
-        {/* 제목 & 설명 */}
-        <div>
-          <h5
-            className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
-              isSelected ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
-            }`}
-            title={locale === "ko" ? food.nameKo : food.nameEn}
-          >
-            {locale === "ko" ? food.nameKo : food.nameEn}
-          </h5>
-          <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed mt-0.5">
-            {locale === "ko" ? food.descKo : food.descEn}
-          </p>
-        </div>
+        {/* 설명 */}
+        <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+          {locale === "ko" ? food.descKo : food.descEn}
+        </p>
       </div>
 
       {/* 하단 카운터 / 담기 버튼 */}

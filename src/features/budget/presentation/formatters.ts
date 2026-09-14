@@ -14,7 +14,7 @@ import {
  */
 export const REGIONAL_BASKET_LABELS: Record<
   SupportedCity,
-  Record<BudgetBasketId, { ko: string; en: string }>
+  Partial<Record<BudgetBasketId, { ko: string; en: string }>>
 > = {
   SEOUL: {
     BUDGET_STAY: { ko: "홍대/명동 가성비 호스텔 & 캡슐호텔", en: "Hongdae/Myeongdong Budget Hostel & Capsule Hotel" },
@@ -196,6 +196,10 @@ export function getBasketLabel(
     BUDGET_STAY: { ko: "실속형 숙소", en: "Budget Stay" },
     STANDARD_HOTEL: { ko: "스탠다드 호텔", en: "Standard Hotel" },
     PREMIUM_HERITAGE: { ko: "프리미엄 & 헤리티지", en: "Premium & Heritage" },
+    HOSTEL_GUESTHOUSE: { ko: "가성비 호스텔 & 게스트하우스", en: "K-Vibe Hostel & Guesthouse" },
+    BUSINESS_HOTEL: { ko: "도심형 비즈니스 & 스탠다드 호텔", en: "Urban Business & Modern Hotel" },
+    HANOK_BOUTIQUE: { ko: "전통 한옥 스테이 & 부티크 숙소", en: "K-Heritage Hanok & Boutique Stay" },
+    LUXURY_SKYLINE: { ko: "럭셔리 5성급 & 파노라마 호텔", en: "Luxury & Skyline 5-Star Hotel" },
     BUDGET_MEAL_PLAN: { ko: "실속형 식비 플랜", en: "Budget Meal Plan" },
     STANDARD_MEAL_PLAN: { ko: "스탠다드 식비 플랜", en: "Standard Meal Plan" },
     PREMIUM_MEAL_PLAN: { ko: "프리미엄 식비 플랜", en: "Premium Meal Plan" },

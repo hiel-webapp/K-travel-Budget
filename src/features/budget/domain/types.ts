@@ -39,11 +39,18 @@ export type CalculationStrategy =
   | "FIXED_AMOUNT"
   | "PERCENTAGE_OF_SUBTOTAL";
 
+export type OccupancyMode = "SOLO" | "SHARED_PAIR";
+export type OccupancyModeByCity = Partial<Record<SupportedCity, OccupancyMode>>;
+
 export type BudgetBasketId =
-  // Accommodation
+  // Accommodation (Legacy & 4-Tier Archetypes)
   | "BUDGET_STAY"
   | "STANDARD_HOTEL"
   | "PREMIUM_HERITAGE"
+  | "HOSTEL_GUESTHOUSE"
+  | "BUSINESS_HOTEL"
+  | "HANOK_BOUTIQUE"
+  | "LUXURY_SKYLINE"
   // Food
   | "BUDGET_MEAL_PLAN"
   | "STANDARD_MEAL_PLAN"
@@ -171,6 +178,7 @@ export type LocalTransitStyle = "SUBWAY_BUS" | "STANDARD_MIX" | "COMFORT_TAXI";
 
 export interface BudgetPlanOverrides {
   accommodation?: AccommodationOverridesByCity;
+  occupancyMode?: OccupancyModeByCity;
   foodTier?: BudgetTier;
   food?: FoodOverrides;
   foodAddOns?: FoodAddOnOverrides;

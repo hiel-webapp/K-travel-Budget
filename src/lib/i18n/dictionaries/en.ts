@@ -88,9 +88,20 @@ export const en: Dictionary = {
     generateReport: "Generate Budget Report",
     notYetAvailable: "This feature is not yet available.",
 
-    // Active Category Content
     accommodationTitle: "Stay Budget",
     accommodationDescription: "The accommodation budget automatically selected based on your trip details and budget tier.",
+
+    stayPlannerTitle: "🏨 Accommodation Planner",
+    stayPlannerSubtitle: "Choose your stay archetype and room sharing preferences.",
+    stayStep1Title: "Step 1. Choose your preferred stay style",
+    stayStep2Title: "Step 2. How many nights are you staying?",
+    stayStep3Title: "Step 3. How many people will share this room?",
+    staySoloOccupancy: "Solo (1 Person)",
+    staySharedPairOccupancy: "Shared with Partner (Split 1/2)",
+    stayEstimatedNightly: "Estimated Nightly Rate",
+    stayTotalCityStay: "Total {city} Stay Cost",
+    stayAddToReceipt: "🛍️ Add to Receipt",
+    staySearchOta: "🔗 Search on Agoda / Airbnb with these filters",
 
     attractionOverrideTitle: "Attractions Budget",
     attractionOverrideDesc: "The attractions and activities budget automatically selected based on your trip parameters and budget tier.",

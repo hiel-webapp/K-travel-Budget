@@ -90,6 +90,18 @@ export const ko = {
     accommodationTitle: "숙박 예산",
     accommodationDescription: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 숙박 예산입니다.",
 
+    stayPlannerTitle: "🏨 숙소 플래너 (Stay Kiosk)",
+    stayPlannerSubtitle: "외국인 여행자 맞춤 4대 숙소 스타일과 체류 조건을 설정하세요.",
+    stayStep1Title: "Step 1. 당신이 원하는 숙소 스타일은?",
+    stayStep2Title: "Step 2. 몇 박을 머무르시나요?",
+    stayStep3Title: "Step 3. 방 하나를 몇 명이서 쓰시나요?",
+    staySoloOccupancy: "혼자 (1인)",
+    staySharedPairOccupancy: "둘이서 (2인, 비용 1/2 분할 계산)",
+    stayEstimatedNightly: "예상 1박 비용",
+    stayTotalCityStay: "총 {city} 숙박비",
+    stayAddToReceipt: "🛍️ 영수증에 숙박비 담기",
+    staySearchOta: "🔗 아고다/에어비앤비에서 이 조건으로 검색",
+
     attractionOverrideTitle: "관광 및 액티비티 예산",
     attractionOverrideDesc: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 관광/액티비티 예산입니다.",
     attractionOverrideNotice: "이곳에서 도시별 관광 옵션을 커스텀 변경하여 총액 예산을 조정해보세요.",

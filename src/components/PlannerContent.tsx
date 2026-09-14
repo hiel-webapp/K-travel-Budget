@@ -4405,7 +4405,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     </div>
                                     {accItems.map((item) => (
                                       <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
-                                        <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
+                                        <span className="truncate pr-2">
+                                          {(item.sourceLabel && !item.sourceLabel.includes("Archetype") && !item.sourceLabel.includes("Mock"))
+                                            ? item.sourceLabel
+                                            : getBasketLabel(item.basketId, dict, locale, city)}
+                                        </span>
                                         <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
                                       </div>
                                     ))}

@@ -278,7 +278,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "호스텔 & 게스트하우스",
     isActive: true,
   },
   {
@@ -294,7 +294,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "도심 비즈니스 호텔",
     isActive: true,
   },
   {
@@ -310,7 +310,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "전통 한옥 & 부티크",
     isActive: true,
   },
   {
@@ -326,7 +326,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "럭셔리 5성급 호텔",
     isActive: true,
   },
 
@@ -343,7 +343,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "호스텔 & 게스트하우스",
     isActive: true,
   },
   {
@@ -358,7 +358,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "도심 비즈니스 호텔",
     isActive: true,
   },
   {
@@ -373,7 +373,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "전통 한옥 & 부티크",
     isActive: true,
   },
   {
@@ -388,7 +388,7 @@ export const MOCK_PRICE_CATALOG: BudgetBasketDefinition[] = [
     calculationStrategy: "ROOM_NIGHT",
     confidence: "VERIFIED_AVERAGE",
     updatedAt: MOCK_CATALOG_UPDATE_DATE,
-    sourceLabel: "HypeHeritage Kiosk Archetype",
+    sourceLabel: "럭셔리 5성급 호텔",
     isActive: true,
   },
 

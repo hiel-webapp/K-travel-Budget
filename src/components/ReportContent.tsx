@@ -603,7 +603,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       <div className="flex justify-between items-start text-xs gap-4">
                         <div>
                           <span className="text-slate-700 font-medium block">
-                            {item.sourceLabel || getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}
+                            {(item.sourceLabel && !item.sourceLabel.includes("Archetype") && !item.sourceLabel.includes("Mock"))
+                              ? item.sourceLabel
+                              : getBasketLabel(item.basketId, dict, locale, item.cityCode || city)}
                           </span>
                           <span className="text-[10px] text-slate-400 italic block mt-0.5">{getCalculationExpression(item, dict, locale)}</span>
                         </div>

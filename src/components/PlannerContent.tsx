@@ -1387,34 +1387,74 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     ? preferences.emergencyFundPct
     : (preferences.emergencyFundKrw === undefined || preferences.emergencyFundKrw === 0 ? 0.10 : undefined);
 
-  const basePlanForEmergency = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
-    accommodation: preferences.accommodationByCity,
-    foodTier: preferences.foodTier,
-    food: preferences.foodOverrides,
-    foodAddOns: preferences.addOnSelections,
-    foodBasketSelections: preferences.foodBasketSelections,
-    attraction: preferences.attractionByCity,
-    attractionSelections: preferences.attractionSelections,
-    attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-    emergencyFundKrw: 0,
-    localTransitStyle: preferences.localTransitStyle,
-    cityTransitStyles: preferences.cityTransitStyles,
-    occupancyMode: occupancyModeByCity,
-  });
+  // 일일 용돈 총액 (전체 일정 통틀어: 1일 1인 단가 × 여행 인원 × 전체 박수)
+  const firstCity = draft.selectedCities[0];
+  const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
+  const dailyAllowancePerPerson = preferences.attractionCustomDailyKrw !== undefined
+    ? preferences.attractionCustomDailyKrw
+    : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : currentBasket === "BALANCED" ? 30000 : 0);
+  const totalDailyAllowanceKrw = dailyAllowancePerPerson * adultCount * (draft.totalNights || 1);
 
   // K-스팟에서 담긴 맛집/카페 총액 계산
   const allCustomFoodTotalKrw = budgetPlaces
     .filter((p) => p.category === "RESTAURANT" || p.category === "CAFE")
     .reduce((sum, p) => sum + (p.priceKrw ?? (p as any).estimatedPriceKrw ?? (p.category === "CAFE" ? 8000 : 18000)) * adultCount, 0);
 
-  // 비상금 비율 계산 기준 총액 = (숙소 + 식비 + 교통 + 관광) + 쇼핑 예산 + K-스팟 맛집/카페
-  const baseEmergencyGrandTotal = basePlanForEmergency.grandTotalKrw + shoppingAmountKrw + allCustomFoodTotalKrw;
+  // 사용자가 선택한 유료 관광지 명소 총액 계산
+  let allCustomAttractionTotalKrw = 0;
+  draft.selectedCities.forEach((city) => {
+    const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+    const spotsForCity = [
+      ...budgetPlaces.filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
+      ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
+    ];
+    const selectedSpotKeys = new Set<string>();
+    (citySel.selectedCourseIds || []).forEach((cid) => {
+      const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+      if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+    });
+    (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+    selectedSpotKeys.forEach((normKey) => {
+      const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
+      if (spot && spot.priceStatus === "PAID" && spot.price > 0) {
+        allCustomAttractionTotalKrw += spot.price * adultCount;
+      }
+    });
+  });
+
+  // 도시별 순수 기본 경비 (숙소 + 음식 + 시내교통 + 도시 간/공항 교통)
+  const basePlanForEmergency = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
+    accommodation: preferences.accommodationByCity,
+    foodTier: preferences.foodTier,
+    food: preferences.foodOverrides,
+    foodAddOns: preferences.addOnSelections,
+    foodBasketSelections: preferences.foodBasketSelections,
+    attraction: draft.selectedCities.reduce((acc, c) => ({ ...acc, [c]: "NONE" as BudgetBasketId }), {}),
+    attractionSelections: undefined,
+    attractionCustomDailyKrw: undefined,
+    emergencyFundKrw: 0,
+    intercityTransportOverrides: preferences.intercityTransportOverrides,
+    localTransitStyle: preferences.localTransitStyle,
+    cityTransitStyles: preferences.cityTransitStyles,
+    isKobusPassApplied: preferences.isKobusPassApplied,
+    occupancyMode: occupancyModeByCity,
+  });
+
+  // 기본 여행 경비 = (모든 도시 숙박 + 식비 + 시내교통 + 선택한 관광지) + 도시 간/공항 이동 교통
+  const baseTripExpensesKrw = basePlanForEmergency.grandTotalKrw + allCustomFoodTotalKrw + allCustomAttractionTotalKrw;
+
+  // 비상금 비율 계산 기준 총액 = 기본 여행 경비 + 쇼핑 예산 + 일일 용돈
+  const baseEmergencyGrandTotal = baseTripExpensesKrw + shoppingAmountKrw + totalDailyAllowanceKrw;
   const emergencyAdultCount = adultCount;
-  const computedEmergencyKrw = activeEmergencyPct !== undefined
+  const computedEmergencyKrw = activeEmergencyPct !== undefined && activeEmergencyPct > 0 && emergencyManualInput === ""
     ? Math.round(((baseEmergencyGrandTotal / emergencyAdultCount) * activeEmergencyPct) / 1000) * 1000 * emergencyAdultCount
-    : ((preferences.emergencyFundKrw || 0) * emergencyAdultCount);
+    : ((emergencyManualInput !== "" && emergencyManualInput !== "0") ? (parseInt(emergencyManualInput, 10) || 0) * emergencyAdultCount : ((preferences.emergencyFundKrw || 0) * emergencyAdultCount));
 
   const perPersonEmergencyKrw = Math.round(computedEmergencyKrw / emergencyAdultCount);
+
+  // 최종 예상 총액 = 기본 여행 경비 + 쇼핑 예산 + 일일 용돈 + 여행 비상금
+  const finalGrandTotalKrw = baseTripExpensesKrw + shoppingAmountKrw + totalDailyAllowanceKrw + computedEmergencyKrw;
+  const finalPerTravelerTotalKrw = Math.round(finalGrandTotalKrw / adultCount);
 
   const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,
@@ -1422,9 +1462,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
     foodBasketSelections: preferences.foodBasketSelections,
-    attraction: preferences.attractionByCity,
-    attractionSelections: preferences.attractionSelections,
-    attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
+    attraction: draft.selectedCities.reduce((acc, c) => ({ ...acc, [c]: "NONE" as BudgetBasketId }), {}),
+    attractionSelections: undefined,
+    attractionCustomDailyKrw: undefined,
     emergencyFundKrw: computedEmergencyKrw,
     intercityTransportOverrides: preferences.intercityTransportOverrides,
     localTransitStyle: preferences.localTransitStyle,
@@ -3321,7 +3361,123 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         );
                       })()}
 
-                      {/* 2-3. Trip-wide Emergency Fund Setting Block */}
+                      {/* 2-3. 일일 용돈 (1인 기준) Setting Card */}
+                      <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
+                        <div className="flex items-center justify-between border-b border-slate-200/60 pb-3">
+                          <div className="flex-1">
+                            {renderOverviewSectionHeader(
+                              "activityFund",
+                              "",
+                              `일일 용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
+                              `Daily Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
+                              "",
+                              "",
+                              "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.\n일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
+                              "Daily pocket money for personal activities and extras during your trip.\nDaily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget."
+                            )}
+                          </div>
+                          <span className="text-xs font-bold text-[#e25c5c] shrink-0 ml-3">
+                            {locale === "ko" ? `${draft.totalNights || 1}박 일수 자동 연동` : `Applied across ${draft.totalNights || 1} nights`}
+                          </span>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {[
+                              {
+                                id: "MOSTLY_FREE" as BudgetBasketId,
+                                label: locale === "ko" ? "10,000원" : "₩10,000",
+                                dailyPrice: 10000,
+                              },
+                              {
+                                id: "BALANCED" as BudgetBasketId,
+                                label: locale === "ko" ? "30,000원" : "₩30,000",
+                                dailyPrice: 30000,
+                              },
+                              {
+                                id: "EXPERIENCE_RICH" as BudgetBasketId,
+                                label: locale === "ko" ? "50,000원" : "₩50,000",
+                                dailyPrice: 50000,
+                              },
+                            ].map((preset) => {
+                              const firstCity = draft.selectedCities[0];
+                              const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
+                              const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
+
+                              return (
+                                <button
+                                  key={preset.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setActivityManualInput("");
+                                      handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
+                                    } else {
+                                      setActivityManualInput("");
+                                      handleSetAllCitiesAttractionBasket(preset.id);
+                                    }
+                                  }}
+                                  className={`py-2.5 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer flex items-center justify-center ${
+                                    isSelected
+                                      ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                      : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                                  }`}
+                                >
+                                  <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
+                                </button>
+                              );
+                            })}
+
+                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
+                              (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
+                                ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
+                                : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
+                            }`}>
+                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="10000"
+                                className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
+                                placeholder={locale === "ko" ? "직접 입력" : "Custom"}
+                                value={activityManualInput === "0" ? "" : activityManualInput}
+                                onChange={handleActivityManualInputChange}
+                              />
+                            </div>
+                          </div>
+
+                          {(() => {
+                            const firstCity = draft.selectedCities[0];
+                            const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
+                            const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
+                              ? preferences.attractionCustomDailyKrw
+                              : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : currentBasket === "BALANCED" ? 30000 : 0);
+                            const totalNights = draft.totalNights || 1;
+                            const adultCount = draft.adultCount || 1;
+                            const totalActivityFund = currentDailyRate * adultCount * totalNights;
+
+                            return (
+                              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
+                                <span>
+                                  <strong className="text-slate-800 font-bold">
+                                    {currentDailyRate === 0
+                                      ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                                      : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
+                                  </strong>
+                                </span>
+                                <span>
+                                  {locale === "ko" ? `${adultCount}명 기준 용돈:` : `Total for ${adultCount}:`}{" "}
+                                  <strong className="text-[#e25c5c] font-extrabold">
+                                    {formatKrw(totalActivityFund)}
+                                  </strong>
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* 2-4. Trip-wide Emergency Fund Setting Block */}
                       <div className="bg-white p-4.5 rounded-xl border border-slate-200/80 space-y-4 shadow-2xs">
                         <div className="border-b border-slate-200/60 pb-3">
                           {renderOverviewSectionHeader(
@@ -3422,122 +3578,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           })()}
                         </div>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* 3단 박스: 일일 용돈 (1인 기준) Outer Box Container */}
-                  <div className="bg-[#fdf2f2]/60 border border-rose-200/90 p-5 rounded-2xl space-y-4 shadow-2xs">
-                    <div className="flex items-center justify-between border-b border-rose-200/80 pb-3">
-                      <div className="flex-1">
-                        {renderOverviewSectionHeader(
-                          "activityFund",
-                          "",
-                          `일일 용돈 ${dict.planner.perPersonLabel || "(1인 기준)"}`,
-                          `Daily Allowance ${dict.planner.perPersonLabel || "(Per Person)"}`,
-                          "",
-                          "",
-                          "여행 중 자유롭게 사용할 일일 용돈 및 추가 액티비티 예산입니다.\n일일 1인 기준 용돈 단가를 설정하면 [1일 1인 단가 × 인원수(N명) × 전체 박수]로 자동 산출되어 전체 예산에 반영됩니다.",
-                          "Daily pocket money for personal activities and extras during your trip.\nDaily activity allowance is calculated as [Daily per-person rate × Travelers × Total nights] and included in your overall budget."
-                        )}
-                      </div>
-                      <span className="text-xs font-bold text-[#e25c5c] shrink-0 ml-3">
-                        {locale === "ko" ? `${draft.totalNights || 1}박 일수 자동 연동` : `Applied across ${draft.totalNights || 1} nights`}
-                      </span>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {[
-                          {
-                            id: "MOSTLY_FREE" as BudgetBasketId,
-                            label: locale === "ko" ? "10,000원" : "₩10,000",
-                            dailyPrice: 10000,
-                          },
-                          {
-                            id: "BALANCED" as BudgetBasketId,
-                            label: locale === "ko" ? "30,000원" : "₩30,000",
-                            dailyPrice: 30000,
-                          },
-                          {
-                            id: "EXPERIENCE_RICH" as BudgetBasketId,
-                            label: locale === "ko" ? "50,000원" : "₩50,000",
-                            dailyPrice: 50000,
-                          },
-                        ].map((preset) => {
-                          const firstCity = draft.selectedCities[0];
-                          const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
-                          const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
-
-                          return (
-                            <button
-                              key={preset.id}
-                              type="button"
-                              onClick={() => {
-                                if (isSelected) {
-                                  setActivityManualInput("");
-                                  handleSetAllCitiesAttractionBasket("NONE" as BudgetBasketId);
-                                } else {
-                                  setActivityManualInput("");
-                                  handleSetAllCitiesAttractionBasket(preset.id);
-                                }
-                              }}
-                              className={`py-2.5 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer flex items-center justify-center ${
-                                isSelected
-                                  ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                                  : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                              }`}
-                            >
-                              <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
-                            </button>
-                          );
-                        })}
-
-                        <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                          (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
-                            ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
-                            : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                        }`}>
-                          <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="10000"
-                            className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
-                            placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                            value={activityManualInput === "0" ? "" : activityManualInput}
-                            onChange={handleActivityManualInputChange}
-                          />
-                        </div>
-                      </div>
-
-                      {(() => {
-                        const firstCity = draft.selectedCities[0];
-                        const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
-                        const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
-                          ? preferences.attractionCustomDailyKrw
-                          : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : currentBasket === "BALANCED" ? 30000 : 0);
-                        const totalNights = draft.totalNights || 1;
-                        const adultCount = draft.adultCount || 1;
-                        const totalActivityFund = currentDailyRate * adultCount * totalNights;
-
-                        return (
-                          <div className="p-3 rounded-xl bg-white/80 border border-rose-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
-                            <span>
-                              <strong className="text-slate-800 font-bold">
-                                {currentDailyRate === 0
-                                  ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                  : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
-                              </strong>
-                            </span>
-                            <span>
-                              {locale === "ko" ? `${adultCount}명 기준 용돈:` : `Total for ${adultCount}:`}{" "}
-                              <strong className="text-[#e25c5c] font-extrabold">
-                                {formatKrw(totalActivityFund)}
-                              </strong>
-                            </span>
-                          </div>
-                        );
-                      })()}
                     </div>
                   </div>
                 </div>
@@ -4225,10 +4265,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
         {/* ================= RIGHT STICKY SMART RECEIPT (40%) ================= */}
         {(() => {
-          const finalGrandTotalKrw = plan.grandTotalKrw + shoppingAmountKrw + allCustomFoodTotalKrw;
-          const finalPerTravelerTotalKrw = Math.round(finalGrandTotalKrw / adultCount);
-
-          const targetBudget = plan.targetBudgetKrw || 1;
+          const targetBudget = draft.targetBudgetKrw || plan.targetBudgetKrw || 1;
           const isOverBudget = finalGrandTotalKrw > targetBudget;
           const targetBudgetUsagePercent = Math.round((finalGrandTotalKrw / targetBudget) * 100);
           const clampedUsage = Math.min(100, Math.max(0, targetBudgetUsagePercent));
@@ -4508,13 +4545,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           }
                         });
 
-                        const attractionBaseItems = cityLineItems.filter((item) => item.category === "ATTRACTION");
-                        const attractionBaseTotal = attractionBaseItems.reduce((sum, i) => sum + i.lineTotalKrw, 0);
-                        const cityShoppingKrw = cityIdx === 0 ? shoppingAmountKrw : 0;
-                        const attractionShoppingTotal = attractionBaseTotal + attractionsAddedTotalKrw + cityShoppingKrw;
+                        const cityAttractionTotal = attractionsAddedTotalKrw;
 
-                        // 도시 총액
-                        const cityTotal = accTotal + foodTotal + transportTotal + attractionShoppingTotal;
+                        // 도시 총액 (숙박 + 식비 + 시내교통 + 선택한 관광지)
+                        const cityTotal = accTotal + foodTotal + transportTotal + cityAttractionTotal;
 
                         // 아코디언 열림 여부 (기본: 접힘, 클릭 시 토글)
                         const isExpanded = !!expandedReceiptCities[city];
@@ -4663,53 +4697,40 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     ))}
                                   </div>
 
-                                  {/* 4. 관광 & 쇼핑 */}
-                                  {(attractionShoppingTotal > 0 || addedSpotsList.length > 0) && (
-                                    <div className="space-y-1 pt-1.5 border-t border-slate-100">
-                                      <div className="flex items-center justify-between">
-                                        <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                                          <span>🎡</span>
-                                          <span>{locale === "ko" ? "관광 & 쇼핑" : "Attractions & Shopping"}</span>
-                                        </span>
-                                        <span className="font-sans tabular-nums font-bold text-slate-800">
-                                          {formatKrw(attractionShoppingTotal)}
-                                        </span>
-                                      </div>
-                                      {attractionBaseItems.map((item) => (
-                                        <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
-                                          <span className="truncate pr-2">{locale === "ko" ? "일일 활동 용돈" : "Daily Allowance"}</span>
-                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
-                                        </div>
-                                      ))}
-                                      {cityShoppingKrw > 0 && (
-                                        <div className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
-                                          <span className="truncate pr-2">{locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}</span>
-                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(cityShoppingKrw)}</span>
-                                        </div>
-                                      )}
-                                      {addedSpotsList.length > 0 && (
-                                        <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">
-                                          <span className="text-[10px] font-bold text-[#e25c5c] block">
-                                            🎡 {locale === "ko" ? "담은 관광 명소" : "Added Sightseeing"} ({addedSpotsList.length})
-                                          </span>
-                                          {addedSpotsList.map((spot) => {
-                                            const spotKey = normalizeSpotKey(spot.id);
-                                            const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
-                                            const sName = locale === "ko" ? (bilingual?.nameKo || spot.nameKo) : (bilingual?.nameEn || spot.nameEn);
-                                            const sTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
-                                            return (
-                                              <div key={spot.id} className="flex justify-between items-center text-[10px] text-slate-500">
-                                                <span className="truncate pr-2">{sName}</span>
-                                                <span className="tabular-nums font-medium text-slate-700 shrink-0">
-                                                  {sTotal > 0 ? formatKrw(sTotal) : "무료"}
-                                                </span>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      )}
+                                  {/* 4. 관광 (사용자가 직접 담은 관광지 리스트) */}
+                                  <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                                        <span>🎡</span>
+                                        <span>{locale === "ko" ? "관광" : "Attractions"}</span>
+                                      </span>
+                                      <span className="font-sans tabular-nums font-bold text-slate-800">
+                                        {formatKrw(cityAttractionTotal)}
+                                      </span>
                                     </div>
-                                  )}
+                                    {addedSpotsList.length > 0 ? (
+                                      <div className="space-y-1 pl-5">
+                                        {addedSpotsList.map((spot) => {
+                                          const spotKey = normalizeSpotKey(spot.id);
+                                          const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+                                          const sName = locale === "ko" ? (bilingual?.nameKo || spot.nameKo) : (bilingual?.nameEn || spot.nameEn);
+                                          const sTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
+                                          return (
+                                            <div key={spot.id} className="flex justify-between items-center text-[11px] text-slate-600">
+                                              <span className="truncate pr-2">{sName}</span>
+                                              <span className="tabular-nums font-medium text-slate-700 shrink-0">
+                                                {sTotal > 0 ? formatKrw(sTotal) : (locale === "ko" ? "무료" : "Free")}
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : (
+                                      <div className="text-[11px] text-slate-400 pl-5 italic">
+                                        {locale === "ko" ? "담은 관광지 없음" : "No attractions selected"}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -4773,7 +4794,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   );
                 })()}
 
-                {/* Bottom Calculation Breakdown: Base Expenses + Emergency Fund = Grand Total */}
+                {/* Bottom Calculation Breakdown: 기본 여행 경비 ➔ 쇼핑 예산 ➔ 일일 용돈 ➔ 여행 비상금 ➔ 최종 예상 총액 */}
                 <div className="pt-4 border-t border-dashed border-slate-200 space-y-3.5">
                   <div className="space-y-2 bg-slate-50/80 p-3 rounded-xl border border-slate-100">
                     {/* 1) 기본 여행 경비 */}
@@ -4782,11 +4803,36 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {locale === "ko" ? "기본 여행 경비" : "Base Trip Expenses"}
                       </span>
                       <span className="font-extrabold text-slate-900 tabular-nums">
-                        {formatKrw(baseEmergencyGrandTotal)}
+                        {formatKrw(baseTripExpensesKrw)}
                       </span>
                     </div>
 
-                    {/* 2) 여행 비상금 */}
+                    {/* 2) 쇼핑 예산 */}
+                    <div className="flex justify-between items-baseline text-xs">
+                      <span className="font-bold text-slate-600">
+                        {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
+                      </span>
+                      <span className={`font-extrabold tabular-nums ${shoppingAmountKrw > 0 ? "text-[#e25c5c]" : "text-slate-700"}`}>
+                        {shoppingAmountKrw > 0 ? `+${formatKrw(shoppingAmountKrw)}` : formatKrw(0)}
+                      </span>
+                    </div>
+
+                    {/* 3) 일일 용돈 */}
+                    <div className="flex justify-between items-baseline text-xs">
+                      <span className="font-bold text-slate-600 flex items-center gap-1.5">
+                        <span>{locale === "ko" ? "일일 용돈" : "Daily Allowance"}</span>
+                        {totalDailyAllowanceKrw > 0 && (
+                          <span className="text-[10px] font-bold text-slate-400">
+                            ({draft.totalNights || 1}{locale === "ko" ? "박" : "N"})
+                          </span>
+                        )}
+                      </span>
+                      <span className={`font-extrabold tabular-nums ${totalDailyAllowanceKrw > 0 ? "text-[#e25c5c]" : "text-slate-700"}`}>
+                        {totalDailyAllowanceKrw > 0 ? `+${formatKrw(totalDailyAllowanceKrw)}` : formatKrw(0)}
+                      </span>
+                    </div>
+
+                    {/* 4) 여행 비상금 */}
                     <div className="flex justify-between items-baseline text-xs">
                       <span className="font-bold text-slate-600 flex items-center gap-1.5">
                         <span>{locale === "ko" ? "여행 비상금" : "Emergency Fund"}</span>
@@ -4796,16 +4842,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </span>
                         )}
                       </span>
-                      <span className="font-extrabold text-[#e25c5c] tabular-nums">
-                        +{formatKrw(computedEmergencyKrw)}
+                      <span className={`font-extrabold tabular-nums ${computedEmergencyKrw > 0 ? "text-[#e25c5c]" : "text-slate-700"}`}>
+                        {computedEmergencyKrw > 0 ? `+${formatKrw(computedEmergencyKrw)}` : formatKrw(0)}
                       </span>
                     </div>
                   </div>
 
-                  {/* 3) 최종 예상 총액 */}
+                  {/* 5) 최종 예상 총액 */}
                   <div className="pt-1">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-sm font-extrabold text-[#0f172a]">{dict.planner.estimatedTotal}</span>
+                      <div>
+                        <span className="text-sm font-extrabold text-[#0f172a] block">{dict.planner.estimatedTotal}</span>
+                        <span className="text-[11px] font-medium text-slate-400">
+                          ({locale === "ko" ? `1인당 ${formatKrw(finalPerTravelerTotalKrw)}` : `${formatKrw(finalPerTravelerTotalKrw)} / person`})
+                        </span>
+                      </div>
                       <span className="text-2xl font-extrabold tracking-tight text-[#0f172a]">
                         {formatKrw(finalGrandTotalKrw)}
                       </span>

@@ -100,9 +100,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   const totalStayCostKrw = nightlyRoomPrice * roomCount * cityNights;
   const perPersonStayCostKrw = Math.round(totalStayCostKrw / adultCount);
 
-  // USD 환율 (1 USD ≈ ₩1,350 기준 정수 환산)
-  const totalStayCostUsd = Math.round(totalStayCostKrw / 1350);
-  const perPersonStayCostUsd = Math.round(perPersonStayCostKrw / 1350);
 
   const handleApplyCustomStay = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -175,11 +172,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
                 {formatKrw(totalStayCostKrw)}
               </span>
-              {hasSelection && (
-                <span className="text-xs font-bold text-slate-400">
-                  (${totalStayCostUsd.toLocaleString()} USD)
-                </span>
-              )}
             </div>
           </div>
         </div>
@@ -193,9 +185,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <strong className="text-slate-900 font-black">
                 {formatKrw(perPersonStayCostKrw)}
               </strong>
-              <span className="text-slate-400 font-medium">
-                (${perPersonStayCostUsd.toLocaleString()} USD)
-              </span>
             </span>
           </div>
 

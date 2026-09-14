@@ -126,7 +126,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {STAY_ARCHETYPES.map((archetype) => {
             const isSelected = archetype.id === selectedArchetypeId;
             const price = getStayArchetypePrice(city, archetype.id);
@@ -139,30 +139,23 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 key={archetype.id}
                 type="button"
                 onClick={() => onSelectArchetype(city, archetype.id)}
-                className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all duration-155 cursor-pointer relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
+                className={`p-3 rounded-2xl border text-left flex flex-row items-stretch gap-3.5 transition-all duration-155 cursor-pointer relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
                   isSelected
                     ? "bg-[#fff7f7] border border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
                     : "bg-white border-slate-200/90 text-slate-600 hover:border-slate-300 hover:bg-slate-50/60"
                 }`}
               >
-                {/* Image Container with Badge */}
-                <div className="relative w-full h-32 rounded-xl overflow-hidden mb-2.5 bg-slate-100 shrink-0">
+                {/* Left: Thumbnail Image Container */}
+                <div className="relative w-28 sm:w-32 h-28 rounded-xl overflow-hidden bg-slate-100 shrink-0">
                   <Image
                     src={archetype.imageUrl}
                     alt={title}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    sizes="(max-width: 640px) 112px, 128px"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  {badge && (
-                    <div className="absolute top-2 left-2 z-10">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-white/95 text-slate-900 shadow-2xs backdrop-blur-xs border border-white/60">
-                        {badge}
-                      </span>
-                    </div>
-                  )}
                   {isSelected && (
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-1.5 left-1.5 z-10">
                       <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
                         ✓
                       </span>
@@ -170,25 +163,32 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   )}
                 </div>
 
-                {/* Content */}
-                <div className="space-y-1 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm shrink-0">{archetype.icon}</span>
-                      <h5 className={`text-xs font-black leading-tight ${isSelected ? "text-[#e25c5c]" : "text-slate-900"}`}>
-                        {title}
-                      </h5>
+                {/* Right: Content & Pricing */}
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-sm shrink-0">{archetype.icon}</span>
+                        <h5 className={`text-xs sm:text-[13px] font-black leading-snug truncate ${isSelected ? "text-[#e25c5c]" : "text-slate-900"}`}>
+                          {title}
+                        </h5>
+                      </div>
+                      {badge && (
+                        <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200/60">
+                          {badge}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-[11px] leading-relaxed text-slate-500 mt-1 line-clamp-2">
+                    <p className="text-[11px] leading-relaxed text-slate-500 line-clamp-2">
                       {desc}
                     </p>
                   </div>
 
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-baseline justify-between w-full">
+                  <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-baseline justify-between w-full">
                     <span className="text-[10px] font-bold text-slate-400">
                       {locale === "ko" ? "1박 평균" : "Per Night"}
                     </span>
-                    <strong className="text-xs font-black text-[#e25c5c]">
+                    <strong className="text-xs sm:text-sm font-black text-[#e25c5c]">
                       {formatKrw(price)}
                     </strong>
                   </div>

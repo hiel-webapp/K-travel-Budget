@@ -11,6 +11,7 @@ import {
   OccupancyMode,
   getStayArchetypePrice,
   generateStayOtaUrl,
+  AGODA_CITY_IDS,
 } from "../catalog/stay-archetypes";
 
 export interface StaySelectorPanelProps {
@@ -49,7 +50,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   onSaveCustomStay,
   onResetCustomStay,
 }) => {
-  const [addedNotice, setAddedNotice] = useState(false);
   const [customNameInput, setCustomNameInput] = useState(() => customStayOverride?.placeName || "");
   const [customPriceInput, setCustomPriceInput] = useState(() =>
     customStayOverride ? customStayOverride.nightlyPriceKrw.toLocaleString() : ""
@@ -104,11 +104,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   const totalStayCostUsd = Math.round(totalStayCostKrw / 1350);
   const perPersonStayCostUsd = Math.round(perPersonStayCostKrw / 1350);
 
-  const handleAddToReceiptClick = () => {
-    setAddedNotice(true);
-    setTimeout(() => setAddedNotice(false), 2500);
-  };
-
   const handleApplyCustomStay = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const trimmedName = customNameInput.trim();
@@ -136,10 +131,11 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
     onResetCustomStay?.(city);
   };
 
-  // OTA 딥링크 URL 생성 (도시, 아키타입 반영)
-  const otaUrl = currentArchetype
+  // 아고다 검색 딥링크 URL 생성 (선택된 아키타입 조건 또는 도시 기본 검색)
+  const cityId = AGODA_CITY_IDS[city] || 14690;
+  const agodaSearchUrl = currentArchetype
     ? generateStayOtaUrl(currentArchetype.id, city)
-    : "#";
+    : `https://www.agoda.com/search?city=${cityId}&priceCur=KRW&tag=hypeheritage`;
 
   return (
     <div className="space-y-6">
@@ -305,7 +301,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           <form onSubmit={handleApplyCustomStay} className="mt-3.5 space-y-2">
             <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
               {/* 숙소 이름 입력 */}
-              <div className="sm:col-span-6 space-y-1">
+              <div className="sm:col-span-4 space-y-1">
                 <label className="block text-[11px] font-bold text-slate-700">
                   {locale === "ko" ? "숙소 이름" : "Stay Name"}
                 </label>
@@ -323,7 +319,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </div>
 
               {/* 1박 요금 입력 */}
-              <div className="sm:col-span-4 space-y-1">
+              <div className="sm:col-span-3 space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="block text-[11px] font-bold text-slate-700">
                     {locale === "ko" ? "1박 요금" : "Nightly Rate"}
@@ -363,6 +359,21 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                       : (locale === "ko" ? "반영" : "Apply")}
                   </span>
                 </button>
+              </div>
+
+              {/* 아고다에서 검색 버튼 */}
+              <div className="sm:col-span-3">
+                <a
+                  href={agodaSearchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full h-10 px-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
+                  title={locale === "ko" ? `${cityName} 숙소 아고다에서 검색` : `Search ${cityName} stays on Agoda`}
+                >
+                  <span>🔗</span>
+                  <span>{locale === "ko" ? "아고다에서 검색" : "Search on Agoda"}</span>
+                  <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
+                </a>
               </div>
             </div>
 
@@ -472,9 +483,9 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         </div>
       )}
 
-      {/* 4. Bottom Live Cost Summary & Action Buttons */}
-      <div className="p-4.5 rounded-2xl bg-[#faf9f8] border border-slate-200/90 shadow-2xs space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200/70 pb-3.5">
+      {/* 4. Bottom Live Cost Summary */}
+      <div className="p-4.5 rounded-2xl bg-[#faf9f8] border border-slate-200/90 shadow-2xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="space-y-1">
             {!hasSelection ? (
               <div className="flex items-center gap-2 flex-wrap">
@@ -523,51 +534,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </p>
             )}
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-          {/* Add to Receipt Button */}
-          <button
-            type="button"
-            disabled={!hasSelection}
-            onClick={handleAddToReceiptClick}
-            className={`h-10 px-4 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs whitespace-nowrap ${
-              hasSelection
-                ? "bg-[#0f172a] hover:bg-slate-800 text-white cursor-pointer"
-                : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
-            }`}
-          >
-            <span>🛍️</span>
-            <span>
-              {!hasSelection
-                ? (locale === "ko" ? "숙소를 먼저 선택해 주세요" : "Select a stay first")
-                : addedNotice
-                ? (locale === "ko" ? "✓ 영수증 반영 완료" : "✓ Applied to Receipt")
-                : (dict.planner?.stayAddToReceipt || (locale === "ko" ? "영수증에 담기" : "Add to Receipt"))}
-            </span>
-          </button>
-
-          {/* Deep Link to OTA Button */}
-          {hasSelection ? (
-            <a
-              href={otaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
-            >
-              <span>🔗</span>
-              <span>
-                {dict.planner?.staySearchOta || (locale === "ko" ? "아고다/에어비앤비에서 이 조건으로 검색" : "Search on Agoda/Airbnb with these filters")}
-              </span>
-              <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
-            </a>
-          ) : (
-            <div className="h-10 px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 select-none whitespace-nowrap">
-              <span>🔗</span>
-              <span>{locale === "ko" ? "숙소 선택 시 예약 링크 제공" : "Booking link available upon selection"}</span>
-            </div>
-          )}
         </div>
       </div>
     </div>

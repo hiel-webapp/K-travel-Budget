@@ -121,8 +121,8 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
       SUWON: 200000,
       YEOSU: 230000,
     },
-    deepLinkTemplate: "https://www.airbnb.com/s/{city_name}/homes?property_type_id=hanok&tag=hypeheritage",
-    otaProvider: "AIRBNB",
+    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&priceCur=KRW&tag=hypeheritage",
+    otaProvider: "AGODA",
   },
   {
     id: "LUXURY_SKYLINE",

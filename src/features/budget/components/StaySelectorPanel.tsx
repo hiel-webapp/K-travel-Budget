@@ -18,10 +18,10 @@ export interface StaySelectorPanelProps {
   locale: "ko" | "en";
   dict: Dictionary;
   adultCount: number;
-  totalNights: number;
   cityNights: number;
-  totalAllocatedNights: number;
-  onCityNightsChange: (city: SupportedCity, delta: number) => void;
+  totalNights?: number;
+  totalAllocatedNights?: number;
+  onCityNightsChange?: (city: SupportedCity, delta: number) => void;
   selectedArchetypeId: StayArchetypeId;
   onSelectArchetype: (city: SupportedCity, archetypeId: StayArchetypeId) => void;
   occupancyMode: OccupancyMode;
@@ -35,10 +35,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   locale,
   dict,
   adultCount,
-  totalNights,
   cityNights,
-  totalAllocatedNights,
-  onCityNightsChange,
   selectedArchetypeId,
   onSelectArchetype,
   occupancyMode,
@@ -72,9 +69,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   const totalStayCostUsd = Math.round(totalStayCostKrw / 1350);
   const perPersonStayCostUsd = Math.round(perPersonStayCostKrw / 1350);
 
-  const canIncreaseNights = totalAllocatedNights < totalNights;
-  const canDecreaseNights = cityNights > 0;
-
   const handleAddToReceiptClick = () => {
     setAddedNotice(true);
     setTimeout(() => setAddedNotice(false), 2500);
@@ -87,15 +81,21 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
       {/* 1. Header & Reset Bar */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
         <div>
-          <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-            <span>🏨</span>
-            <span>
-              {cityName} {dict.planner?.stayPlannerTitle?.replace("🏨 ", "") || (locale === "ko" ? "숙소 플래너" : "Stay Planner")}
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
+              <span>🏨</span>
+              <span>
+                {cityName} {dict.planner?.stayPlannerTitle?.replace("🏨 ", "") || (locale === "ko" ? "숙소 플래너" : "Stay Planner")}
+              </span>
+            </h4>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-50 text-[#e25c5c] border border-rose-200/80">
+              <span>🗓️</span>
+              <span>{cityNights === 0 ? (locale === "ko" ? "당일치기" : "Day trip") : (locale === "ko" ? `${cityNights}박 체류 기준` : `${cityNights} Nights`)}</span>
             </span>
-          </h4>
+          </div>
           <p className="text-xs text-slate-400 mt-0.5">
             {dict.planner?.stayPlannerSubtitle || (locale === "ko"
-              ? "외국인 여행자 맞춤 4대 숙소 스타일과 체류 조건을 설정하세요."
+              ? "외국인 여행자 맞춤 4대 숙소 스타일과 객실 이용 방식을 설정하세요."
               : "Choose your stay archetype and room sharing preferences.")}
           </p>
         </div>
@@ -199,55 +199,14 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         </div>
       </div>
 
-      {/* 3. Step 2: Nights Stepper */}
-      <div className="p-4 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🗓️</span>
-            <span className="text-xs font-extrabold text-slate-800">
-              {dict.planner?.stayStep2Title || (locale === "ko" ? `Step 2. 몇 박을 머무르시나요? (${cityName})` : `Step 2. How many nights in ${cityName}?`)}
-            </span>
-          </div>
-          <p className="text-[11px] text-slate-400 font-medium">
-            {locale === "ko"
-              ? `전체 ${totalNights}박 일정 중 현재 ${totalAllocatedNights}박 배분됨`
-              : `${totalAllocatedNights} of ${totalNights} total nights allocated`}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
-          <button
-            type="button"
-            disabled={!canDecreaseNights}
-            onClick={() => onCityNightsChange(city, -1)}
-            className="w-7 h-7 rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200 transition-colors cursor-pointer"
-            title={locale === "ko" ? "1박 줄이기" : "Reduce 1 night"}
-          >
-            -
-          </button>
-          <span className="px-2 text-xs font-black text-slate-900 min-w-[50px] text-center whitespace-nowrap">
-            {cityNights === 0 ? (locale === "ko" ? "당일치기" : "Day Trip") : `${cityNights}${locale === "ko" ? "박" : " Nights"}`}
-          </span>
-          <button
-            type="button"
-            disabled={!canIncreaseNights}
-            onClick={() => onCityNightsChange(city, 1)}
-            className="w-7 h-7 rounded-lg bg-white hover:bg-[#e25c5c] hover:text-white disabled:opacity-30 disabled:hover:bg-white disabled:hover:text-slate-700 flex items-center justify-center font-bold text-xs border border-slate-200 transition-colors cursor-pointer"
-            title={locale === "ko" ? "1박 늘리기" : "Add 1 night"}
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      {/* 4. Step 3: Room Occupancy Option (안 1: 인원수 자동 감지) */}
+      {/* 3. Step 2: Room Occupancy Option (안 1: 인원수 자동 감지) */}
       {!isSoloTraveler ? (
         <div className="p-4 rounded-2xl bg-white border border-slate-200/90 space-y-3 shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <div className="flex items-center gap-2">
               <span className="text-sm">👥</span>
               <span className="text-xs font-extrabold text-slate-800">
-                {dict.planner?.stayStep3Title || (locale === "ko" ? "Step 3. 객실 이용 방식을 선택하세요" : "Step 3. Select Room Sharing Preference")}
+                {locale === "ko" ? "Step 2. 객실 이용 방식을 선택하세요" : "Step 2. Select Room Sharing Preference"}
               </span>
             </div>
             <span className="text-[11px] font-bold text-[#e25c5c]">

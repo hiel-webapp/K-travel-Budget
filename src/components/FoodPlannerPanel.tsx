@@ -505,19 +505,19 @@ export default function FoodPlannerPanel({
         </div>
       )}
 
-      {/* 4. 음식 상세 모달 (Popup Modal) */}
+      {/* 4. 음식 상세 모달 (Popup Modal: 관광 팝업과 동일한 max-w-2xl 프리미엄 규격) */}
       {previewFood && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setPreviewFood(null)}
         >
           <div
-            className="relative w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+            className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-100 flex flex-col animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 고화질 KTO 실사 사진 배너 */}
-            {previewFood.imageUrl && (
-              <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+            {/* Large Image Header */}
+            <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] bg-slate-950 overflow-hidden shrink-0">
+              {previewFood.imageUrl ? (
                 <img
                   src={previewFood.imageUrl}
                   alt={locale === "ko" ? previewFood.nameKo : previewFood.nameEn}
@@ -526,68 +526,156 @@ export default function FoodPlannerPanel({
                     (e.target as HTMLElement).style.display = 'none';
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-                <span className="absolute bottom-2.5 right-3 text-[10px] font-bold text-white/90 bg-black/40 px-2 py-0.5 rounded-md backdrop-blur-xs">
-                  Photo: {previewFood.imageUrl.includes("wikimedia") ? "Wikimedia Commons" : previewFood.imageUrl.startsWith("/assets") ? "Photo" : "한국관광공사 (TourAPI)"}
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <span className="text-3xl">{previewFood.emoji || "🍽️"}</span>
-                <div>
-                  <h4 className="text-base sm:text-lg font-black text-[#0f172a]">
-                    {locale === "ko" ? previewFood.nameKo : previewFood.nameEn}
-                  </h4>
-                  <span className="text-[11px] font-bold text-slate-400">
-                    {previewFood.scope === "NATIONAL"
-                      ? (locale === "ko" ? "🇰🇷 한국 대표 미식" : "🇰🇷 Korean National Dish")
-                      : `🏙️ ${previewFood.cityCode} ${locale === "ko" ? "대표 로컬 미식" : "Local Specialty"}`}
-                  </span>
+              ) : (
+                <div className="h-full w-full bg-gradient-to-br from-rose-500/80 to-amber-500/80 flex items-center justify-center">
+                  <span className="text-6xl">{previewFood.emoji || "🍽️"}</span>
                 </div>
-              </div>
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
+
+              {/* Close Button */}
               <button
                 type="button"
                 onClick={() => setPreviewFood(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm cursor-pointer"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer text-lg font-bold z-10"
+                title={locale === "ko" ? "닫기" : "Close"}
               >
                 ✕
               </button>
+
+              {/* Price & Category badges */}
+              <div className="absolute top-4 left-4 z-10 flex items-center gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-900/90 text-white shadow-md backdrop-blur-md">
+                  {formatKrw(previewFood.unitPriceKrw)}
+                </span>
+                {previewFood.scope === "NATIONAL" ? (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-600/90 text-white shadow-md backdrop-blur-md">
+                    {locale === "ko" ? "🇰🇷 한국 대표 미식" : "🇰🇷 National Dish"}
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-600/90 text-white shadow-md backdrop-blur-md">
+                    {locale === "ko" ? `🏙️ ${CITY_KOREAN_NAMES[previewFood.cityCode || activeCityTab] || previewFood.cityCode} 로컬 추천` : `🏙️ ${previewFood.cityCode} Specialty`}
+                  </span>
+                )}
+                {previewFood.isMustEatTop3 && (
+                  <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-md">
+                    ★ Must-Eat
+                  </span>
+                )}
+              </div>
+
+              {/* Title & Emoji on bottom of image */}
+              <div className="absolute bottom-4 left-5 right-5 text-white z-10">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl drop-shadow-md">{previewFood.emoji || "🍽️"}</span>
+                  <h3 className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-md">
+                    {locale === "ko" ? previewFood.nameKo : previewFood.nameEn}
+                  </h3>
+                </div>
+              </div>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
-              {locale === "ko" ? previewFood.descKo : previewFood.descEn}
-            </p>
+            {/* Modal Body Content (Scrollable) */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              {/* Detailed Description */}
+              <div>
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  {locale === "ko" ? "미식 소개" : "About"}
+                </h4>
+                <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                  {locale === "ko" ? previewFood.descKo : previewFood.descEn}
+                </p>
+              </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl bg-rose-50/60 border border-rose-100 text-xs font-bold text-slate-700">
-              <span>{locale === "ko" ? "1인 평균 가격" : "Estimated Price per Person"}:</span>
-              <span className="text-sm font-black text-[#e25c5c]">
-                {formatKrw(previewFood.unitPriceKrw)}
-              </span>
+              {/* Key Food Info Box */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                  <span className="text-base shrink-0">💰</span>
+                  <div>
+                    <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                      {locale === "ko" ? "1인 기준 권장 예산" : "Price per Person"}
+                    </span>
+                    <span className="text-[#e25c5c] font-black">{formatKrw(previewFood.unitPriceKrw)}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                  <span className="text-base shrink-0">📍</span>
+                  <div>
+                    <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                      {locale === "ko" ? "추천 지역 / 권역" : "Recommended Region"}
+                    </span>
+                    <span className="text-slate-600 font-medium">
+                      {previewFood.scope === "NATIONAL"
+                        ? (locale === "ko" ? "전국 어디서나 쉽게 즐김" : "Nationwide Available")
+                        : (CITY_KOREAN_NAMES[previewFood.cityCode || activeCityTab] || previewFood.cityCode || "현지 로컬")}
+                    </span>
+                  </div>
+                </div>
+
+                {previewFood.imageUrl && (
+                  <div className="sm:col-span-2 pt-1 border-t border-slate-200/60 text-[11px] text-slate-400 flex items-center justify-between">
+                    <span>출처 / 라이선스</span>
+                    <span>
+                      {previewFood.imageUrl.includes("wikimedia") ? "Wikimedia Commons" : previewFood.imageUrl.startsWith("/assets") ? "Photo" : "한국관광공사 (TourAPI)"}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* 액션 버튼 */}
-            <div className="pt-2 flex items-center justify-end gap-2">
-              {(() => {
-                const isSelected = (selectionMap.get(previewFood.id) || 0) > 0;
-                return (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleToggle(previewFood.id);
-                      setPreviewFood(null);
-                    }}
-                    className={`w-full py-2.5 text-white text-xs font-black rounded-xl transition-colors cursor-pointer shadow-sm ${
-                      isSelected ? "bg-slate-600 hover:bg-slate-700" : "bg-[#e25c5c] hover:bg-[#c94949]"
-                    }`}
-                  >
-                    {isSelected
-                      ? (locale === "ko" ? "✓ 바스켓에서 빼기" : "✓ Remove from Basket")
-                      : (locale === "ko" ? "+ 바스켓에 담기" : "+ Add to Basket")}
-                  </button>
-                );
-              })()}
+            {/* Modal Footer Actions */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3 shrink-0">
+              <div>
+                {(() => {
+                  const searchKeyword = locale === "ko" ? previewFood.nameKo : (previewFood.nameKo || previewFood.nameEn);
+                  const naverMapUrl = `https://map.naver.com/p/search/${encodeURIComponent(searchKeyword)}`;
+                  return (
+                    <a
+                      href={naverMapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors shadow-2xs"
+                    >
+                      <span>🗺️</span>
+                      <span>{locale === "ko" ? "네이버 지도 맛집 검색" : "Search on Naver Map"}</span>
+                      <span className="text-slate-400 text-xs">↗</span>
+                    </a>
+                  );
+                })()}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewFood(null)}
+                  className="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-200/80 transition-colors cursor-pointer"
+                >
+                  {locale === "ko" ? "닫기" : "Close"}
+                </button>
+
+                {(() => {
+                  const isSelected = (selectionMap.get(previewFood.id) || 0) > 0;
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleToggle(previewFood.id);
+                      }}
+                      className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shadow-xs ${
+                        isSelected
+                          ? "bg-rose-500 text-white hover:bg-rose-600"
+                          : "bg-[#0f172a] text-white hover:bg-slate-800"
+                      }`}
+                    >
+                      {isSelected
+                        ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
+                        : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
+                    </button>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>

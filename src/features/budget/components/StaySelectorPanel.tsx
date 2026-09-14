@@ -139,37 +139,85 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. Header & Reset Bar */}
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
-        <div>
-          <div className="flex items-center gap-2">
-            <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-              <span>🏨</span>
-              <span>
-                {cityName} {dict.planner?.stayPlannerTitle?.replace("🏨 ", "") || (locale === "ko" ? "숙소 플래너" : "Stay Planner")}
-              </span>
-            </h4>
+      {/* 1. 숙박 바스켓 요약 바 (Top Summary Bar: 음식 탭과 동일한 위계 및 카드 규격) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🏨</span>
+              <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                {cityName} {locale === "ko" ? "숙박 바스켓 플래너" : "Stay Basket Planner"}
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500">
+              {!hasSelection
+                ? (locale === "ko"
+                    ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙박 예산을 확정하세요."
+                    : "Select a stay archetype or enter your custom booked stay.")
+                : isCustomActive
+                ? (locale === "ko"
+                    ? `직접 입력 숙소: "${customStayOverride?.placeName}" (1박 ${formatKrw(nightlyRoomPrice)})`
+                    : `Custom stay: "${customStayOverride?.placeName}" (${formatKrw(nightlyRoomPrice)}/nt)`)
+                : (locale === "ko"
+                    ? `선택된 숙소: ${locale === "ko" ? currentArchetype?.titleKo : currentArchetype?.titleEn} (1박 평균 ${formatKrw(nightlyRoomPrice)})`
+                    : `Selected: ${currentArchetype?.titleEn} (${formatKrw(nightlyRoomPrice)}/nt)`)}
+            </p>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {dict.planner?.stayPlannerSubtitle || (locale === "ko"
-              ? "외국인 여행자 맞춤 4대 숙소 스타일과 객실 이용 방식을 설정하세요."
-              : "Choose your stay archetype and room sharing preferences.")}
-          </p>
+
+          {/* 총 숙박비 표시 (우측 대형 강조) */}
+          <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
+            <span className="text-[11px] font-bold text-slate-400">
+              {locale === "ko"
+                ? `${cityName} 총 숙박비 (${cityNights}박 · ${adultCount}인)`
+                : `${cityName} Total Stay (${cityNights} Nts · ${adultCount}p)`}
+            </span>
+            <div className="flex items-baseline gap-2 justify-end">
+              <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+                {formatKrw(totalStayCostKrw)}
+              </span>
+              {hasSelection && (
+                <span className="text-xs font-bold text-slate-400">
+                  (${totalStayCostUsd.toLocaleString()} USD)
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-        {onResetToRecommended && (
-          <button
-            type="button"
-            onClick={() => onResetToRecommended(city)}
-            disabled={!hasCustomOverride}
-            className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-              hasCustomOverride
-                ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
-                : "text-slate-300 border-slate-100 bg-slate-50 cursor-not-allowed"
-            }`}
-          >
-            {dict.planner?.resetToRecommended || (locale === "ko" ? "추천 숙소로 초기화" : "Reset")}
-          </button>
-        )}
+
+        {/* 하단 세부 정보 바 (1인당 실제 부담액 & 객실 이용 방식 칩) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-slate-700 font-bold flex items-center gap-1.5">
+              <span>💡</span>
+              <span>{locale === "ko" ? "1인당 실제 부담액:" : "Per Traveler:"}</span>
+              <strong className="text-slate-900 font-black">
+                {formatKrw(perPersonStayCostKrw)}
+              </strong>
+              <span className="text-slate-400 font-medium">
+                (${perPersonStayCostUsd.toLocaleString()} USD)
+              </span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
+              {isSoloTraveler
+                ? (locale === "ko" ? "👤 1인 1실 단독" : "👤 1 Room")
+                : isPairSplit
+                ? (locale === "ko" ? `🛏️ 2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `🛏️ 2-in-1 Room (${sharedRoomCount} rms)`)
+                : (locale === "ko" ? `🚪 전원 1인 1실 (${adultCount}개 객실)` : `🚪 1 Room each (${adultCount} rms)`)}
+            </span>
+            {onResetToRecommended && hasCustomOverride && (
+              <button
+                type="button"
+                onClick={() => onResetToRecommended(city)}
+                className="text-xs font-bold px-2.5 py-1 rounded-full text-[#e25c5c] bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "추천으로 초기화" : "Reset"}
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 2. Step 1: 4-Tier Stay Archetype Cards Grid */}
@@ -466,59 +514,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         </div>
       )}
 
-      {/* 4. Bottom Live Cost Summary */}
-      <div className="p-4.5 rounded-2xl bg-[#faf9f8] border border-slate-200/90 shadow-2xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="space-y-1">
-            {!hasSelection ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 font-bold">
-                  {locale === "ko" ? "선택된 숙소 없음" : "No accommodation selected"}:
-                </span>
-                <strong className="text-xs font-extrabold text-slate-400">
-                  ₩0
-                </strong>
-                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                  ({locale === "ko" ? "위의 숙소 카드 또는 직접 입력으로 숙소를 선택해 주세요" : "Select a stay card above or enter custom stay"})
-                </span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs text-slate-500 font-bold">
-                  {isCustomActive
-                    ? (locale === "ko" ? "확정 1박 비용" : "Booked Nightly Rate")
-                    : (dict.planner?.stayEstimatedNightly || (locale === "ko" ? "예상 1박 비용" : "Est. Nightly Rate"))}:
-                </span>
-                <strong className="text-xs font-extrabold text-slate-900">
-                  {formatKrw(nightlyRoomPrice)}
-                </strong>
-                <span className="text-[11px] text-slate-400">|</span>
-                <span className="text-xs text-slate-500 font-bold">
-                  {locale === "ko" ? `총 ${cityName} 숙박비 (${cityNights}박):` : `Total ${cityName} Stay (${cityNights} Nts):`}
-                </span>
-                <strong className="text-sm font-black text-[#e25c5c]">
-                  {formatKrw(totalStayCostKrw)}
-                </strong>
-                <span className="text-xs font-bold text-slate-500">
-                  (${totalStayCostUsd.toLocaleString()} USD)
-                </span>
-              </div>
-            )}
-
-            {hasSelection && (
-              <p className="text-[11px] text-slate-500 font-medium">
-                💡 {locale === "ko"
-                  ? `1인당 부담액: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
-                      isPairSplit ? "2인 1실 1/2 분할 반영" : "1인 1실 기준"
-                    }`
-                  : `Per traveler: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
-                      isPairSplit ? "1/2 split applied" : "1 room per traveler"
-                    }`}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

@@ -3925,15 +3925,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               return (
                                 <div
                                   key={rawSpot.id}
-                                  className={`rounded-2xl border bg-white flex flex-col overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 ${
-                                    isAdded ? "border-rose-300 ring-1 ring-rose-200 bg-rose-50/10" : "border-slate-200 hover:border-slate-300"
+                                  onClick={() => handleToggleSpot(city, rawSpot.id)}
+                                  className={`rounded-2xl border flex flex-col overflow-hidden transition-all duration-200 cursor-pointer group ${
+                                    isAdded
+                                      ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+                                      : "bg-white border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-md"
                                   }`}
                                 >
-                                  {/* Photo Container: 클릭 시 상세 팝업 오픈 */}
+                                  {/* Photo Container */}
                                   <div
-                                    onClick={() => setPreviewSpot(rawSpot)}
-                                    className="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden cursor-pointer group"
-                                    title={locale === "ko" ? "클릭하여 사진 및 상세정보 크게 보기" : "Click to view photo & details"}
+                                    className="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden"
                                   >
                                     <SpotCardImage
                                       src={(rawSpot as any).imageUrl}
@@ -3942,11 +3943,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       locale={locale}
                                     />
 
-                                    {/* Hover overlay hint */}
-                                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px] pointer-events-none">
-                                      <span className="text-base">🔍</span>
-                                      <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
-                                    </div>
+                                    {/* 선택 시 체크마크 배지 */}
+                                    {isAdded && (
+                                      <div className="absolute top-3 left-3 z-10">
+                                        <span className="w-6 h-6 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
+                                          ✓
+                                        </span>
+                                      </div>
+                                    )}
 
                                     {/* Price Tag Pill & Local Badge on Image */}
                                     <div className="absolute top-3 right-3 z-10 pointer-events-none flex items-center gap-1.5">
@@ -3975,8 +3979,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     {/* Title & Category Badge */}
                                     <div className="flex items-start justify-between gap-2">
                                       <h5
-                                        onClick={() => setPreviewSpot(rawSpot)}
-                                        className="text-[15px] font-extrabold text-[#0f172a] leading-snug cursor-pointer hover:text-indigo-600 transition-colors"
+                                        className={`text-[15px] font-extrabold leading-snug transition-colors ${
+                                          isAdded ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
+                                        }`}
                                       >
                                         {name}
                                       </h5>
@@ -4053,7 +4058,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                                     <button
                                       type="button"
-                                      onClick={() => setPreviewSpot(rawSpot)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPreviewSpot(rawSpot);
+                                      }}
                                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer"
                                     >
                                       <span>🔍</span>
@@ -4062,10 +4070,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                     <button
                                       type="button"
-                                      onClick={() => handleToggleSpot(city, rawSpot.id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleSpot(city, rawSpot.id);
+                                      }}
                                       className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
                                         isSpotSelected || isIncludedInCourse
-                                          ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600"
+                                          ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600 ring-1 ring-rose-200"
                                           : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
                                       }`}
                                     >

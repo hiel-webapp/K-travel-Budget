@@ -301,8 +301,8 @@ export default function FoodPlannerPanel({
               </span>
             </div>
 
-            {/* Top 3 강조 카드 그리드 */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            {/* Top 3 강조 카드 그리드: 1줄에 2개씩 배열 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {cityFoods.top3.map((food) => {
                 const count = selectionMap.get(food.id) || 0;
                 return (
@@ -335,8 +335,8 @@ export default function FoodPlannerPanel({
               </span>
             </div>
 
-            {/* 탐색 7선 카드 그리드 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {/* 탐색 7선 카드 그리드: 1줄에 2개씩 배열 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {cityFoods.explore7.map((food) => {
                 const count = selectionMap.get(food.id) || 0;
                 return (
@@ -384,8 +384,8 @@ export default function FoodPlannerPanel({
             ))}
           </div>
 
-          {/* 한국 대표 음식 그리드 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* 한국 대표 음식 그리드: 1줄에 2개씩 배열 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {filteredNationalFoods.map((food) => {
               const count = selectionMap.get(food.id) || 0;
               return (
@@ -620,22 +620,20 @@ function FoodItemCard({
 
   return (
     <div
-      className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 bg-white overflow-hidden ${
-        isHighlighted
-          ? isSelected
-            ? "border-rose-400 ring-2 ring-rose-200 shadow-md bg-rose-50/10"
-            : "border-amber-300 shadow-xs hover:border-amber-400 hover:shadow-sm"
-          : isSelected
-          ? "border-rose-400 ring-1 ring-rose-200 shadow-xs bg-rose-50/10"
-          : "border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
+      onClick={onToggle}
+      className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
+        isSelected
+          ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+          : isHighlighted
+          ? "bg-white border-amber-300 shadow-xs hover:border-amber-400 hover:shadow-sm"
+          : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
       }`}
     >
       <div className="space-y-2">
         {/* KTO TourAPI 공식 실사 이미지 썸네일 */}
         {food.imageUrl ? (
           <div
-            className="relative w-full h-32 rounded-xl overflow-hidden bg-slate-100 cursor-pointer group shadow-2xs"
-            onClick={onPreview}
+            className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 shadow-2xs"
           >
             <img
               src={food.imageUrl}
@@ -649,13 +647,22 @@ function FoodItemCard({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
             
-            {food.isMustEatTop3 && (
+            {/* 선택 시 체크마크 배지 */}
+            {isSelected && (
+              <div className="absolute top-2 left-2 z-10">
+                <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
+                  ✓
+                </span>
+              </div>
+            )}
+
+            {food.isMustEatTop3 && !isSelected && (
               <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-md">
                 ★ Must-Eat
               </span>
             )}
 
-            {food.scope === "CITY_LOCAL" && !food.isMustEatTop3 && (
+            {food.scope === "CITY_LOCAL" && !food.isMustEatTop3 && !isSelected && (
               <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-black/60 text-white backdrop-blur-xs">
                 로컬 추천
               </span>
@@ -671,12 +678,17 @@ function FoodItemCard({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="text-lg">{food.emoji || "🍽️"}</span>
-            {!food.imageUrl && food.isMustEatTop3 && (
+            {!food.imageUrl && isSelected && (
+              <span className="w-4 h-4 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-[10px] font-black">
+                ✓
+              </span>
+            )}
+            {!food.imageUrl && !isSelected && food.isMustEatTop3 && (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-2xs">
                 ★ Must-Eat
               </span>
             )}
-            {!food.imageUrl && food.scope === "CITY_LOCAL" && (
+            {!food.imageUrl && !isSelected && food.scope === "CITY_LOCAL" && (
               <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80">
                 로컬
               </span>
@@ -691,8 +703,9 @@ function FoodItemCard({
         {/* 제목 & 설명 */}
         <div>
           <h5
-            onClick={onPreview}
-            className="text-xs sm:text-sm font-black text-[#0f172a] hover:text-indigo-600 transition-colors cursor-pointer line-clamp-1"
+            className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
+              isSelected ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
+            }`}
             title={locale === "ko" ? food.nameKo : food.nameEn}
           >
             {locale === "ko" ? food.nameKo : food.nameEn}
@@ -707,18 +720,25 @@ function FoodItemCard({
       <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
         <button
           type="button"
-          onClick={onPreview}
-          className="text-[10px] text-slate-400 hover:text-slate-600 font-bold hover:underline cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPreview();
+          }}
+          className="text-[11px] text-slate-500 hover:text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
         >
-          {locale === "ko" ? "상세보기 🔍" : "Details 🔍"}
+          <span>🔍</span>
+          <span>{locale === "ko" ? "상세보기" : "Details"}</span>
         </button>
 
         <button
           type="button"
-          onClick={onToggle}
-          className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
             isSelected
-              ? "bg-[#e25c5c] text-white hover:bg-[#c94949] ring-2 ring-rose-200"
+              ? "bg-[#e25c5c] text-white hover:bg-[#c94949] ring-1 ring-rose-200"
               : "bg-[#0f172a] text-white hover:bg-slate-800"
           }`}
         >

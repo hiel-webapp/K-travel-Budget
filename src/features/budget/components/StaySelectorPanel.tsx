@@ -90,7 +90,8 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   const isPairSplit = !isSoloTraveler && occupancyMode === "SHARED_PAIR";
 
   // 여행 전체 숙박비 (총 결제액)
-  const roomCount = isSoloTraveler ? 1 : isPairSplit ? Math.ceil(adultCount / 2) : adultCount;
+  const sharedRoomCount = Math.ceil(adultCount / 2);
+  const roomCount = isSoloTraveler ? 1 : isPairSplit ? sharedRoomCount : adultCount;
   const totalStayCostKrw = nightlyRoomPrice * roomCount * cityNights;
   const perPersonStayCostKrw = Math.round(totalStayCostKrw / adultCount);
 
@@ -398,9 +399,9 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <div className="space-y-0.5">
                 <div className="flex items-center gap-1.5">
                   <span className={`text-xs font-black ${isPairSplit ? "text-[#e25c5c]" : "text-slate-800"}`}>
-                    {adultCount === 2
-                      ? (locale === "ko" ? "2인 1실 (비용 분할)" : "Share 1 Room (Split 1/2)")
-                      : (locale === "ko" ? "객실 쉐어 (비용 분할)" : `Share Rooms (Split across ${adultCount})`)}
+                    {locale === "ko"
+                      ? `2인 1실 (${sharedRoomCount}개 객실)`
+                      : (adultCount === 2 ? "Share 1 Room (Split 1/2)" : `Shared Rooms (${sharedRoomCount} Rooms)`)}
                   </span>
                   {isPairSplit && (
                     <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#e25c5c] text-white font-black">
@@ -414,8 +415,8 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                         ? "방 1개를 함께 사용하고 숙박비를 50%씩 부담합니다."
                         : "1 room shared by 2 travelers (50% cost split).")
                     : (locale === "ko"
-                        ? `총 ${roomCount}개 방을 나누어 쓰고 숙박비를 균등 분할합니다.`
-                        : `${roomCount} rooms shared, budget split evenly across travelers.`)}
+                        ? `총 ${sharedRoomCount}개 방을 나누어 쓰고 숙박비를 균등 분할합니다.`
+                        : `${sharedRoomCount} rooms shared, budget split evenly across travelers.`)}
                 </p>
               </div>
             </button>
@@ -434,9 +435,9 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <div className="space-y-0.5">
                 <div className="flex items-center gap-1.5">
                   <span className={`text-xs font-black ${!isPairSplit ? "text-[#e25c5c]" : "text-slate-800"}`}>
-                    {adultCount === 2
-                      ? (locale === "ko" ? "1인 1실 (전액 부담)" : "Separate Rooms (1 Room Each)")
-                      : (locale === "ko" ? `전원 1인 1실 (${adultCount}개 객실)` : `1 Room Per Traveler (${adultCount} Rooms)`)}
+                    {locale === "ko"
+                      ? `1인 1실 (${adultCount}개 객실)`
+                      : `Private Rooms (${adultCount} Rooms)`}
                   </span>
                   {!isPairSplit && (
                     <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#e25c5c] text-white font-black">

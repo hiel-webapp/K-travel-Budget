@@ -555,6 +555,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isResetPlanModalOpen, setIsResetPlanModalOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
@@ -2006,6 +2007,75 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
+  const handleResetAllPlan = () => {
+    if (state.status !== "ready") return;
+
+    // 1. K-스팟 로컬스토리지 budgetPlaces 비우기
+    saveBudgetPlaces([]);
+    setBudgetPlaces([]);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("hypeheritage_budget_places_changed"));
+    }
+
+    // 2. 플래너 preferences 초기화 (draft 기본 여행 조건은 그대로 유지)
+    const freshPreferences: PlannerPreferences = {
+      schemaVersion: 5,
+      tripFingerprint: generateTripFingerprint(draft),
+      accommodationByCity: {},
+      foodOverrides: {},
+      addOnSelections: {},
+      foodBasketSelections: [],
+      attractionByCity: {},
+      attractionSelections: {},
+      attractionCustomDailyKrw: undefined,
+      intercityTransportOverrides: {},
+      cityTransitStyles: {},
+      localTransitStyle: "STANDARD_MIX",
+      emergencyFundPct: 0.10,
+      emergencyFundKrw: undefined,
+    };
+
+    const saved = savePlannerPreferences({
+      draft,
+      accommodationByCity: {},
+      foodOverrides: {},
+      foodAddOnOverrides: {},
+      foodBasketSelections: [],
+      attractionByCity: {},
+      attractionSelections: {},
+      attractionCustomDailyKrw: undefined,
+      intercityTransportOverrides: {},
+      cityTransitStyles: {},
+      localTransitStyle: "STANDARD_MIX",
+      emergencyFundPct: 0.10,
+      emergencyFundKrw: undefined,
+    });
+
+    if (saved) {
+      latestPrefsRef.current = freshPreferences;
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: freshPreferences,
+        };
+      });
+      setOccupancyModeByCity({});
+      setEmergencyManualInput("");
+      setActivityManualInput("");
+      setShowSavedOnlyAccByCity({});
+      setAttractionCategoryFilterByCity({});
+      setShoppingOption("BEAUTY");
+      setShoppingCustomInput("");
+      setSaveError(false);
+      setIsResetPlanModalOpen(false);
+      setToastMessage(locale === "ko" ? "계획이 성공적으로 초기화되었습니다." : "Budget plan reset successfully.");
+      setTimeout(() => setToastMessage(null), 2500);
+    } else {
+      setSaveError(true);
+    }
+  };
+
   const handleFoodBasketUpdateQuantity = (foodId: string, delta: number, cityCode?: SupportedCity) => {
     if (!latestPrefsRef.current) return;
 
@@ -2628,60 +2698,73 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </button>
               </div>
 
-              {/* 우측: 최적 동선 정렬 & Info */}
-              {draft.selectedCities.length > 1 && (
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={handleTabOptimizeRoute}
-                    className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
-                    title={locale === "ko" ? "지리적 동선에 맞게 최적 순서로 자동 정렬합니다" : "Auto optimize route sequence"}
-                  >
-                    <span>⚡</span>
-                    <span className="hidden sm:inline">{locale === "ko" ? "최적 동선 정렬" : "Auto Optimize"}</span>
-                    <span className="sm:hidden">{locale === "ko" ? "최적 동선" : "Optimize"}</span>
-                  </button>
-
-                  <div className="relative">
+              {/* 우측: 최적 동선 정렬 & Info & 계획 초기화 */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {draft.selectedCities.length > 1 && (
+                  <>
                     <button
                       type="button"
-                      onClick={() => setShowTabRouteInfo(!showTabRouteInfo)}
-                      className={`inline-flex items-center px-2 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer shadow-2xs ${
-                        showTabRouteInfo
-                          ? "bg-[#0f172a] text-white border-[#0f172a]"
-                          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                      }`}
-                      title={locale === "ko" ? "동선 안내 보기" : "Route Info"}
+                      onClick={handleTabOptimizeRoute}
+                      className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
+                      title={locale === "ko" ? "지리적 동선에 맞게 최적 순서로 자동 정렬합니다" : "Auto optimize route sequence"}
                     >
-                      Info
+                      <span>⚡</span>
+                      <span className="hidden sm:inline">{locale === "ko" ? "최적 동선 정렬" : "Auto Optimize"}</span>
+                      <span className="sm:hidden">{locale === "ko" ? "최적 동선" : "Optimize"}</span>
                     </button>
 
-                    {showTabRouteInfo && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-30"
-                          onClick={() => setShowTabRouteInfo(false)}
-                        />
-                        <div className="absolute right-0 top-full mt-1.5 w-64 sm:w-72 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
-                          <p className="font-extrabold text-amber-300">
-                            🗺️ {locale === "ko" ? "도시 탭 이동 동선 안내" : "Route Sequence Guide"}
-                          </p>
-                          <p className="text-slate-200">
-                            • {locale === "ko"
-                              ? "아래 도시 탭을 마우스로 잡고 좌우로 끌어당기면 방문 순서가 실시간으로 변경됩니다."
-                              : "Drag & drop city tabs left or right below to reorder your itinerary."}
-                          </p>
-                          <p className="text-slate-300">
-                            • {locale === "ko"
-                              ? "순서가 바뀌면 도시 간 교통 구간과 일정이 최신 동선에 맞춰 자동 재계산됩니다."
-                              : "Transit routes and costs automatically update according to your custom sequence."}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setShowTabRouteInfo(!showTabRouteInfo)}
+                        className={`inline-flex items-center px-2 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer shadow-2xs ${
+                          showTabRouteInfo
+                            ? "bg-[#0f172a] text-white border-[#0f172a]"
+                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
+                        }`}
+                        title={locale === "ko" ? "동선 안내 보기" : "Route Info"}
+                      >
+                        Info
+                      </button>
+
+                      {showTabRouteInfo && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-30"
+                            onClick={() => setShowTabRouteInfo(false)}
+                          />
+                          <div className="absolute right-0 top-full mt-1.5 w-64 sm:w-72 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                            <p className="font-extrabold text-amber-300">
+                              🗺️ {locale === "ko" ? "도시 탭 이동 동선 안내" : "Route Sequence Guide"}
+                            </p>
+                            <p className="text-slate-200">
+                              • {locale === "ko"
+                                ? "아래 도시 탭을 마우스로 잡고 좌우로 끌어당기면 방문 순서가 실시간으로 변경됩니다."
+                                : "Drag & drop city tabs left or right below to reorder your itinerary."}
+                            </p>
+                            <p className="text-slate-300">
+                              • {locale === "ko"
+                                ? "순서가 바뀌면 도시 간 교통 구간과 일정이 최신 동선에 맞춰 자동 재계산됩니다."
+                                : "Transit routes and costs automatically update according to your custom sequence."}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* 계획 초기화 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => setIsResetPlanModalOpen(true)}
+                  className="h-8 px-2.5 sm:px-3 text-[11px] sm:text-xs font-bold rounded-xl text-slate-600 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200/90 hover:border-rose-200 transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5 shrink-0"
+                  title={locale === "ko" ? "선택한 숙박, 음식, 관광, 교통 바스켓 초기화" : "Reset budget plan baskets"}
+                >
+                  <span className="text-xs">↺</span>
+                  <span>{locale === "ko" ? "계획 초기화" : "Reset Plan"}</span>
+                </button>
+              </div>
             </div>
 
             {/* 2단: 도시 이동 동선 탭 트랙 ([공항] -> [1 서울] -> [2 부산] -> [3 제주] -> [4 수원] -> [공항]) */}
@@ -4813,6 +4896,108 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         onSave={handleSaveTripPlan}
         dict={dict}
       />
+
+      {/* ================= ↺ 계획 초기화 확인 모달 ================= */}
+      {isResetPlanModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setIsResetPlanModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden space-y-0 text-left animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reset-plan-modal-title"
+          >
+            {/* Modal Header */}
+            <div className="p-5 pb-4 border-b border-slate-100 flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center text-lg font-black shrink-0">
+                  ↺
+                </div>
+                <div>
+                  <h3 id="reset-plan-modal-title" className="text-base font-extrabold text-slate-900">
+                    {locale === "ko" ? "계획 초기화" : "Reset Budget Plan"}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {locale === "ko" ? "현재 담긴 세부 계획을 비우고 새로 시작합니다." : "Clear selected items and start fresh."}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsResetPlanModalOpen(false)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+                aria-label={locale === "ko" ? "닫기" : "Close"}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 text-xs">
+              <p className="text-slate-600 leading-relaxed">
+                {locale === "ko"
+                  ? "여행 도시와 기간, 인원수 등 최초 선택한 여행 기본 조건은 그대로 유지되며, 숙박·음식·관광·교통에 담긴 모든 선택 내역이 초기화됩니다."
+                  : "Your base trip conditions (cities, duration, travelers) will remain intact, while all selected stays, meals, attractions, and transport choices will be cleared."}
+              </p>
+
+              {/* 유지되는 여행 조건 요약 카드 */}
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/70 space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <span>{locale === "ko" ? "✓ 유지되는 여행 조건" : "✓ Kept Trip Conditions"}</span>
+                  <span className="text-[#e25c5c] font-extrabold">{locale === "ko" ? "유지됨" : "Retained"}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 text-xs">
+                  <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700">
+                    🗓️ {formatTripDuration(draft.totalNights || 5, dict, locale)}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700">
+                    👥 {formatTravelerCount(draft.adultCount || 1, dict, locale)}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700">
+                    🏙️ {draft.selectedCities.map((c) => (locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c)).join(" · ")}
+                  </span>
+                </div>
+              </div>
+
+              {/* 초기화되는 내역 안내 */}
+              <div className="bg-rose-50/60 rounded-xl p-3 border border-rose-100 text-[11px] text-rose-800 space-y-1">
+                <div className="font-bold flex items-center gap-1.5 text-rose-900">
+                  <span>⚠️</span>
+                  <span>{locale === "ko" ? "비워지는 내역" : "Items to be cleared"}</span>
+                </div>
+                <p className="text-rose-700 leading-relaxed">
+                  {locale === "ko"
+                    ? "• 숙박 탭: 선택한 숙박 스타일 및 직접 입력 숙소 정보\n• 음식 탭: 식도락 바스켓에 담긴 모든 음식\n• 관광 탭: 선택된 관광 코스 및 개별 액티비티\n• 교통 탭: 도시 간 이동 수단 및 시내 교통 커스텀 설정"
+                    : "• Stays: Selected stay archetype & custom stay\n• Meals: All items in Food Basket\n• Attractions: Selected tour courses & individual spots\n• Transport: Intercity & local transit custom settings"}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsResetPlanModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200/80 transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "취소" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={handleResetAllPlan}
+                className="px-4 py-2 rounded-xl text-xs font-extrabold text-white bg-[#e25c5c] hover:bg-[#d14b4b] transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <span>↺</span>
+                <span>{locale === "ko" ? "계획 초기화 실행" : "Confirm Reset"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ================= ✈️ 여행 조건 수정 탭 분리형 스마트 팝오버 모달 ================= */}
       {isEditModalOpen && editDraft && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">

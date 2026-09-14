@@ -145,7 +145,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                     : "bg-white border-slate-200/90 text-slate-600 hover:border-slate-300 hover:bg-slate-50/60"
                 }`}
               >
-                {/* Left: Thumbnail Image Container */}
+                {/* Left: Thumbnail Image Container with Badge & Checkmark */}
                 <div className="relative w-28 sm:w-32 h-28 rounded-xl overflow-hidden bg-slate-100 shrink-0">
                   <Image
                     src={archetype.imageUrl}
@@ -161,25 +161,25 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                       </span>
                     </div>
                   )}
+                  {badge && (
+                    <div className="absolute bottom-1.5 left-1.5 z-10">
+                      <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-black/65 text-white backdrop-blur-xs">
+                        {badge}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right: Content & Pricing */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                   <div className="space-y-1">
-                    <div className="flex items-center justify-between gap-1.5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-sm shrink-0">{archetype.icon}</span>
-                        <h5 className={`text-xs sm:text-[13px] font-black leading-snug truncate ${isSelected ? "text-[#e25c5c]" : "text-slate-900"}`}>
-                          {title}
-                        </h5>
-                      </div>
-                      {badge && (
-                        <span className="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200/60">
-                          {badge}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-sm shrink-0">{archetype.icon}</span>
+                      <h5 className={`text-xs sm:text-[13px] font-black leading-snug ${isSelected ? "text-[#e25c5c]" : "text-slate-900"}`}>
+                        {title}
+                      </h5>
                     </div>
-                    <p className="text-[11px] leading-relaxed text-slate-500 line-clamp-2">
+                    <p className="text-[11px] leading-relaxed text-slate-500">
                       {desc}
                     </p>
                   </div>

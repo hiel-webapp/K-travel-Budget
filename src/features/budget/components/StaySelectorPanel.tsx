@@ -311,11 +311,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   type="text"
                   value={customNameInput}
                   onChange={(e) => setCustomNameInput(e.target.value)}
-                  placeholder={
-                    locale === "ko"
-                      ? "예: 나인트리 프리미어 로카우스 용산"
-                      : "e.g. Nine Tree Premier Hotel"
-                  }
+                  placeholder={locale === "ko" ? "직접 입력" : "Enter stay name"}
                   className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e25c5c] focus:border-transparent transition-all shadow-2xs"
                 />
               </div>
@@ -342,7 +338,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                       const numOnly = e.target.value.replace(/[^0-9]/g, "");
                       setCustomPriceInput(numOnly ? Number(numOnly).toLocaleString() : "");
                     }}
-                    placeholder="150,000"
+                    placeholder={locale === "ko" ? "직접 입력" : "Enter rate"}
                     className="w-full h-10 pl-7 pr-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e25c5c] focus:border-transparent transition-all shadow-2xs"
                   />
                 </div>

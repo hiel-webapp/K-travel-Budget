@@ -282,77 +282,38 @@ export default function FoodPlannerPanel({
       </div>
 
       {/* 3-A. [도시별 대표 로컬 음식] 탭 콘텐츠: 계층형 UI (★ 필수 Top 3 + 탐색 7선) */}
+      {/* 3-A. [도시별 대표 음식] 탭 콘텐츠 (카테고리 분리 없이 단일 대표 미식 리스트) */}
       {activeTab === "CITY" && (
-        <div className="space-y-6">
-          {/* 섹션 1: ★ Must-Eat Top 3 (필수 미식) */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="text-amber-500 font-extrabold text-sm">★</span>
-                <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                  {cityName} {locale === "ko" ? "방문 시 꼭 먹어야 할 3대 필수 미식" : "Must-Eat Top 3"}
-                </h4>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
-                  Top Pick
-                </span>
-              </div>
-              <span className="text-xs text-slate-400">
-                {locale === "ko" ? "외국인이 가장 선호하는 시그니처" : "Top Foreigner Favorites"}
-              </span>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-base">🍽️</span>
+              <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                {cityName} {locale === "ko" ? `대표 미식 리스트 (${cityFoods.all.length}선)` : `Signature Food List (${cityFoods.all.length})`}
+              </h4>
             </div>
-
-            {/* Top 3 강조 카드 그리드: 1줄에 2개씩 배열 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {cityFoods.top3.map((food) => {
-                const count = selectionMap.get(food.id) || 0;
-                return (
-                  <FoodItemCard
-                    key={food.id}
-                    food={food}
-                    locale={locale}
-                    count={count}
-                    adultCount={adultCount}
-                    isHighlighted={true}
-                    onToggle={() => handleToggle(food.id)}
-                    onPreview={() => setPreviewFood(food)}
-                  />
-                );
-              })}
-            </div>
+            <span className="text-xs text-slate-400">
+              {locale === "ko" ? "취향에 따라 골라 담기" : "Explore by Preference"}
+            </span>
           </div>
 
-          {/* 섹션 2: Explore More 7 (로컬 탐색 7선) */}
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="text-slate-400 text-sm">✦</span>
-                <h4 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">
-                  {cityName} {locale === "ko" ? `로컬 추천 미식 탐색 (${cityFoods.explore7.length}선)` : `Explore Local Favorites (${cityFoods.explore7.length})`}
-                </h4>
-              </div>
-              <span className="text-xs text-slate-400">
-                {locale === "ko" ? "취향에 따라 골라 담기" : "Explore by Preference"}
-              </span>
-            </div>
-
-            {/* 탐색 7선 카드 그리드: 1줄에 2개씩 배열 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {cityFoods.explore7.map((food) => {
-                const count = selectionMap.get(food.id) || 0;
-                return (
-                  <FoodItemCard
-                    key={food.id}
-                    food={food}
-                    locale={locale}
-                    count={count}
-                    adultCount={adultCount}
-                    isHighlighted={false}
-                    onToggle={() => handleToggle(food.id)}
-                    onPreview={() => setPreviewFood(food)}
-                  />
-                );
-              })}
-            </div>
+          {/* 대표 미식 통합 카드 그리드: 1줄에 2개씩 배열 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {cityFoods.all.map((food) => {
+              const count = selectionMap.get(food.id) || 0;
+              return (
+                <FoodItemCard
+                  key={food.id}
+                  food={food}
+                  locale={locale}
+                  count={count}
+                  adultCount={adultCount}
+                  isHighlighted={food.isMustEatTop3 || false}
+                  onToggle={() => handleToggle(food.id)}
+                  onPreview={() => setPreviewFood(food)}
+                />
+              );
+            })}
           </div>
         </div>
       )}
@@ -750,12 +711,6 @@ function FoodItemCard({
               </span>
             )}
 
-            {food.scope === "CITY_LOCAL" && !food.isMustEatTop3 && !isSelected && (
-              <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-black/60 text-white backdrop-blur-xs">
-                로컬 추천
-              </span>
-            )}
-
             <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
               {food.imageUrl.includes("wikimedia") ? "Wikimedia" : food.imageUrl.startsWith("/assets") ? "Photo" : "KTO"}
             </span>
@@ -774,11 +729,6 @@ function FoodItemCard({
             {!food.imageUrl && !isSelected && food.isMustEatTop3 && (
               <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-2xs">
                 ★ Must-Eat
-              </span>
-            )}
-            {!food.imageUrl && !isSelected && food.scope === "CITY_LOCAL" && (
-              <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80">
-                로컬
               </span>
             )}
           </div>

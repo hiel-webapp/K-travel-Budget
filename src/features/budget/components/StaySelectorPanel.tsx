@@ -277,8 +277,8 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 </h5>
                 <p className="text-[11px] text-slate-500 mt-0.5">
                   {locale === "ko"
-                    ? "아고다, 에어비앤비 등에서 예약한 숙소 이름과 1박 결제 금액을 직접 입력할 수 있습니다."
-                    : "Enter your booked stay name and nightly rate to apply directly to the budget."}
+                    ? "아고다에서 찾아본 숙소 이름과 1박 금액을 직접 입력할 수 있습니다."
+                    : "Enter stay name and nightly rate found on Agoda to apply directly to the budget."}
                 </p>
               </div>
             </div>

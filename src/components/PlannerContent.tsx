@@ -2622,7 +2622,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
 
             {/* 2단: 도시 이동 동선 탭 트랙 ([공항] -> [1 서울] -> [2 부산] -> [3 제주] -> [4 수원] -> [공항]) */}
-            <div className="flex items-center justify-between border-b border-slate-200/90 pb-px gap-1 sm:gap-2 w-full" role="tablist" aria-label="City route tabs">
+            <div
+              className="flex items-center justify-between border-b border-slate-200/90 pb-px w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0"
+              role="tablist"
+              aria-label="City route tabs"
+            >
               {/* 출발 공항 고정 뱃지 (왼쪽 끝: 1단 여행 개요 탭 시작점과 수직 일치) */}
               <div
                 className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center gap-1.5 shrink-0 select-none"
@@ -2632,86 +2636,85 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 <span>{locale === "ko" ? "공항" : "Airport"}</span>
               </div>
 
-              {/* 중간: 도시 탭들과 이동 화살표 (중앙 균형 배치 및 오버플로우 스크롤 지원) */}
-              <div className="flex-1 flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0">
-                <span className="text-slate-300 text-xs font-bold shrink-0 select-none px-0.5" aria-hidden="true">
-                  ➔
-                </span>
+              {/* 공항 -> 첫 번째 도시 화살표 */}
+              <div className="flex-1 flex items-center justify-center min-w-[12px] sm:min-w-[18px] select-none text-slate-300 text-xs font-bold" aria-hidden="true">
+                ➔
+              </div>
 
-                {(() => {
-                  const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
-                  const isMultiCity = draft.selectedCities.length > 1;
+              {(() => {
+                const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
+                const isMultiCity = draft.selectedCities.length > 1;
 
-                  return displayCityTabs.map((city, idx) => {
-                    const isActive = selectedCityTab === city;
-                    const isDraggingThis = dragCityTab === city;
-                    const label = locale === "ko"
-                      ? CITY_KOREAN_NAMES[city] || city
-                      : CITY_ENGLISH_NAMES[city] || city;
+                return displayCityTabs.map((city, idx) => {
+                  const isActive = selectedCityTab === city;
+                  const isDraggingThis = dragCityTab === city;
+                  const label = locale === "ko"
+                    ? CITY_KOREAN_NAMES[city] || city
+                    : CITY_ENGLISH_NAMES[city] || city;
 
-                    return (
-                      <Fragment key={city}>
-                        <button
-                          role="tab"
-                          aria-selected={isActive}
-                          id={`city-tab-${city}`}
-                          aria-controls={`city-panel-${city}`}
-                          draggable={isMultiCity}
-                          onDragStart={(e) => handleTabDragStart(e, city)}
-                          onDragOver={(e) => handleTabDragOver(e, city)}
-                          onDrop={handleTabDrop}
-                          onDragEnd={handleTabDragEnd}
-                          onClick={() => {
-                            if (isDraggingTabRef.current) return;
-                            setSelectedCityTab(city);
-                            if (activeCategory === "CITY_TRANSPORT") {
-                              setActiveCategory("ACCOMMODATION");
-                            }
-                          }}
-                          title={
-                            isMultiCity
-                              ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
-                              : label
+                  return (
+                    <Fragment key={city}>
+                      <button
+                        role="tab"
+                        aria-selected={isActive}
+                        id={`city-tab-${city}`}
+                        aria-controls={`city-panel-${city}`}
+                        draggable={isMultiCity}
+                        onDragStart={(e) => handleTabDragStart(e, city)}
+                        onDragOver={(e) => handleTabDragOver(e, city)}
+                        onDrop={handleTabDrop}
+                        onDragEnd={handleTabDragEnd}
+                        onClick={() => {
+                          if (isDraggingTabRef.current) return;
+                          setSelectedCityTab(city);
+                          if (activeCategory === "CITY_TRANSPORT") {
+                            setActiveCategory("ACCOMMODATION");
                           }
-                          className={`h-8 px-2.5 sm:px-3 rounded-t-xl text-[12px] sm:text-[13px] font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
-                            isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
-                          } ${
-                            isDraggingThis
-                              ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
-                              : isActive
-                              ? "bg-[#e25c5c] text-white border-[#e25c5c] border-b-[#e25c5c] shadow-2xs z-10 font-extrabold"
-                              : "bg-[#faf9f6]/80 text-slate-600 border-slate-200/60 border-b-slate-200 hover:text-slate-900 hover:bg-white"
-                          }`}
-                        >
-                          {/* 동선 순서 번호 뱃지 */}
-                          {isMultiCity && (
-                            <span
-                              className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 transition-colors ${
-                                isActive
-                                  ? "bg-white text-[#e25c5c]"
-                                  : "bg-rose-100 text-[#e25c5c]"
-                              }`}
-                            >
-                              {idx + 1}
-                            </span>
-                          )}
-                          <span>{label}</span>
-                        </button>
-
-                        {/* 도시 간 이동 화살표 (➔) */}
-                        {isMultiCity && idx < displayCityTabs.length - 1 && (
-                          <span className="text-slate-300 text-xs font-bold shrink-0 select-none px-0.5" aria-hidden="true">
-                            ➔
+                        }}
+                        title={
+                          isMultiCity
+                            ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
+                            : label
+                        }
+                        className={`h-8 px-2.5 sm:px-3 rounded-t-xl text-[12px] sm:text-[13px] font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
+                          isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                        } ${
+                          isDraggingThis
+                            ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
+                            : isActive
+                            ? "bg-[#e25c5c] text-white border-[#e25c5c] border-b-[#e25c5c] shadow-2xs z-10 font-extrabold"
+                            : "bg-[#faf9f6]/80 text-slate-600 border-slate-200/60 border-b-slate-200 hover:text-slate-900 hover:bg-white"
+                        }`}
+                      >
+                        {/* 동선 순서 번호 뱃지 */}
+                        {isMultiCity && (
+                          <span
+                            className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 transition-colors ${
+                              isActive
+                                ? "bg-white text-[#e25c5c]"
+                                : "bg-rose-100 text-[#e25c5c]"
+                            }`}
+                          >
+                            {idx + 1}
                           </span>
                         )}
-                      </Fragment>
-                    );
-                  });
-                })()}
+                        <span>{label}</span>
+                      </button>
 
-                <span className="text-slate-300 text-xs font-bold shrink-0 select-none px-0.5" aria-hidden="true">
-                  ➔
-                </span>
+                      {/* 도시 간 이동 화살표 (➔) */}
+                      {idx < displayCityTabs.length - 1 && (
+                        <div className="flex-1 flex items-center justify-center min-w-[12px] sm:min-w-[18px] select-none text-slate-300 text-xs font-bold" aria-hidden="true">
+                          ➔
+                        </div>
+                      )}
+                    </Fragment>
+                  );
+                });
+              })()}
+
+              {/* 마지막 도시 -> 귀국 공항 화살표 */}
+              <div className="flex-1 flex items-center justify-center min-w-[12px] sm:min-w-[18px] select-none text-slate-300 text-xs font-bold" aria-hidden="true">
+                ➔
               </div>
 
               {/* 귀국 공항 고정 뱃지 (오른쪽 끝: 1단 Info 버튼 끝점과 수직 일치) */}

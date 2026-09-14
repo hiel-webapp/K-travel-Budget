@@ -3745,18 +3745,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               : "Pick recommended course presets or add individual attractions."}
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleResetAttraction(city)}
-                          disabled={!hasOverride}
-                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-                            hasOverride
-                              ? "text-[#e25c5c] border-[#fce8e8] bg-[#faf5f5] hover:bg-[#fdeeed]"
-                              : "text-slate-300 border-slate-100 bg-slate-50 cursor-not-allowed"
-                          }`}
-                        >
-                          {dict.planner.resetToRecommendedAttraction || "추천 관광으로 초기화"}
-                        </button>
                       </div>
 
                       {/* 1. Recommended Tour Course Presets Section */}

@@ -196,15 +196,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 ? (locale === "ko" ? `🛏️ 2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `🛏️ 2-in-1 Room (${sharedRoomCount} rms)`)
                 : (locale === "ko" ? `🚪 전원 1인 1실 (${adultCount}개 객실)` : `🚪 1 Room each (${adultCount} rms)`)}
             </span>
-            {onResetToRecommended && hasCustomOverride && (
-              <button
-                type="button"
-                onClick={() => onResetToRecommended(city)}
-                className="text-xs font-bold px-2.5 py-1 rounded-full text-[#e25c5c] bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
-              >
-                {locale === "ko" ? "추천으로 초기화" : "Reset"}
-              </button>
-            )}
           </div>
         </div>
       </div>

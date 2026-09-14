@@ -1147,12 +1147,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const allocatedSum = editDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
     const targetNights = editDraft.totalNights || 5;
 
-    if (allocatedSum !== targetNights) {
-      setEditError(`전체 여행 기간(${targetNights}박)에 맞추어 도시별 박수를 모두 배분해 주세요. (현재 ${allocatedSum}박 배분됨)`);
-      return;
+    // 만약 도시별 박수가 총 여행 기간과 맞지 않거나 비어 있다면, 새로운 조건에 맞게 최적 자동 균등 배분 적용
+    let finalAllocations = currentAlloc;
+    if (allocatedSum !== targetNights || Object.keys(currentAlloc).length === 0) {
+      finalAllocations = calculateDefaultNightAllocation(editDraft.selectedCities, targetNights);
     }
 
-    saveTripDraft(editDraft);
+    const finalDraft: TripDraft = {
+      ...editDraft,
+      cityNightAllocations: finalAllocations,
+    };
+
+    saveTripDraft(finalDraft);
     if (state.status === "ready") {
       savePlannerPreferences({
         accommodationByCity: state.preferences.accommodationByCity,
@@ -1162,7 +1168,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         attractionSelections: state.preferences.attractionSelections,
         emergencyFundKrw: state.preferences.emergencyFundKrw,
         emergencyFundPct: state.preferences.emergencyFundPct,
-        draft: editDraft,
+        draft: finalDraft,
       });
     }
 
@@ -1170,7 +1176,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       if (prev.status !== "ready") return prev;
       return {
         ...prev,
-        draft: editDraft,
+        draft: finalDraft,
       };
     });
 
@@ -4163,7 +4169,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     <button
                       type="button"
                       onClick={() => {
-                        setEditDraft(draft);
+                        const freshAlloc = calculateDefaultNightAllocation(draft.selectedCities, draft.totalNights || 5);
+                        setEditDraft({
+                          ...draft,
+                          cityNightAllocations: freshAlloc,
+                        });
                         setEditTab("NIGHTS");
                         setEditError(null);
                         setIsEditModalOpen(true);
@@ -5020,51 +5030,34 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
 
             {/* Modal Footer */}
-            {(() => {
-              const targetNights = editDraft.totalNights || 5;
-              const currentAlloc = editDraft.cityNightAllocations || {};
-              const allocatedSum = editDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
-              const isComplete = allocatedSum === targetNights;
-              const deficitNights = targetNights - allocatedSum;
+            <div className="p-4 border-t border-slate-100 bg-[#faf9f7] flex items-center justify-between gap-3">
+              {/* Left: Reset Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const freshAlloc = calculateDefaultNightAllocation(draft.selectedCities, draft.totalNights || 5);
+                  setEditDraft({
+                    ...draft,
+                    cityNightAllocations: freshAlloc,
+                  });
+                  setEditError(null);
+                }}
+                className="shrink-0 text-xs font-semibold text-slate-500 hover:text-[#e25c5c] flex items-center gap-1 cursor-pointer bg-white px-3 py-2 rounded-xl border border-slate-200 transition-colors"
+              >
+                <span>↺ 초기화</span>
+              </button>
 
-              return (
-                <div className="p-4 border-t border-slate-100 bg-[#faf9f7] flex items-center justify-between gap-3">
-                  {/* Left: Reset Button */}
-                  <button
-                    type="button"
-                    onClick={() => setEditDraft(draft)}
-                    className="shrink-0 text-xs font-semibold text-slate-500 hover:text-[#e25c5c] flex items-center gap-1 cursor-pointer bg-white px-3 py-2 rounded-xl border border-slate-200 transition-colors"
-                  >
-                    <span>↺ 초기화</span>
-                  </button>
+              <div className="flex-1" />
 
-                  {/* Center: Deficit warning text in middle space between Reset and Apply buttons */}
-                  <div className="flex-1 text-center px-2 min-w-0">
-                    {!isComplete && (
-                      <span className="text-[11px] sm:text-xs font-bold text-[#ef4444] animate-pulse leading-snug inline-block whitespace-nowrap overflow-hidden text-ellipsis">
-                        ⚠️ {locale === "ko"
-                          ? `도시별 박수를 총 ${targetNights}박에 맞춰주세요 (${deficitNights}박 미달)`
-                          : `Match city nights to total ${targetNights}N (${deficitNights}N short)`}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Right: Apply Button */}
-                  <button
-                    type="button"
-                    onClick={handleApplyTripDetailsEdit}
-                    disabled={!isComplete}
-                    className={`shrink-0 px-5 py-2 text-xs font-bold rounded-xl transition-colors ${
-                      isComplete
-                        ? "text-white bg-[#e25c5c] hover:bg-[#d14b4b] shadow-xs cursor-pointer"
-                        : "text-slate-400 bg-slate-200 cursor-not-allowed opacity-60"
-                    }`}
-                  >
-                    {locale === "ko" ? "변경사항 적용하기" : "Apply Changes"}
-                  </button>
-                </div>
-              );
-            })()}
+              {/* Right: Apply Button */}
+              <button
+                type="button"
+                onClick={handleApplyTripDetailsEdit}
+                className="shrink-0 px-5 py-2 text-xs font-bold rounded-xl transition-colors text-white bg-[#e25c5c] hover:bg-[#d14b4b] shadow-xs cursor-pointer"
+              >
+                {locale === "ko" ? "변경사항 적용하기" : "Apply Changes"}
+              </button>
+            </div>
           </div>
         </div>
       )}

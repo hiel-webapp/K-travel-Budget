@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../../../lib/trip-domain";
 import type { Dictionary } from "../../../lib/i18n/dictionaries/ko";
@@ -50,10 +50,24 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   onResetCustomStay,
 }) => {
   const [addedNotice, setAddedNotice] = useState(false);
-  const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
-  const [customNameInput, setCustomNameInput] = useState("");
-  const [customPriceInput, setCustomPriceInput] = useState("");
-  const [modalError, setModalError] = useState<string | null>(null);
+  const [customNameInput, setCustomNameInput] = useState(() => customStayOverride?.placeName || "");
+  const [customPriceInput, setCustomPriceInput] = useState(() =>
+    customStayOverride ? customStayOverride.nightlyPriceKrw.toLocaleString() : ""
+  );
+  const [inputError, setInputError] = useState<string | null>(null);
+  const [appliedNotice, setAppliedNotice] = useState(false);
+
+  // 선택된 도시나 커스텀 숙소 정보가 바뀔 때 인풋 동기화
+  useEffect(() => {
+    if (customStayOverride) {
+      setCustomNameInput(customStayOverride.placeName);
+      setCustomPriceInput(customStayOverride.nightlyPriceKrw.toLocaleString());
+    } else {
+      setCustomNameInput("");
+      setCustomPriceInput("");
+    }
+    setInputError(null);
+  }, [customStayOverride, city]);
 
   const cityName = locale === "ko"
     ? CITY_KOREAN_NAMES[city] || city
@@ -89,34 +103,31 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
     setTimeout(() => setAddedNotice(false), 2500);
   };
 
-  const handleOpenCustomModal = () => {
-    if (customStayOverride) {
-      setCustomNameInput(customStayOverride.placeName);
-      setCustomPriceInput(String(customStayOverride.nightlyPriceKrw));
-    } else {
-      setCustomNameInput("");
-      setCustomPriceInput("");
-    }
-    setModalError(null);
-    setIsCustomModalOpen(true);
-  };
-
-  const handleApplyCustomStay = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleApplyCustomStay = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const trimmedName = customNameInput.trim();
     const parsedPrice = parseInt(customPriceInput.replace(/[^0-9]/g, ""), 10);
 
     if (!trimmedName) {
-      setModalError(locale === "ko" ? "숙소 이름을 입력해 주세요." : "Please enter the accommodation name.");
+      setInputError(locale === "ko" ? "숙소 이름을 입력해 주세요." : "Please enter the accommodation name.");
       return;
     }
     if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      setModalError(locale === "ko" ? "올바른 1박 객실 요금을 입력해 주세요." : "Please enter a valid nightly rate.");
+      setInputError(locale === "ko" ? "올바른 1박 객실 요금을 입력해 주세요." : "Please enter a valid nightly rate.");
       return;
     }
 
+    setInputError(null);
     onSaveCustomStay?.(city, trimmedName, parsedPrice);
-    setIsCustomModalOpen(false);
+    setAppliedNotice(true);
+    setTimeout(() => setAppliedNotice(false), 2000);
+  };
+
+  const handleResetToTier = () => {
+    setCustomNameInput("");
+    setCustomPriceInput("");
+    setInputError(null);
+    onResetCustomStay?.(city);
   };
 
   const otaUrl = generateStayOtaUrl(currentArchetype.id, city);
@@ -159,37 +170,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           </button>
         )}
       </div>
-
-      {/* Custom Stay Active Notice Banner */}
-      {isCustomActive && customStayOverride && (
-        <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/90 text-xs flex items-center justify-between font-bold text-amber-900 shadow-2xs">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-base shrink-0">🏷️</span>
-            <span className="truncate">
-              {locale === "ko"
-                ? `확정 숙소 적용 중: ${customStayOverride.placeName} (${formatKrw(customStayOverride.nightlyPriceKrw)}/박)`
-                : `Custom Stay Active: ${customStayOverride.placeName} (${formatKrw(customStayOverride.nightlyPriceKrw)}/night)`}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 ml-2">
-            <button
-              type="button"
-              onClick={handleOpenCustomModal}
-              className="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline cursor-pointer"
-            >
-              {locale === "ko" ? "금액 수정" : "Edit"}
-            </button>
-            <span className="text-amber-300">|</span>
-            <button
-              type="button"
-              onClick={() => onResetCustomStay?.(city)}
-              className="text-[11px] font-bold text-amber-700 hover:text-amber-900 underline cursor-pointer"
-            >
-              {locale === "ko" ? "티어 평균가로 복귀" : "Reset to Tier"}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* 2. Step 1: 4-Tier Stay Archetype Cards Grid */}
       <div className="space-y-3">
@@ -272,6 +252,137 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </button>
             );
           })}
+        </div>
+
+        {/* Inline: 숙소 직접 입력 */}
+        <div
+          className={`p-4 rounded-2xl border transition-all duration-200 ${
+            isCustomActive
+              ? "bg-[#fffbf0] border-amber-300 shadow-xs ring-1 ring-amber-300"
+              : "bg-slate-50/90 border-slate-200/90 hover:border-slate-300"
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-base">✏️</span>
+              <div>
+                <h5 className="text-xs sm:text-[13px] font-black text-slate-900 flex items-center gap-1.5">
+                  <span>{locale === "ko" ? "숙소 직접 입력" : "Direct Stay Input"}</span>
+                  {isCustomActive && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-200 text-amber-900">
+                      {locale === "ko" ? "적용 중" : "Active"}
+                    </span>
+                  )}
+                </h5>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  {locale === "ko"
+                    ? "아고다, 에어비앤비 등에서 예약한 숙소 이름과 1박 결제 금액을 직접 입력할 수 있습니다."
+                    : "Enter your booked stay name and nightly rate to apply directly to the budget."}
+                </p>
+              </div>
+            </div>
+
+            {isCustomActive && onResetCustomStay && (
+              <button
+                type="button"
+                onClick={handleResetToTier}
+                className="text-xs font-bold px-2.5 py-1 rounded-lg border border-amber-300 bg-white text-amber-800 hover:bg-amber-100/60 transition-colors cursor-pointer self-start sm:self-auto shrink-0"
+              >
+                {locale === "ko" ? "티어 평균가로 복귀" : "Reset to Tier"}
+              </button>
+            )}
+          </div>
+
+          <form onSubmit={handleApplyCustomStay} className="mt-3.5 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+              {/* 숙소 이름 입력 */}
+              <div className="sm:col-span-7 space-y-1">
+                <label className="block text-[11px] font-bold text-slate-700">
+                  {locale === "ko" ? "숙소 이름" : "Stay Name"}
+                </label>
+                <input
+                  type="text"
+                  value={customNameInput}
+                  onChange={(e) => setCustomNameInput(e.target.value)}
+                  placeholder={
+                    locale === "ko"
+                      ? "예: 나인트리 프리미어 로카우스 용산"
+                      : "e.g. Nine Tree Premier Hotel"
+                  }
+                  className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e25c5c] focus:border-transparent transition-all shadow-2xs"
+                />
+              </div>
+
+              {/* 1박 요금 입력 */}
+              <div className="sm:col-span-5 space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-bold text-slate-700">
+                    {locale === "ko" ? "1박 요금 (원)" : "Nightly Rate (KRW)"}
+                  </label>
+                  <span className="text-[10px] text-slate-400">
+                    {locale === "ko" ? "1객실 기준" : "Per room"}
+                  </span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    ₩
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={customPriceInput}
+                    onChange={(e) => {
+                      const numOnly = e.target.value.replace(/[^0-9]/g, "");
+                      setCustomPriceInput(numOnly ? Number(numOnly).toLocaleString() : "");
+                    }}
+                    placeholder="150,000"
+                    className="w-full h-10 pl-7 pr-3 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e25c5c] focus:border-transparent transition-all shadow-2xs"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 빠른 금액 선택 칩 & 반영 버튼 */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] text-slate-400 font-semibold mr-0.5">
+                  {locale === "ko" ? "빠른 금액:" : "Quick:"}
+                </span>
+                {[50000, 100000, 150000, 200000, 300000].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setCustomPriceInput(preset.toLocaleString())}
+                    className="px-2 py-1 rounded-lg text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/90 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    ₩{(preset / 10000).toLocaleString()}{locale === "ko" ? "만" : "0k"}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="submit"
+                className="h-9 px-4 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer shrink-0"
+              >
+                <span>{appliedNotice ? "✓" : "✏️"}</span>
+                <span>
+                  {appliedNotice
+                    ? (locale === "ko" ? "반영 완료!" : "Applied!")
+                    : (isCustomActive
+                        ? (locale === "ko" ? "금액 수정 반영" : "Update Stay")
+                        : (locale === "ko" ? "숙소 직접 입력 반영" : "Apply Custom Stay"))}
+                </span>
+              </button>
+            </div>
+
+            {/* Error Notice */}
+            {inputError && (
+              <div className="p-2 rounded-lg bg-red-50 text-red-600 text-[11px] font-semibold flex items-center gap-1.5">
+                <span>⚠️</span>
+                <span>{inputError}</span>
+              </div>
+            )}
+          </form>
         </div>
       </div>
 
@@ -408,12 +519,12 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-0.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
           {/* Add to Receipt Button */}
           <button
             type="button"
             onClick={handleAddToReceiptClick}
-            className="h-10 px-3 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            className="h-10 px-4 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer whitespace-nowrap"
           >
             <span>🛍️</span>
             <span>
@@ -423,22 +534,12 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
             </span>
           </button>
 
-          {/* Custom Stay Input Trigger */}
-          <button
-            type="button"
-            onClick={handleOpenCustomModal}
-            className="h-10 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer whitespace-nowrap"
-          >
-            <span>✏️</span>
-            <span>{locale === "ko" ? "확정 숙소 직접 입력" : "Enter Booked Stay"}</span>
-          </button>
-
           {/* Deep Link to OTA Button */}
           <a
             href={otaUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full sm:w-auto flex-1 h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group"
+            className="h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
           >
             <span>🔗</span>
             <span>
@@ -448,140 +549,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           </a>
         </div>
       </div>
-
-      {/* 5. Booked Stay Manual Input Modal */}
-      {isCustomModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="custom-stay-modal-title"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-          onClick={() => setIsCustomModalOpen(false)}
-        >
-          <div
-            className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-100 space-y-5 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">✏️</span>
-                  <h3 id="custom-stay-modal-title" className="text-base font-extrabold text-slate-900">
-                    {locale === "ko" ? "확정 숙소 및 실 결제액 입력" : "Enter Booked Stay & Rate"}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  {locale === "ko"
-                    ? `OTA(아고다/에어비앤비 등)에서 예약하신 ${cityName} 숙소명과 1박 객실 요금을 입력하시면 실시간 예산 및 영수증에 즉시 반영됩니다.`
-                    : `Enter your booked stay name and nightly rate in ${cityName} to reflect live in your budget and receipt.`}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsCustomModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-                aria-label={locale === "ko" ? "닫기" : "Close"}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Form */}
-            <form onSubmit={handleApplyCustomStay} className="space-y-4">
-              {/* Hotel / Stay Name */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
-                  {locale === "ko" ? "숙소 이름 (호텔/에어비앤비/게스트하우스)" : "Accommodation Name"}
-                </label>
-                <input
-                  type="text"
-                  value={customNameInput}
-                  onChange={(e) => setCustomNameInput(e.target.value)}
-                  placeholder={
-                    locale === "ko"
-                      ? "예: 나인트리 프리미어 로카우스 호텔 서울 용산"
-                      : "e.g. Nine Tree Premier ROKAUS Hotel"
-                  }
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e25c5c] focus:border-transparent transition-all"
-                  autoFocus
-                />
-              </div>
-
-              {/* Nightly Rate */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-slate-700">
-                    {locale === "ko" ? "1박 객실 요금 (KRW 원)" : "Nightly Rate (KRW)"}
-                  </label>
-                  <span className="text-[11px] text-slate-400">
-                    {locale === "ko" ? "1개 객실 기준 결제액" : "Per room per night"}
-                  </span>
-                </div>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
-                    ₩
-                  </span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={customPriceInput}
-                    onChange={(e) => {
-                      const numOnly = e.target.value.replace(/[^0-9]/g, "");
-                      setCustomPriceInput(numOnly ? Number(numOnly).toLocaleString() : "");
-                    }}
-                    placeholder="150,000"
-                    className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e25c5c] focus:border-transparent transition-all"
-                  />
-                </div>
-
-                {/* Quick Price Suggestion Chips */}
-                <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                  <span className="text-[10px] text-slate-400 font-semibold mr-1">
-                    {locale === "ko" ? "빠른 선택:" : "Quick:"}
-                  </span>
-                  {[50000, 100000, 150000, 200000, 300000].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setCustomPriceInput(preset.toLocaleString())}
-                      className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
-                    >
-                      ₩{(preset / 10000).toLocaleString()}{locale === "ko" ? "만" : "0k"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Error Notice */}
-              {modalError && (
-                <div className="p-2.5 rounded-lg bg-red-50 text-red-600 text-[11px] font-semibold flex items-center gap-1.5">
-                  <span>⚠️</span>
-                  <span>{modalError}</span>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCustomModalOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  {locale === "ko" ? "취소" : "Cancel"}
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-black transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <span>✓</span>
-                  <span>{locale === "ko" ? "예산에 즉시 반영" : "Apply to Budget"}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

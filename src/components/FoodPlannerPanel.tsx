@@ -591,16 +591,16 @@ export default function FoodPlannerPanel({
               <div>
                 {(() => {
                   const searchKeyword = locale === "ko" ? previewFood.nameKo : (previewFood.nameKo || previewFood.nameEn);
-                  const naverMapUrl = `https://map.naver.com/p/search/${encodeURIComponent(searchKeyword)}`;
+                  const kakaoMapUrl = `https://map.kakao.com/link/search/${encodeURIComponent(searchKeyword)}`;
                   return (
                     <a
-                      href={naverMapUrl}
+                      href={kakaoMapUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-amber-600 bg-white hover:bg-amber-50/50 border border-slate-200 transition-colors shadow-2xs"
                     >
                       <span>🗺️</span>
-                      <span>{locale === "ko" ? "네이버 지도 맛집 검색" : "Search on Naver Map"}</span>
+                      <span>{locale === "ko" ? "카카오맵 지도 검색" : "Search on Kakao Map"}</span>
                       <span className="text-slate-400 text-xs">↗</span>
                     </a>
                   );

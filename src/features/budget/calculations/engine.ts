@@ -149,50 +149,81 @@ export function generateInitialBudgetPlan(
 
         const cityOccupancyMode = overrides?.occupancyMode?.[city] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
 
-        if (category === "ACCOMMODATION" && overrides?.accommodation?.[city]) {
-          const accSelection = overrides.accommodation[city]!;
-          if (typeof accSelection === "object" && accSelection !== null && "kind" in accSelection) {
-            if (accSelection.kind === "PLACE") {
-              const fallbackBasketId = accSelection.basketId || BUDGET_TIER_DEFAULT_BASKETS[budgetTier]["ACCOMMODATION"];
-              const basket = findBasket(catalog, fallbackBasketId, category, city) || catalog.find((b) => b.category === "ACCOMMODATION");
-              if (basket) {
-                const isSoloTraveler = adultCount <= 1;
-                const isPairSplit = !isSoloTraveler && cityOccupancyMode === "SHARED_PAIR";
-                const roomCount = isSoloTraveler ? 1 : isPairSplit ? Math.ceil(adultCount / 2) : adultCount;
+        if (category === "ACCOMMODATION") {
+          const accSelection = overrides?.accommodation ? overrides.accommodation[city] : undefined;
+          const isAccommodationOverridden = overrides?.accommodation !== undefined;
 
-                const baseItem = calculateLineItem({
-                  basket,
-                  cityCode: city,
-                  route: null,
-                  adultCount,
-                  duration: nights,
-                  cityCount: selectedCities.length,
-                  occupancyMode: cityOccupancyMode,
-                });
-                accPlaceOverrideItem = {
-                  ...baseItem,
-                  quantity: roomCount,
-                  unitPriceKrw: accSelection.nightlyPriceKrw,
-                  lineTotalKrw: accSelection.nightlyPriceKrw * roomCount * nights,
-                  confidence: accSelection.priceSource,
-                  sourceLabel: accSelection.placeNameKo,
-                };
+          if (accSelection) {
+            if (typeof accSelection === "object" && accSelection !== null && "kind" in accSelection) {
+              if (accSelection.kind === "PLACE") {
+                const fallbackBasketId = accSelection.basketId || BUDGET_TIER_DEFAULT_BASKETS[budgetTier]["ACCOMMODATION"];
+                const basket = findBasket(catalog, fallbackBasketId, category, city) || catalog.find((b) => b.category === "ACCOMMODATION");
+                if (basket) {
+                  const isSoloTraveler = adultCount <= 1;
+                  const isPairSplit = !isSoloTraveler && cityOccupancyMode === "SHARED_PAIR";
+                  const roomCount = isSoloTraveler ? 1 : isPairSplit ? Math.ceil(adultCount / 2) : adultCount;
+
+                  const baseItem = calculateLineItem({
+                    basket,
+                    cityCode: city,
+                    route: null,
+                    adultCount,
+                    duration: nights,
+                    cityCount: selectedCities.length,
+                    occupancyMode: cityOccupancyMode,
+                  });
+                  accPlaceOverrideItem = {
+                    ...baseItem,
+                    quantity: roomCount,
+                    unitPriceKrw: accSelection.nightlyPriceKrw,
+                    lineTotalKrw: accSelection.nightlyPriceKrw * roomCount * nights,
+                    confidence: accSelection.priceSource,
+                    sourceLabel: accSelection.placeNameKo,
+                  };
+                }
+              } else {
+                basketId = accSelection.basketId;
               }
             } else {
-              basketId = accSelection.basketId;
+              basketId = accSelection as BudgetBasketId;
             }
-          } else {
-            basketId = accSelection as BudgetBasketId;
+          } else if (isAccommodationOverridden) {
+            // 사용자가 숙소를 선택하지 않은 초기 상태: 0원 (미선택)
+            const fallbackBasket = catalog.find((b) => b.category === "ACCOMMODATION");
+            accPlaceOverrideItem = {
+              id: `${city}_ACCOMMODATION_NONE`.toUpperCase(),
+              basketId: "NONE" as BudgetBasketId,
+              category: "ACCOMMODATION",
+              scope: "CITY",
+              cityCode: city,
+              route: null,
+              unitPriceKrw: 0,
+              pricingUnit: "ROOM_NIGHT",
+              quantity: 0,
+              participantCount: adultCount,
+              durationCount: nights,
+              lineTotalKrw: 0,
+              priceMinKrw: 0,
+              priceMaxKrw: 0,
+              confidence: "MOCK",
+              updatedAt: fallbackBasket?.updatedAt || "2026-01-01",
+              sourceLabel: "숙소 미선택",
+            };
           }
         } else if (category === "ATTRACTION") {
-          if (overrides?.attraction?.[city]) {
+          const isAttractionOverridden =
+            overrides?.attraction !== undefined ||
+            overrides?.attractionSelections !== undefined ||
+            overrides?.attractionCustomDailyKrw !== undefined;
+
+          if (overrides?.attraction?.[city] && (overrides.attraction[city] as string) !== "NONE") {
             basketId = overrides.attraction[city]!;
           }
 
           const customDaily = overrides?.attractionCustomDailyKrw;
           const cityAttractionSel = overrides?.attractionSelections?.[city];
 
-          if (typeof customDaily === "number" && !isNaN(customDaily) && customDaily >= 0) {
+          if (typeof customDaily === "number" && !isNaN(customDaily) && customDaily > 0) {
             const basket = findBasket(catalog, basketId, category, city) || catalog.find((b) => b.category === "ATTRACTION");
             if (basket) {
               const lineTotalKrw = customDaily * adultCount * nights;
@@ -249,17 +280,40 @@ export function generateInitialBudgetPlan(
               });
 
               const spotsTotal = spotsPricePerPerson * adultCount;
-              const bufferTotal = baseItem.lineTotalKrw;
+              const bufferTotal = (overrides?.attraction?.[city] && overrides.attraction[city] !== "NONE") ? baseItem.lineTotalKrw : 0;
               const finalLineTotal = spotsTotal + bufferTotal;
 
               attractionOverrideItem = {
                 ...baseItem,
-                unitPriceKrw: spotsPricePerPerson + baseItem.unitPriceKrw,
+                unitPriceKrw: spotsPricePerPerson + (bufferTotal > 0 ? baseItem.unitPriceKrw : 0),
                 lineTotalKrw: finalLineTotal,
                 priceMinKrw: finalLineTotal,
                 priceMaxKrw: finalLineTotal,
+                sourceLabel: spotIdSet.size > 0 ? `선택 명소 (${spotIdSet.size}곳)` : baseItem.sourceLabel,
               };
             }
+          } else if (isAttractionOverridden && (!overrides?.attraction?.[city] || overrides.attraction[city] === "NONE")) {
+            // 사용자가 관광 명소나 활동비를 선택하지 않은 초기 상태: 0원 (미선택)
+            const fallbackBasket = catalog.find((b) => b.category === "ATTRACTION");
+            attractionOverrideItem = {
+              id: `${city}_ATTRACTION_NONE`.toUpperCase(),
+              basketId: "NONE" as BudgetBasketId,
+              category: "ATTRACTION",
+              scope: "CITY",
+              cityCode: city,
+              route: null,
+              unitPriceKrw: 0,
+              pricingUnit: "PER_PERSON",
+              quantity: adultCount,
+              participantCount: adultCount,
+              durationCount: nights,
+              lineTotalKrw: 0,
+              priceMinKrw: 0,
+              priceMaxKrw: 0,
+              confidence: fallbackBasket ? fallbackBasket.confidence : "MOCK",
+              updatedAt: fallbackBasket?.updatedAt || "2026-01-01",
+              sourceLabel: "관광/액티비티 미선택",
+            };
           }
         }
 

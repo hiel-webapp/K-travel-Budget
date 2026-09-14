@@ -66,7 +66,9 @@ export type BudgetBasketId =
   // Intercity
   | "KTX_STANDARD"
   // Emergency
-  | "EMERGENCY_FIXED";
+  | "EMERGENCY_FIXED"
+  // Unselected / None
+  | "NONE";
 
 export type PriceConfidence = "MOCK" | "ESTIMATED" | "VERIFIED_AVERAGE" | "OFFICIAL";
 

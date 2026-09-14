@@ -3376,7 +3376,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           },
                         ].map((preset) => {
                           const firstCity = draft.selectedCities[0];
-                          const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                          const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
                           const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
 
                           return (
@@ -3423,10 +3423,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                       {(() => {
                         const firstCity = draft.selectedCities[0];
-                        const currentBasket = preferences.attractionByCity?.[firstCity] || "BALANCED";
+                        const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
                         const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
                           ? preferences.attractionCustomDailyKrw
-                          : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
+                          : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : currentBasket === "BALANCED" ? 30000 : 0);
                         const totalNights = draft.totalNights || 1;
                         const adultCount = draft.adultCount || 1;
                         const totalActivityFund = currentDailyRate * adultCount * totalNights;
@@ -3485,17 +3485,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   const accOverride = preferences.accommodationByCity[city];
                   const hasOverride = !!accOverride;
-                  let selectedArchetypeId: StayArchetypeId = "BUSINESS_HOTEL";
+                  let selectedArchetypeId: StayArchetypeId | null = null;
                   if (accOverride) {
                     const bId = typeof accOverride === "string" ? accOverride : (accOverride as any).basketId;
                     if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") selectedArchetypeId = "HOSTEL_GUESTHOUSE";
                     else if (bId === "HANOK_BOUTIQUE") selectedArchetypeId = "HANOK_BOUTIQUE";
                     else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") selectedArchetypeId = "LUXURY_SKYLINE";
-                    else selectedArchetypeId = "BUSINESS_HOTEL";
+                    else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") selectedArchetypeId = "BUSINESS_HOTEL";
+                    else selectedArchetypeId = null;
                   } else {
-                    if (draft.budgetTier === "BUDGET") selectedArchetypeId = "HOSTEL_GUESTHOUSE";
-                    else if (draft.budgetTier === "PREMIUM") selectedArchetypeId = "LUXURY_SKYLINE";
-                    else selectedArchetypeId = "BUSINESS_HOTEL";
+                    // 미선택 상태: 0원 기본값
+                    selectedArchetypeId = null;
                   }
 
                   const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";

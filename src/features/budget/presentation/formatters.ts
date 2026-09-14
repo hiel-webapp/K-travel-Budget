@@ -211,6 +211,7 @@ export function getBasketLabel(
     EXPERIENCE_RICH: { ko: "풍성한 체험 활동", en: "Experience-rich Attractions" },
     KTX_STANDARD: { ko: "KTX 일반실", en: "KTX Standard Class" },
     EMERGENCY_FIXED: { ko: "여행 비상금", en: "Emergency Fund" },
+    NONE: { ko: "미선택", en: "Not Selected" },
   };
 
   const item = mapping[basketId];

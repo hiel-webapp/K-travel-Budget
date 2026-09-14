@@ -22,7 +22,7 @@ export interface StaySelectorPanelProps {
   totalNights?: number;
   totalAllocatedNights?: number;
   onCityNightsChange?: (city: SupportedCity, delta: number) => void;
-  selectedArchetypeId: StayArchetypeId;
+  selectedArchetypeId: StayArchetypeId | null;
   onSelectArchetype: (city: SupportedCity, archetypeId: StayArchetypeId) => void;
   occupancyMode: OccupancyMode;
   onSelectOccupancyMode: (city: SupportedCity, mode: OccupancyMode) => void;
@@ -73,13 +73,18 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
     ? CITY_KOREAN_NAMES[city] || city
     : CITY_ENGLISH_NAMES[city] || city;
 
-  const currentArchetype = STAY_ARCHETYPES.find((a) => a.id === selectedArchetypeId) || STAY_ARCHETYPES[1];
+  const currentArchetype = selectedArchetypeId
+    ? STAY_ARCHETYPES.find((a) => a.id === selectedArchetypeId) || null
+    : null;
   
   // 직접 입력한 숙소가 있으면 해당 단가 우선 적용, 없으면 아키타입 카탈로그 단가 적용
   const isCustomActive = !!customStayOverride;
+  const hasSelection = isCustomActive || !!currentArchetype;
   const nightlyRoomPrice = isCustomActive
     ? customStayOverride.nightlyPriceKrw
-    : getStayArchetypePrice(city, currentArchetype.id);
+    : currentArchetype
+    ? getStayArchetypePrice(city, currentArchetype.id)
+    : 0;
 
   // 안 1 로직:
   // 1인 여행자: 방 1개 = 1인 부담 100%
@@ -131,7 +136,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
     onResetCustomStay?.(city);
   };
 
-  const otaUrl = generateStayOtaUrl(currentArchetype.id, city);
+  // OTA 딥링크 URL 생성 (도시, 아키타입 반영)
+  const otaUrl = currentArchetype
+    ? generateStayOtaUrl(currentArchetype.id, city)
+    : "#";
 
   return (
     <div className="space-y-6">
@@ -185,7 +193,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {STAY_ARCHETYPES.map((archetype) => {
-            const isSelected = !isCustomActive && archetype.id === selectedArchetypeId;
+            const isSelected = !isCustomActive && currentArchetype?.id === archetype.id;
             const price = getStayArchetypePrice(city, archetype.id);
             const title = locale === "ko" ? archetype.titleKo : archetype.titleEn;
             const desc = locale === "ko" ? archetype.descKo : archetype.descEn;
@@ -468,36 +476,52 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
       <div className="p-4.5 rounded-2xl bg-[#faf9f8] border border-slate-200/90 shadow-2xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200/70 pb-3.5">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-slate-500 font-bold">
-                {isCustomActive
-                  ? (locale === "ko" ? "확정 1박 비용" : "Booked Nightly Rate")
-                  : (dict.planner?.stayEstimatedNightly || (locale === "ko" ? "예상 1박 비용" : "Est. Nightly Rate"))}:
-              </span>
-              <strong className="text-xs font-extrabold text-slate-900">
-                {formatKrw(nightlyRoomPrice)}
-              </strong>
-              <span className="text-[11px] text-slate-400">|</span>
-              <span className="text-xs text-slate-500 font-bold">
-                {locale === "ko" ? `총 ${cityName} 숙박비 (${cityNights}박):` : `Total ${cityName} Stay (${cityNights} Nts):`}
-              </span>
-              <strong className="text-sm font-black text-[#e25c5c]">
-                {formatKrw(totalStayCostKrw)}
-              </strong>
-              <span className="text-xs font-bold text-slate-500">
-                (${totalStayCostUsd.toLocaleString()} USD)
-              </span>
-            </div>
+            {!hasSelection ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-slate-500 font-bold">
+                  {locale === "ko" ? "선택된 숙소 없음" : "No accommodation selected"}:
+                </span>
+                <strong className="text-xs font-extrabold text-slate-400">
+                  ₩0
+                </strong>
+                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                  ({locale === "ko" ? "위의 숙소 카드 또는 직접 입력으로 숙소를 선택해 주세요" : "Select a stay card above or enter custom stay"})
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-slate-500 font-bold">
+                  {isCustomActive
+                    ? (locale === "ko" ? "확정 1박 비용" : "Booked Nightly Rate")
+                    : (dict.planner?.stayEstimatedNightly || (locale === "ko" ? "예상 1박 비용" : "Est. Nightly Rate"))}:
+                </span>
+                <strong className="text-xs font-extrabold text-slate-900">
+                  {formatKrw(nightlyRoomPrice)}
+                </strong>
+                <span className="text-[11px] text-slate-400">|</span>
+                <span className="text-xs text-slate-500 font-bold">
+                  {locale === "ko" ? `총 ${cityName} 숙박비 (${cityNights}박):` : `Total ${cityName} Stay (${cityNights} Nts):`}
+                </span>
+                <strong className="text-sm font-black text-[#e25c5c]">
+                  {formatKrw(totalStayCostKrw)}
+                </strong>
+                <span className="text-xs font-bold text-slate-500">
+                  (${totalStayCostUsd.toLocaleString()} USD)
+                </span>
+              </div>
+            )}
 
-            <p className="text-[11px] text-slate-500 font-medium">
-              💡 {locale === "ko"
-                ? `1인당 부담액: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
-                    isPairSplit ? "2인 1실 1/2 분할 반영" : "1인 1실 기준"
-                  }`
-                : `Per traveler: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
-                    isPairSplit ? "1/2 split applied" : "1 room per traveler"
-                  }`}
-            </p>
+            {hasSelection && (
+              <p className="text-[11px] text-slate-500 font-medium">
+                💡 {locale === "ko"
+                  ? `1인당 부담액: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
+                      isPairSplit ? "2인 1실 1/2 분할 반영" : "1인 1실 기준"
+                    }`
+                  : `Per traveler: ${formatKrw(perPersonStayCostKrw)} ($${perPersonStayCostUsd.toLocaleString()}) · ${
+                      isPairSplit ? "1/2 split applied" : "1 room per traveler"
+                    }`}
+              </p>
+            )}
           </div>
         </div>
 
@@ -506,30 +530,44 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           {/* Add to Receipt Button */}
           <button
             type="button"
+            disabled={!hasSelection}
             onClick={handleAddToReceiptClick}
-            className="h-10 px-4 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+            className={`h-10 px-4 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs whitespace-nowrap ${
+              hasSelection
+                ? "bg-[#0f172a] hover:bg-slate-800 text-white cursor-pointer"
+                : "bg-slate-100 border border-slate-200 text-slate-400 cursor-not-allowed"
+            }`}
           >
             <span>🛍️</span>
             <span>
-              {addedNotice
+              {!hasSelection
+                ? (locale === "ko" ? "숙소를 먼저 선택해 주세요" : "Select a stay first")
+                : addedNotice
                 ? (locale === "ko" ? "✓ 영수증 반영 완료" : "✓ Applied to Receipt")
                 : (dict.planner?.stayAddToReceipt || (locale === "ko" ? "영수증에 담기" : "Add to Receipt"))}
             </span>
           </button>
 
           {/* Deep Link to OTA Button */}
-          <a
-            href={otaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
-          >
-            <span>🔗</span>
-            <span>
-              {dict.planner?.staySearchOta || (locale === "ko" ? "아고다/에어비앤비에서 이 조건으로 검색" : "Search on Agoda/Airbnb with these filters")}
-            </span>
-            <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
-          </a>
+          {hasSelection ? (
+            <a
+              href={otaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-10 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200/90 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
+            >
+              <span>🔗</span>
+              <span>
+                {dict.planner?.staySearchOta || (locale === "ko" ? "아고다/에어비앤비에서 이 조건으로 검색" : "Search on Agoda/Airbnb with these filters")}
+              </span>
+              <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
+            </a>
+          ) : (
+            <div className="h-10 px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 select-none whitespace-nowrap">
+              <span>🔗</span>
+              <span>{locale === "ko" ? "숙소 선택 시 예약 링크 제공" : "Booking link available upon selection"}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

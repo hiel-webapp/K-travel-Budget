@@ -189,7 +189,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
             const price = getStayArchetypePrice(city, archetype.id);
             const title = locale === "ko" ? archetype.titleKo : archetype.titleEn;
             const desc = locale === "ko" ? archetype.descKo : archetype.descEn;
-            const badge = locale === "ko" ? archetype.badgeKo : archetype.badgeEn;
 
             return (
               <button
@@ -215,13 +214,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                     <div className="absolute top-1.5 left-1.5 z-10">
                       <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
                         ✓
-                      </span>
-                    </div>
-                  )}
-                  {badge && (
-                    <div className="absolute bottom-1.5 left-1.5 z-10">
-                      <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black bg-black/65 text-white backdrop-blur-xs">
-                        {badge}
                       </span>
                     </div>
                   )}

@@ -3446,6 +3446,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     else selectedArchetypeId = "BUSINESS_HOTEL";
                   }
 
+                  const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
+                  const customStayOverride = isCustomStay
+                    ? {
+                        placeName: (accOverride as any).placeNameKo || (accOverride as any).placeNameEn || "직접 입력 숙소",
+                        nightlyPriceKrw: (accOverride as any).nightlyPriceKrw || 0,
+                      }
+                    : null;
+
                   const occupancyMode = occupancyModeByCity[city] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
 
                   return (
@@ -3466,6 +3474,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       }}
                       onResetToRecommended={handleResetStay}
                       hasCustomOverride={hasOverride}
+                      customStayOverride={customStayOverride}
+                      onSaveCustomStay={(c, placeName, nightlyPriceKrw) => {
+                        handleStayOverride(c, {
+                          kind: "PLACE",
+                          placeId: `custom_stay_${Date.now()}`,
+                          basketId: selectedArchetypeId as BudgetBasketId,
+                          nightlyPriceKrw,
+                          priceSource: "MOCK",
+                          placeNameKo: placeName,
+                          placeNameEn: placeName,
+                          snapshotAt: new Date().toISOString().slice(0, 10),
+                        });
+                      }}
+                      onResetCustomStay={(c) => {
+                        handleResetStay(c);
+                      }}
                     />
                   );
                 })()}

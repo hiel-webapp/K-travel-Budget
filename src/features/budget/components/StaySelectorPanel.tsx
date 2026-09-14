@@ -293,10 +293,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
             )}
           </div>
 
-          <form onSubmit={handleApplyCustomStay} className="mt-3.5 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+          <form onSubmit={handleApplyCustomStay} className="mt-3.5 space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
               {/* 숙소 이름 입력 */}
-              <div className="sm:col-span-7 space-y-1">
+              <div className="sm:col-span-6 space-y-1">
                 <label className="block text-[11px] font-bold text-slate-700">
                   {locale === "ko" ? "숙소 이름" : "Stay Name"}
                 </label>
@@ -314,10 +314,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </div>
 
               {/* 1박 요금 입력 */}
-              <div className="sm:col-span-5 space-y-1">
+              <div className="sm:col-span-4 space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="block text-[11px] font-bold text-slate-700">
-                    {locale === "ko" ? "1박 요금 (원)" : "Nightly Rate (KRW)"}
+                    {locale === "ko" ? "1박 요금" : "Nightly Rate"}
                   </label>
                   <span className="text-[10px] text-slate-400">
                     {locale === "ko" ? "1객실 기준" : "Per room"}
@@ -340,44 +340,26 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   />
                 </div>
               </div>
-            </div>
 
-            {/* 빠른 금액 선택 칩 & 반영 버튼 */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] text-slate-400 font-semibold mr-0.5">
-                  {locale === "ko" ? "빠른 금액:" : "Quick:"}
-                </span>
-                {[50000, 100000, 150000, 200000, 300000].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => setCustomPriceInput(preset.toLocaleString())}
-                    className="px-2 py-1 rounded-lg text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/90 transition-colors cursor-pointer shadow-2xs"
-                  >
-                    ₩{(preset / 10000).toLocaleString()}{locale === "ko" ? "만" : "0k"}
-                  </button>
-                ))}
+              {/* 반영 버튼 */}
+              <div className="sm:col-span-2">
+                <button
+                  type="submit"
+                  className="w-full h-10 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer whitespace-nowrap"
+                >
+                  <span>{appliedNotice ? "✓" : "✏️"}</span>
+                  <span>
+                    {appliedNotice
+                      ? (locale === "ko" ? "완료!" : "Done!")
+                      : (locale === "ko" ? "반영" : "Apply")}
+                  </span>
+                </button>
               </div>
-
-              <button
-                type="submit"
-                className="h-9 px-4 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer shrink-0"
-              >
-                <span>{appliedNotice ? "✓" : "✏️"}</span>
-                <span>
-                  {appliedNotice
-                    ? (locale === "ko" ? "반영 완료!" : "Applied!")
-                    : (isCustomActive
-                        ? (locale === "ko" ? "금액 수정 반영" : "Update Stay")
-                        : (locale === "ko" ? "숙소 직접 입력 반영" : "Apply Custom Stay"))}
-                </span>
-              </button>
             </div>
 
             {/* Error Notice */}
             {inputError && (
-              <div className="p-2 rounded-lg bg-red-50 text-red-600 text-[11px] font-semibold flex items-center gap-1.5">
+              <div className="p-2 rounded-lg bg-red-50 text-red-600 text-[11px] font-semibold flex items-center gap-1.5 mt-1.5">
                 <span>⚠️</span>
                 <span>{inputError}</span>
               </div>

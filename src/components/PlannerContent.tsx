@@ -3944,7 +3944,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               return (
                                 <div
                                   key={rawSpot.id}
-                                  className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden ${
+                                  onClick={() => handleToggleSpot(city, rawSpot.id)}
+                                  className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
                                     isSpotSelected || isIncludedInCourse
                                       ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
                                       : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
@@ -3954,8 +3955,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     {/* Thumbnail Image Container */}
                                     {hasImage ? (
                                       <div
-                                        onClick={() => setPreviewSpot(rawSpot)}
-                                        className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 cursor-pointer group/img shadow-2xs"
+                                        className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 group/img shadow-2xs"
                                       >
                                         <img
                                           src={(rawSpot as any).imageUrl}
@@ -3992,9 +3992,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           </span>
                                         )}
                                         <h5
-                                          onClick={() => setPreviewSpot(rawSpot)}
-                                          className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 cursor-pointer ${
-                                            isSpotSelected || isIncludedInCourse ? "text-[#e25c5c]" : "text-[#0f172a] hover:text-indigo-600"
+                                          className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
+                                            isSpotSelected || isIncludedInCourse ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
                                           }`}
                                           title={name}
                                         >

@@ -51,7 +51,7 @@ describe("Budget Presentation Formatters", () => {
   });
 
   it("should return correct category labels", () => {
-    expect(getCategoryLabel("ACCOMMODATION", ko)).toBe("숙박");
+    expect(getCategoryLabel("ACCOMMODATION", ko)).toBe("숙소");
     expect(getCategoryLabel("ACCOMMODATION", en)).toBe("Stay");
     expect(getCategoryLabel("CITY_TRANSPORT", ko)).toBe("교통");
     expect(getCategoryLabel("INTERCITY_TRANSPORT", ko)).toBe("교통");
@@ -200,7 +200,7 @@ describe("Budget Presentation Formatters", () => {
       expect(summary).toContain("서울: ₩ 721,000");
       expect(summary).toContain("부산: ₩ 452,000");
       expect(summary).toContain("카테고리별 소계");
-      expect(summary).toContain("숙박");
+      expect(summary).toContain("숙소");
 
       // 민감한/기술 키 배제 검사
       expect(summary).not.toContain("schemaVersion");

@@ -81,7 +81,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
     { key: "DINING", label: lang === "en" ? "Dining" : "식당·음식" },
     { key: "TRANSIT", label: lang === "en" ? "Transit" : "교통" },
     { key: "PAYMENT", label: lang === "en" ? "Payment" : "결제·환승" },
-    { key: "STAY", label: lang === "en" ? "Stay" : "숙박" },
+    { key: "STAY", label: lang === "en" ? "Stay" : "숙소" },
     { key: "SHOPPING", label: lang === "en" ? "Shopping" : "쇼핑" },
     { key: "COMMUNICATION", label: lang === "en" ? "Communication" : "소통" },
     { key: "SAFETY", label: lang === "en" ? "Safety" : "안전·긴급" },

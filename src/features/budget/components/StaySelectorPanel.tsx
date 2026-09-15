@@ -142,13 +142,13 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
-                {cityName} {locale === "ko" ? "숙박 바스켓 플래너" : "Stay Basket Planner"}
+                {cityName} {locale === "ko" ? "숙소 바스켓 플래너" : "Stay Basket Planner"}
               </h3>
             </div>
             <p className="text-xs text-slate-500">
               {!hasSelection
                 ? (locale === "ko"
-                    ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙박 예산을 확정하세요."
+                    ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
                     : "Select a stay archetype or enter your custom booked stay.")
                 : isCustomActive
                 ? (locale === "ko"
@@ -160,11 +160,11 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
             </p>
           </div>
 
-          {/* 총 숙박비 표시 (우측 대형 강조) */}
+          {/* 총 숙소비 표시 (우측 대형 강조) */}
           <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
             <span className="text-[11px] font-bold text-slate-400">
               {locale === "ko"
-                ? `${cityName} 총 숙박비 (${cityNights}박 · ${adultCount}인)`
+                ? `${cityName} 총 숙소비 (${cityNights}박 · ${adultCount}인)`
                 : `${cityName} Total Stay (${cityNights} Nts · ${adultCount}p)`}
             </span>
             <div className="flex items-baseline gap-2 justify-end">
@@ -434,10 +434,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 <p className="text-[11px] text-slate-500 leading-snug">
                   {adultCount === 2
                     ? (locale === "ko"
-                        ? "방 1개를 함께 사용하고 숙박비를 50%씩 부담합니다."
+                        ? "방 1개를 함께 사용하고 숙소비를 50%씩 부담합니다."
                         : "1 room shared by 2 travelers (50% cost split).")
                     : (locale === "ko"
-                        ? `총 ${sharedRoomCount}개 방을 나누어 쓰고 숙박비를 균등 분할합니다.`
+                        ? `총 ${sharedRoomCount}개 방을 나누어 쓰고 숙소비를 균등 분할합니다.`
                         : `${sharedRoomCount} rooms shared, budget split evenly across travelers.`)}
                 </p>
               </div>

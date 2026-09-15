@@ -2879,7 +2879,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   type="button"
                   onClick={() => setIsResetPlanModalOpen(true)}
                   className="h-8 px-2.5 sm:px-3 text-[11px] sm:text-xs font-bold rounded-xl text-slate-600 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200/90 hover:border-rose-200 transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5 shrink-0"
-                  title={locale === "ko" ? "선택한 숙박, 음식, 관광, 교통 바스켓 초기화" : "Reset budget plan baskets"}
+                  title={locale === "ko" ? "선택한 숙소, 음식, 관광, 교통 바스켓 초기화" : "Reset budget plan baskets"}
                 >
                   <span className="text-xs">↺</span>
                   <span>{locale === "ko" ? "계획 초기화" : "Reset Plan"}</span>
@@ -3115,7 +3115,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               // Category Amounts Data
               const categoryMeta = [
-                { cat: "ACCOMMODATION", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
+                { cat: "ACCOMMODATION", label: locale === "ko" ? "숙소" : "Stay", colorBg: "bg-blue-500" },
                 { cat: "FOOD", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
                 { cat: "CITY_TRANSPORT", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
                 { cat: "ATTRACTION", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
@@ -4662,7 +4662,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="p-5 space-y-4 text-xs">
               <p className="text-slate-600 leading-relaxed">
                 {locale === "ko"
-                  ? "여행 도시와 기간, 인원수 등 최초 선택한 여행 기본 조건은 그대로 유지되며, 숙박·음식·관광·교통에 담긴 모든 선택 내역이 초기화됩니다."
+                  ? "여행 도시와 기간, 인원수 등 최초 선택한 여행 기본 조건은 그대로 유지되며, 숙소·음식·관광·교통에 담긴 모든 선택 내역이 초기화됩니다."
                   : "Your base trip conditions (cities, duration, travelers) will remain intact, while all selected stays, meals, attractions, and transport choices will be cleared."}
               </p>
 
@@ -4692,7 +4692,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
                 <p className="text-rose-700 leading-relaxed">
                   {locale === "ko"
-                    ? "• 숙박 탭: 선택한 숙박 스타일 및 직접 입력 숙소 정보\n• 음식 탭: 식도락 바스켓에 담긴 모든 음식\n• 관광 탭: 선택된 관광 코스 및 개별 액티비티\n• 교통 탭: 도시 간 이동 수단 및 시내 교통 커스텀 설정"
+                    ? "• 숙소 탭: 선택한 숙소 스타일 및 직접 입력 숙소 정보\n• 음식 탭: 식도락 바스켓에 담긴 모든 음식\n• 관광 탭: 선택된 관광 코스 및 개별 액티비티\n• 교통 탭: 도시 간 이동 수단 및 시내 교통 커스텀 설정"
                     : "• Stays: Selected stay archetype & custom stay\n• Meals: All items in Food Basket\n• Attractions: Selected tour courses & individual spots\n• Transport: Intercity & local transit custom settings"}
                 </p>
               </div>

@@ -277,7 +277,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         ];
 
         const categoryMeta = [
-          { cat: "ACCOMMODATION", icon: "", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
+          { cat: "ACCOMMODATION", icon: "", label: locale === "ko" ? "숙소" : "Stay", colorBg: "bg-blue-500" },
           { cat: "FOOD", icon: "", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
           { cat: "CITY_TRANSPORT", icon: "", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
           { cat: "ATTRACTION", icon: "", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
@@ -425,7 +425,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                         {/* Amount Breakdown */}
                         <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                           <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                            <span className="text-slate-500 font-semibold">{locale === "ko" ? "숙박" : "Stay"}</span>
+                            <span className="text-slate-500 font-semibold">{locale === "ko" ? "숙소" : "Stay"}</span>
                             <strong className="text-slate-900 font-extrabold">{formatKrw(stayAmount)}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">

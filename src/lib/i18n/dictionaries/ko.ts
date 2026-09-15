@@ -87,10 +87,10 @@ export const ko = {
     notYetAvailable: "아직 제공되지 않는 기능입니다.",
 
     // Active Category Content
-    accommodationTitle: "숙박 예산",
-    accommodationDescription: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 숙박 예산입니다.",
+    accommodationTitle: "숙소 예산",
+    accommodationDescription: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 숙소 예산입니다.",
 
-    stayPlannerTitle: "숙소 플래너 (Stay Kiosk)",
+    stayPlannerTitle: "숙소 바스켓 플래너",
     stayPlannerSubtitle: "외국인 여행자 맞춤 4대 숙소 스타일과 체류 조건을 설정하세요.",
     stayStep1Title: "Step 1. 당신이 원하는 숙소 스타일은?",
     stayStep2Title: "Step 2. 몇 박을 머무르시나요?",
@@ -98,8 +98,8 @@ export const ko = {
     staySoloOccupancy: "혼자 (1인)",
     staySharedPairOccupancy: "둘이서 (2인, 비용 1/2 분할 계산)",
     stayEstimatedNightly: "예상 1박 비용",
-    stayTotalCityStay: "총 {city} 숙박비",
-    stayAddToReceipt: "영수증에 숙박비 담기",
+    stayTotalCityStay: "총 {city} 숙소비",
+    stayAddToReceipt: "영수증에 숙소비 담기",
     staySearchOta: "아고다/에어비앤비에서 이 조건으로 검색",
 
     attractionOverrideTitle: "관광 및 액티비티 예산",
@@ -202,7 +202,7 @@ export const ko = {
     paidFeaturePrice: "실시간 가격 변동 예측",
     paidFeaturePriceDesc: "계절성 수요 및 프로모션 주기에 맞춘 실시간 요금 추이를 예측합니다.",
     paidFeatureHotel: "숙소 매칭 가이드",
-    paidFeatureHotelDesc: "설정된 숙박 등급에 알맞은 실제 호텔 후보군과 가격 정보를 매치합니다.",
+    paidFeatureHotelDesc: "설정된 숙소 등급에 알맞은 실제 호텔 후보군과 가격 정보를 매치합니다.",
     paidFeatureOrder: "식당 탐색 및 로컬 오더 가이드",
     paidFeatureOrderDesc: "로컬 인기 맛집 리스트와 다국어 오더 주문 방법을 맞춤 제공합니다.",
     paidFeatureTrend: "도시 맞춤 K-Trend & K-Guide",
@@ -298,7 +298,7 @@ export const ko = {
     emergencyNotice: "전체 여행에 대해 고정 금액으로 1회만 반영됩니다.",
 
     // Category labels
-    categoryStay: "숙박",
+    categoryStay: "숙소",
     categoryFood: "음식",
     categoryTransport: "교통",
     categoryAttraction: "관광",

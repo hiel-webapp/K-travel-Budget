@@ -3864,91 +3864,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </h4>
                           <p className="text-xs text-slate-400 mt-0.5">
                             {locale === "ko"
-                              ? "원하는 관광 코스를 복수로 고르거나 개별 액티비티를 쇼핑하듯 예산에 담으세요."
-                              : "Pick recommended course presets or add individual attractions."}
+                              ? "원하는 관광 명소를 쇼핑하듯 예산에 담아보세요."
+                              : "Pick individual attractions to add to your trip budget."}
                           </p>
                         </div>
                       </div>
 
-                      {/* 1. Recommended Tour Course Presets Section */}
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                            {dict.planner.recommendedCoursesTitle || "추천 관광 코스 프리셋 (복수 선택 가능)"}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-medium">
-                            {locale === "ko" ? "중복 관광지 비용은 1회만 자동 계산" : "Deduplicated spot pricing"}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {coursesForCity.map((course) => {
-                            const isSelected = selectedCourseIds.includes(course.id);
-                            const includedCount = course.spotIds.filter((sid) => selectedSpotKeys.has(normalizeSpotKey(sid))).length;
-                            const isFullySelected = isSelected || (course.spotIds.length > 0 && includedCount === course.spotIds.length);
-                            const isPartiallySelected = !isFullySelected && includedCount > 0;
-
-                            // 코스 내 유료 관광지 1인 합산가 계산
-                            let coursePricePerPerson = 0;
-                            course.spotIds.forEach((sid) => {
-                              const s = spotsForCity.find((spot) => spot.id === sid) || ATTRACTION_SPOTS_CATALOG.find((spot) => spot.id === sid);
-                              if (s && s.priceStatus === "PAID") {
-                                coursePricePerPerson += s.price;
-                              }
-                            });
-
-                            return (
-                              <button
-                                key={course.id}
-                                type="button"
-                                onClick={() => handleToggleCourse(city, course.id)}
-                                className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer ${
-                                  isFullySelected
-                                    ? "bg-rose-50/40 border border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
-                                    : isPartiallySelected
-                                    ? "bg-amber-50/30 border border-amber-300 ring-1 ring-amber-200/70 shadow-2xs"
-                                    : "bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
-                                }`}
-                              >
-                                <div className="space-y-1.5 w-full">
-                                  <div className="flex items-center justify-between w-full">
-                                    <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-extrabold">
-                                      {course.courseType === "AREA_ROUTE" ? (locale === "ko" ? "권역 동선 코스" : "Route Course") : (locale === "ko" ? "도시 대표 코스" : "City Highlights")}
-                                    </span>
-                                    {isFullySelected ? (
-                                      <span className="text-[10px] bg-[#e25c5c] text-white px-2 py-0.5 rounded-md font-extrabold flex items-center gap-0.5">
-                                        ✓ {locale === "ko" ? "선택됨" : "Selected"}
-                                      </span>
-                                    ) : isPartiallySelected ? (
-                                      <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md font-extrabold flex items-center gap-0.5">
-                                        {locale === "ko" ? `일부 담김 (${includedCount}/${course.spotIds.length})` : `Partial (${includedCount}/${course.spotIds.length})`}
-                                      </span>
-                                    ) : null}
-                                  </div>
-                                  <h5 className={`text-xs font-extrabold ${isFullySelected ? "text-[#e25c5c]" : isPartiallySelected ? "text-amber-900" : "text-[#0f172a]"}`}>
-                                    {locale === "ko" ? course.nameKo : course.nameEn}
-                                  </h5>
-                                  <p className="text-[11px] text-slate-500 leading-snug line-clamp-2">
-                                    {locale === "ko" ? course.descKo : course.descEn}
-                                  </p>
-                                </div>
-
-                                <div className="mt-3 border-t border-slate-100/80 pt-2 flex items-center justify-between text-xs w-full">
-                                  <span className="text-[10px] font-bold text-slate-400">
-                                    ⏱️ {course.estimatedHours}{locale === "ko" ? "시간 소요" : "hrs"} · {course.spotIds.length}{locale === "ko" ? "개 장소" : " places"}
-                                  </span>
-                                  <span className="font-extrabold text-[#e25c5c]">
-                                    {coursePricePerPerson > 0 ? `+${formatKrw(coursePricePerPerson)} /인` : (locale === "ko" ? "입장료 무료 코스" : "Free entry")}
-                                  </span>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* 2. Signature City Attractions Section (3x2 Desktop, 2x3 Mobile Grid) */}
-                      <div className="space-y-3 pt-3 border-t border-slate-100">
+                      {/* Signature City Attractions Section (3x2 Desktop, 2x3 Mobile Grid) */}
+                      <div className="space-y-3">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                             {locale === "ko" ? "도시 대표 관광지" : (dict.planner.cityAttractionsTitle || "City Attractions")}

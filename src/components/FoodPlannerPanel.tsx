@@ -280,7 +280,7 @@ export default function FoodPlannerPanel({
       {/* 3-A. [도시별 대표 음식] 탭 콘텐츠 (카테고리 분리 없이 단일 대표 미식 리스트) */}
       {activeTab === "CITY" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="min-h-[36px] flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
                 {cityName} {locale === "ko" ? `대표 미식 리스트 (${cityFoods.all.length}선)` : `Signature Food List (${cityFoods.all.length})`}

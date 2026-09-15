@@ -157,7 +157,7 @@ export default function AttractionPlannerPanel({
   const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-5">
       {/* 1. 관광 바스켓 요약 바 (Top Summary Bar: Food/Stay 플래너와 100% 동일한 위계 및 디자인 규격) */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
@@ -291,7 +291,7 @@ export default function AttractionPlannerPanel({
       {/* ================= SUBTAB 1: 도시 대표 명소 ================= */}
       {activeSubTab === "CITY" && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="min-h-[36px] flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
                 {cityName} {locale === "ko" ? `대표 명소 리스트 (${spotsForCity.length}선)` : `Attractions List (${spotsForCity.length})`}
@@ -299,7 +299,7 @@ export default function AttractionPlannerPanel({
             </div>
 
             {/* 카테고리 필터 태그 (FoodPlanner NATIONAL 탭과 동일 규격) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
               {[
                 { key: "ALL", labelKo: "전체", labelEn: "All" },
                 ...(selectedSpotKeys.size > 0
@@ -534,15 +534,23 @@ export default function AttractionPlannerPanel({
                           e.stopPropagation();
                           onToggleSpot(city, rawSpot.id);
                         }}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
                           isSelected
-                            ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600 ring-1 ring-rose-200"
-                            : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
+                            ? "bg-[#e25c5c] text-white hover:bg-[#c94949] ring-1 ring-rose-200"
+                            : "bg-[#0f172a] text-white hover:bg-slate-800"
                         }`}
                       >
-                        {isSelected
-                          ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
-                          : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
+                        {isSelected ? (
+                          <>
+                            <span className="font-bold">✓</span>
+                            <span>{locale === "ko" ? "담김" : "Added"}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-bold">+</span>
+                            <span>{locale === "ko" ? "담기" : "Add"}</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -581,7 +589,7 @@ export default function AttractionPlannerPanel({
       {/* ================= SUBTAB 2: K-테마 액티비티 ================= */}
       {activeSubTab === "THEME" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="min-h-[36px] flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
                 {cityName} {locale === "ko" ? `K-테마 액티비티 (${themeActivitiesForCity.length}선)` : `K-Theme & Activities (${themeActivitiesForCity.length})`}
@@ -716,15 +724,23 @@ export default function AttractionPlannerPanel({
                         e.stopPropagation();
                         onToggleSpot(city, spot.id);
                       }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
                         isSelected
-                          ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600 ring-1 ring-rose-200"
-                          : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
+                          ? "bg-[#e25c5c] text-white hover:bg-[#c94949] ring-1 ring-rose-200"
+                          : "bg-[#0f172a] text-white hover:bg-slate-800"
                       }`}
                     >
-                      {isSelected
-                        ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
-                        : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
+                      {isSelected ? (
+                        <>
+                          <span className="font-bold">✓</span>
+                          <span>{locale === "ko" ? "담김" : "Added"}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="font-bold">+</span>
+                          <span>{locale === "ko" ? "담기" : "Add"}</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>

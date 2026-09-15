@@ -4488,8 +4488,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <span className="font-bold text-slate-600">
                         {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
                       </span>
-                      <span className={`font-extrabold tabular-nums ${shoppingAmountKrw > 0 ? "text-[#e25c5c]" : "text-slate-700"}`}>
-                        {shoppingAmountKrw > 0 ? `+${formatKrw(shoppingAmountKrw)}` : formatKrw(0)}
+                      <span className="font-extrabold text-slate-900 tabular-nums">
+                        {formatKrw(shoppingAmountKrw)}
                       </span>
                     </div>
 
@@ -4503,8 +4503,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </span>
                         )}
                       </span>
-                      <span className={`font-extrabold tabular-nums ${totalDailyAllowanceKrw > 0 ? "text-[#e25c5c]" : "text-slate-700"}`}>
-                        {totalDailyAllowanceKrw > 0 ? `+${formatKrw(totalDailyAllowanceKrw)}` : formatKrw(0)}
+                      <span className="font-extrabold text-slate-900 tabular-nums">
+                        {formatKrw(totalDailyAllowanceKrw)}
                       </span>
                     </div>
 
@@ -4518,8 +4518,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </span>
                         )}
                       </span>
-                      <span className={`font-extrabold tabular-nums ${computedEmergencyKrw > 0 ? "text-[#e25c5c]" : "text-slate-700"}`}>
-                        {computedEmergencyKrw > 0 ? `+${formatKrw(computedEmergencyKrw)}` : formatKrw(0)}
+                      <span className="font-extrabold text-slate-900 tabular-nums">
+                        {formatKrw(computedEmergencyKrw)}
                       </span>
                     </div>
                   </div>

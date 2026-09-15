@@ -233,6 +233,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                     src={archetype.imageUrl}
                     alt={title}
                     fill
+                    priority
                     sizes="(max-width: 640px) 112px, 128px"
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />

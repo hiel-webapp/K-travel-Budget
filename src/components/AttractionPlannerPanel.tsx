@@ -52,7 +52,7 @@ export default function AttractionPlannerPanel({
   isLoading = false,
   onAddCustomSpot,
 }: AttractionPlannerPanelProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"CITY" | "THEME" | "BASKET">("CITY");
+  const [activeSubTab, setActiveSubTab] = useState<"CITY" | "BASKET">("CITY");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [visibleCount, setVisibleCount] = useState<number>(8);
 
@@ -297,20 +297,7 @@ export default function AttractionPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>{cityName} {locale === "ko" ? `대표 명소 (${spotsForCity.length}선)` : `Attractions (${spotsForCity.length})`}</span>
-          </button>
-
-          {/* K-테마 액티비티 탭 */}
-          <button
-            type="button"
-            onClick={() => setActiveSubTab("THEME")}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeSubTab === "THEME"
-                ? "bg-[#0f172a] text-white shadow-xs"
-                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-            }`}
-          >
-            <span>{locale === "ko" ? `K-테마 액티비티 (${themeActivitiesForCity.length}선)` : `K-Theme & Activities (${themeActivitiesForCity.length})`}</span>
+            <span>{cityName} {locale === "ko" ? "대표 명소" : "Attractions"}</span>
           </button>
 
           {/* 담은 바스켓 탭 */}
@@ -347,7 +334,7 @@ export default function AttractionPlannerPanel({
           <div className="min-h-[36px] flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                {cityName} {locale === "ko" ? `대표 명소 리스트 (${spotsForCity.length}선)` : `Attractions List (${spotsForCity.length})`}
+                {cityName} {locale === "ko" ? "대표 명소 리스트" : "Attractions List"}
               </h4>
             </div>
 
@@ -639,171 +626,7 @@ export default function AttractionPlannerPanel({
         </div>
       )}
 
-      {/* ================= SUBTAB 2: K-테마 액티비티 ================= */}
-      {activeSubTab === "THEME" && (
-        <div className="space-y-4">
-          <div className="min-h-[36px] flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                {cityName} {locale === "ko" ? `K-테마 액티비티 (${themeActivitiesForCity.length}선)` : `K-Theme & Activities (${themeActivitiesForCity.length})`}
-              </h4>
-            </div>
-            <span className="text-xs text-slate-400">
-              {locale === "ko" ? "취향에 따라 골라 담기" : "Explore by Preference"}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {themeActivitiesForCity.map(({ activity, spot }) => {
-              const name = locale === "ko" ? activity.nameKo : activity.nameEn;
-              const desc = locale === "ko" ? activity.descKo : activity.descEn;
-              const isSelected = selectedSpotKeys.has(normalizeSpotKey(spot.id));
-              const hasImage = !!activity.imageUrl;
-
-              return (
-                <div
-                  key={activity.id}
-                  onClick={() => onToggleSpot(city, spot.id)}
-                  className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
-                    isSelected
-                      ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
-                      : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
-                  }`}
-                >
-                  <div className="space-y-2">
-                    {/* 실사 썸네일 */}
-                    {hasImage && (
-                      <div className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 shadow-2xs">
-                        <img
-                          src={activity.imageUrl}
-                          alt={name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
-
-                        {/* 선택 체크 배지 */}
-                        {isSelected && (
-                          <div className="absolute top-2 left-2 z-10">
-                            <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
-                              ✓
-                            </span>
-                          </div>
-                        )}
-
-                        <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
-                          Photo
-                        </span>
-                      </div>
-                    )}
-
-                    {/* 상단 태그 & 가격: [액티비티명]        [가격] */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        {!hasImage && isSelected && (
-                          <span className="w-4 h-4 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                            ✓
-                          </span>
-                        )}
-                        <h5
-                          className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
-                            isSelected ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
-                          }`}
-                          title={name}
-                        >
-                          {name}
-                        </h5>
-                      </div>
-
-                      <span className="text-xs sm:text-sm font-black text-[#e25c5c] shrink-0 whitespace-nowrap">
-                        {formatKrw(activity.priceKrw)}
-                      </span>
-                    </div>
-
-                    {/* 태그 뱃지 */}
-                    <div className="flex items-center gap-1 shrink-0 flex-wrap">
-                      <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
-                        {dict.planner.themeActivityBadge || "K-액티비티"}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700">
-                        {activity.tag}
-                      </span>
-                    </div>
-
-                    {/* 설명 */}
-                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                      {desc}
-                    </p>
-
-                    {/* 소요 시간 & 참고 팁 */}
-                    {(activity.durationTextKo || activity.bookingTipKo) && (
-                      <div className="space-y-1 pt-1 text-[11px] text-slate-500 bg-slate-50 p-2 rounded-xl border border-slate-100">
-                        {activity.durationTextKo && (
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-slate-400">{locale === "ko" ? "예상 소요시간" : "Est. Duration"}</span>
-                            <span className="font-bold text-slate-700">
-                              {locale === "ko" ? activity.durationTextKo : (activity.durationTextEn || activity.durationTextKo)}
-                            </span>
-                          </div>
-                        )}
-                        {activity.bookingTipKo && (
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-slate-400">{locale === "ko" ? "참고사항" : "Note"}</span>
-                            <span className="font-bold text-slate-700 truncate max-w-[180px]" title={locale === "ko" ? activity.bookingTipKo : (activity.bookingTipEn || activity.bookingTipKo)}>
-                              {locale === "ko" ? activity.bookingTipKo : (activity.bookingTipEn || activity.bookingTipKo)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 하단 액션 버튼 */}
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPreviewSpot(spot);
-                      }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer"
-                    >
-                      <span>{dict.planner.viewDetailsButton || "상세보기"}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleSpot(city, spot.id);
-                      }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
-                        isSelected
-                          ? "bg-[#e25c5c] text-white hover:bg-[#c94949] ring-1 ring-rose-200"
-                          : "bg-[#0f172a] text-white hover:bg-slate-800"
-                      }`}
-                    >
-                      {isSelected ? (
-                        <>
-                          <span className="font-bold">✓</span>
-                          <span>{locale === "ko" ? "담김" : "Added"}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="font-bold">+</span>
-                          <span>{locale === "ko" ? "담기" : "Add"}</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ================= SUBTAB 3: 관광 바스켓 요약 (FoodPlanner BASKET 탭과 100% 동일) ================= */}
+      {/* ================= SUBTAB 2: 관광 바스켓 요약 ================= */}
       {activeSubTab === "BASKET" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">

@@ -232,7 +232,7 @@ export default function FoodPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>{cityName} {locale === "ko" ? `대표 음식 (${cityFoods.all.length}선)` : `Specialties (${cityFoods.all.length})`}</span>
+            <span>{cityName} {locale === "ko" ? "대표 음식" : "Specialties"}</span>
           </button>
 
           {/* 한국 대표 20선 탭 */}
@@ -245,7 +245,7 @@ export default function FoodPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>{locale === "ko" ? `한국 대표 음식 (${NATIONAL_K_FOODS.length}선)` : `K-Signatures (${NATIONAL_K_FOODS.length})`}</span>
+            <span>{locale === "ko" ? "한국 대표 음식" : "K-Signatures"}</span>
           </button>
 
           {/* 담은 바스켓 탭 */}
@@ -283,7 +283,7 @@ export default function FoodPlannerPanel({
           <div className="min-h-[36px] flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                {cityName} {locale === "ko" ? `대표 음식 리스트 (${cityFoods.all.length}선)` : `Signature Food List (${cityFoods.all.length})`}
+                {cityName} {locale === "ko" ? "대표 음식 리스트" : "Signature Food List"}
               </h4>
             </div>
             <span className="text-xs text-slate-400">

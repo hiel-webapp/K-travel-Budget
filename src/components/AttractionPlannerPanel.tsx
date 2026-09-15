@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Locale } from "../lib/i18n/locales";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
@@ -15,6 +15,7 @@ import {
   THEME_ACTIVITIES_CATALOG,
   themeActivityToAttractionSpot,
   ThemeActivityItem,
+  getRelatedThemeActivity,
 } from "../features/budget/catalog/theme-activities";
 import { formatKrw } from "../features/budget/presentation/formatters";
 
@@ -59,6 +60,58 @@ export default function AttractionPlannerPanel({
   const [isCustomOpen, setIsCustomOpen] = useState<boolean>(false);
   const [customName, setCustomName] = useState<string>("");
   const [customPrice, setCustomPrice] = useState<string>("");
+
+  // 연계 K-체험 추천 플로팅 스낵바 상태 (대안 A)
+  const [promptActivity, setPromptActivity] = useState<{
+    spotName: string;
+    activity: ThemeActivityItem;
+  } | null>(null);
+
+  // 스낵바 자동 사라짐 타이머 (6초)
+  useEffect(() => {
+    if (!promptActivity) return;
+    const timer = setTimeout(() => {
+      setPromptActivity(null);
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [promptActivity]);
+
+  // 명소 클릭 시 원클릭 담기 + 연계 K-체험 감지
+  const handleToggleSpotWithActivityPrompt = (spotId: string, spotName: string) => {
+    const isCurrentlySelected =
+      individualSpotIds.some((sid) => isSameSpot(sid, spotId)) ||
+      selectedCourseIds.some((cid) => {
+        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+        return course?.spotIds.some((sid) => isSameSpot(sid, spotId));
+      });
+
+    // 1. 기존 명소 토글 실행 (100% 즉시 반영, 딜레이 0)
+    onToggleSpot(city, spotId);
+
+    // 2. '담기'로 변경되는 순간 연계 액티비티가 있고 아직 담기지 않은 경우 스낵바 노출
+    if (!isCurrentlySelected) {
+      const relatedAct = getRelatedThemeActivity(spotId, spotName);
+      if (relatedAct && !selectedSpotKeys.has(normalizeSpotKey(relatedAct.id))) {
+        setPromptActivity({
+          spotName,
+          activity: relatedAct,
+        });
+      } else {
+        setPromptActivity(null);
+      }
+    } else {
+      // 담기 취소 시 해당 스낵바 닫기
+      if (promptActivity?.spotName === spotName) {
+        setPromptActivity(null);
+      }
+    }
+  };
+
+  const handleAddPromptActivity = () => {
+    if (!promptActivity) return;
+    onToggleSpot(city, promptActivity.activity.id);
+    setPromptActivity(null);
+  };
 
   // 1. 도시 대표 명소 목록 병합
   const spotsForCity = useMemo(() => {
@@ -378,7 +431,7 @@ export default function AttractionPlannerPanel({
                 return (
                   <div
                     key={rawSpot.id}
-                    onClick={() => onToggleSpot(city, rawSpot.id)}
+                    onClick={() => handleToggleSpotWithActivityPrompt(rawSpot.id, name)}
                     className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
                       isSelected
                         ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
@@ -532,7 +585,7 @@ export default function AttractionPlannerPanel({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onToggleSpot(city, rawSpot.id);
+                          handleToggleSpotWithActivityPrompt(rawSpot.id, name);
                         }}
                         className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
                           isSelected
@@ -951,6 +1004,67 @@ export default function AttractionPlannerPanel({
           </form>
         )}
       </div>
+
+      {/* 플로팅 연계 K-체험 추천 스낵바 (대안 A) */}
+      {promptActivity && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-lg bg-[#0f172a]/95 text-white backdrop-blur-md rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-slate-700/80 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            {promptActivity.activity.imageUrl ? (
+              <img
+                src={promptActivity.activity.imageUrl}
+                alt={locale === "ko" ? promptActivity.activity.nameKo : promptActivity.activity.nameEn}
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shrink-0 border border-white/20 shadow-xs"
+              />
+            ) : (
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-purple-600/30 text-purple-300 flex items-center justify-center shrink-0 text-xl">
+                ✨
+              </div>
+            )}
+            <div className="min-w-0 space-y-0.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-purple-500/25 text-purple-300 border border-purple-400/30">
+                  {locale === "ko" ? `${promptActivity.spotName} 연계 K-체험` : `Related Experience`}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-slate-100 truncate">
+                {locale === "ko" ? promptActivity.activity.nameKo : promptActivity.activity.nameEn}
+              </p>
+              <p className="text-[11px] font-black text-rose-400">
+                +{formatKrw(promptActivity.activity.priceKrw)}
+                {promptActivity.activity.durationTextKo && (
+                  <span className="text-slate-400 font-normal ml-1.5">
+                    ({locale === "ko" ? promptActivity.activity.durationTextKo : promptActivity.activity.durationTextEn})
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={handleAddPromptActivity}
+              className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-xs font-black transition-all cursor-pointer shadow-xs flex items-center gap-1 whitespace-nowrap"
+            >
+              <span>+</span>
+              <span>{locale === "ko" ? "함께 담기" : "Add Bundle"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPromptActivity(null)}
+              className="p-2 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+              title={locale === "ko" ? "닫기" : "Close"}
+              aria-label={locale === "ko" ? "닫기" : "Close"}
+            >
+              ✕
+            </button>
+          </div>
+        </aside>
+      )}
     </div>
   );
 }

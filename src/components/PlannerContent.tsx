@@ -18,6 +18,7 @@ import { getIntercityFareOptions, IntercityFareInfo, IntercityTransportMode } fr
 import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
 import TransportPlannerPanel from "./TransportPlannerPanel";
+import AttractionPlannerPanel from "./AttractionPlannerPanel";
 import { StaySelectorPanel } from "../features/budget/components/StaySelectorPanel";
 import type { StayArchetypeId, OccupancyMode } from "../features/budget/catalog/stay-archetypes";
 import SaveTripModal from "./planner/SaveTripModal";
@@ -2026,6 +2027,95 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
+  const handleClearCitySpots = (city: SupportedCity) => {
+    const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+    const allSpotsToClear = new Set<string>();
+    (currentCitySel.selectedCourseIds || []).forEach((cid) => {
+      const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+      if (course) course.spotIds.forEach((sid) => allSpotsToClear.add(normalizeSpotKey(sid)));
+    });
+    (currentCitySel.individualSpotIds || []).forEach((sid) => allSpotsToClear.add(normalizeSpotKey(sid)));
+
+    const nextAttractionSelections = {
+      ...preferences.attractionSelections,
+      [city]: {
+        selectedCourseIds: [],
+        individualSpotIds: [],
+      },
+    };
+
+    const saved = savePlannerPreferences({
+      accommodationByCity: preferences.accommodationByCity,
+      foodOverrides: preferences.foodOverrides,
+      foodAddOnOverrides: preferences.addOnSelections,
+      attractionByCity: preferences.attractionByCity,
+      attractionSelections: nextAttractionSelections,
+      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
+      emergencyFundKrw: preferences.emergencyFundKrw,
+      emergencyFundPct: preferences.emergencyFundPct,
+      draft,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            attractionSelections: nextAttractionSelections,
+          },
+        };
+      });
+
+      // budgetPlaces 에서 해당 도시의 명소들 제거
+      const currentBudget = loadBudgetPlaces();
+      const nextBudget = currentBudget.filter((p) => {
+        if (p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)) {
+          return !allSpotsToClear.has(normalizeSpotKey(p.id)) && !allSpotsToClear.has(normalizeSpotKey(p.contentId || ""));
+        }
+        return true;
+      });
+      saveBudgetPlaces(nextBudget);
+
+      const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
+      setToastMessage(
+        locale === "ko"
+          ? `${cityName} 관광 바스켓이 비워졌습니다.`
+          : `Cleared attraction basket for ${cityName}.`
+      );
+      setTimeout(() => setToastMessage(null), 2000);
+    }
+  };
+
+  const handleAddCustomSpot = (city: SupportedCity, name: string, priceKrw: number) => {
+    const customId = `custom_spot_${Date.now()}`;
+    const newPlace: PlaceItem = {
+      id: customId,
+      contentId: customId,
+      city,
+      category: "ATTRACTION",
+      translations: {
+        ko: { title: name, description: "직접 추가한 관광지/액티비티" },
+        en: { title: name, description: "Custom added attraction/activity" },
+      },
+      qualityStatus: "READY",
+      tags: ["커스텀", "직접추가"],
+      sourceName: "MOCK",
+      priceStatus: priceKrw > 0 ? "OFFICIAL_PRICE" : "FREE",
+      priceKrw,
+      categoryType: "명소",
+    };
+
+    const currentBudget = loadBudgetPlaces();
+    saveBudgetPlaces([...currentBudget, newPlace]);
+    setBudgetPlaces((prev) => [...prev, newPlace]);
+
+    handleToggleSpot(city, customId);
+  };
+
+
   const handleSaveTripPlan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!latestPrefsRef.current) return;
@@ -3822,333 +3912,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   });
                   individualSpotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
-                  const currentCatFilter = attractionCategoryFilterByCity[city] || "ALL";
-                  const effectiveCatFilter = currentCatFilter === "SAVED_ONLY" && selectedSpotKeys.size === 0 ? "ALL" : currentCatFilter;
-                  // 방안 3: 기본 추천순 항상 고정, 필요 시 '담은 항목' 필터로 모아봄
-                  const filteredSpotsForCity =
-                    effectiveCatFilter === "SAVED_ONLY"
-                      ? spotsForCity.filter((s) => selectedSpotKeys.has(normalizeSpotKey(s.id)))
-                      : effectiveCatFilter === "ALL"
-                        ? spotsForCity
-                        : spotsForCity.filter((s) => {
-                            const spotKey = s.id.replace(/^kto_/, "");
-                            const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
-                            const cat = s.categoryType || bilingual?.categoryType;
-                            return cat === effectiveCatFilter;
-                          });
-
-                  const visibleAttractionsCount = visibleAttractionsCountByCity[city] ?? 8;
-                  const displayedSpots = filteredSpotsForCity.slice(0, visibleAttractionsCount);
-
                   return (
-                    <div className="space-y-6">
-                      {/* Header & Reset */}
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div>
-                          <h4 className="text-sm font-extrabold text-[#0f172a]">
-                            {CITY_KOREAN_NAMES[city] || city} {locale === "ko" ? "관광·액티비티 키오스크" : "Attractions Kiosk"}
-                          </h4>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            {locale === "ko"
-                              ? "원하는 관광 명소를 쇼핑하듯 예산에 담아보세요."
-                              : "Pick individual attractions to add to your trip budget."}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Signature City Attractions Section (3x2 Desktop, 2x3 Mobile Grid) */}
-                      <div className="space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                            {locale === "ko" ? "도시 대표 관광지" : (dict.planner.cityAttractionsTitle || "City Attractions")}
-                          </span>
-
-                          {/* Category Filter Tabs (전체, 명소, 자연, 엔터, 쇼핑) */}
-                          <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                            {[
-                              { key: "ALL", labelKo: "전체", labelEn: "All" },
-                              ...(selectedSpotKeys.size > 0
-                                ? [
-                                    {
-                                      key: "SAVED_ONLY",
-                                      labelKo: `담은 항목 (${selectedSpotKeys.size})`,
-                                      labelEn: `Saved (${selectedSpotKeys.size})`,
-                                    },
-                                  ]
-                                : []),
-                              { key: "명소", labelKo: "명소", labelEn: "Landmark" },
-                              { key: "자연", labelKo: "자연", labelEn: "Nature" },
-                              { key: "엔터", labelKo: "엔터", labelEn: "Enter" },
-                              { key: "쇼핑", labelKo: "쇼핑", labelEn: "Shopping" },
-                            ].map((tab) => {
-                              const isActive = effectiveCatFilter === tab.key;
-                              const isSavedTab = tab.key === "SAVED_ONLY";
-                              return (
-                                <button
-                                  key={tab.key}
-                                  type="button"
-                                  onClick={() =>
-                                    setAttractionCategoryFilterByCity((prev) => ({
-                                      ...prev,
-                                      [city]: tab.key,
-                                    }))
-                                  }
-                                  className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
-                                    isActive
-                                      ? isSavedTab
-                                        ? "bg-rose-500 text-white shadow-xs"
-                                        : "bg-slate-900 text-white shadow-xs"
-                                      : isSavedTab
-                                        ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
-                                        : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
-                                  }`}
-                                >
-                                  <span>{locale === "ko" ? tab.labelKo : tab.labelEn}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Grid: 1열 2개 관광정보 카드 (1 Row 2 Columns Grid) */}
-                        {isFetchingCityAttractions[city] && (!dbAttractionsByCity[city] || dbAttractionsByCity[city].length === 0) ? (
-                          <SpotCardSkeletonGrid />
-                        ) : (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {displayedSpots.map((rawSpot, spotIdx) => {
-                              const spotKey = rawSpot.id.replace(/^kto_/, "");
-                              const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
-
-                              const name = locale === "ko" ? (bilingual?.nameKo || rawSpot.nameKo) : (bilingual?.nameEn || rawSpot.nameEn);
-                              const desc = locale === "ko"
-                                ? (bilingual?.descKo || rawSpot.descKo || rawSpot.descEn)
-                                : (bilingual?.descEn || rawSpot.descEn || rawSpot.descKo);
-                              const subway = locale === "ko"
-                                ? (bilingual?.subwayKo || rawSpot.subwayInfoKo || rawSpot.subwayInfo)
-                                : (bilingual?.subwayEn || rawSpot.subwayInfoEn || rawSpot.subwayInfo);
-                              const hours = locale === "ko"
-                                ? (bilingual?.hoursKo || rawSpot.openingHoursKo || rawSpot.openingHours)
-                                : (bilingual?.hoursEn || rawSpot.openingHoursEn || rawSpot.openingHours);
-                              const closed = locale === "ko"
-                                ? (bilingual?.closedKo || rawSpot.closedDaysKo || rawSpot.closedDays)
-                                : (bilingual?.closedEn || rawSpot.closedDaysEn || rawSpot.closedDays);
-
-                              const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-                              const isSpotSelected = (citySel.individualSpotIds || []).some((sid) => isSameSpot(sid, rawSpot.id));
-                              const isIncludedInCourse = (citySel.selectedCourseIds || []).some((cid) => {
-                                const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                                return course?.spotIds.some((sid) => isSameSpot(sid, rawSpot.id));
-                              });
-                              const hasImage = (rawSpot as any).imageUrl && (rawSpot as any).imageUrl !== "/assets/default-place.jpg";
-
-                              return (
-                                <div
-                                  key={rawSpot.id}
-                                  onClick={() => handleToggleSpot(city, rawSpot.id)}
-                                  className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
-                                    isSpotSelected || isIncludedInCourse
-                                      ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
-                                      : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
-                                  }`}
-                                >
-                                  <div className="space-y-2">
-                                    {/* Thumbnail Image Container */}
-                                    {hasImage ? (
-                                      <div
-                                        className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 group/img shadow-2xs"
-                                      >
-                                        <img
-                                          src={(rawSpot as any).imageUrl}
-                                          alt={name}
-                                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
-                                          loading="lazy"
-                                          onError={(e) => {
-                                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80";
-                                          }}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover/img:opacity-40 transition-opacity" />
-                                        
-                                        {/* 선택 시 체크마크 배지 */}
-                                        {(isSpotSelected || isIncludedInCourse) && (
-                                          <div className="absolute top-2 left-2 z-10">
-                                            <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
-                                              ✓
-                                            </span>
-                                          </div>
-                                        )}
-
-                                        <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
-                                          {(rawSpot as any).imageUrl?.includes("wikimedia") ? "Wikimedia" : (rawSpot as any).imageUrl?.startsWith("/assets") ? "Photo" : "KTO"}
-                                        </span>
-                                      </div>
-                                    ) : null}
-
-                                    {/* Title & Price: [관광지명]         [가격] */}
-                                    <div className="flex items-center justify-between gap-2">
-                                      <div className="flex items-center gap-1.5 min-w-0">
-                                        {!hasImage && (isSpotSelected || isIncludedInCourse) && (
-                                          <span className="w-4 h-4 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-[10px] font-black shrink-0">
-                                            ✓
-                                          </span>
-                                        )}
-                                        <h5
-                                          className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
-                                            isSpotSelected || isIncludedInCourse ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
-                                          }`}
-                                          title={name}
-                                        >
-                                          {name}
-                                        </h5>
-                                      </div>
-
-                                      <span
-                                        className={`text-xs sm:text-sm font-black shrink-0 whitespace-nowrap ${
-                                          rawSpot.priceStatus === "FREE" || rawSpot.price === 0 ? "text-emerald-600" : "text-[#e25c5c]"
-                                        }`}
-                                      >
-                                        {rawSpot.priceStatus === "FREE" || rawSpot.price === 0
-                                          ? (locale === "ko" ? "무료" : "Free")
-                                          : formatKrw(rawSpot.price)}
-                                      </span>
-                                    </div>
-
-                                    {/* Category & Local Badges */}
-                                    <div className="flex items-center gap-1 shrink-0 flex-wrap">
-                                      {/* 로컬 명소 뱃지 */}
-                                      {rawSpot.isLocal && (
-                                        <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-0.5">
-                                          <span>로컬</span>
-                                        </span>
-                                      )}
-                                      {(() => {
-                                        const cat = rawSpot.categoryType || bilingual?.categoryType;
-                                        if (!cat) return null;
-                                        const badgeConfig = {
-                                          명소: { bg: "bg-blue-50 text-blue-700 border-blue-200/80", labelKo: "명소", labelEn: "Landmark" },
-                                          자연: { bg: "bg-emerald-50 text-emerald-700 border-emerald-200/80", labelKo: "자연", labelEn: "Nature" },
-                                          엔터: { bg: "bg-purple-50 text-purple-700 border-purple-200/80", labelKo: "엔터", labelEn: "Enter" },
-                                          쇼핑: { bg: "bg-amber-50 text-amber-800 border-amber-200/80", labelKo: "쇼핑", labelEn: "Shopping" },
-                                        }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
-                                        if (!badgeConfig) return null;
-                                        return (
-                                          <span
-                                            className={`text-[11px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${badgeConfig.bg}`}
-                                          >
-                                            <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
-                                          </span>
-                                        );
-                                      })()}
-                                    </div>
-
-                                    {/* Description */}
-                                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
-                                      {desc}
-                                    </p>
-
-                                    {/* Badges: Subway, Closed, Hours */}
-                                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                                      {subway && (
-                                        <div
-                                          className="flex items-center gap-1 text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/70 truncate max-w-full"
-                                          title={subway}
-                                        >
-                                          <span className="truncate">{subway}</span>
-                                        </div>
-                                      )}
-                                      {closed && (
-                                        <span
-                                          className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${
-                                            closed.includes("연중무휴") || closed.toLowerCase().includes("year-round")
-                                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                              : "bg-amber-50 text-amber-800 border-amber-200"
-                                          }`}
-                                        >
-                                          {closed}
-                                        </span>
-                                      )}
-                                      {hours && (
-                                        <span
-                                          className="text-slate-500 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 truncate max-w-[200px]"
-                                          title={hours}
-                                        >
-                                          {hours}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Action Buttons */}
-                                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setPreviewSpot(rawSpot);
-                                      }}
-                                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer"
-                                    >
-                                      <span>{locale === "ko" ? "상세보기" : "Details"}</span>
-                                    </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleToggleSpot(city, rawSpot.id);
-                                      }}
-                                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
-                                        isSpotSelected || isIncludedInCourse
-                                          ? "bg-rose-500 text-white shadow-xs hover:bg-rose-600 ring-1 ring-rose-200"
-                                          : "bg-[#0f172a] text-white hover:bg-slate-800 shadow-2xs"
-                                      }`}
-                                    >
-                                      {isSpotSelected || isIncludedInCourse
-                                        ? (locale === "ko" ? "✓ 담김" : "✓ Added")
-                                        : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
-                                    </button>
-                                  </div>
-                                </div>
-                            );
-                          })}
-                        </div>
-                        )}
-
-                        {/* Stepwise Show More (+8) / Show Less Toggle Button */}
-                        {filteredSpotsForCity.length > 8 && (
-                          <div className="text-center pt-2">
-                            {visibleAttractionsCount < filteredSpotsForCity.length ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setVisibleAttractionsCountByCity((prev) => ({
-                                    ...prev,
-                                    [city]: (prev[city] ?? 8) + 8,
-                                  }))
-                                }
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                              >
-                                <span>{dict.planner.showMore || "더보기"}</span>
-                                <span>▼</span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setVisibleAttractionsCountByCity((prev) => ({
-                                    ...prev,
-                                    [city]: 8,
-                                  }))
-                                }
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
-                              >
-                                <span>{dict.planner.showLess || "접기"}</span>
-                                <span>▲</span>
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <AttractionPlannerPanel
+                      city={city}
+                      locale={locale}
+                      dict={dict}
+                      adultCount={adultCount}
+                      selectedSpotKeys={selectedSpotKeys}
+                      selectedCourseIds={selectedCourseIds}
+                      individualSpotIds={individualSpotIds}
+                      onToggleSpot={handleToggleSpot}
+                      onClearCitySpots={handleClearCitySpots}
+                      onPreviewSpot={setPreviewSpot}
+                      baseSpotsForCity={baseSpotsForCity}
+                      customAttractionPlaces={customAttractionPlaces}
+                      isLoading={isFetchingCityAttractions[city] && (!dbAttractionsByCity[city] || dbAttractionsByCity[city].length === 0)}
+                      onAddCustomSpot={handleAddCustomSpot}
+                    />
                   );
                 })()}
               </div>

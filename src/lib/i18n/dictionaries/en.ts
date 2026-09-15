@@ -91,7 +91,7 @@ export const en: Dictionary = {
     accommodationTitle: "Stay Budget",
     accommodationDescription: "The accommodation budget automatically selected based on your trip details and budget tier.",
 
-    stayPlannerTitle: "Accommodation Planner",
+    stayPlannerTitle: "Stay Basket",
     stayPlannerSubtitle: "Choose your stay archetype and room sharing preferences.",
     stayStep1Title: "Step 1. Choose your preferred stay style",
     stayStep2Title: "Step 2. How many nights are you staying?",
@@ -132,7 +132,7 @@ export const en: Dictionary = {
     partiallyPaidBadge: "Partial Pay",
     freeBadge: "Free",
 
-    attractionBasketTitle: "Attraction Basket Planner",
+    attractionBasketTitle: "Attraction Basket",
     attractionBasketSubtitle: "Pick city landmarks and K-theme activities into your personalized itinerary budget.",
     tabCitySpots: "City Attractions",
     tabThemeActivities: "K-Theme & Activities",

@@ -153,7 +153,7 @@ export default function FoodPlannerPanel({
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
-                {locale === "ko" ? "식도락 바스켓 플래너" : "Food Basket Planner"}
+                {cityName} {locale === "ko" ? "음식 바스켓" : "Food Basket"}
               </h3>
             </div>
             <p className="text-xs text-slate-500">

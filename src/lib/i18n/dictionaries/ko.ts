@@ -90,7 +90,7 @@ export const ko = {
     accommodationTitle: "숙소 예산",
     accommodationDescription: "현재 여행 조건과 예산 유형에 따라 자동으로 선택된 숙소 예산입니다.",
 
-    stayPlannerTitle: "숙소 바스켓 플래너",
+    stayPlannerTitle: "숙소 바스켓",
     stayPlannerSubtitle: "외국인 여행자 맞춤 4대 숙소 스타일과 체류 조건을 설정하세요.",
     stayStep1Title: "Step 1. 당신이 원하는 숙소 스타일은?",
     stayStep2Title: "Step 2. 몇 박을 머무르시나요?",
@@ -131,7 +131,7 @@ export const ko = {
     partiallyPaidBadge: "일부 유료",
     freeBadge: "무료",
 
-    attractionBasketTitle: "관광 바스켓 플래너",
+    attractionBasketTitle: "관광 바스켓",
     attractionBasketSubtitle: "도시 명소와 K-테마 액티비티를 자유롭게 담아 나만의 일정을 완성하세요.",
     tabCitySpots: "도시 대표 명소",
     tabThemeActivities: "K-테마 액티비티",

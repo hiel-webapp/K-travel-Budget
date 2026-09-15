@@ -142,7 +142,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
-                {cityName} {locale === "ko" ? "숙소 바스켓 플래너" : "Stay Basket Planner"}
+                {cityName} {locale === "ko" ? "숙소 바스켓" : "Stay Basket"}
               </h3>
             </div>
             <p className="text-xs text-slate-500">

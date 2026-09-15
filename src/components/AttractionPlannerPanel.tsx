@@ -164,7 +164,7 @@ export default function AttractionPlannerPanel({
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
-                {cityName} {locale === "ko" ? "관광 바스켓 플래너" : "Attraction Basket Planner"}
+                {cityName} {locale === "ko" ? "관광 바스켓" : "Attraction Basket"}
               </h3>
             </div>
             <p className="text-xs text-slate-500">

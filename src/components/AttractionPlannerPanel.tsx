@@ -190,7 +190,7 @@ export default function AttractionPlannerPanel({
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="text-slate-700 flex items-center gap-1.5 flex-wrap">
               <span>{locale === "ko" ? "담은 명소·체험:" : "Selected Spots:"}</span>
-              <span className={`font-black ${basketSummary.totalCount > 0 ? "text-emerald-600" : "text-slate-400"}`}>
+              <span className="font-black text-emerald-600">
                 {basketSummary.totalCount}{locale === "ko" ? "곳 담김" : " items"}
               </span>
               <span className="text-[11px] text-slate-400 font-normal">

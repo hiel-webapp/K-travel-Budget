@@ -185,8 +185,8 @@ export default function SavedTripsContent({ locale, dict }: SavedTripsContentPro
                         {formatKrw(plan.grandTotalKrw)}
                       </strong>
                       {trip.savedPlaceIds && trip.savedPlaceIds.length > 0 && (
-                        <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full">
-                          ★ {trip.savedPlaceIds.length}
+                        <span className="text-[10px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
+                          {locale === "ko" ? `저장 장소 ${trip.savedPlaceIds.length}` : `Saved ${trip.savedPlaceIds.length}`}
                         </span>
                       )}
                     </div>

@@ -16,8 +16,8 @@ export const MOCK_TRENDS: TrendItem[] = [
       en: "Updated Today",
     },
     badge: {
-      ko: "🔥 인기 상승 중",
-      en: "🔥 Trending Up",
+      ko: "인기 상승 중",
+      en: "Trending Up",
     },
     badgeType: "HOT",
     imageUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1000&auto=format&fit=crop",
@@ -253,8 +253,8 @@ export const MOCK_TRENDS: TrendItem[] = [
       en: "Updated 5 days ago",
     },
     badge: {
-      ko: "🔥 인기 상승 중",
-      en: "🔥 Trending Up",
+      ko: "인기 상승 중",
+      en: "Trending Up",
     },
     badgeType: "TRENDING",
     imageUrl: "https://images.unsplash.com/photo-1562077772-3bd90403f7f0?q=80&w=800&auto=format&fit=crop",

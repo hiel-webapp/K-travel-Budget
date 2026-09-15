@@ -31,7 +31,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "홍대/신촌",
     locationEn: "Hongdae",
     tag: "가성비/역세권",
-    emoji: "🛏️",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-indigo-500/15",
   },
   {
@@ -46,7 +46,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "명동",
     locationEn: "Myeongdong",
     tag: "쇼핑/시티뷰",
-    emoji: "🏨",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -61,7 +61,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "강남",
     locationEn: "Gangnam",
     tag: "모던/강남역",
-    emoji: "🏢",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-blue-600/15",
   },
   {
@@ -76,7 +76,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "북촌",
     locationEn: "Bukchon",
     tag: "전통/독채한옥",
-    emoji: "🏡",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -91,7 +91,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "광화문",
     locationEn: "Gwanghwamun",
     tag: "5성급/럭셔리",
-    emoji: "👑",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-pink-500/15",
   },
   {
@@ -106,7 +106,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "성수",
     locationEn: "Seongsu",
     tag: "성수동/미니멀",
-    emoji: "💊",
+    emoji: "",
     gradientBg: "from-purple-500/15 to-indigo-500/15",
   },
 
@@ -123,7 +123,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "자갈치/남포",
     locationEn: "Jagalchi",
     tag: "시장근처/알뜰",
-    emoji: "⚓",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-cyan-500/15",
   },
   {
@@ -138,7 +138,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "광안리",
     locationEn: "Gwangalli",
     tag: "광안대교/오션뷰",
-    emoji: "🌉",
+    emoji: "",
     gradientBg: "from-indigo-500/15 to-purple-500/15",
   },
   {
@@ -153,7 +153,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "서면",
     locationEn: "Seomyeon",
     tag: "교통요충지/카페거리",
-    emoji: "🏙️",
+    emoji: "",
     gradientBg: "from-slate-500/15 to-slate-700/15",
   },
   {
@@ -168,7 +168,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "해운대",
     locationEn: "Haeundae",
     tag: "인피니티풀/해운대",
-    emoji: "🏊",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-emerald-500/15",
   },
   {
@@ -183,7 +183,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "송정",
     locationEn: "Songjeong",
     tag: "서핑/감성루프탑",
-    emoji: "🏄",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-cyan-500/15",
   },
   {
@@ -198,7 +198,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "달맞이길",
     locationEn: "Dalmaji-gil",
     tag: "프라이빗/풀빌라",
-    emoji: "🏛️",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-rose-500/15",
   },
 
@@ -215,7 +215,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "제주공항",
     locationEn: "Jeju Airport",
     tag: "공항근처/알뜰",
-    emoji: "✈️",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-blue-500/15",
   },
   {
@@ -230,7 +230,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "애월",
     locationEn: "Aewol",
     tag: "애월노을/오션뷰",
-    emoji: "🌅",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-red-500/15",
   },
   {
@@ -245,7 +245,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "함덕",
     locationEn: "Hamdeok",
     tag: "에메랄드해변/정원",
-    emoji: "🏖️",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -260,7 +260,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "중문",
     locationEn: "Jungmun",
     tag: "5성급/열대정원",
-    emoji: "🌺",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-purple-500/15",
   },
   {
@@ -275,7 +275,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "서귀포",
     locationEn: "Seogwipo",
     tag: "올레길/자연휴식",
-    emoji: "🍊",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-amber-500/15",
   },
   {
@@ -290,7 +290,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "성산",
     locationEn: "Seongsan",
     tag: "일출봉뷰/돌담독채",
-    emoji: "🌋",
+    emoji: "",
     gradientBg: "from-stone-500/15 to-emerald-600/15",
   },
 
@@ -307,7 +307,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "송도",
     locationEn: "Songdo",
     tag: "가성비/비즈니스",
-    emoji: "🏙️",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-slate-500/15",
   },
   {
@@ -322,7 +322,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "송도",
     locationEn: "Songdo",
     tag: "센트럴파크/시티뷰",
-    emoji: "🌳",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
   },
   {
@@ -337,7 +337,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "영종도",
     locationEn: "Yeongjongdo",
     tag: "5성급/아트스파",
-    emoji: "🎨",
+    emoji: "",
     gradientBg: "from-indigo-500/15 to-purple-500/15",
   },
   {
@@ -352,7 +352,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "월미도",
     locationEn: "Wolmido",
     tag: "월미도/바다감성",
-    emoji: "🎡",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-yellow-500/15",
   },
   {
@@ -367,7 +367,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "인천공항",
     locationEn: "Incheon Airport",
     tag: "공항터미널/편의",
-    emoji: "🧳",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-indigo-500/15",
   },
   {
@@ -382,7 +382,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "송도한옥마을",
     locationEn: "Songdo Hanok",
     tag: "한옥스위트/공원",
-    emoji: "🏯",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-amber-500/15",
   },
 
@@ -399,7 +399,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "행궁동",
     locationEn: "Haenggung",
     tag: "행리단길/성곽길",
-    emoji: "🏰",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-emerald-500/15",
   },
   {
@@ -414,7 +414,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "광교",
     locationEn: "Gwanggyo",
     tag: "광교호수/시티뷰",
-    emoji: "🏞️",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-teal-500/15",
   },
   {
@@ -429,7 +429,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "인계동/광교",
     locationEn: "Ingye-dong",
     tag: "5성급/럭셔리",
-    emoji: "⭐",
+    emoji: "",
     gradientBg: "from-indigo-500/15 to-purple-500/15",
   },
   {
@@ -444,7 +444,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "방화수류정",
     locationEn: "Banghwasuryujeong",
     tag: "야경산책/가성비",
-    emoji: "🌙",
+    emoji: "",
     gradientBg: "from-indigo-500/15 to-blue-500/15",
   },
   {
@@ -459,7 +459,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "영통",
     locationEn: "Yeongtong",
     tag: "역세권/비즈니스",
-    emoji: "🏢",
+    emoji: "",
     gradientBg: "from-slate-500/15 to-blue-500/15",
   },
   {
@@ -474,7 +474,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "광교호수",
     locationEn: "Gwanggyo Lake",
     tag: "호수전망/레지던스",
-    emoji: "🏛️",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
   },
 
@@ -491,7 +491,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "한옥마을",
     locationEn: "Hanok Village",
     tag: "온돌마루/마당정원",
-    emoji: "🎋",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-emerald-500/15",
   },
   {
@@ -506,7 +506,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "한옥마을",
     locationEn: "Hanok Village",
     tag: "한옥독채/툇마루",
-    emoji: "🏡",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-amber-600/15",
   },
   {
@@ -521,7 +521,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "한옥마을",
     locationEn: "Hanok Village",
     tag: "럭셔리노천탕/명인한옥",
-    emoji: "🍵",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-amber-500/15",
   },
   {
@@ -536,7 +536,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "객사/객리단길",
     locationEn: "Gaeksa",
     tag: "객리단길/부티크",
-    emoji: "🛍️",
+    emoji: "",
     gradientBg: "from-purple-500/15 to-pink-500/15",
   },
   {
@@ -551,7 +551,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "덕진공원",
     locationEn: "Deokjin Park",
     tag: "연못산책/가성비",
-    emoji: "🪷",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -566,7 +566,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "한옥마을",
     locationEn: "Hanok Village",
     tag: "다도클래스/VIP스위트",
-    emoji: "👑",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
 
@@ -583,7 +583,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "황리단길",
     locationEn: "Hwangridan-gil",
     tag: "황리단길/대릉원뷰",
-    emoji: "🌸",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-rose-500/15",
   },
   {
@@ -598,7 +598,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "보문단지",
     locationEn: "Bomun Lake",
     tag: "보문호수/벚꽃산책",
-    emoji: "🌸",
+    emoji: "",
     gradientBg: "from-pink-500/15 to-rose-500/15",
   },
   {
@@ -613,7 +613,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "보문단지",
     locationEn: "Bomun Lake",
     tag: "5성급/인피니티풀",
-    emoji: "👑",
+    emoji: "",
     gradientBg: "from-indigo-500/15 to-purple-500/15",
   },
   {
@@ -628,7 +628,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "황남동",
     locationEn: "Hwangnam",
     tag: "첨성대/야경투어",
-    emoji: "🌙",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-indigo-500/15",
   },
   {
@@ -643,7 +643,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "경주시내",
     locationEn: "Gyeongju Downtown",
     tag: "터미널근처/알뜰",
-    emoji: "🎒",
+    emoji: "",
     gradientBg: "from-slate-500/15 to-blue-500/15",
   },
   {
@@ -658,7 +658,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "불국사/토함산",
     locationEn: "Bulguksa",
     tag: "히노끼스파/숲속독채",
-    emoji: "🌲",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
 
@@ -675,7 +675,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "안목해변",
     locationEn: "Anmok Beach",
     tag: "커피거리/오션뷰",
-    emoji: "☕",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-blue-500/15",
   },
   {
@@ -690,7 +690,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "경포대",
     locationEn: "Gyeongpo",
     tag: "경포해변/백사장",
-    emoji: "🌊",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-cyan-500/15",
   },
   {
@@ -705,7 +705,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "정동진",
     locationEn: "Jeongdongjin",
     tag: "일출명소/인피니티풀",
-    emoji: "🌅",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-amber-500/15",
   },
   {
@@ -720,7 +720,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "강릉역",
     locationEn: "Gangneung Station",
     tag: "KTX역세권/중앙시장",
-    emoji: "🚅",
+    emoji: "",
     gradientBg: "from-slate-500/15 to-indigo-500/15",
   },
   {
@@ -735,7 +735,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "주문진",
     locationEn: "Jumunjin",
     tag: "방파제/수산시장",
-    emoji: "🐟",
+    emoji: "",
     gradientBg: "from-cyan-500/15 to-blue-500/15",
   },
   {
@@ -750,7 +750,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "경포호수",
     locationEn: "Gyeongpo Lake",
     tag: "경포호수/테라스스파",
-    emoji: "🏞️",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
 
@@ -767,7 +767,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "중앙시장",
     locationEn: "Central Market",
     tag: "중앙시장/먹방투어",
-    emoji: "🍗",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -782,7 +782,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "속초해변",
     locationEn: "Sokcho Beach",
     tag: "속초아이/속초해변",
-    emoji: "🎡",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-sky-500/15",
   },
   {
@@ -797,7 +797,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "설악산/노학",
     locationEn: "Mt. Seorak",
     tag: "천연온천/울산바위뷰",
-    emoji: "♨️",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
   },
   {
@@ -812,7 +812,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "아바이마을",
     locationEn: "Abai Village",
     tag: "갯배선착장/아바이마을",
-    emoji: "⛵",
+    emoji: "",
     gradientBg: "from-cyan-500/15 to-blue-500/15",
   },
   {
@@ -827,7 +827,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "영랑호",
     locationEn: "Yeonglang Lake",
     tag: "영랑호/호수산책",
-    emoji: "🏞️",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -842,7 +842,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "동명항",
     locationEn: "Dongmyeong Port",
     tag: "요트투어/VIP스위트",
-    emoji: "⛵",
+    emoji: "",
     gradientBg: "from-indigo-500/15 to-purple-500/15",
   },
 
@@ -859,7 +859,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "낭만포차",
     locationEn: "Romantic Pocha",
     tag: "낭만포차/밤바다",
-    emoji: "🌃",
+    emoji: "",
     gradientBg: "from-purple-500/15 to-indigo-500/15",
   },
   {
@@ -874,7 +874,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "돌산",
     locationEn: "Dolsan",
     tag: "돌산대교/야경펜션",
-    emoji: "🌉",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-indigo-500/15",
   },
   {
@@ -889,7 +889,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "수정동/오동도",
     locationEn: "Odongdo",
     tag: "5성급/오동도뷰",
-    emoji: "🏰",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-pink-500/15",
   },
   {
@@ -904,7 +904,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "이순신광장",
     locationEn: "Square Central",
     tag: "먹거리거리/부티크",
-    emoji: "🍔",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -919,7 +919,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "웅천",
     locationEn: "Ungcheon",
     tag: "요트공원/트렌디",
-    emoji: "⛵",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-cyan-500/15",
   },
   {
@@ -934,7 +934,7 @@ export const ACCOMMODATION_SPOTS_CATALOG: AccommodationCandidateSpot[] = [
     locationKo: "돌산해안",
     locationEn: "Dolsan Coast",
     tag: "온수풀/프라이빗",
-    emoji: "🏊",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
 ];

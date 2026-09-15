@@ -27,7 +27,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 18000,
     recommendedSlot: "DINNER",
     tag: "K-BBQ/인기",
-    emoji: "🥓",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-rose-500/15",
   },
   {
@@ -40,7 +40,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 9000,
     recommendedSlot: "LUNCH",
     tag: "전통시장/스트릿",
-    emoji: "🥞",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-yellow-500/15",
   },
   {
@@ -53,7 +53,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 32000,
     recommendedSlot: "DINNER",
     tag: "한정식/정갈함",
-    emoji: "🍱",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -66,7 +66,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 75000,
     recommendedSlot: "DINNER",
     tag: "프리미엄/한우",
-    emoji: "🥩",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-purple-500/15",
   },
   {
@@ -79,7 +79,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 8500,
     recommendedSlot: "SNACK_CAFE",
     tag: "핫플/디저트",
-    emoji: "🥐",
+    emoji: "",
     gradientBg: "from-purple-500/15 to-indigo-500/15",
   },
   {
@@ -92,7 +92,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 10000,
     recommendedSlot: "BREAKFAST",
     tag: "든든/국밥",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-indigo-500/15",
   },
 
@@ -107,7 +107,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 10500,
     recommendedSlot: "BREAKFAST",
     tag: "소울푸드/대표",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -120,7 +120,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 9000,
     recommendedSlot: "LUNCH",
     tag: "시원함/여름별미",
-    emoji: "🍜",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-blue-500/15",
   },
   {
@@ -133,7 +133,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 35000,
     recommendedSlot: "DINNER",
     tag: "조개구이/광안리",
-    emoji: "🦪",
+    emoji: "",
     gradientBg: "from-indigo-500/15 to-purple-500/15",
   },
   {
@@ -146,7 +146,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 28000,
     recommendedSlot: "DINNER",
     tag: "싱싱회/수변공원",
-    emoji: "🐟",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
   },
   {
@@ -159,7 +159,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 4500,
     recommendedSlot: "SNACK_CAFE",
     tag: "길거리/씨앗호떡",
-    emoji: "🥞",
+    emoji: "",
     gradientBg: "from-yellow-500/15 to-amber-500/15",
   },
   {
@@ -172,7 +172,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 52000,
     recommendedSlot: "DINNER",
     tag: "암소갈비/명가",
-    emoji: "🥩",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-pink-500/15",
   },
 
@@ -187,7 +187,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 25000,
     recommendedSlot: "DINNER",
     tag: "흑돼지/대표",
-    emoji: "🥓",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-rose-500/15",
   },
   {
@@ -200,7 +200,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 10000,
     recommendedSlot: "BREAKFAST",
     tag: "고기국수/도새기",
-    emoji: "🍜",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-amber-500/15",
   },
   {
@@ -213,7 +213,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 32000,
     recommendedSlot: "LUNCH",
     tag: "통갈치/해물",
-    emoji: "🐟",
+    emoji: "",
     gradientBg: "from-red-500/15 to-pink-500/15",
   },
   {
@@ -226,7 +226,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 8500,
     recommendedSlot: "SNACK_CAFE",
     tag: "야시장/감귤",
-    emoji: "🍢",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-yellow-500/15",
   },
   {
@@ -239,7 +239,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 16000,
     recommendedSlot: "BREAKFAST",
     tag: "전복죽/해녀",
-    emoji: "🥣",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -252,7 +252,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 15000,
     recommendedSlot: "LUNCH",
     tag: "해물라면/딱새우",
-    emoji: "🦀",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-indigo-500/15",
   },
 
@@ -267,7 +267,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 12000,
     recommendedSlot: "LUNCH",
     tag: "차이나타운/원조",
-    emoji: "🍜",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-red-500/15",
   },
   {
@@ -280,7 +280,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 28000,
     recommendedSlot: "DINNER",
     tag: "월미도/조개구이",
-    emoji: "🦪",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-indigo-500/15",
   },
   {
@@ -293,7 +293,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 58000,
     recommendedSlot: "DINNER",
     tag: "송도/호텔뷔페",
-    emoji: "🍣",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-purple-500/15",
   },
   {
@@ -306,7 +306,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 5000,
     recommendedSlot: "SNACK_CAFE",
     tag: "스트릿디저트",
-    emoji: "🥟",
+    emoji: "",
     gradientBg: "from-yellow-500/15 to-amber-500/15",
   },
   {
@@ -319,7 +319,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 11000,
     recommendedSlot: "LUNCH",
     tag: "신포시장/닭강정",
-    emoji: "🍗",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-red-500/15",
   },
   {
@@ -332,7 +332,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 22000,
     recommendedSlot: "DINNER",
     tag: "소래포구/해물탕",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
   },
 
@@ -347,7 +347,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 13000,
     recommendedSlot: "DINNER",
     tag: "통닭거리/시그니처",
-    emoji: "🍗",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -360,7 +360,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 42000,
     recommendedSlot: "DINNER",
     tag: "소왕갈비/명가",
-    emoji: "🥩",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-purple-500/15",
   },
   {
@@ -373,7 +373,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 7500,
     recommendedSlot: "SNACK_CAFE",
     tag: "행리단길/성곽뷰",
-    emoji: "☕",
+    emoji: "",
     gradientBg: "from-purple-500/15 to-indigo-500/15",
   },
   {
@@ -386,7 +386,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 8500,
     recommendedSlot: "LUNCH",
     tag: "남문시장/분식",
-    emoji: "🥟",
+    emoji: "",
     gradientBg: "from-red-500/15 to-orange-500/15",
   },
   {
@@ -399,7 +399,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 14000,
     recommendedSlot: "DINNER",
     tag: "지동시장/순대타운",
-    emoji: "🥘",
+    emoji: "",
     gradientBg: "from-red-600/15 to-amber-500/15",
   },
   {
@@ -412,7 +412,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 11000,
     recommendedSlot: "BREAKFAST",
     tag: "설렁탕/사골",
-    emoji: "🥣",
+    emoji: "",
     gradientBg: "from-slate-500/15 to-blue-500/15",
   },
 
@@ -427,7 +427,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 16000,
     recommendedSlot: "LUNCH",
     tag: "원조비빔밥/육회",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -440,7 +440,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 9000,
     recommendedSlot: "BREAKFAST",
     tag: "콩나물국밥/해장",
-    emoji: "🥣",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -453,7 +453,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 25000,
     recommendedSlot: "DINNER",
     tag: "막걸리한상/안주",
-    emoji: "🍶",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-yellow-500/15",
   },
   {
@@ -466,7 +466,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 4500,
     recommendedSlot: "SNACK_CAFE",
     tag: "수제초코파이",
-    emoji: "🥧",
+    emoji: "",
     gradientBg: "from-amber-700/15 to-amber-900/15",
   },
   {
@@ -479,7 +479,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 55000,
     recommendedSlot: "DINNER",
     tag: "궁중한정식/명인",
-    emoji: "👑",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-amber-500/15",
   },
   {
@@ -492,7 +492,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 10000,
     recommendedSlot: "LUNCH",
     tag: "남부시장/피순대",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-red-500/15 to-orange-500/15",
   },
 
@@ -507,7 +507,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 16000,
     recommendedSlot: "LUNCH",
     tag: "쌈밥정식/황리단길",
-    emoji: "🥬",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
   {
@@ -520,7 +520,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 4000,
     recommendedSlot: "SNACK_CAFE",
     tag: "십원빵/치즈",
-    emoji: "🪙",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-yellow-500/15",
   },
   {
@@ -533,7 +533,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 45000,
     recommendedSlot: "DINNER",
     tag: "한우갈비/보문호수",
-    emoji: "🥩",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-purple-500/15",
   },
   {
@@ -546,7 +546,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 10000,
     recommendedSlot: "LUNCH",
     tag: "밀면/석쇠불고기",
-    emoji: "🍜",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-blue-500/15",
   },
   {
@@ -559,7 +559,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 8500,
     recommendedSlot: "BREAKFAST",
     tag: "성동시장/우엉김밥",
-    emoji: "🍱",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-amber-500/15",
   },
   {
@@ -572,7 +572,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 7500,
     recommendedSlot: "SNACK_CAFE",
     tag: "대릉원뷰/한옥카페",
-    emoji: "☕",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-green-600/15",
   },
 
@@ -587,7 +587,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 12000,
     recommendedSlot: "LUNCH",
     tag: "초당순두부/대표",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -600,7 +600,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 18000,
     recommendedSlot: "LUNCH",
     tag: "물회/경포대",
-    emoji: "🥣",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-blue-500/15",
   },
   {
@@ -613,7 +613,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 65000,
     recommendedSlot: "DINNER",
     tag: "대게코스/주문진",
-    emoji: "🦀",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-red-500/15",
   },
   {
@@ -626,7 +626,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 8000,
     recommendedSlot: "SNACK_CAFE",
     tag: "안목커피/핸드드립",
-    emoji: "☕",
+    emoji: "",
     gradientBg: "from-amber-600/15 to-amber-800/15",
   },
   {
@@ -639,7 +639,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 8000,
     recommendedSlot: "BREAKFAST",
     tag: "장칼국수/중앙시장",
-    emoji: "🍜",
+    emoji: "",
     gradientBg: "from-red-500/15 to-orange-500/15",
   },
   {
@@ -652,7 +652,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 22000,
     recommendedSlot: "DINNER",
     tag: "꼬막비빔밥/별미",
-    emoji: "🐚",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
   },
 
@@ -667,7 +667,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 15000,
     recommendedSlot: "LUNCH",
     tag: "속초중앙시장/대표",
-    emoji: "🍗",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -680,7 +680,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 19000,
     recommendedSlot: "LUNCH",
     tag: "봉포물회/해산물",
-    emoji: "🥣",
+    emoji: "",
     gradientBg: "from-sky-500/15 to-blue-500/15",
   },
   {
@@ -693,7 +693,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 10000,
     recommendedSlot: "BREAKFAST",
     tag: "아바이마을/순대국",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-amber-500/15",
   },
   {
@@ -706,7 +706,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 38000,
     recommendedSlot: "DINNER",
     tag: "동명항/홍게찜",
-    emoji: "🦀",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-red-500/15",
   },
   {
@@ -719,7 +719,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 5500,
     recommendedSlot: "SNACK_CAFE",
     tag: "감자젤라또/디저트",
-    emoji: "🍨",
+    emoji: "",
     gradientBg: "from-yellow-500/15 to-amber-500/15",
   },
   {
@@ -732,7 +732,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 13000,
     recommendedSlot: "LUNCH",
     tag: "설악산/산채비빔밥",
-    emoji: "🏔️",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-teal-500/15",
   },
 
@@ -747,7 +747,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 16000,
     recommendedSlot: "LUNCH",
     tag: "밥도둑/간장게장",
-    emoji: "🦀",
+    emoji: "",
     gradientBg: "from-amber-500/15 to-orange-500/15",
   },
   {
@@ -760,7 +760,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 25000,
     recommendedSlot: "DINNER",
     tag: "낭만포차/해물삼합",
-    emoji: "🐙",
+    emoji: "",
     gradientBg: "from-rose-500/15 to-purple-500/15",
   },
   {
@@ -773,7 +773,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 14000,
     recommendedSlot: "LUNCH",
     tag: "서대회무침/별미",
-    emoji: "🥗",
+    emoji: "",
     gradientBg: "from-orange-500/15 to-red-500/15",
   },
   {
@@ -786,7 +786,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 48000,
     recommendedSlot: "DINNER",
     tag: "하모샤브/보양식",
-    emoji: "🍲",
+    emoji: "",
     gradientBg: "from-teal-500/15 to-emerald-500/15",
   },
   {
@@ -799,7 +799,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 6500,
     recommendedSlot: "SNACK_CAFE",
     tag: "바게트버거/쑥아이스",
-    emoji: "🥖",
+    emoji: "",
     gradientBg: "from-emerald-500/15 to-amber-500/15",
   },
   {
@@ -812,7 +812,7 @@ export const FOOD_SPOTS_CATALOG: FoodCandidateSpot[] = [
     pricePerPerson: 15000,
     recommendedSlot: "BREAKFAST",
     tag: "전복뚝배기/시원함",
-    emoji: "🥘",
+    emoji: "",
     gradientBg: "from-blue-500/15 to-indigo-500/15",
   },
 ];

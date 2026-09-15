@@ -151,8 +151,10 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             selectedCategory === "DINING" ? "border-[#b93829] ring-2 ring-[#b93829]/10" : "border-slate-200/80"
           }`}
         >
-          <div className="w-10 h-10 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
-            🍴
+          <div className="w-10 h-10 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#b93829] transition-colors">
@@ -171,8 +173,10 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             selectedCategory === "TRANSIT" ? "border-[#b93829] ring-2 ring-[#b93829]/10" : "border-slate-200/80"
           }`}
         >
-          <div className="w-10 h-10 rounded-full bg-[#f1f3f4] text-slate-700 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
-            🚌
+          <div className="w-10 h-10 rounded-full bg-[#f1f3f4] text-slate-700 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#b93829] transition-colors">
@@ -191,8 +195,10 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             selectedCategory === "PAYMENT" ? "border-[#b93829] ring-2 ring-[#b93829]/10" : "border-slate-200/80"
           }`}
         >
-          <div className="w-10 h-10 rounded-full bg-[#fce8e6] text-[#c5221f] flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
-            💳
+          <div className="w-10 h-10 rounded-full bg-[#fce8e6] text-[#c5221f] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#b93829] transition-colors">
@@ -211,8 +217,10 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             selectedCategory === "SAFETY" ? "border-[#b93829] ring-2 ring-[#b93829]/10" : "border-slate-200/80"
           }`}
         >
-          <div className="w-10 h-10 rounded-full bg-[#fce8e6] text-[#c5221f] flex items-center justify-center text-lg shrink-0 group-hover:scale-110 transition-transform">
-            🆘
+          <div className="w-10 h-10 rounded-full bg-[#fce8e6] text-[#c5221f] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
           </div>
           <div>
             <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#b93829] transition-colors">
@@ -282,7 +290,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
                 : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs"
             }`}
           >
-            <span>{dict.guideSection?.savedGuideButton || "🔖 저장한 가이드"}</span>
+            <span>{dict.guideSection?.savedGuideButton || "저장한 가이드"}</span>
           </button>
         </div>
       </div>
@@ -342,9 +350,9 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
                 {/* Footer Meta */}
                 <div className="flex items-center justify-between text-xs text-slate-500 font-semibold border-t border-slate-100 pt-3">
                   <div className="flex items-center gap-3">
-                    <span>⏱ {heroGuide.readTime || "3분 읽기"}</span>
+                    <span>{heroGuide.readTime || "3분 읽기"}</span>
                     <span>•</span>
-                    <span>🔄 {heroGuide.updatedDate || "2026년 7월"}</span>
+                    <span>{heroGuide.updatedDate || "2026년 7월"}</span>
                   </div>
                   <button
                     type="button"
@@ -397,7 +405,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
                           )}
                         </div>
                         <span className="text-[11px] text-slate-400 font-medium">
-                          ⏱ {guide.readTime || "3분"}
+                          {guide.readTime || "3분"}
                         </span>
                       </div>
 
@@ -428,7 +436,9 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
                         className={`text-sm cursor-pointer ${isBookmarked ? "text-[#b93829]" : "text-slate-300 hover:text-slate-500"}`}
                         title="Bookmark guide"
                       >
-                        🔖
+                        <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                          <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                        </svg>
                       </button>
                     </div>
 
@@ -448,7 +458,11 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             </div>
           ) : (
             <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center space-y-2">
-              <div className="text-3xl">🔍</div>
+              <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
               <h3 className="text-sm font-bold text-slate-800">검색된 가이드가 없습니다</h3>
               <p className="text-xs text-slate-500">다른 검색어를 입력하시거나 카테고리 필터를 변경해보세요.</p>
             </div>
@@ -461,7 +475,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
           <div className="bg-[#fff8f6] border border-[#fce3de] rounded-3xl p-5 space-y-4 shadow-xs">
             <div className="space-y-1">
               <h3 className="text-sm font-extrabold text-[#c5221f] flex items-center gap-1.5">
-                <span>{dict.guideSection?.emergencyCardTitle || "⚠️ 긴급 상황 연락처"}</span>
+                <span>{dict.guideSection?.emergencyCardTitle || "긴급 상황 연락처"}</span>
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {dict.guideSection?.emergencyCardDesc || "긴급 상황에서는 현재 위치와 필요한 도움을 먼저 알려주세요."}
@@ -473,7 +487,6 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
               {/* Police */}
               <div className="bg-white rounded-xl p-3 border border-[#fce3de] flex items-center justify-between text-xs font-bold text-slate-800 shadow-2xs">
                 <div className="flex items-center gap-2">
-                  <span>🚨</span>
                   <span>{dict.guideSection?.policeLabel || "경찰 (Police)"}</span>
                 </div>
                 <span className="text-[#c5221f] font-extrabold text-sm">112</span>
@@ -482,7 +495,6 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
               {/* Fire/Ambulance */}
               <div className="bg-white rounded-xl p-3 border border-[#fce3de] flex items-center justify-between text-xs font-bold text-slate-800 shadow-2xs">
                 <div className="flex items-center gap-2">
-                  <span>🚒</span>
                   <span>{dict.guideSection?.fireLabel || "화재·구급 (Fire/Ambulance)"}</span>
                 </div>
                 <span className="text-[#c5221f] font-extrabold text-sm">119</span>
@@ -491,7 +503,6 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
               {/* Tourist Info */}
               <div className="bg-white rounded-xl p-3 border border-[#fce3de] flex items-center justify-between text-xs font-bold text-slate-800 shadow-2xs">
                 <div className="flex items-center gap-2">
-                  <span>🗣️</span>
                   <span>{dict.guideSection?.tourInfoLabel || "관광통역안내"}</span>
                 </div>
                 <span className="text-[#c5221f] font-extrabold text-sm">1330</span>

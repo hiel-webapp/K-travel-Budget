@@ -217,7 +217,7 @@ export default function TrendContent({ locale, dict }: TrendContentProps) {
               />
               <div className="absolute top-3.5 left-3.5">
                 <span className="bg-[#b93829] text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1.5">
-                  {heroItem.badge?.[lang] || "🔥 인기 상승 중"}
+                  {heroItem.badge?.[lang] || "인기 상승 중"}
                 </span>
               </div>
             </div>
@@ -259,11 +259,11 @@ export default function TrendContent({ locale, dict }: TrendContentProps) {
               <div className="space-y-3 pt-1">
                 <div className="flex items-center gap-4 text-xs font-semibold text-slate-700 flex-wrap">
                   <span className="flex items-center gap-1">
-                    💳 {heroItem.translations[lang].priceDisplay || "₩ 15,000~ (1인 기준)"}
+                    {heroItem.translations[lang].priceDisplay || "₩ 15,000~ (1인 기준)"}
                   </span>
                   <span className="text-slate-300">•</span>
                   <span className="flex items-center gap-1">
-                    📍 {heroItem.translations[lang].locationDisplay || "서울 주요 지역"}
+                    {heroItem.translations[lang].locationDisplay || "서울 주요 지역"}
                   </span>
                 </div>
 
@@ -420,7 +420,11 @@ export default function TrendContent({ locale, dict }: TrendContentProps) {
         ) : (
           /* Empty State */
           <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center space-y-3">
-            <div className="text-3xl">🔍</div>
+            <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <h3 className="text-base font-bold text-slate-800">
               {lang === "en" ? "No trends found" : "검색 조건에 맞는 트렌드가 없습니다"}
             </h3>

@@ -277,10 +277,10 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         ];
 
         const categoryMeta = [
-          { cat: "ACCOMMODATION", icon: "🏨", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
-          { cat: "FOOD", icon: "🍱", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
-          { cat: "CITY_TRANSPORT", icon: "🚌", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
-          { cat: "ATTRACTION", icon: "🏛️", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
+          { cat: "ACCOMMODATION", icon: "", label: locale === "ko" ? "숙박" : "Stay", colorBg: "bg-blue-500" },
+          { cat: "FOOD", icon: "", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
+          { cat: "CITY_TRANSPORT", icon: "", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
+          { cat: "ATTRACTION", icon: "", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
         ];
 
         const grandTotal = plan.grandTotalKrw || 1;
@@ -304,8 +304,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               {/* Chart 1: City Budget Allocation Stacked Bar */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                    <span>🏙️</span>
+                  <h4 className="text-sm font-extrabold text-[#0f172a]">
                     <span>{locale === "ko" ? `도시별 합계: ${formatKrw(sumCitySubtotals)}` : `City Total: ${formatKrw(sumCitySubtotals)}`}</span>
                   </h4>
                 </div>
@@ -335,7 +334,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     const pct = Math.round((amount / safeCitySum) * 100);
                     const color = cityColors[idx % cityColors.length];
                     const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
-
                     return (
                       <div key={city} className="flex items-center gap-1.5 justify-start min-w-0">
                         <span className={`h-2.5 w-2.5 rounded-full ${color.bg} shrink-0`}></span>
@@ -350,8 +348,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               {/* Chart 2: Category Distribution Stacked Bar */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                  <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                    <span>📦</span>
+                  <h4 className="text-sm font-extrabold text-[#0f172a]">
                     <span>{locale === "ko" ? `항목별 합계: ${formatKrw(plan.grandTotalKrw)}` : `Category Total: ${formatKrw(plan.grandTotalKrw)}`}</span>
                   </h4>
                 </div>
@@ -387,7 +384,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             {/* City Details Cards with Amounts */}
             <div className="space-y-3">
               <h4 className="text-sm font-extrabold text-[#0f172a] flex items-center gap-1.5">
-                <span>📌</span>
                 <span>{locale === "ko" ? "도시별 세부 금액 정보" : "City Breakdown Details"}</span>
               </h4>
 
@@ -429,19 +425,19 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                         {/* Amount Breakdown */}
                         <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                           <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                            <span className="text-slate-500 font-semibold">🏨 {locale === "ko" ? "숙박" : "Stay"}</span>
+                            <span className="text-slate-500 font-semibold">{locale === "ko" ? "숙박" : "Stay"}</span>
                             <strong className="text-slate-900 font-extrabold">{formatKrw(stayAmount)}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                            <span className="text-slate-500 font-semibold">🍱 {locale === "ko" ? "음식" : "Food"}</span>
+                            <span className="text-slate-500 font-semibold">{locale === "ko" ? "음식" : "Food"}</span>
                             <strong className="text-slate-900 font-extrabold">{formatKrw(foodAmount)}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                            <span className="text-slate-500 font-semibold">🚌 {locale === "ko" ? "교통" : "Transit"}</span>
+                            <span className="text-slate-500 font-semibold">{locale === "ko" ? "교통" : "Transit"}</span>
                             <strong className="text-slate-900 font-extrabold">{formatKrw(transportAmount)}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-white/80 border border-slate-100 flex items-center justify-between">
-                            <span className="text-slate-500 font-semibold">🏛️ {locale === "ko" ? "관광" : "Attr"}</span>
+                            <span className="text-slate-500 font-semibold">{locale === "ko" ? "관광" : "Attr"}</span>
                             <strong className="text-slate-900 font-extrabold">{formatKrw(attractionAmount)}</strong>
                           </div>
                         </div>

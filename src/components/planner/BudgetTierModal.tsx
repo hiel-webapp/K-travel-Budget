@@ -22,8 +22,10 @@ export default function BudgetTierModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
       <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 space-y-4 text-center transform transition-all">
-        <div className="w-12 h-12 rounded-2xl bg-[#fdf2f2] text-[#e25c5c] flex items-center justify-center text-2xl mx-auto font-bold">
-          💡
+        <div className="w-12 h-12 rounded-2xl bg-[#fdf2f2] text-[#e25c5c] flex items-center justify-center mx-auto">
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
 
         <div className="space-y-1.5">

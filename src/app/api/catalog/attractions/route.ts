@@ -122,7 +122,6 @@ export async function GET(request: NextRequest) {
         "from-amber-500/15 to-orange-500/15",
         "from-purple-500/15 to-fuchsia-500/15",
       ];
-      const emojis = ["🎡", "🏞️", "🏙️", "🏛️", "☕", "📸", "🌉", "🎨"];
 
       return {
         id: `kto_${row.content_id || row.id}`,
@@ -134,7 +133,7 @@ export async function GET(request: NextRequest) {
         price: row.price_krw || 0,
         priceStatus: isPaid ? "PAID" : "FREE",
         tag: row.sub_category || "Attraction",
-        emoji: emojis[idx % emojis.length],
+        emoji: "",
         gradientBg: gradients[idx % gradients.length],
         isFeatured: true,
         categoryType: bilingual?.categoryType,

@@ -427,7 +427,7 @@ export function generateInitialBudgetPlan(
 
   const allOverrides = overrides?.intercityTransportOverrides || {};
 
-  // 3.1 🛫 입국 공항 이동 (공항 ➔ 첫 도시)
+  // 3.1 입국 공항 이동 (공항 ➔ 첫 도시)
   if (firstCity) {
     const entryKey = Object.keys(allOverrides).find((k) => k.startsWith("ENTRY_")) || `ENTRY_INCHEON-${firstCity}`;
     const parts = entryKey.replace("ENTRY_", "").split("-");
@@ -460,7 +460,7 @@ export function generateInitialBudgetPlan(
     lineItems.push(entryItem);
   }
 
-  // 3.2 🚆 도시 간 이동 (다중 도시일 때)
+  // 3.2 도시 간 이동 (다중 도시일 때)
   if (selectedCities.length >= 2) {
     for (let i = 0; i < selectedCities.length - 1; i++) {
       const fromCity = selectedCities[i];
@@ -493,7 +493,7 @@ export function generateInitialBudgetPlan(
     }
   }
 
-  // 3.3 🛫 출국 공항 이동 (마지막 도시 ➔ 공항)
+  // 3.3 출국 공항 이동 (마지막 도시 ➔ 공항)
   if (lastCity) {
     const exitKey = Object.keys(allOverrides).find((k) => k.startsWith("EXIT_")) || `EXIT_${lastCity}-INCHEON`;
     const parts = exitKey.replace("EXIT_", "").split("-");

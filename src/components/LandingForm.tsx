@@ -163,11 +163,11 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
     if (parts.length === 0) {
       return locale === "ko"
-        ? "💡 3가지 필수 여행 정보(기간, 인원, 목적지)를 선택해 주세요."
-        : "💡 Select your trip options (nights, travelers, destinations).";
+        ? "3가지 필수 여행 정보(기간, 인원, 목적지)를 선택해 주세요."
+        : "Select your trip options (nights, travelers, destinations).";
     }
 
-    return `💡 ${parts.join(" · ")}`;
+    return parts.join(" · ");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -219,7 +219,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
           <div>
             {validationError && (
               <div className="text-xs text-[#ef4444] font-semibold mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
-                ⚠️ {validationError}
+                {validationError}
               </div>
             )}
 
@@ -242,7 +242,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
+                    <span className="text-[15px] font-bold text-[#1d1d1f]">1단계: 여행 기간 설정</span>
                     <span className="text-xs font-extrabold text-[#b93829]">
                       {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
                     </span>
@@ -299,7 +299,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
+                    <span className="text-[15px] font-bold text-[#1d1d1f]">2단계: 여행 인원 선택</span>
                     <span className="text-xs font-extrabold text-[#b93829]">
                       {adultCount !== null ? `${adultCount}명` : "미선택"}
                     </span>
@@ -356,7 +356,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
+                    <span className="text-[15px] font-bold text-[#1d1d1f]">3단계: 여행 목적지 선택</span>
                     <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
@@ -416,7 +416,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
           <div>
             {validationError && (
               <div className="text-xs text-[#ef4444] font-semibold mb-3 p-2.5 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
-                ⚠️ {validationError}
+                {validationError}
               </div>
             )}
 
@@ -454,7 +454,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
             {mobileStep === 1 && (
               <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-[#1d1d1f]">🗓️ 1단계: 여행 기간 설정</span>
+                  <span className="text-[15px] font-bold text-[#1d1d1f]">1단계: 여행 기간 설정</span>
                   <span className="text-[17px] font-extrabold text-[#b93829]">
                     {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
                   </span>
@@ -493,7 +493,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
             {mobileStep === 2 && (
               <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-[#1d1d1f]">👥 2단계: 여행 인원 선택</span>
+                  <span className="text-[15px] font-bold text-[#1d1d1f]">2단계: 여행 인원 선택</span>
                   <span className="text-xs font-extrabold text-[#b93829]">{adultCount !== null ? `${adultCount}명` : "미선택"}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
@@ -530,7 +530,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
             {mobileStep === 3 && (
               <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-[#1d1d1f]">📍 3단계: 여행 목적지 선택</span>
+                  <span className="text-[15px] font-bold text-[#1d1d1f]">3단계: 여행 목적지 선택</span>
                   <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -620,7 +620,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                     : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
                 }`}
               >
-                <span>{isFormComplete ? `${dict.landing.cta} 🚀` : "목적지 1개 이상 선택 필요"}</span>
+                <span>{isFormComplete ? dict.landing.cta : "목적지 1개 이상 선택 필요"}</span>
               </button>
             </div>
           )}

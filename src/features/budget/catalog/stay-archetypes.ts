@@ -46,7 +46,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
   {
     id: "HOSTEL_GUESTHOUSE",
     subCategory: "Hostel_Guesthouse",
-    icon: "🎒",
+    icon: "",
     titleEn: "Hostel & Guesthouse",
     titleKo: "호스텔 & 게스트하우스",
     descEn: "Social dorms and compact rooms for budget backpackers.",
@@ -73,7 +73,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
   {
     id: "BUSINESS_HOTEL",
     subCategory: "Business_Hotel",
-    icon: "🏢",
+    icon: "",
     titleEn: "Urban Business Hotel",
     titleKo: "도심 비즈니스 호텔",
     descEn: "Clean, private standard rooms near transit.",
@@ -100,7 +100,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
   {
     id: "HANOK_BOUTIQUE",
     subCategory: "Hanok_Boutique",
-    icon: "🏡",
+    icon: "",
     titleEn: "Traditional Hanok & Boutique",
     titleKo: "전통 한옥 & 부티크",
     descEn: "Authentic hanok stays or cozy boutique rooms.",
@@ -127,7 +127,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
   {
     id: "LUXURY_SKYLINE",
     subCategory: "Luxury_Skyline",
-    icon: "👑",
+    icon: "",
     titleEn: "5-Star Luxury Hotel",
     titleKo: "럭셔리 5성급 호텔",
     descEn: "World-class service and panoramic skyline views.",

@@ -152,7 +152,6 @@ export default function FoodPlannerPanel({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <span className="text-lg">🍱</span>
               <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
                 {locale === "ko" ? "식도락 바스켓 플래너" : "Food Basket Planner"}
               </h3>
@@ -183,7 +182,6 @@ export default function FoodPlannerPanel({
               <>
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-slate-700 flex items-center gap-1.5">
-                    <span>🍽️</span>
                     <span>
                       {locale === "ko" ? "담은 미식 아이템:" : "Selected Foods:"}
                     </span>
@@ -234,7 +232,6 @@ export default function FoodPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>🏙️</span>
             <span>{cityName} {locale === "ko" ? `대표 미식 (${cityFoods.all.length}선)` : `Specialties (${cityFoods.all.length})`}</span>
           </button>
 
@@ -248,7 +245,6 @@ export default function FoodPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>🇰🇷</span>
             <span>{locale === "ko" ? `한국 대표 미식 (${NATIONAL_K_FOODS.length}선)` : `K-Signatures (${NATIONAL_K_FOODS.length})`}</span>
           </button>
 
@@ -262,7 +258,6 @@ export default function FoodPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>🛒</span>
             <span>{locale === "ko" ? "담은 바스켓" : "My Basket"}</span>
             <span
               className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-black ${
@@ -281,13 +276,12 @@ export default function FoodPlannerPanel({
         
       </div>
 
-      {/* 3-A. [도시별 대표 로컬 음식] 탭 콘텐츠: 계층형 UI (★ 필수 Top 3 + 탐색 7선) */}
+      {/* 3-A. [도시별 대표 로컬 음식] 탭 콘텐츠: 계층형 UI (필수 Top 3 + 탐색 7선) */}
       {/* 3-A. [도시별 대표 음식] 탭 콘텐츠 (카테고리 분리 없이 단일 대표 미식 리스트) */}
       {activeTab === "CITY" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="text-base">🍽️</span>
               <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
                 {cityName} {locale === "ko" ? `대표 미식 리스트 (${cityFoods.all.length}선)` : `Signature Food List (${cityFoods.all.length})`}
               </h4>
@@ -371,7 +365,11 @@ export default function FoodPlannerPanel({
         <div className="space-y-4">
           {basketPlan.selectedItems.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200/80 p-10 text-center space-y-3">
-              <span className="text-4xl block">🛒</span>
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
               <h4 className="text-base font-bold text-slate-800">
                 {locale === "ko" ? "아직 담은 음식이 없습니다" : "Your food basket is empty"}
               </h4>
@@ -412,7 +410,6 @@ export default function FoodPlannerPanel({
                     className="p-4 flex items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-2xl shrink-0">{food.emoji || "🍽️"}</span>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <h5 className="text-xs sm:text-sm font-extrabold text-[#0f172a] truncate">
@@ -489,7 +486,7 @@ export default function FoodPlannerPanel({
                 />
               ) : (
                 <div className="h-full w-full bg-gradient-to-br from-rose-500/80 to-amber-500/80 flex items-center justify-center">
-                  <span className="text-6xl">{previewFood.emoji || "🍽️"}</span>
+                  <span className="text-2xl font-black text-white/40 tracking-wider uppercase">K-FOOD</span>
                 </div>
               )}
 
@@ -509,24 +506,23 @@ export default function FoodPlannerPanel({
               <div className="absolute top-4 left-4 z-10 flex items-center gap-2 flex-wrap">
                 {previewFood.scope === "NATIONAL" ? (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-600/90 text-white shadow-md backdrop-blur-md">
-                    {locale === "ko" ? "🇰🇷 한국 대표 미식" : "🇰🇷 National Dish"}
+                    {locale === "ko" ? "한국 대표 미식" : "National Dish"}
                   </span>
                 ) : (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-600/90 text-white shadow-md backdrop-blur-md">
-                    {locale === "ko" ? `🏙️ ${CITY_KOREAN_NAMES[previewFood.cityCode || activeCityTab] || previewFood.cityCode} 로컬 추천` : `🏙️ ${previewFood.cityCode} Specialty`}
+                    {locale === "ko" ? `${CITY_KOREAN_NAMES[previewFood.cityCode || activeCityTab] || previewFood.cityCode} 로컬 추천` : `${previewFood.cityCode} Specialty`}
                   </span>
                 )}
                 {previewFood.isMustEatTop3 && (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-md">
-                    ★ Must-Eat
+                    Must-Eat
                   </span>
                 )}
               </div>
 
-              {/* Title & Emoji on bottom of image */}
+              {/* Title on bottom of image */}
               <div className="absolute bottom-4 left-5 right-5 text-white z-10">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl drop-shadow-md">{previewFood.emoji || "🍽️"}</span>
                   <h3 className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-md">
                     {locale === "ko" ? previewFood.nameKo : previewFood.nameEn}
                   </h3>
@@ -549,7 +545,6 @@ export default function FoodPlannerPanel({
               {/* Key Food Info Box */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
                 <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                  <span className="text-base shrink-0">💰</span>
                   <div>
                     <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                       {locale === "ko" ? "1인 기준 권장 예산" : "Price per Person"}
@@ -559,7 +554,6 @@ export default function FoodPlannerPanel({
                 </div>
 
                 <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                  <span className="text-base shrink-0">📍</span>
                   <div>
                     <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                       {locale === "ko" ? "추천 지역 / 권역" : "Recommended Region"}
@@ -596,7 +590,6 @@ export default function FoodPlannerPanel({
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-amber-600 bg-white hover:bg-amber-50/50 border border-slate-200 transition-colors shadow-2xs"
                     >
-                      <span>🗺️</span>
                       <span>{locale === "ko" ? "카카오맵 지도 검색" : "Search on Kakao Map"}</span>
                       <span className="text-slate-400 text-xs">↗</span>
                     </a>
@@ -704,7 +697,7 @@ function FoodItemCard({
 
             {food.isMustEatTop3 && !isSelected && (
               <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-md">
-                ★ Must-Eat
+                Must-Eat
               </span>
             )}
 
@@ -724,7 +717,7 @@ function FoodItemCard({
             )}
             {!food.imageUrl && !isSelected && food.isMustEatTop3 && (
               <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500 text-white shadow-2xs shrink-0">
-                ★ Must-Eat
+                Must-Eat
               </span>
             )}
             <h5
@@ -758,7 +751,6 @@ function FoodItemCard({
           }}
           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer"
         >
-          <span>🔍</span>
           <span>{locale === "ko" ? "상세보기" : "Details"}</span>
         </button>
 

@@ -266,15 +266,15 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
     );
   }, [places, effectiveShowSavedOnly, savedPlaceIds]);
 
-  const categories: Array<{ id: PlaceCategory | "ALL"; label: string; icon?: string }> = [
-    { id: "ALL", label: dict.places.allCategories, icon: "" },
-    { id: "ACCOMMODATION", label: dict.places.categoryAccommodation || "숙소", icon: "🏨" },
-    { id: "RESTAURANT", label: dict.places.categoryRestaurant || "음식점", icon: "🍽️" },
-    { id: "CAFE", label: dict.places.categoryCafe || "카페", icon: "☕" },
-    { id: "LANDMARK", label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️" },
-    { id: "NATURE", label: (dict.places as any).categoryNature || "자연", icon: "🌿" },
-    { id: "ENTERTAINMENT", label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡" },
-    { id: "SHOPPING", label: (dict.places as any).categoryShopping || "쇼핑", icon: "🛍️" },
+  const categories: Array<{ id: PlaceCategory | "ALL"; label: string }> = [
+    { id: "ALL", label: dict.places.allCategories },
+    { id: "ACCOMMODATION", label: dict.places.categoryAccommodation || "숙소" },
+    { id: "RESTAURANT", label: dict.places.categoryRestaurant || "음식점" },
+    { id: "CAFE", label: dict.places.categoryCafe || "카페" },
+    { id: "LANDMARK", label: (dict.places as any).categoryLandmark || "명소" },
+    { id: "NATURE", label: (dict.places as any).categoryNature || "자연" },
+    { id: "ENTERTAINMENT", label: (dict.places as any).categoryEntertainment || "엔터" },
+    { id: "SHOPPING", label: (dict.places as any).categoryShopping || "쇼핑" },
   ];
 
   return (
@@ -413,7 +413,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {c.icon && <span>{c.icon}</span>}
                 <span>{c.label}</span>
               </button>
             );
@@ -451,13 +450,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
       ) : displayedPlaces.length === 0 ? (
         <div className="w-full bg-white rounded-2xl border border-slate-200/70 p-12 text-center space-y-3">
           <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl font-bold">
-            {selectedCategory === "ACCOMMODATION"
-              ? "🏨"
-              : selectedCategory === "RESTAURANT"
-              ? "🍽️"
-              : selectedCategory === "CAFE"
-              ? "☕"
-              : "?"}
+            ?
           </div>
           <h3 className="text-base font-bold text-slate-800">
             {["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(selectedCategory)
@@ -531,8 +524,8 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-white text-4xl">
-                  🏛️
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-white/40 text-xl font-black uppercase tracking-wider">
+                  SPOT
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
@@ -559,19 +552,18 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                     previewPlace.category === "RESTAURANT" ? "음식점" :
                     previewPlace.category === "CAFE" ? "카페" : "명소"
                   );
-                  const badgeMap: Record<string, { label: string; icon: string; bg: string }> = {
-                    명소: { label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️", bg: "bg-blue-600/90 text-white" },
-                    자연: { label: (dict.places as any).categoryNature || "자연", icon: "🌿", bg: "bg-emerald-600/90 text-white" },
-                    엔터: { label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡", bg: "bg-purple-600/90 text-white" },
-                    쇼핑: { label: (dict.places as any).categoryShopping || "쇼핑", icon: "🛍️", bg: "bg-pink-600/90 text-white" },
-                    숙소: { label: dict.places.categoryAccommodation || "숙소", icon: "🏨", bg: "bg-indigo-600/90 text-white" },
-                    음식점: { label: dict.places.categoryRestaurant || "음식점", icon: "🍽️", bg: "bg-rose-600/90 text-white" },
-                    카페: { label: dict.places.categoryCafe || "카페", icon: "☕", bg: "bg-amber-600/90 text-white" },
+                  const badgeMap: Record<string, { label: string; bg: string }> = {
+                    명소: { label: (dict.places as any).categoryLandmark || "명소", bg: "bg-blue-600/90 text-white" },
+                    자연: { label: (dict.places as any).categoryNature || "자연", bg: "bg-emerald-600/90 text-white" },
+                    엔터: { label: (dict.places as any).categoryEntertainment || "엔터", bg: "bg-purple-600/90 text-white" },
+                    쇼핑: { label: (dict.places as any).categoryShopping || "쇼핑", bg: "bg-pink-600/90 text-white" },
+                    숙소: { label: dict.places.categoryAccommodation || "숙소", bg: "bg-indigo-600/90 text-white" },
+                    음식점: { label: dict.places.categoryRestaurant || "음식점", bg: "bg-rose-600/90 text-white" },
+                    카페: { label: dict.places.categoryCafe || "카페", bg: "bg-amber-600/90 text-white" },
                   };
                   const badge = badgeMap[cat] || badgeMap["명소"];
                   return (
                     <span className={`px-2.5 py-1 rounded-full text-xs font-black shadow-md backdrop-blur-md flex items-center gap-1 ${badge.bg}`}>
-                      <span>{badge.icon}</span>
                       <span>{badge.label}</span>
                     </span>
                   );
@@ -590,7 +582,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 {/* 로컬 명소 뱃지 (추후 문구/디자인 변경 가능) */}
                 {previewPlace.isLocal && (
                   <span className="bg-amber-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow-md flex items-center gap-1">
-                    <span>🇰🇷</span>
                     <span>로컬</span>
                   </span>
                 )}
@@ -625,7 +616,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
                 {(previewPlace.subwayInfo || previewPlace.translations[locale]?.address || previewPlace.translations.ko.address) && (
                   <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                    <span className="text-base shrink-0">🚇</span>
                     <div>
                       <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                         {locale === "ko" ? "교통 / 위치" : "Transit / Location"}
@@ -638,7 +628,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 )}
                 {previewPlace.closedDays && (
                   <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                    <span className="text-base shrink-0">⏱️</span>
                     <div>
                       <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                         {locale === "ko" ? "휴무일" : "Closed Days"}
@@ -649,7 +638,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                 )}
                 {(previewPlace.openingHours || previewPlace.useTime) && (
                   <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 sm:col-span-2">
-                    <span className="text-base shrink-0">🕒</span>
                     <div>
                       <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                         {locale === "ko" ? "운영시간 / 이용정보" : "Opening Hours"}
@@ -685,7 +673,6 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors"
                   >
-                    <span>🌐</span>
                     <span>{locale === "ko" ? "공식 홈페이지 방문" : "Official Website"}</span>
                     <span>↗</span>
                   </a>
@@ -770,8 +757,8 @@ function PlaceCardImage({
   if (!hasValidSrc || hasError) {
     return (
       <div className="flex flex-col items-center justify-center p-4 text-slate-400 space-y-1.5 text-center w-full h-full bg-slate-100 select-none">
-        <div className="w-10 h-10 rounded-full bg-slate-200/80 flex items-center justify-center text-xl">
-          {badgeIcon || "📍"}
+        <div className="w-10 h-10 rounded-full bg-slate-200/80 flex items-center justify-center text-xs font-bold text-slate-400">
+          SPOT
         </div>
         <span className="text-[11px] font-bold text-slate-500">{noImageText}</span>
       </div>
@@ -864,21 +851,20 @@ function PlaceCard({
 }: PlaceCardProps) {
   const trans = place.translations[locale] || place.translations.ko;
 
-  const categoryBadgeMap: Record<string, { label: string; icon: string; bg: string }> = {
-    LANDMARK: { label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️", bg: "bg-blue-50 text-blue-700 border-blue-200/90" },
-    NATURE: { label: (dict.places as any).categoryNature || "자연", icon: "🌿", bg: "bg-emerald-50 text-emerald-700 border-emerald-200/90" },
-    ENTERTAINMENT: { label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡", bg: "bg-purple-50 text-purple-700 border-purple-200/90" },
-    SHOPPING: { label: (dict.places as any).categoryShopping || "쇼핑", icon: "🛍️", bg: "bg-pink-50 text-pink-700 border-pink-200/90" },
-    ACCOMMODATION: { label: dict.places.categoryAccommodation || "숙소", icon: "🏨", bg: "bg-indigo-50 text-indigo-700 border-indigo-200/90" },
-    RESTAURANT: { label: dict.places.categoryRestaurant || "음식점", icon: "🍽️", bg: "bg-rose-50 text-rose-700 border-rose-200/90" },
-    CAFE: { label: dict.places.categoryCafe || "카페", icon: "☕", bg: "bg-amber-50 text-amber-700 border-amber-200/90" },
-    ATTRACTION: { label: (dict.places as any).categoryLandmark || "명소", icon: "🏛️", bg: "bg-blue-50 text-blue-700 border-blue-200/90" },
-    CULTURE: { label: (dict.places as any).categoryEntertainment || "엔터", icon: "🎡", bg: "bg-purple-50 text-purple-700 border-purple-200/90" },
+  const categoryBadgeMap: Record<string, { label: string; bg: string }> = {
+    LANDMARK: { label: (dict.places as any).categoryLandmark || "명소", bg: "bg-blue-50 text-blue-700 border-blue-200/90" },
+    NATURE: { label: (dict.places as any).categoryNature || "자연", bg: "bg-emerald-50 text-emerald-700 border-emerald-200/90" },
+    ENTERTAINMENT: { label: (dict.places as any).categoryEntertainment || "엔터", bg: "bg-purple-50 text-purple-700 border-purple-200/90" },
+    SHOPPING: { label: (dict.places as any).categoryShopping || "쇼핑", bg: "bg-pink-50 text-pink-700 border-pink-200/90" },
+    ACCOMMODATION: { label: dict.places.categoryAccommodation || "숙소", bg: "bg-indigo-50 text-indigo-700 border-indigo-200/90" },
+    RESTAURANT: { label: dict.places.categoryRestaurant || "음식점", bg: "bg-rose-50 text-rose-700 border-rose-200/90" },
+    CAFE: { label: dict.places.categoryCafe || "카페", bg: "bg-amber-50 text-amber-700 border-amber-200/90" },
+    ATTRACTION: { label: (dict.places as any).categoryLandmark || "명소", bg: "bg-blue-50 text-blue-700 border-blue-200/90" },
+    CULTURE: { label: (dict.places as any).categoryEntertainment || "엔터", bg: "bg-purple-50 text-purple-700 border-purple-200/90" },
   };
 
   const badge = categoryBadgeMap[place.category] || {
     label: place.category,
-    icon: "📍",
     bg: "bg-slate-100 text-slate-700 border-slate-200",
   };
 
@@ -894,13 +880,12 @@ function PlaceCard({
           src={place.repImageUrl}
           alt={trans.title}
           isPriority={isPriority}
-          badgeIcon={badge.icon}
+          badgeIcon=""
           noImageText={dict.places.noImage}
         />
 
         {/* Hover zoom overlay hint */}
         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold backdrop-blur-[1px] pointer-events-none">
-          <span className="text-base">🔍</span>
           <span>{locale === "ko" ? "크게 보기" : "Zoom"}</span>
         </div>
 
@@ -910,13 +895,11 @@ function PlaceCard({
             {CITY_ENGLISH_NAMES[place.city as SupportedCity] || place.city}
           </span>
           <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border backdrop-blur-md flex items-center gap-0.5 ${badge.bg}`}>
-            <span>{badge.icon}</span>
             <span>{badge.label}</span>
           </span>
           {/* 로컬 명소 뱃지 (추후 문구/디자인 손쉽게 변경 가능) */}
           {place.isLocal && (
             <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs flex items-center gap-0.5">
-              <span>🇰🇷</span>
               <span>로컬</span>
             </span>
           )}
@@ -950,7 +933,7 @@ function PlaceCard({
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-rose-50 text-[#e25c5c] border border-rose-100">
-              ★ Curated Spot
+              Curated Spot
             </span>
             {place.priceKrw !== undefined && place.priceKrw > 0 ? (
               <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full">
@@ -987,7 +970,7 @@ function PlaceCard({
 
         {/* Address / Subway */}
         <div className="text-[11px] text-slate-500 truncate border-t border-slate-100 pt-2">
-          {place.subwayInfo ? `🚇 ${place.subwayInfo}` : `📍 ${trans.address || dict.places.noAddress}`}
+          {place.subwayInfo ? place.subwayInfo : (trans.address || dict.places.noAddress)}
         </div>
       </div>
     </div>

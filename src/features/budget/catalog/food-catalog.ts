@@ -2,10 +2,10 @@ import { SupportedCity } from "../../../lib/trip-domain";
 import { FoodItemDefinition } from "../domain/types";
 
 // =========================================================================
-// 1. 🇰🇷 한국 대표 미식 (National K-Signature 24선)
+// 1.  한국 대표 미식 (National K-Signature 24선)
 // =========================================================================
 export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
-  // --- [그룹 1: ★ 방한 외국인 최선호 4대 시그니처] ---
+  // --- [그룹 1:  방한 외국인 최선호 4대 시그니처] ---
   {
     id: "nat_samgyeopsal",
     scope: "NATIONAL",
@@ -18,7 +18,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 16000,
     priceMaxKrw: 22000,
     isMustEatTop3: true,
-    emoji: "🥩",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/5360cac5-b787-4463-b04d-ac48429b5a67/it11",
   },
   {
@@ -33,7 +33,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 20000,
     priceMaxKrw: 27000,
     isMustEatTop3: true,
-    emoji: "🍗",
+    emoji: "",
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=f9d253d5-e4f6-4e43-8235-1550d8e3773f",
   },
   {
@@ -48,7 +48,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 17000,
     priceMaxKrw: 25000,
     isMustEatTop3: true,
-    emoji: "🥘",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/7b549ce5-ff43-45ff-a7ff-2f678f028441/it11",
   },
   {
@@ -63,11 +63,11 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 9000,
     priceMaxKrw: 14000,
     isMustEatTop3: false,
-    emoji: "🥗",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/12eaf037-1510-4b4d-a11c-e73860653812/it11",
   },
 
-  // --- [그룹 2: 🥩 고기 요리 & 한상차림] ---
+  // --- [그룹 2:  고기 요리 & 한상차림] ---
   {
     id: "nat_sogalbijjim",
     scope: "NATIONAL",
@@ -80,7 +80,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 17000,
     priceMaxKrw: 26000,
     isMustEatTop3: false,
-    emoji: "🥩",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/0af3cdf7-4080-4220-a377-1989070537f1/it11",
   },
   {
@@ -95,7 +95,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 14000,
     priceMaxKrw: 19000,
     isMustEatTop3: false,
-    emoji: "🍳",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/40fb0d29-a845-47f4-9f9d-58a50780bcd8/it11",
   },
   {
@@ -110,7 +110,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 14000,
     priceMaxKrw: 20000,
     isMustEatTop3: false,
-    emoji: "🍲",
+    emoji: "",
     imageUrl: "http://tong.visitkorea.or.kr/cms/resource/52/2878052_image2_1.jpg",
   },
   {
@@ -125,11 +125,11 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 35000,
     priceMaxKrw: 65000,
     isMustEatTop3: false,
-    emoji: "🍱",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/ee3b8a7f-8453-45e2-9968-ac214c6bb688/it11",
   },
 
-  // --- [그룹 3: 🍚 밥 & 면 요리] ---
+  // --- [그룹 3:  밥 & 면 요리] ---
   {
     id: "nat_gimbap",
     scope: "NATIONAL",
@@ -142,7 +142,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 3500,
     priceMaxKrw: 6000,
     isMustEatTop3: false,
-    emoji: "🍙",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/b2fedcae-04b8-4fb4-ac2e-d97655d4ae72/it11",
   },
   {
@@ -157,7 +157,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 8000,
     priceMaxKrw: 11000,
     isMustEatTop3: false,
-    emoji: "🍳",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/a54c2b8c-b324-4cb7-bfab-e6c4ea8d56eb/it11",
   },
   {
@@ -172,7 +172,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 9000,
     priceMaxKrw: 15000,
     isMustEatTop3: false,
-    emoji: "🥢",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/864eb60c-76d2-45ce-beb4-886dc999cdf4/it11",
   },
   {
@@ -187,7 +187,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 11000,
     priceMaxKrw: 16000,
     isMustEatTop3: false,
-    emoji: "🍜",
+    emoji: "",
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=57333299-0645-4bb8-a093-ec5e233b43e5",
   },
   {
@@ -202,7 +202,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 7000,
     priceMaxKrw: 10000,
     isMustEatTop3: false,
-    emoji: "🥢",
+    emoji: "",
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=8ae1266b-ff1c-489a-9aa5-7fecc6050796",
   },
   {
@@ -217,11 +217,11 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 16000,
     priceMaxKrw: 24000,
     isMustEatTop3: false,
-    emoji: "🥞",
+    emoji: "",
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=ed7d07b1-ad52-45e2-a264-b617d6a78ff7",
   },
 
-  // --- [그룹 4: 🥘 찌개 & 전골] ---
+  // --- [그룹 4:  찌개 & 전골] ---
   {
     id: "nat_kimchi_jjigae",
     scope: "NATIONAL",
@@ -234,7 +234,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 9000,
     priceMaxKrw: 12000,
     isMustEatTop3: false,
-    emoji: "🍲",
+    emoji: "",
     imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=b2e49489-3ca7-47c5-9354-8370f40cbaf4",
   },
   {
@@ -249,7 +249,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 8500,
     priceMaxKrw: 12000,
     isMustEatTop3: false,
-    emoji: "🍲",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/68813ba4-620b-4bdd-9817-7c29768af0c0/it11",
   },
   {
@@ -264,7 +264,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 9000,
     priceMaxKrw: 13000,
     isMustEatTop3: false,
-    emoji: "🍲",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/2f195887-4706-448c-bd11-ef0393ce200f/it11",
   },
   {
@@ -279,11 +279,11 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 10000,
     priceMaxKrw: 15000,
     isMustEatTop3: false,
-    emoji: "🥘",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/bfd74860-7ebe-445a-bbea-a3283e707047/it11",
   },
 
-  // --- [그룹 5: 🥣 탕 & 보양국] ---
+  // --- [그룹 5:  탕 & 보양국] ---
   {
     id: "nat_samgyetang",
     scope: "NATIONAL",
@@ -296,7 +296,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 16000,
     priceMaxKrw: 22000,
     isMustEatTop3: false,
-    emoji: "🥣",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/a1ac7b39-e0fb-4b2a-98bb-e29d133fa609/it11",
   },
   {
@@ -311,7 +311,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 10000,
     priceMaxKrw: 13000,
     isMustEatTop3: false,
-    emoji: "🍖",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/2c070992-9577-4377-b7a1-c5a8476c9d4b/it11",
   },
   {
@@ -326,11 +326,11 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 9000,
     priceMaxKrw: 13000,
     isMustEatTop3: false,
-    emoji: "🥣",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/5d260c22-cbc0-4173-a41c-77bf7744ddad/it11",
   },
 
-  // --- [그룹 6: 🍢 K-길거리 & 분식·디저트] ---
+  // --- [그룹 6:  K-길거리 & 분식·디저트] ---
   {
     id: "nat_tteokbokki_set",
     scope: "NATIONAL",
@@ -343,7 +343,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 9000,
     priceMaxKrw: 15000,
     isMustEatTop3: false,
-    emoji: "🍢",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/263fff1d-a001-4f40-8369-b53ae49ac852/it11",
   },
   {
@@ -358,7 +358,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 4500,
     priceMaxKrw: 7000,
     isMustEatTop3: false,
-    emoji: "🥪",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/911762eb-2164-485f-a429-cee65acc190f/it11",
   },
   {
@@ -373,13 +373,13 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
     priceMinKrw: 2500,
     priceMaxKrw: 5000,
     isMustEatTop3: false,
-    emoji: "🥨",
+    emoji: "",
     imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/6f75994d-b61a-425c-ae46-c1847f755a0d/it11",
   },
 ];
 
 // =========================================================================
-// 2. 🏙️ 10개 도시별 로컬 대표 미식 (City Specialties 각 10선 = 총 100선)
+// 2. ️ 10개 도시별 로컬 대표 미식 (City Specialties 각 10선 = 총 100선)
 // =========================================================================
 export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> = {
   // === 1. 서울 (SEOUL) ===
@@ -397,7 +397,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 7000,
       priceMaxKrw: 12000,
       isMustEatTop3: true,
-      emoji: "🥞",
+      emoji: "",
       imageUrl: "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6e/Korea_GwangjangMarket_Eats_01_%2813885110035%29.jpg/960px-Korea_GwangjangMarket_Eats_01_%2813885110035%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     },
     {
@@ -413,7 +413,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 11000,
       priceMaxKrw: 16000,
       isMustEatTop3: true,
-      emoji: "🥣",
+      emoji: "",
       imageUrl: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Seolleongtang.jpg",
     },
     {
@@ -429,7 +429,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 14000,
       isMustEatTop3: true,
-      emoji: "🥘",
+      emoji: "",
       imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=3428735f-d5de-4d49-9d67-37e6168c242a",
     },
     {
@@ -445,7 +445,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 15000,
       priceMaxKrw: 21000,
       isMustEatTop3: false,
-      emoji: "🥩",
+      emoji: "",
       imageUrl: "http://tong.visitkorea.or.kr/cms/resource/25/2858125_image2_1.jpg",
     },
     {
@@ -461,7 +461,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 13000,
       priceMaxKrw: 19000,
       isMustEatTop3: false,
-      emoji: "🍲",
+      emoji: "",
       imageUrl: "http://tong.visitkorea.or.kr/cms/resource/43/2869643_image2_1.jpg",
     },
     {
@@ -477,7 +477,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 15000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
       imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/7f241234-ee93-4ff5-a445-7429d95cdf6f/it11",
     },
     {
@@ -493,7 +493,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 15000,
       priceMaxKrw: 23000,
       isMustEatTop3: false,
-      emoji: "🥗",
+      emoji: "",
       imageUrl: "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/63/Golbaengi-muchim_2.jpg/960px-Golbaengi-muchim_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
     },
     {
@@ -509,7 +509,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 14000,
       isMustEatTop3: false,
-      emoji: "🥘",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/36/3526736_image2_1.JPG",
     },
     {
@@ -525,7 +525,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 35000,
       priceMaxKrw: 65000,
       isMustEatTop3: false,
-      emoji: "🥩",
+      emoji: "",
       imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=3c954d31-5be6-42c3-9694-b33c2919124b",
     },
     {
@@ -541,7 +541,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 24000,
       priceMaxKrw: 36000,
       isMustEatTop3: false,
-      emoji: "🍖",
+      emoji: "",
       imageUrl: "http://tong.visitkorea.or.kr/cms/resource/42/2794142_image2_1.jpg",
     },
   ],
@@ -561,7 +561,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 12000,
       isMustEatTop3: true,
-      emoji: "🥣",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/80/2759680_image2_1.jpg",
     },
     {
@@ -577,7 +577,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 8000,
       priceMaxKrw: 12000,
       isMustEatTop3: true,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/88/3049888_image2_1.JPG",
     },
     {
@@ -593,7 +593,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 2000,
       priceMaxKrw: 3500,
       isMustEatTop3: true,
-      emoji: "🥞",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/94/2786894_image2_1.png",
     },
     {
@@ -609,7 +609,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 25000,
       priceMaxKrw: 40000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/13/2941313_image2_1.bmp",
     },
     {
@@ -625,7 +625,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 24000,
       priceMaxKrw: 35000,
       isMustEatTop3: false,
-      emoji: "🔥",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/83/4039583_image2_1.jpg",
     },
     {
@@ -641,7 +641,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 17000,
       isMustEatTop3: false,
-      emoji: "🥘",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/80/2759680_image2_1.jpg",
     },
     {
@@ -657,7 +657,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 3000,
       priceMaxKrw: 6500,
       isMustEatTop3: false,
-      emoji: "🍢",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/80/2759680_image2_1.jpg",
     },
     {
@@ -673,7 +673,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 15000,
       priceMaxKrw: 23000,
       isMustEatTop3: false,
-      emoji: "🍖",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2833858_image2_1.jpg",
     },
     {
@@ -689,7 +689,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 16000,
       priceMaxKrw: 25000,
       isMustEatTop3: false,
-      emoji: "🥞",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/65/2778665_image2_1.jpg",
     },
     {
@@ -705,7 +705,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 16000,
       isMustEatTop3: false,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/69/2844169_image2_1.JPG",
     },
   ],
@@ -725,7 +725,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 22000,
       priceMaxKrw: 32000,
       isMustEatTop3: true,
-      emoji: "🥩",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/12/3477212_image2_1.jpg",
     },
     {
@@ -741,7 +741,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 12000,
       isMustEatTop3: true,
-      emoji: "🍜",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/36/2833236_image2_1.JPG",
     },
     {
@@ -757,7 +757,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 28000,
       priceMaxKrw: 42000,
       isMustEatTop3: true,
-      emoji: "🐟",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/75/4005575_image2_1.jpg",
     },
     {
@@ -773,7 +773,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 14000,
       priceMaxKrw: 20000,
       isMustEatTop3: false,
-      emoji: "🥣",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/20/2868420_image2_1.jpg",
     },
     {
@@ -789,7 +789,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 20000,
       priceMaxKrw: 32000,
       isMustEatTop3: false,
-      emoji: "🦐",
+      emoji: "",
       imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/4f/%EB%94%B1%EC%83%88%EC%9A%B0.jpg",
     },
     {
@@ -805,7 +805,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 14000,
       isMustEatTop3: false,
-      emoji: "🍜",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/22/4075322_image2_1.jpg",
     },
     {
@@ -821,7 +821,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 4500,
       priceMaxKrw: 8000,
       isMustEatTop3: false,
-      emoji: "🍊",
+      emoji: "",
       imageUrl: "https://upload.wikimedia.org/wikipedia/commons/4/47/%EC%98%A4%EB%A9%94%EA%B8%B0%EB%96%A1_%EC%A0%95%EB%A9%B4.jpg",
     },
     {
@@ -837,7 +837,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 18000,
       priceMaxKrw: 28000,
       isMustEatTop3: false,
-      emoji: "🥩",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/68/2836968_image2_1.jpg",
     },
     {
@@ -853,7 +853,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 14000,
       priceMaxKrw: 20000,
       isMustEatTop3: false,
-      emoji: "🥣",
+      emoji: "",
       imageUrl: "https://tong.visitkorea.or.kr/cms/resource/15/2872615_image2_1.JPG",
     },
     {
@@ -869,7 +869,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 18000,
       priceMaxKrw: 28000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
       imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/bc/Korean_cuisine-Jeju_Island-Okdom_gui-Grilled_Tilefish-01.jpg",
     },
   ],
@@ -889,7 +889,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 17000,
       isMustEatTop3: true,
-      emoji: "🥗",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -905,7 +905,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 8000,
       priceMaxKrw: 11000,
       isMustEatTop3: true,
-      emoji: "🥣",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -921,7 +921,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 13000,
       isMustEatTop3: true,
-      emoji: "🍲",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -937,7 +937,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 30000,
       priceMaxKrw: 60000,
       isMustEatTop3: false,
-      emoji: "🍱",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -953,7 +953,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 18000,
       isMustEatTop3: false,
-      emoji: "🍺",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -969,7 +969,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 13000,
       priceMaxKrw: 20000,
       isMustEatTop3: false,
-      emoji: "🥩",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -985,7 +985,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 16000,
       isMustEatTop3: false,
-      emoji: "🍶",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -1001,7 +1001,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 8000,
       priceMaxKrw: 11000,
       isMustEatTop3: false,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
     {
@@ -1017,7 +1017,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 18000,
       priceMaxKrw: 30000,
       isMustEatTop3: false,
-      emoji: "🍲",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/97/3054097_image2_1.jpg",
     },
     {
@@ -1033,7 +1033,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 2800,
       priceMaxKrw: 5000,
       isMustEatTop3: false,
-      emoji: "🍫",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/63/1023863_image2_1.jpg",
     },
   ],
@@ -1053,7 +1053,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 14000,
       isMustEatTop3: true,
-      emoji: "🥣",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/61/4039261_image2_1.jpg",
     },
     {
@@ -1069,7 +1069,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 8000,
       priceMaxKrw: 11000,
       isMustEatTop3: true,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/61/4039261_image2_1.jpg",
     },
     {
@@ -1085,7 +1085,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 6000,
       priceMaxKrw: 12000,
       isMustEatTop3: true,
-      emoji: "☕",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/4075958_image2_1.jpg",
     },
     {
@@ -1101,7 +1101,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 15000,
       priceMaxKrw: 23000,
       isMustEatTop3: false,
-      emoji: "🍱",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/61/4039261_image2_1.jpg",
     },
     {
@@ -1117,7 +1117,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 8500,
       priceMaxKrw: 12000,
       isMustEatTop3: false,
-      emoji: "🥔",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/61/4039261_image2_1.jpg",
     },
     {
@@ -1133,7 +1133,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 4000,
       priceMaxKrw: 6000,
       isMustEatTop3: false,
-      emoji: "🥖",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/61/4039261_image2_1.jpg",
     },
     {
@@ -1149,7 +1149,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 18000,
       isMustEatTop3: false,
-      emoji: "🦑",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/41/2839641_image2_1.jpg",
     },
     {
@@ -1165,7 +1165,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 15000,
       priceMaxKrw: 22000,
       isMustEatTop3: false,
-      emoji: "🥣",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/79/2912779_image2_1.jpg",
     },
     {
@@ -1181,7 +1181,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 20000,
       priceMaxKrw: 32000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/61/4039261_image2_1.jpg",
     },
     {
@@ -1197,7 +1197,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 4000,
       priceMaxKrw: 6000,
       isMustEatTop3: false,
-      emoji: "🍨",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/54/2930154_image2_1.JPG",
     },
   ],
@@ -1217,7 +1217,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 18000,
       isMustEatTop3: true,
-      emoji: "🍖",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2845558_image2_1.jpg",
     },
     {
@@ -1233,7 +1233,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 18000,
       priceMaxKrw: 23000,
       isMustEatTop3: true,
-      emoji: "🍗",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2845558_image2_1.jpg",
     },
     {
@@ -1249,7 +1249,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 17000,
       priceMaxKrw: 24000,
       isMustEatTop3: true,
-      emoji: "🥣",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/05/4032905_image2_1.jpg",
     },
     {
@@ -1265,7 +1265,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 30000,
       priceMaxKrw: 50000,
       isMustEatTop3: false,
-      emoji: "🦀",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2845558_image2_1.jpg",
     },
     {
@@ -1281,7 +1281,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 13000,
       isMustEatTop3: false,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2845558_image2_1.jpg",
     },
     {
@@ -1297,7 +1297,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 11000,
       priceMaxKrw: 16000,
       isMustEatTop3: false,
-      emoji: "🍲",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2845558_image2_1.jpg",
     },
     {
@@ -1313,7 +1313,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 25000,
       priceMaxKrw: 42000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/55/3041255_image2_1.jpg",
     },
     {
@@ -1329,7 +1329,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 15000,
       priceMaxKrw: 21000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2845558_image2_1.jpg",
     },
     {
@@ -1345,7 +1345,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9000,
       priceMaxKrw: 13000,
       isMustEatTop3: false,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/13/3449813_image2_1.jpg",
     },
     {
@@ -1361,7 +1361,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 3000,
       priceMaxKrw: 5500,
       isMustEatTop3: false,
-      emoji: "🎃",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/2845558_image2_1.jpg",
     },
   ],
@@ -1381,7 +1381,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 15000,
       isMustEatTop3: true,
-      emoji: "🥮",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/82/2877982_image2_1.jpg",
     },
     {
@@ -1397,7 +1397,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 13000,
       priceMaxKrw: 18000,
       isMustEatTop3: true,
-      emoji: "🥣",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/29/2838729_image2_1.jpg",
     },
     {
@@ -1413,7 +1413,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 14000,
       priceMaxKrw: 20000,
       isMustEatTop3: true,
-      emoji: "🥬",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/98/4105798_image2_1.jpg",
     },
     {
@@ -1429,7 +1429,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 14000,
       isMustEatTop3: false,
-      emoji: "🍲",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/79/2912779_image2_1.jpg",
     },
     {
@@ -1445,7 +1445,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 14000,
       priceMaxKrw: 22000,
       isMustEatTop3: false,
-      emoji: "🥩",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/29/2838729_image2_1.jpg",
     },
     {
@@ -1461,7 +1461,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 4500,
       priceMaxKrw: 7000,
       isMustEatTop3: false,
-      emoji: "🍙",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/11/4097011_image2_1.jpg",
     },
     {
@@ -1477,7 +1477,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 3000,
       priceMaxKrw: 4500,
       isMustEatTop3: false,
-      emoji: "🪙",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/21/2904221_image2_1.jpg",
     },
     {
@@ -1493,7 +1493,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 8000,
       priceMaxKrw: 12000,
       isMustEatTop3: false,
-      emoji: "🥣",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/29/2838729_image2_1.jpg",
     },
     {
@@ -1509,7 +1509,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 24000,
       priceMaxKrw: 38000,
       isMustEatTop3: false,
-      emoji: "🥩",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/29/2838729_image2_1.jpg",
     },
     {
@@ -1525,7 +1525,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 15000,
       isMustEatTop3: false,
-      emoji: "🍲",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/29/2838729_image2_1.jpg",
     },
   ],
@@ -1545,7 +1545,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 32000,
       priceMaxKrw: 52000,
       isMustEatTop3: true,
-      emoji: "🥩",
+      emoji: "",
       imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=472e0548-f287-4407-b728-318b1bd6dd36",
     },
     {
@@ -1561,7 +1561,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 19000,
       priceMaxKrw: 24000,
       isMustEatTop3: true,
-      emoji: "🍗",
+      emoji: "",
       imageUrl: "https://cdn.visitkorea.or.kr/img/call?cmd=VIEW&id=9385c5d0-c078-4d8f-b0d8-1ae0d6b63ee5",
     },
     {
@@ -1577,7 +1577,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 13000,
       priceMaxKrw: 18000,
       isMustEatTop3: true,
-      emoji: "🥣",
+      emoji: "",
       imageUrl: "/assets/suwon-wang-galbitang.jpg",
     },
     {
@@ -1593,7 +1593,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 7500,
       priceMaxKrw: 11500,
       isMustEatTop3: false,
-      emoji: "🥟",
+      emoji: "",
       imageUrl: "/assets/suwon-mandu-jjolmyeon.jpg",
     },
     {
@@ -1609,7 +1609,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 15000,
       isMustEatTop3: false,
-      emoji: "🥘",
+      emoji: "",
       imageUrl: "/assets/suwon-jidong-sundaebokkeum.jpg",
     },
     {
@@ -1625,7 +1625,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 18000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
       imageUrl: "/assets/suwon-saengseongui-baekban.jpg",
     },
     {
@@ -1641,7 +1641,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 4500,
       priceMaxKrw: 9000,
       isMustEatTop3: false,
-      emoji: "🥮",
+      emoji: "",
       imageUrl: "/assets/suwon-yakgwa.jpg",
     },
   ],
@@ -1661,7 +1661,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 20000,
       isMustEatTop3: true,
-      emoji: "🥢",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/76/2848776_image2_1.jpg",
     },
     {
@@ -1677,7 +1677,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 17000,
       priceMaxKrw: 22000,
       isMustEatTop3: true,
-      emoji: "🍗",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/04/4064804_image2_1.jpg",
     },
     {
@@ -1693,7 +1693,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 24000,
       priceMaxKrw: 38000,
       isMustEatTop3: true,
-      emoji: "🦀",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/39/2900039_image2_1.jpg",
     },
     {
@@ -1709,7 +1709,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 10000,
       priceMaxKrw: 15000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/97/2846797_image2_1.jpg",
     },
     {
@@ -1725,7 +1725,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 3000,
       priceMaxKrw: 5500,
       isMustEatTop3: false,
-      emoji: "🥟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/92/3526892_image2_1.jpg",
     },
     {
@@ -1741,7 +1741,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 18000,
       priceMaxKrw: 30000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/79/2912779_image2_1.jpg",
     },
     {
@@ -1757,7 +1757,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 7000,
       priceMaxKrw: 10500,
       isMustEatTop3: false,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/79/2912779_image2_1.jpg",
     },
     {
@@ -1773,7 +1773,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 11000,
       priceMaxKrw: 17000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/40/3013740_image2_1.jpg",
     },
     {
@@ -1789,7 +1789,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 9500,
       priceMaxKrw: 14000,
       isMustEatTop3: false,
-      emoji: "🍜",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/06/2900006_image2_1.jpg",
     },
     {
@@ -1805,7 +1805,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 28000,
       priceMaxKrw: 42000,
       isMustEatTop3: false,
-      emoji: "🦪",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/58/4066258_image2_1.jpg",
     },
   ],
@@ -1825,7 +1825,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 14000,
       priceMaxKrw: 20000,
       isMustEatTop3: true,
-      emoji: "🦀",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1841,7 +1841,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 20000,
       priceMaxKrw: 30000,
       isMustEatTop3: true,
-      emoji: "🐙",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1857,7 +1857,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 12000,
       priceMaxKrw: 17000,
       isMustEatTop3: true,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1873,7 +1873,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 16000,
       priceMaxKrw: 23000,
       isMustEatTop3: false,
-      emoji: "🥩",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/51/612151_image2_1.jpg",
     },
     {
@@ -1889,7 +1889,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 32000,
       priceMaxKrw: 50000,
       isMustEatTop3: false,
-      emoji: "🍲",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1905,7 +1905,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 30000,
       priceMaxKrw: 48000,
       isMustEatTop3: false,
-      emoji: "🦪",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1921,7 +1921,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 14000,
       priceMaxKrw: 20000,
       isMustEatTop3: false,
-      emoji: "🍲",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1937,7 +1937,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 15000,
       priceMaxKrw: 24000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1953,7 +1953,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 6000,
       priceMaxKrw: 9500,
       isMustEatTop3: false,
-      emoji: "🍔",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
     {
@@ -1969,7 +1969,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       priceMinKrw: 18000,
       priceMaxKrw: 28000,
       isMustEatTop3: false,
-      emoji: "🐟",
+      emoji: "",
     imageUrl: "https://tong.visitkorea.or.kr/cms/resource/50/2931150_image2_1.jpg",
     },
   ],

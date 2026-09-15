@@ -270,14 +270,13 @@ export default function TransportPlannerPanel({
   return (
     <div className="space-y-6">
       {/* ========================================================================= */}
-      {/* GROUP 1: 🛣️ 광역 및 도시 간 이동 (공항 입출국 & 도시 간 장거리 이동) */}
+      {/* GROUP 1: 광역 및 도시 간 이동 (공항 입출국 & 도시 간 장거리 이동) */}
       {/* ========================================================================= */}
       <div className="bg-slate-50/80 border border-slate-200/90 p-4 sm:p-5 rounded-2xl space-y-4 shadow-2xs">
         {/* 그룹 1 메인 헤더 */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-base">🛣️</span>
               <h3 className="text-sm font-extrabold text-[#0f172a] tracking-tight">
                 {locale === "ko" ? "광역 및 도시 간 이동" : "Intercity & Gateway Transit"}
               </h3>
@@ -295,7 +294,7 @@ export default function TransportPlannerPanel({
 
 
 
-        {/* 1-1: 🛫 입국 공항 ➔ 첫 목적지 이동 */}
+        {/* 1-1: 입국 공항 ➔ 첫 목적지 이동 */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5 hover:border-slate-300 transition-all">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
@@ -303,7 +302,7 @@ export default function TransportPlannerPanel({
                 {locale === "ko" ? "입국 첫날" : "Arrival Day"}
               </span>
               <div className="flex items-center gap-1.5 font-extrabold text-[#0f172a] text-sm">
-                <span>🛫 {getAirportDisplayName(entryAirport)}</span>
+                <span>{getAirportDisplayName(entryAirport)}</span>
                 <span className="text-slate-400 font-normal">──►</span>
                 <span className="text-[#e25c5c]">{getCityName(firstCity)}</span>
               </div>
@@ -335,7 +334,6 @@ export default function TransportPlannerPanel({
                 onClick={() => setShowCustomAirportToggle(!showCustomAirportToggle)}
                 className="text-[11px] font-bold text-[#e25c5c] hover:underline cursor-pointer flex items-center gap-1"
               >
-                <span>⚙</span>
                 <span>{locale === "ko" ? "다른 공항으로 입국하시나요? ▾" : "Arriving at another airport? ▾"}</span>
               </button>
             </div>
@@ -392,7 +390,7 @@ export default function TransportPlannerPanel({
 
                     <div className="flex items-center justify-between text-[11px]">
                       <span className={isSelected ? "font-medium text-slate-500" : "font-normal text-slate-400"}>
-                        ⏱ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
+                        {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
                       </span>
                       <span className={`text-xs sm:text-sm ${isSelected ? "font-black text-[#e25c5c]" : "font-medium text-slate-600"}`}>
                         {formatKrw(opt.oneWayPriceKrw)}
@@ -405,13 +403,13 @@ export default function TransportPlannerPanel({
           </div>
         </div>
 
-        {/* 1-2: 🚆 도시 간 이동 구간 (다중 도시일 때) */}
+        {/* 1-2: 도시 간 이동 구간 (다중 도시일 때) */}
         {isMultiCity && (
           <div className="space-y-3 pt-1">
             <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-extrabold text-slate-800">
-                  {locale === "ko" ? "🚆 도시 간 이동 구간" : "🚆 Intercity Transit"}
+                  {locale === "ko" ? "도시 간 이동 구간" : "Intercity Transit"}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700 text-[11px] font-bold border border-slate-300/80">
                   {`${selectedCities.length - 1}${locale === "ko" ? "개 구간" : " segments"}`}
@@ -433,7 +431,7 @@ export default function TransportPlannerPanel({
 
                 const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
                 const hasFlight = activeOption.mode === "FLIGHT" || activeOption.nameKo.includes("항공") || activeOption.legs?.some((l) => l.mode === "FLIGHT");
-                const modeIcon = hasFlight ? "🛫" : (activeOption.mode === "EXPRESS_BUS" || activeOption.mode === "INTERCITY_BUS") ? "🚌" : activeOption.mode === "TRANSFER" ? "🔀" : "🚄";
+                const modeIcon = "";
                 const displayName = getSimplifiedTransportName(activeOption.nameKo, activeOption.mode, activeOption.nameEn);
                 const hasMultipleOptions = options.length > 1;
                 const isExpanded = !!expandedSegments[routeKey];
@@ -450,13 +448,12 @@ export default function TransportPlannerPanel({
                     {hasMultipleOptions && (
                       <div className="px-3.5 pt-2.5 pb-1.5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between gap-2">
                         <span className="text-[11px] font-extrabold text-slate-500 flex items-center gap-1">
-                          <span>🔀</span>
                           <span>{locale === "ko" ? "환승/이동 방식 선택:" : "Select Route Option:"}</span>
                         </span>
                         <div className="flex items-center gap-1">
                           {options.map((opt, optIdx) => {
                             const isSelected = activeOption.nameKo === opt.nameKo;
-                            const optLabel = opt.badgeTextKo || (optIdx === 0 ? "⚡ 최단시간" : "💰 가성비/편의");
+                            const optLabel = opt.badgeTextKo || (optIdx === 0 ? "최단시간" : "가성비/편의");
                             return (
                               <button
                                 key={opt.nameKo}
@@ -492,11 +489,10 @@ export default function TransportPlannerPanel({
 
                         <div className="space-y-0.5 min-w-0">
                           <div className="font-extrabold text-slate-900 text-xs sm:text-[13px] flex items-center gap-1 truncate">
-                            <span className="shrink-0">{modeIcon}</span>
                             <span className="truncate">{displayName}</span>
                           </div>
                           <div className="text-[11px] text-slate-500 font-medium flex items-center gap-2">
-                            <span>⏱ {locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>
+                            <span>{locale === "ko" ? activeOption.durationTextKo : activeOption.durationTextEn}</span>
                             {canExpand && (
                               <button
                                 type="button"
@@ -532,7 +528,6 @@ export default function TransportPlannerPanel({
                     {isExpanded && activeOption.legs && activeOption.legs.length > 0 && (
                       <div className="px-4 pb-3.5 pt-2.5 bg-slate-50 border-t border-slate-100 space-y-2.5 text-xs">
                         <div className="font-extrabold text-slate-700 flex items-center gap-1.5">
-                          <span>🗺</span>
                           <span>{locale === "ko" ? "상세 환승 이동 경로" : "Detailed Transfer Route"}</span>
                         </div>
                         <div className="space-y-2">
@@ -547,11 +542,10 @@ export default function TransportPlannerPanel({
                                 </span>
                                 <div className="min-w-0">
                                   <div className="font-extrabold text-slate-900 text-xs flex items-center gap-1 truncate">
-                                    <span>{leg.modeIcon}</span>
                                     <span>{locale === "ko" ? leg.transitNameKo : leg.transitNameEn}</span>
                                   </div>
                                   <div className="text-[11px] text-slate-500 truncate">
-                                    {locale === "ko" ? leg.fromHubNameKo : leg.fromHubNameEn} ➔ {locale === "ko" ? leg.toHubNameKo : leg.toHubNameEn} (⏱ {locale === "ko" ? leg.durationTextKo : leg.durationTextEn})
+                                    {locale === "ko" ? leg.fromHubNameKo : leg.fromHubNameEn} ➔ {locale === "ko" ? leg.toHubNameKo : leg.toHubNameEn} ({locale === "ko" ? leg.durationTextKo : leg.durationTextEn})
                                   </div>
                                 </div>
                               </div>
@@ -573,7 +567,7 @@ export default function TransportPlannerPanel({
                         <div className="p-3 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex flex-wrap items-center justify-between gap-2.5">
                           <div className="space-y-0.5">
                             <div className="text-[11px] font-bold text-slate-500">
-                              {locale === "ko" ? "⏱ 운임 적용 기준 시간대" : "⏱ Flight Time Window"}
+                              {locale === "ko" ? "운임 적용 기준 시간대" : "Flight Time Window"}
                             </div>
                             <div className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
                               <span className="w-2 h-2 rounded-full bg-blue-500" />
@@ -596,7 +590,6 @@ export default function TransportPlannerPanel({
                         {/* 좌석 등급별 특징 & 주의사항 리스트 */}
                         <div className="space-y-1.5">
                           <div className="font-extrabold text-slate-700 flex items-center gap-1.5 text-xs">
-                            <span>📋</span>
                             <span>{locale === "ko" ? "좌석 등급 특징 및 예약 안내" : "Seat Tier Features & Booking Notice"}</span>
                           </div>
                           <div className="grid gap-1.5">
@@ -620,7 +613,7 @@ export default function TransportPlannerPanel({
           </div>
         )}
 
-        {/* 1-3: 🛫 마지막 목적지 ➔ 공항 귀국 이동 */}
+        {/* 1-3: 마지막 목적지 ➔ 공항 귀국 이동 */}
         <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3.5 hover:border-slate-300 transition-all">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
@@ -631,7 +624,6 @@ export default function TransportPlannerPanel({
                 <span className="text-[#0f172a]">{getCityName(lastCity)}</span>
                 <span className="text-slate-400 font-bold">➔</span>
                 <span className="text-blue-600 flex items-center gap-1">
-                  <span>🛫</span>
                   <span>{getAirportDisplayName(exitAirport)}</span>
                 </span>
               </div>
@@ -655,7 +647,6 @@ export default function TransportPlannerPanel({
                 onClick={() => setShowExitAirportToggle(!showExitAirportToggle)}
                 className="text-[11px] text-slate-400 hover:text-slate-700 underline cursor-pointer flex items-center gap-1"
               >
-                <span>⚙</span>
                 <span>{locale === "ko" ? "다른 공항으로 출국하시나요? ▾" : "Departing from another airport? ▾"}</span>
               </button>
             </div>
@@ -712,7 +703,7 @@ export default function TransportPlannerPanel({
 
                     <div className="flex items-center justify-between text-[11px]">
                       <span className={isSelected ? "font-medium text-slate-500" : "font-normal text-slate-400"}>
-                        ⏱ {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
+                        {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
                       </span>
                       <span className={`text-xs sm:text-sm ${isSelected ? "font-black text-[#e25c5c]" : "font-medium text-slate-600"}`}>
                         {formatKrw(opt.oneWayPriceKrw)}
@@ -727,14 +718,13 @@ export default function TransportPlannerPanel({
       </div>
 
       {/* ========================================================================= */}
-      {/* GROUP 2: 🚏 체류 도시 내 시내 이동 스타일 (지하철·버스·택시 1일 시내 교통비) */}
+      {/* GROUP 2: 체류 도시 내 시내 이동 스타일 (지하철·버스·택시 1일 시내 교통비) */}
       {/* ========================================================================= */}
       <div className="bg-[#faf5f5] border border-[#fce8e8] p-4 sm:p-5 rounded-2xl space-y-3.5 shadow-2xs">
         {/* 그룹 2 메인 헤더 */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[#fce8e8] pb-2.5">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-base">🚏</span>
               <h3 className="text-sm font-extrabold text-[#0f172a] tracking-tight">
                 {locale === "ko" ? "체류 도시 내 이동 스타일" : "Local City Transit Style"}
               </h3>
@@ -761,7 +751,6 @@ export default function TransportPlannerPanel({
                 onClick={() => onSelectLocalTransitStyle?.(opt.style)}
                 className="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border bg-white text-slate-700 border-slate-200 hover:bg-[#fdeeed] hover:text-[#e25c5c] hover:border-rose-300 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
               >
-                <span>{opt.style === "SUBWAY_BUS" ? "🚇" : opt.style === "STANDARD_MIX" ? "🔀" : "🚕"}</span>
                 <span>{locale === "ko" ? opt.nameKo : opt.nameEn}</span>
               </button>
             ))}
@@ -886,9 +875,6 @@ export default function TransportPlannerPanel({
                         }`}
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="text-xs sm:text-sm shrink-0">
-                            {opt.style === "SUBWAY_BUS" ? "🚇" : opt.style === "STANDARD_MIX" ? "🔀" : "🚕"}
-                          </span>
                           <span className={`text-xs truncate ${isSelected ? "font-black text-[#0f172a]" : "font-normal text-slate-600"}`}>
                             {locale === "ko" ? opt.nameKo : opt.nameEn}
                           </span>

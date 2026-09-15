@@ -91,13 +91,6 @@ function placeToAttractionSpot(p: PlaceItem): AttractionSpot {
     CULTURE: "명소",
   };
   const categoryType = p.categoryType || categoryTypeMap[p.category] || "명소";
-  const emojiMap: Record<string, string> = {
-    NATURE: "🌿",
-    ENTERTAINMENT: "🎡",
-    SHOPPING: "🛍️",
-    ATTRACTION: "🏛️",
-    CULTURE: "🎨",
-  };
   const titleKo = p.translations?.ko?.title || (p as any).title || "명소";
   const titleEn = p.translations?.en?.title || titleKo;
   const descKo = p.translations?.ko?.description || (p as any).descriptionKo || titleKo;
@@ -114,7 +107,7 @@ function placeToAttractionSpot(p: PlaceItem): AttractionSpot {
     price,
     priceStatus: price > 0 ? "PAID" : "FREE",
     tag: p.category,
-    emoji: emojiMap[p.category] || "📍",
+    emoji: "",
     gradientBg: "from-slate-700 to-slate-900",
     isFeatured: true,
     subwayInfo: p.subwayInfo,
@@ -200,7 +193,7 @@ function placeToAccommodationSpot(p: PlaceItem): AccommodationCandidateSpot {
     locationKo: locKo,
     locationEn: locEn,
     tag: basketId === "BUDGET_STAY" ? "Hostel" : basketId === "PREMIUM_HERITAGE" ? "Luxury" : "Hotel",
-    emoji: "🏨",
+    emoji: "",
     gradientBg: "from-blue-600 to-indigo-700",
   };
 }
@@ -370,7 +363,7 @@ function AccSpotHeaderVisual({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
         <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-black/60 backdrop-blur-md text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
-          📍 {location}
+          {location}
         </span>
       </div>
     );
@@ -378,9 +371,9 @@ function AccSpotHeaderVisual({
 
   return (
     <div className="h-12 w-full rounded-xl bg-gradient-to-r from-indigo-500/10 via-slate-100 to-indigo-500/10 border border-indigo-200/40 flex items-center justify-between px-3">
-      <span className="text-2xl">{emoji}</span>
+      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">HOTEL</span>
       <span className="text-[9px] bg-white/95 text-slate-800 font-extrabold px-1.5 py-0.5 rounded shadow-2xs border border-slate-100">
-        📍 {location}
+        {location}
       </span>
     </div>
   );
@@ -678,7 +671,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 "from-amber-500/15 to-orange-500/15",
                 "from-purple-500/15 to-fuchsia-500/15",
               ];
-              const emojis = ["🎡", "🏞️", "🏙️", "🏛️", "☕", "📸", "🌉", "🎨"];
               const directSpots = rows.map((row: any, idx: number) => {
                 const match = (row.title_en || "").match(/^(.*?)\s*\((.*?)\)$/);
                 const nameEn = match ? match[1].trim() : row.title_en;
@@ -696,7 +688,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   price: row.price_krw || 0,
                   priceStatus: (row.price_krw || 0) > 0 ? ("PAID" as const) : ("FREE" as const),
                   tag: row.sub_category || "Attraction",
-                  emoji: emojis[idx % emojis.length],
+                  emoji: "",
                   gradientBg: gradients[idx % gradients.length],
                   isFeatured: true,
                   imageUrl: bilingual?.imageUrl || row.image_url,
@@ -1327,7 +1319,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               }}
               className="flex w-full items-center justify-center gap-2 h-12 px-6 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-bold text-sm shadow-md transition-all cursor-pointer"
             >
-              <span>🔄</span>
               <span>{locale === "ko" ? "기본 추천 일정으로 바로 시작하기" : "Start with Recommended Trip"}</span>
             </button>
             <Link
@@ -1949,8 +1940,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
       setToastMessage(
         locale === "ko"
-          ? `💡 코스가 개별 선택으로 전환되며 [${spotName}]이(가) 예산에서 제외되었습니다.`
-          : `💡 Course converted to individual spots, and [${spotName}] was removed.`
+          ? `코스가 개별 선택으로 전환되며 [${spotName}]이(가) 예산에서 제외되었습니다.`
+          : `Course converted to individual spots, and [${spotName}] was removed.`
       );
       setTimeout(() => setToastMessage(null), 3000);
     }
@@ -2748,7 +2739,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition-colors cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
                       title={locale === "ko" ? "지리적 동선에 맞게 최적 순서로 자동 정렬합니다" : "Auto optimize route sequence"}
                     >
-                      <span>⚡</span>
                       <span className="hidden sm:inline">{locale === "ko" ? "최적 동선 정렬" : "Auto Optimize"}</span>
                       <span className="sm:hidden">{locale === "ko" ? "최적 동선" : "Optimize"}</span>
                     </button>
@@ -2775,7 +2765,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           />
                           <div className="absolute right-0 top-full mt-1.5 w-64 sm:w-72 p-3 bg-slate-900 text-white text-[11px] font-normal leading-relaxed rounded-xl shadow-xl z-40 border border-slate-700 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                             <p className="font-extrabold text-amber-300">
-                              🗺️ {locale === "ko" ? "도시 탭 이동 동선 안내" : "Route Sequence Guide"}
+                              {locale === "ko" ? "도시 탭 이동 동선 안내" : "Route Sequence Guide"}
                             </p>
                             <p className="text-slate-200">
                               • {locale === "ko"
@@ -2815,10 +2805,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             >
               {/* 출발 공항 고정 뱃지 (왼쪽 끝: 1단 여행 개요 탭 시작점과 수직 일치) */}
               <div
-                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center gap-1.5 shrink-0 select-none"
+                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center shrink-0 select-none"
                 title={locale === "ko" ? "입국 공항 (여정의 시작)" : "Arrival Airport"}
               >
-                <span className="text-sm">🛫</span>
                 <span>{locale === "ko" ? "공항" : "Airport"}</span>
               </div>
 
@@ -2905,10 +2894,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               {/* 귀국 공항 고정 뱃지 (오른쪽 끝: 1단 Info 버튼 끝점과 수직 일치) */}
               <div
-                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center gap-1.5 shrink-0 select-none"
+                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center shrink-0 select-none"
                 title={locale === "ko" ? "귀국 공항 (여정의 마무리)" : "Departure Airport"}
               >
-                <span className="text-sm">🛫</span>
                 <span>{locale === "ko" ? "공항" : "Airport"}</span>
               </div>
             </div>
@@ -2928,7 +2916,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             return (
               <div className="bg-[#faf5f5] border border-[#fce8e8] p-3 rounded-xl flex items-center justify-between shadow-2xs">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-sm">🗓️</span>
                   <span className="text-xs font-bold text-slate-800 whitespace-nowrap">
                     {locale === "ko" ? `${cityName} 체류 기간:` : `${cityName} Stay:`}
                   </span>
@@ -3717,8 +3704,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                                 {locale === "ko"
-                                  ? `🍱 K-스팟에서 담은 추천 맛집 & 카페 (${customFoodPlaces.length})`
-                                  : `🍱 Selected K-Gourmet & Cafes (${customFoodPlaces.length})`}
+                                  ? `K-스팟에서 담은 추천 맛집 & 카페 (${customFoodPlaces.length})`
+                                  : `Selected K-Gourmet & Cafes (${customFoodPlaces.length})`}
                               </span>
                               <span className="text-[10px] text-slate-400 font-medium">
                                 {locale === "ko" ? "취소 시 목록 및 예산에서 즉시 제외됩니다" : "Removing excludes from budget"}
@@ -3745,7 +3732,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     <div className="space-y-2">
                                       <div className="flex items-start justify-between gap-2">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-xl shrink-0">{foodPlace.category === "CAFE" ? "☕" : "🍲"}</span>
                                           <div>
                                             <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
                                               {title}
@@ -3880,21 +3866,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           {/* Category Filter Tabs (전체, 명소, 자연, 엔터, 쇼핑) */}
                           <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                             {[
-                              { key: "ALL", labelKo: "전체", labelEn: "All", icon: "" },
+                              { key: "ALL", labelKo: "전체", labelEn: "All" },
                               ...(selectedSpotKeys.size > 0
                                 ? [
                                     {
                                       key: "SAVED_ONLY",
                                       labelKo: `담은 항목 (${selectedSpotKeys.size})`,
                                       labelEn: `Saved (${selectedSpotKeys.size})`,
-                                      icon: "🔖",
                                     },
                                   ]
                                 : []),
-                              { key: "명소", labelKo: "명소", labelEn: "Landmark", icon: "🏛️" },
-                              { key: "자연", labelKo: "자연", labelEn: "Nature", icon: "🌿" },
-                              { key: "엔터", labelKo: "엔터", labelEn: "Enter", icon: "🎡" },
-                              { key: "쇼핑", labelKo: "쇼핑", labelEn: "Shopping", icon: "🛍️" },
+                              { key: "명소", labelKo: "명소", labelEn: "Landmark" },
+                              { key: "자연", labelKo: "자연", labelEn: "Nature" },
+                              { key: "엔터", labelKo: "엔터", labelEn: "Enter" },
+                              { key: "쇼핑", labelKo: "쇼핑", labelEn: "Shopping" },
                             ].map((tab) => {
                               const isActive = effectiveCatFilter === tab.key;
                               const isSavedTab = tab.key === "SAVED_ONLY";
@@ -3918,7 +3903,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
                                   }`}
                                 >
-                                  {tab.icon && <span>{tab.icon}</span>}
                                   <span>{locale === "ko" ? tab.labelKo : tab.labelEn}</span>
                                 </button>
                               );
@@ -3949,70 +3933,82 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 ? (bilingual?.closedKo || rawSpot.closedDaysKo || rawSpot.closedDays)
                                 : (bilingual?.closedEn || rawSpot.closedDaysEn || rawSpot.closedDays);
 
-                              const isSpotSelected = individualSpotIds.some((sid) => isSameSpot(sid, rawSpot.id));
-                              const isIncludedInCourse = selectedCourseIds.some((cid) => {
+                              const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+                              const isSpotSelected = (citySel.individualSpotIds || []).some((sid) => isSameSpot(sid, rawSpot.id));
+                              const isIncludedInCourse = (citySel.selectedCourseIds || []).some((cid) => {
                                 const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
                                 return course?.spotIds.some((sid) => isSameSpot(sid, rawSpot.id));
                               });
-                              const isAdded = isSpotSelected || isIncludedInCourse;
+                              const hasImage = (rawSpot as any).imageUrl && (rawSpot as any).imageUrl !== "/assets/default-place.jpg";
 
                               return (
                                 <div
                                   key={rawSpot.id}
-                                  onClick={() => handleToggleSpot(city, rawSpot.id)}
-                                  className={`rounded-2xl border flex flex-col overflow-hidden transition-all duration-200 cursor-pointer group ${
-                                    isAdded
+                                  className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden ${
+                                    isSpotSelected || isIncludedInCourse
                                       ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
-                                      : "bg-white border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-md"
+                                      : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
                                   }`}
                                 >
-                                  {/* Photo Container */}
-                                  <div
-                                    className="relative w-full aspect-[16/10] bg-slate-100 overflow-hidden"
-                                  >
-                                    <SpotCardImage
-                                      src={(rawSpot as any).imageUrl}
-                                      alt={name}
-                                      isPriority={spotIdx < 4}
-                                      locale={locale}
-                                    />
-
-                                    {/* 선택 시 체크마크 배지 */}
-                                    {isAdded && (
-                                      <div className="absolute top-3 left-3 z-10">
-                                        <span className="w-6 h-6 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
-                                          ✓
-                                        </span>
-                                      </div>
-                                    )}
-
-                                    {/* Local Badge on Image (Price removed) */}
-                                    {rawSpot.isLocal && (
-                                      <div className="absolute top-3 right-3 z-10 pointer-events-none">
-                                        <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-500 text-white backdrop-blur-md shadow-xs flex items-center gap-1">
-                                          <span>🇰🇷</span>
-                                          <span>로컬</span>
-                                        </span>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                {/* Body Information */}
-                                <div className="p-4 flex-1 flex flex-col justify-between gap-3">
                                   <div className="space-y-2">
-                                    {/* Title & Price (광장시장 녹두빈대떡        가격 스타일) */}
-                                    <div className="flex items-center justify-between gap-2">
-                                      <h5
-                                        className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
-                                          isAdded ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
-                                        }`}
-                                        title={name}
+                                    {/* Thumbnail Image Container */}
+                                    {hasImage ? (
+                                      <div
+                                        onClick={() => setPreviewSpot(rawSpot)}
+                                        className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 cursor-pointer group/img shadow-2xs"
                                       >
-                                        {name}
-                                      </h5>
-                                      <span className="text-xs sm:text-sm font-black text-[#e25c5c] shrink-0 whitespace-nowrap">
+                                        <img
+                                          src={(rawSpot as any).imageUrl}
+                                          alt={name}
+                                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                                          loading="lazy"
+                                          onError={(e) => {
+                                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80";
+                                          }}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover/img:opacity-40 transition-opacity" />
+                                        
+                                        {/* 선택 시 체크마크 배지 */}
+                                        {(isSpotSelected || isIncludedInCourse) && (
+                                          <div className="absolute top-2 left-2 z-10">
+                                            <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
+                                              ✓
+                                            </span>
+                                          </div>
+                                        )}
+
+                                        <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
+                                          {(rawSpot as any).imageUrl?.includes("wikimedia") ? "Wikimedia" : (rawSpot as any).imageUrl?.startsWith("/assets") ? "Photo" : "KTO"}
+                                        </span>
+                                      </div>
+                                    ) : null}
+
+                                    {/* Title & Price: [관광지명]         [가격] */}
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        {!hasImage && (isSpotSelected || isIncludedInCourse) && (
+                                          <span className="w-4 h-4 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                                            ✓
+                                          </span>
+                                        )}
+                                        <h5
+                                          onClick={() => setPreviewSpot(rawSpot)}
+                                          className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 cursor-pointer ${
+                                            isSpotSelected || isIncludedInCourse ? "text-[#e25c5c]" : "text-[#0f172a] hover:text-indigo-600"
+                                          }`}
+                                          title={name}
+                                        >
+                                          {name}
+                                        </h5>
+                                      </div>
+
+                                      <span
+                                        className={`text-xs sm:text-sm font-black shrink-0 whitespace-nowrap ${
+                                          rawSpot.priceStatus === "FREE" || rawSpot.price === 0 ? "text-emerald-600" : "text-[#e25c5c]"
+                                        }`}
+                                      >
                                         {rawSpot.priceStatus === "FREE" || rawSpot.price === 0
-                                          ? (locale === "ko" ? "무료" : "FREE")
+                                          ? (locale === "ko" ? "무료" : "Free")
                                           : formatKrw(rawSpot.price)}
                                       </span>
                                     </div>
@@ -4022,7 +4018,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       {/* 로컬 명소 뱃지 */}
                                       {rawSpot.isLocal && (
                                         <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-0.5">
-                                          <span>🇰🇷</span>
                                           <span>로컬</span>
                                         </span>
                                       )}
@@ -4030,17 +4025,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         const cat = rawSpot.categoryType || bilingual?.categoryType;
                                         if (!cat) return null;
                                         const badgeConfig = {
-                                          명소: { bg: "bg-blue-50 text-blue-700 border-blue-200/80", icon: "🏛️", labelKo: "명소", labelEn: "Landmark" },
-                                          자연: { bg: "bg-emerald-50 text-emerald-700 border-emerald-200/80", icon: "🌿", labelKo: "자연", labelEn: "Nature" },
-                                          엔터: { bg: "bg-purple-50 text-purple-700 border-purple-200/80", icon: "🎡", labelKo: "엔터", labelEn: "Enter" },
-                                          쇼핑: { bg: "bg-amber-50 text-amber-800 border-amber-200/80", icon: "🛍️", labelKo: "쇼핑", labelEn: "Shopping" },
+                                          명소: { bg: "bg-blue-50 text-blue-700 border-blue-200/80", labelKo: "명소", labelEn: "Landmark" },
+                                          자연: { bg: "bg-emerald-50 text-emerald-700 border-emerald-200/80", labelKo: "자연", labelEn: "Nature" },
+                                          엔터: { bg: "bg-purple-50 text-purple-700 border-purple-200/80", labelKo: "엔터", labelEn: "Enter" },
+                                          쇼핑: { bg: "bg-amber-50 text-amber-800 border-amber-200/80", labelKo: "쇼핑", labelEn: "Shopping" },
                                         }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
                                         if (!badgeConfig) return null;
                                         return (
                                           <span
                                             className={`text-[11px] font-bold px-2 py-0.5 rounded-md border flex items-center gap-1 ${badgeConfig.bg}`}
                                           >
-                                            <span>{badgeConfig.icon}</span>
                                             <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
                                           </span>
                                         );
@@ -4059,7 +4053,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           className="flex items-center gap-1 text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/70 truncate max-w-full"
                                           title={subway}
                                         >
-                                          <span className="shrink-0">🚇</span>
                                           <span className="truncate">{subway}</span>
                                         </div>
                                       )}
@@ -4071,7 +4064,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                               : "bg-amber-50 text-amber-800 border-amber-200"
                                           }`}
                                         >
-                                          ⏱️ {closed}
+                                          {closed}
                                         </span>
                                       )}
                                       {hours && (
@@ -4079,7 +4072,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           className="text-slate-500 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 truncate max-w-[200px]"
                                           title={hours}
                                         >
-                                          🕒 {hours}
+                                          {hours}
                                         </span>
                                       )}
                                     </div>
@@ -4095,7 +4088,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       }}
                                       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer"
                                     >
-                                      <span>🔍</span>
                                       <span>{locale === "ko" ? "상세보기" : "Details"}</span>
                                     </button>
 
@@ -4117,7 +4109,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     </button>
                                   </div>
                                 </div>
-                              </div>
                             );
                           })}
                         </div>
@@ -4303,17 +4294,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                     // 수단(Mode) 정제
                     let mode = "";
-                    let icon = "🚆";
 
                     if ((raw.includes("항공") || isJejuRoute) && (raw.includes("버스") || raw.includes("시외") || raw.includes("리무진"))) {
                       mode = locale === "ko" ? "항공+버스" : "Flight+Bus";
-                      icon = "🛫";
                     } else if ((raw.includes("항공") || isJejuRoute) && (raw.includes("KTX") || raw.includes("열차") || raw.includes("기차") || raw.includes("이음") || raw.includes("ITX"))) {
                       mode = locale === "ko" ? "항공+KTX" : "Flight+KTX";
-                      icon = "🛫";
                     } else if ((raw.includes("항공") || isJejuRoute) && (raw.includes("공항철도") || raw.includes("AREX"))) {
                       mode = locale === "ko" ? "항공+공항철도" : "Flight+Airport Express";
-                      icon = "🛫";
                     } else if (
                       raw.includes("항공") ||
                       raw.includes("비행기") ||
@@ -4321,19 +4308,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       (isJejuRoute && (raw.includes("공항") || raw.includes("일반석") || raw.includes("특가") || raw.includes("할인석")))
                     ) {
                       mode = locale === "ko" ? "국내선 항공" : "Domestic Flight";
-                      icon = "🛫";
                     } else if (raw.includes("KTX") || raw.includes("SRT") || raw.includes("고속철도") || raw.includes("이음") || raw.includes("기차")) {
                       mode = raw.includes("SRT") ? "SRT" : "KTX";
-                      icon = "🚆";
                     } else if (raw.includes("공항철도") || raw.includes("AREX")) {
                       mode = locale === "ko" ? "공항철도" : "Airport Express";
-                      icon = "🚆";
                     } else if (raw.includes("고속버스") || raw.includes("우등") || raw.includes("KOBUS")) {
                       mode = locale === "ko" ? "고속버스" : "Express Bus";
-                      icon = "🚌";
                     } else if (raw.includes("시외버스") || raw.includes("공항버스") || raw.includes("리무진") || raw.includes("버스타고") || raw.toLowerCase().includes("bus")) {
                       mode = locale === "ko" ? "공항/시외버스" : "Bus";
-                      icon = "🚌";
                     } else {
                       const match = raw.match(/\(([^)]+)\)/);
                       if (match) {
@@ -4341,7 +4323,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       }
                       if (!mode && isJejuRoute) {
                         mode = locale === "ko" ? "국내선 항공" : "Domestic Flight";
-                        icon = "🛫";
                       }
                     }
 
@@ -4376,7 +4357,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       routeName = raw.replace(/\([^)]*\)/g, "").trim();
                     }
 
-                    return { routeName, modeName: mode, icon };
+                    return { routeName, modeName: mode };
                   };
 
                   const toggleReceiptCity = (city: string) => {
@@ -4396,7 +4377,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </div>
                           <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-2.5 py-0.5 rounded-full bg-slate-100/95 border border-slate-300/80 text-[11px] shadow-2xs text-slate-700">
                             <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[10px]">
-                              <span className="shrink-0 text-xs">🛫</span>
                               <span className="truncate text-slate-800">
                                 {entryItems.map((i) => formatSimplifiedTransit(i).routeName).join(", ")}
                               </span>
@@ -4518,7 +4498,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <div className="space-y-1">
                                     <div className="flex items-center justify-between">
                                       <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                                        <span>🏨</span>
                                         <span>{getCategoryLabel("ACCOMMODATION", dict)}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
@@ -4541,7 +4520,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <div className="space-y-1 pt-1.5 border-t border-slate-100">
                                     <div className="flex items-center justify-between">
                                       <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                                        <span>🍱</span>
                                         <span>{getCategoryLabel("FOOD", dict)}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
@@ -4584,7 +4562,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     {cityCustomFood.length > 0 && (
                                       <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">
                                         <span className="text-[10px] font-bold text-amber-700 block">
-                                          🍲 {locale === "ko" ? "담은 맛집·카페" : "Added Gourmet"} ({cityCustomFood.length})
+                                          {locale === "ko" ? "담은 맛집·카페" : "Added Gourmet"} ({cityCustomFood.length})
                                         </span>
                                         {cityCustomFood.map((fp) => {
                                           const uPrice = fp.priceKrw ?? (fp as any).estimatedPriceKrw ?? (fp.category === "CAFE" ? 8000 : 18000);
@@ -4605,7 +4583,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <div className="space-y-1 pt-1.5 border-t border-slate-100">
                                     <div className="flex items-center justify-between">
                                       <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                                        <span>🚌</span>
                                         <span>{getCategoryLabel("CITY_TRANSPORT", dict)}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
@@ -4624,7 +4601,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <div className="space-y-1 pt-1.5 border-t border-slate-100">
                                     <div className="flex items-center justify-between">
                                       <span className="font-bold text-slate-700 flex items-center gap-1.5">
-                                        <span>🎡</span>
                                         <span>{locale === "ko" ? "관광" : "Attractions"}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
@@ -4670,7 +4646,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   {/* 중앙에 위치하는 도시 간 연결 뱃지 라벨 */}
                                   <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-2.5 py-0.5 rounded-full bg-slate-100/95 border border-slate-300/80 text-[10.5px] shadow-2xs text-slate-700 hover:bg-slate-200/80 transition-colors">
                                     <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[10px]">
-                                      <span className="shrink-0 text-xs">{transitInfo.icon}</span>
                                       <span className="truncate text-slate-800">{transitInfo.routeName}</span>
                                       {transitInfo.modeName && (
                                         <span className="text-[9.5px] text-slate-500 font-medium shrink-0">
@@ -4697,7 +4672,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           </div>
                           <div className="relative flex items-center justify-between gap-2 max-w-[96%] px-2.5 py-0.5 rounded-full bg-slate-100/95 border border-slate-300/80 text-[11px] shadow-2xs text-slate-700">
                             <div className="flex items-center gap-1.5 min-w-0 truncate font-bold text-[10px]">
-                              <span className="shrink-0 text-xs">🛫</span>
                               <span className="truncate text-slate-800">
                                 {exitItems.map((i) => formatSimplifiedTransit(i).routeName).join(", ")}
                               </span>
@@ -4790,8 +4764,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
                 <p className="text-[11px] text-slate-500 font-medium">
                   {locale === "ko"
-                    ? "💡 상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
-                    : "💡 Detailed analytics & report are in [Generate Budget Report]."}
+                    ? "상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
+                    : "Detailed analytics & report are in [Generate Budget Report]."}
                 </p>
               </div>
 
@@ -4800,7 +4774,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   onClick={() => router.push(`/${locale}/report`)}
                   className="w-full h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>📊</span>
                   <span>{dict.planner.generateReport}</span>
                 </button>
                 <div className="grid grid-cols-2 gap-2">
@@ -4922,13 +4895,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
                 <div className="flex flex-wrap gap-1.5 text-xs">
                   <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700">
-                    🗓️ {formatTripDuration(draft.totalNights || 5, dict, locale)}
+                    {formatTripDuration(draft.totalNights || 5, dict, locale)}
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700">
-                    👥 {formatTravelerCount(draft.adultCount || 1, dict, locale)}
+                    {formatTravelerCount(draft.adultCount || 1, dict, locale)}
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700">
-                    🏙️ {draft.selectedCities.map((c) => (locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c)).join(" · ")}
+                    {draft.selectedCities.map((c) => (locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c)).join(" · ")}
                   </span>
                 </div>
               </div>
@@ -4936,7 +4909,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               {/* 초기화되는 내역 안내 */}
               <div className="bg-rose-50/60 rounded-xl p-3 border border-rose-100 text-[11px] text-rose-800 space-y-1">
                 <div className="font-bold flex items-center gap-1.5 text-rose-900">
-                  <span>⚠️</span>
                   <span>{locale === "ko" ? "비워지는 내역" : "Items to be cleared"}</span>
                 </div>
                 <p className="text-rose-700 leading-relaxed">
@@ -4969,14 +4941,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         </div>
       )}
 
-      {/* ================= ✈️ 여행 조건 수정 탭 분리형 스마트 팝오버 모달 ================= */}
+      {/* ================= 여행 조건 수정 탭 분리형 스마트 팝오버 모달 ================= */}
       {isEditModalOpen && editDraft && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-[#faf9f7]">
               <div>
-                <h3 className="text-lg font-extrabold text-[#0f172a]">✈️ 여행 조건 수정</h3>
+                <h3 className="text-lg font-extrabold text-[#0f172a]">여행 조건 수정</h3>
                 <p className="text-xs text-slate-500 mt-0.5">기간, 인원, 목적지를 수정한 후 적용하여 실시간 예산을 재계산하세요.</p>
               </div>
               <button
@@ -5000,7 +4972,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                🗓️ 1단계: 기간 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
+                1단계: 기간 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
               </button>
 
               <button
@@ -5012,7 +4984,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                👥 2단계: 인원 ({editDraft.adultCount ? `${editDraft.adultCount}명` : "미선택"})
+                2단계: 인원 ({editDraft.adultCount ? `${editDraft.adultCount}명` : "미선택"})
               </button>
 
               <button
@@ -5024,7 +4996,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                📍 3단계: 목적지 ({editDraft.selectedCities.length}곳)
+                3단계: 목적지 ({editDraft.selectedCities.length}곳)
               </button>
             </div>
 
@@ -5032,11 +5004,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="p-5 space-y-4 overflow-y-auto flex-1 bg-white">
               {editError && (
                 <div className="text-xs text-[#ef4444] font-semibold p-2.5 bg-red-50 border border-red-200 rounded-xl text-center">
-                  ⚠️ {editError}
+                  {editError}
                 </div>
               )}
 
-              {/* Tab 3: 🗓️ 여행 전체 기간 설정 */}
+              {/* Tab 3: 여행 전체 기간 설정 */}
               {editTab === "NIGHTS" && (() => {
                 return (
                   <div className="space-y-5">
@@ -5096,7 +5068,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 );
               })()}
 
-              {/* Tab 2: 👥 여행 인원 선택 */}
+              {/* Tab 2: 여행 인원 선택 */}
               {editTab === "ADULTS" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-xs font-bold text-slate-700">
@@ -5152,7 +5124,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
               )}
 
-              {/* Tab 3: 📍 여행 목적지 선택 */}
+              {/* Tab 3: 여행 목적지 선택 */}
               {editTab === "CITIES" && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs font-bold text-slate-700">
@@ -5266,7 +5238,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   />
                 ) : (
                   <div className={`h-full w-full bg-gradient-to-r ${previewSpot.gradientBg} flex items-center justify-center`}>
-                    <span className="text-6xl">{previewSpot.emoji}</span>
+                    <span className="text-xl font-black text-white/40 tracking-wider">SPOT</span>
                   </div>
                 )}
 
@@ -5290,24 +5262,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     const cat = previewSpot.categoryType || bilingual?.categoryType;
                     if (!cat) return null;
                     const badgeConfig = {
-                      명소: { bg: "bg-blue-600/90 text-white", icon: "🏛️", labelKo: "명소", labelEn: "Landmark" },
-                      자연: { bg: "bg-emerald-600/90 text-white", icon: "🌿", labelKo: "자연", labelEn: "Nature" },
-                      엔터: { bg: "bg-purple-600/90 text-white", icon: "🎡", labelKo: "엔터", labelEn: "Enter" },
-                      쇼핑: { bg: "bg-amber-600/90 text-white", icon: "🛍️", labelKo: "쇼핑", labelEn: "Shopping" },
+                      명소: { bg: "bg-blue-600/90 text-white", labelKo: "명소", labelEn: "Landmark" },
+                      자연: { bg: "bg-emerald-600/90 text-white", labelKo: "자연", labelEn: "Nature" },
+                      엔터: { bg: "bg-purple-600/90 text-white", labelKo: "엔터", labelEn: "Enter" },
+                      쇼핑: { bg: "bg-amber-600/90 text-white", labelKo: "쇼핑", labelEn: "Shopping" },
                     }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
                     if (!badgeConfig) return null;
                     return (
                       <span className={`px-2.5 py-1 rounded-full text-xs font-black shadow-md backdrop-blur-md flex items-center gap-1 ${badgeConfig.bg}`}>
-                        <span>{badgeConfig.icon}</span>
                         <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
                       </span>
                     );
                   })()}
 
-                  {/* 로컬 명소 뱃지 (추후 문구/디자인 손쉽게 변경 가능) */}
+                  {/* 로컬 명소 뱃지 */}
                   {previewSpot.isLocal && (
                     <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-md flex items-center gap-1">
-                      <span>🇰🇷</span>
                       <span>로컬</span>
                     </span>
                   )}
@@ -5336,7 +5306,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {/* Key Visitor Info Box */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                    <span className="text-base shrink-0">💰</span>
                     <div>
                       <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                         {locale === "ko" ? "입장료 / 이용 요금" : "Admission Fee"}
@@ -5350,7 +5319,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
                   {subway && (
                     <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                      <span className="text-base shrink-0">🚇</span>
                       <div>
                         <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                           {locale === "ko" ? "지하철 / 교통" : "Transit"}
@@ -5361,7 +5329,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   )}
                   {closed && (
                     <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
-                      <span className="text-base shrink-0">⏱️</span>
                       <div>
                         <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                           {locale === "ko" ? "휴무일" : "Closed Days"}
@@ -5372,7 +5339,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   )}
                   {hours && (
                     <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 sm:col-span-2">
-                      <span className="text-base shrink-0">🕒</span>
                       <div>
                         <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                           {locale === "ko" ? "운영시간" : "Opening Hours"}
@@ -5398,7 +5364,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 hover:text-indigo-600 bg-white hover:bg-indigo-50/50 border border-slate-200 transition-colors shadow-2xs"
                       >
-                        <span>🌐</span>
                         <span>{locale === "ko" ? "공식 홈페이지 방문" : "Official Website"}</span>
                       </a>
                     );

@@ -141,7 +141,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <span className="text-lg">🏨</span>
               <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
                 {cityName} {locale === "ko" ? "숙박 바스켓 플래너" : "Stay Basket Planner"}
               </h3>
@@ -180,7 +179,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-slate-700 font-bold flex items-center gap-1.5">
-              <span>💡</span>
               <span>{locale === "ko" ? "1인당 실제 부담액:" : "Per Traveler:"}</span>
               <strong className="text-slate-900 font-black">
                 {formatKrw(perPersonStayCostKrw)}
@@ -191,10 +189,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
               {isSoloTraveler
-                ? (locale === "ko" ? "👤 1인 1실 단독" : "👤 1 Room")
+                ? (locale === "ko" ? "1인 1실 단독" : "1 Room")
                 : isPairSplit
-                ? (locale === "ko" ? `🛏️ 2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `🛏️ 2-in-1 Room (${sharedRoomCount} rms)`)
-                : (locale === "ko" ? `🚪 전원 1인 1실 (${adultCount}개 객실)` : `🚪 1 Room each (${adultCount} rms)`)}
+                ? (locale === "ko" ? `2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `2-in-1 Room (${sharedRoomCount} rms)`)
+                : (locale === "ko" ? `전원 1인 1실 (${adultCount}개 객실)` : `1 Room each (${adultCount} rms)`)}
             </span>
           </div>
         </div>
@@ -251,7 +249,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-sm shrink-0">{archetype.icon}</span>
                       <h5 className={`text-xs sm:text-[13px] font-black leading-snug ${isSelected ? "text-[#e25c5c]" : "text-slate-900"}`}>
                         {title}
                       </h5>
@@ -285,7 +282,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
             <div className="flex items-center gap-2">
-              <span className="text-base">✏️</span>
               <div>
                 <h5 className="text-xs sm:text-[13px] font-black text-slate-900 flex items-center gap-1.5">
                   <span>{locale === "ko" ? "숙소 직접 입력" : "Direct Stay Input"}</span>
@@ -321,7 +317,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 className="h-8.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
                 title={locale === "ko" ? `${cityName} 숙소 아고다에서 검색` : `Search ${cityName} stays on Agoda`}
               >
-                <span>🔗</span>
                 <span>{locale === "ko" ? "아고다에서 검색" : "Search on Agoda"}</span>
                 <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
               </a>
@@ -378,7 +373,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   type="submit"
                   className="w-full h-10 rounded-xl bg-[#0f172a] hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1 transition-all shadow-2xs cursor-pointer whitespace-nowrap"
                 >
-                  <span>{appliedNotice ? "✓" : "✏️"}</span>
+                  <span>{appliedNotice ? "✓" : ""}</span>
                   <span>
                     {appliedNotice
                       ? (locale === "ko" ? "완료!" : "Done!")
@@ -391,7 +386,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
             {/* Error Notice */}
             {inputError && (
               <div className="p-2 rounded-lg bg-red-50 text-red-600 text-[11px] font-semibold flex items-center gap-1.5 mt-1.5">
-                <span>⚠️</span>
                 <span>{inputError}</span>
               </div>
             )}
@@ -404,7 +398,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         <div className="p-4 rounded-2xl bg-white border border-slate-200/90 space-y-3 shadow-2xs">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm">👥</span>
               <span className="text-xs font-extrabold text-slate-800">
                 {locale === "ko" ? "Step 2. 객실 이용 방식을 선택하세요" : "Step 2. Select Room Sharing Preference"}
               </span>
@@ -425,7 +418,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
               }`}
             >
-              <span className="text-base mt-0.5">🛏️</span>
               <div className="space-y-0.5">
                 <div className="flex items-center gap-1.5">
                   <span className={`text-xs font-black ${isPairSplit ? "text-[#e25c5c]" : "text-slate-800"}`}>
@@ -461,7 +453,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50"
               }`}
             >
-              <span className="text-base mt-0.5">🚪</span>
               <div className="space-y-0.5">
                 <div className="flex items-center gap-1.5">
                   <span className={`text-xs font-black ${!isPairSplit ? "text-[#e25c5c]" : "text-slate-800"}`}>
@@ -487,7 +478,6 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
       ) : (
         <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs text-slate-600 font-medium">
           <div className="flex items-center gap-2">
-            <span>👤</span>
             <span>{locale === "ko" ? "1인 나홀로 여행: 1인 1실 단독 투숙이 자동 적용 중입니다." : "Solo Traveler: 1 private room rate automatically applied."}</span>
           </div>
           <span className="text-[11px] font-bold text-slate-500">방 1개</span>

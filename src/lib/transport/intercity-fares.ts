@@ -437,8 +437,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "직통리무진",
       badgeTextEn: "Direct Limousine",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "김포국제공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "수원역/수원터미널/영통", toHubNameEn: "Suwon Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 리무진 버스 (4300번 직통)", transitNameEn: "Airport Limousine (4300)", fareKrw: 9500, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "김포국제공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "수원역/수원터미널/영통", toHubNameEn: "Suwon Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "공항 리무진 버스 (4300번 직통)", transitNameEn: "Airport Limousine (4300)", fareKrw: 9500, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
     {
@@ -452,8 +452,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "충청경유",
       badgeTextEn: "Via Cheongju",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "청주국제공항", toHubNameEn: "Cheongju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔청주)", transitNameEn: "Domestic Flight", fareKrw: 68000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "청주국제공항", fromHubNameEn: "Cheongju Airport", toHubNameKo: "수원역/터미널", toHubNameEn: "Suwon Stn/Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "시외버스 / 충북선 열차", transitNameEn: "Intercity Bus / Train", fareKrw: 10000, durationTextKo: "1시간 20분", durationTextEn: "1h 20m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "청주국제공항", toHubNameEn: "Cheongju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔청주)", transitNameEn: "Domestic Flight", fareKrw: 68000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "청주국제공항", fromHubNameEn: "Cheongju Airport", toHubNameKo: "수원역/터미널", toHubNameEn: "Suwon Stn/Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "시외버스 / 충북선 열차", transitNameEn: "Intercity Bus / Train", fareKrw: 10000, durationTextKo: "1시간 20분", durationTextEn: "1h 20m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     }
   ],
@@ -470,8 +470,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "직통리무진",
       badgeTextEn: "Direct Limousine",
       legs: [
-        { legOrder: 1, fromHubNameKo: "수원역/수원터미널/영통", fromHubNameEn: "Suwon Terminal", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 리무진 버스 (4300번 직통)", transitNameEn: "Airport Limousine (4300)", fareKrw: 9500, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "김포국제공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (김포➔제주)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "수원역/수원터미널/영통", fromHubNameEn: "Suwon Terminal", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "공항 리무진 버스 (4300번 직통)", transitNameEn: "Airport Limousine (4300)", fareKrw: 9500, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 2, fromHubNameKo: "김포국제공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (김포➔제주)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],
@@ -590,8 +590,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "전북직결",
       badgeTextEn: "Direct Link",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "군산공항", toHubNameEn: "Gunsan Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔군산)", transitNameEn: "Domestic Flight", fareKrw: 87900, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "군산공항", fromHubNameEn: "Gunsan Airport", toHubNameKo: "전주시외터미널", toHubNameEn: "Jeonju Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "군산공항 ➔ 전주 시외버스", transitNameEn: "Airport Intercity Bus", fareKrw: 6600, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "군산공항", toHubNameEn: "Gunsan Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔군산)", transitNameEn: "Domestic Flight", fareKrw: 87900, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "군산공항", fromHubNameEn: "Gunsan Airport", toHubNameKo: "전주시외터미널", toHubNameEn: "Jeonju Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "군산공항 ➔ 전주 시외버스", transitNameEn: "Airport Intercity Bus", fareKrw: 6600, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
     {
@@ -605,9 +605,9 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "배차다수",
       badgeTextEn: "Frequent Flights",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "광주공항", toHubNameEn: "Gwangju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔광주)", transitNameEn: "Domestic Flight", fareKrw: 85000, durationTextKo: "55분", durationTextEn: "55m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "광주송정역", fromHubNameEn: "Gwangju Songjeong", toHubNameKo: "익산역", toHubNameEn: "Iksan Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Rail", fareKrw: 14200, durationTextKo: "35분", durationTextEn: "35m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 3, fromHubNameKo: "익산역", fromHubNameEn: "Iksan Stn", toHubNameKo: "전주역", toHubNameEn: "Jeonju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "ITX-새마을 / 마음", transitNameEn: "ITX Train", fareKrw: 4800, durationTextKo: "14분", durationTextEn: "14m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "광주공항", toHubNameEn: "Gwangju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔광주)", transitNameEn: "Domestic Flight", fareKrw: 85000, durationTextKo: "55분", durationTextEn: "55m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "광주송정역", fromHubNameEn: "Gwangju Songjeong", toHubNameKo: "익산역", toHubNameEn: "Iksan Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Rail", fareKrw: 14200, durationTextKo: "35분", durationTextEn: "35m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 3, fromHubNameKo: "익산역", fromHubNameEn: "Iksan Stn", toHubNameKo: "전주역", toHubNameEn: "Jeonju Stn", mode: "KTX", modeIcon: "", transitNameKo: "ITX-새마을 / 마음", transitNameEn: "ITX Train", fareKrw: 4800, durationTextKo: "14분", durationTextEn: "14m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -624,8 +624,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "전북직결",
       badgeTextEn: "Direct Link",
       legs: [
-        { legOrder: 1, fromHubNameKo: "전주시외터미널", fromHubNameEn: "Jeonju Terminal", toHubNameKo: "군산공항", toHubNameEn: "Gunsan Airport", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "전주 ➔ 군산공항 시외버스", transitNameEn: "Airport Intercity Bus", fareKrw: 6600, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "군산공항", fromHubNameEn: "Gunsan Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (군산➔제주)", transitNameEn: "Domestic Flight", fareKrw: 87900, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "전주시외터미널", fromHubNameEn: "Jeonju Terminal", toHubNameKo: "군산공항", toHubNameEn: "Gunsan Airport", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "전주 ➔ 군산공항 시외버스", transitNameEn: "Airport Intercity Bus", fareKrw: 6600, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 2, fromHubNameKo: "군산공항", fromHubNameEn: "Gunsan Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (군산➔제주)", transitNameEn: "Domestic Flight", fareKrw: 87900, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],
@@ -642,8 +642,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "배차풍부",
       badgeTextEn: "Best Choice",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김해국제공항", toHubNameEn: "Gimhae Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김해)", transitNameEn: "Domestic Flight", fareKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "김해국제공항", fromHubNameEn: "Gimhae Airport", toHubNameKo: "경주시외터미널", toHubNameEn: "Gyeongju Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 직행 리무진 버스 (금아)", transitNameEn: "Airport Direct Bus", fareKrw: 9500, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김해국제공항", toHubNameEn: "Gimhae Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔김해)", transitNameEn: "Domestic Flight", fareKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "김해국제공항", fromHubNameEn: "Gimhae Airport", toHubNameKo: "경주시외터미널", toHubNameEn: "Gyeongju Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "공항 직행 리무진 버스 (금아)", transitNameEn: "Airport Direct Bus", fareKrw: 9500, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
     {
@@ -657,8 +657,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "가성비급행",
       badgeTextEn: "Budget Express",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "포항경주공항", toHubNameEn: "Pohang Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔포항경주)", transitNameEn: "Domestic Flight", fareKrw: 91400, durationTextKo: "1시간 05분", durationTextEn: "1h 05m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "포항경주공항", fromHubNameEn: "Pohang Airport", toHubNameKo: "경주보문단지/시외터미널", toHubNameEn: "Gyeongju Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "공항 급행버스 (1000번)", transitNameEn: "Airport Express Bus (1000)", fareKrw: 1700, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "TMONEY", bookingUrl: "https://txbus.t-money.co.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "포항경주공항", toHubNameEn: "Pohang Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔포항경주)", transitNameEn: "Domestic Flight", fareKrw: 91400, durationTextKo: "1시간 05분", durationTextEn: "1h 05m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "포항경주공항", fromHubNameEn: "Pohang Airport", toHubNameKo: "경주보문단지/시외터미널", toHubNameEn: "Gyeongju Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "공항 급행버스 (1000번)", transitNameEn: "Airport Express Bus (1000)", fareKrw: 1700, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "TMONEY", bookingUrl: "https://txbus.t-money.co.kr" },
       ]
     }
   ],
@@ -673,8 +673,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "경주시외터미널", fromHubNameEn: "Gyeongju Terminal", toHubNameKo: "김해국제공항", toHubNameEn: "Gimhae Airport", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "공항 직행 리무진 버스 (금아)", transitNameEn: "Airport Direct Bus", fareKrw: 9500, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "김해국제공항", fromHubNameEn: "Gimhae Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (김해➔제주)", transitNameEn: "Domestic Flight", fareKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "경주시외터미널", fromHubNameEn: "Gyeongju Terminal", toHubNameKo: "김해국제공항", toHubNameEn: "Gimhae Airport", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "공항 직행 리무진 버스 (금아)", transitNameEn: "Airport Direct Bus", fareKrw: 9500, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 2, fromHubNameKo: "김해국제공항", fromHubNameEn: "Gimhae Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (김해➔제주)", transitNameEn: "Domestic Flight", fareKrw: 92000, durationTextKo: "1시간 00분", durationTextEn: "1h 00m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],
@@ -691,8 +691,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "강원도내공항",
       badgeTextEn: "Wonju Link",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "원주공항(횡성)", toHubNameEn: "Wonju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔원주)", transitNameEn: "Domestic Flight", fareKrw: 100500, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "만종(원주)역", fromHubNameEn: "Manjong/Wonju Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 16300, durationTextKo: "44분", durationTextEn: "44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "원주공항(횡성)", toHubNameEn: "Wonju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔원주)", transitNameEn: "Domestic Flight", fareKrw: 100500, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "만종(원주)역", fromHubNameEn: "Manjong/Wonju Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 16300, durationTextKo: "44분", durationTextEn: "44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     },
     {
@@ -706,8 +706,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "정시성KTX",
       badgeTextEn: "Via Seoul KTX",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "서울역/청량리역", fromHubNameEn: "Seoul Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum Rail", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "서울역/청량리역", fromHubNameEn: "Seoul Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum Rail", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -722,8 +722,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "강릉역", fromHubNameEn: "Gangneung Stn", toHubNameKo: "만종(원주)역", toHubNameEn: "Manjong/Wonju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 16300, durationTextKo: "44분", durationTextEn: "44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "원주공항(횡성)", fromHubNameEn: "Wonju Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (원주➔제주)", transitNameEn: "Domestic Flight", fareKrw: 100500, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "강릉역", fromHubNameEn: "Gangneung Stn", toHubNameKo: "만종(원주)역", toHubNameEn: "Manjong/Wonju Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 16300, durationTextKo: "44분", durationTextEn: "44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "원주공항(횡성)", fromHubNameEn: "Wonju Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (원주➔제주)", transitNameEn: "Domestic Flight", fareKrw: 100500, durationTextKo: "1시간 15분", durationTextEn: "1h 15m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],
@@ -842,8 +842,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "인근공항",
       badgeTextEn: "Fastest Airport",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "양양국제공항", toHubNameEn: "Yangyang Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔양양)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "양양국제공항/터미널", fromHubNameEn: "Yangyang Airport/Terminal", toHubNameKo: "속초시외버스터미널", toHubNameEn: "Sokcho Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "양양공항 ➔ 속초 시외버스", transitNameEn: "Intercity Bus", fareKrw: 3200, durationTextKo: "30분", durationTextEn: "30m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "양양국제공항", toHubNameEn: "Yangyang Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔양양)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "양양국제공항/터미널", fromHubNameEn: "Yangyang Airport/Terminal", toHubNameKo: "속초시외버스터미널", toHubNameEn: "Sokcho Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "양양공항 ➔ 속초 시외버스", transitNameEn: "Intercity Bus", fareKrw: 3200, durationTextKo: "30분", durationTextEn: "30m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
     {
@@ -857,8 +857,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "배차다수",
       badgeTextEn: "Via Seoul",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "서울경부터미널", fromHubNameEn: "Seoul Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "우등 고속버스", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포국제공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (제주➔김포)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "서울경부터미널", fromHubNameEn: "Seoul Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "우등 고속버스", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
       ]
     }
   ],
@@ -873,8 +873,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "속초시외버스터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "양양국제공항", toHubNameEn: "Yangyang Airport", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "속초 ➔ 양양공항 시외버스", transitNameEn: "Intercity Bus", fareKrw: 3200, durationTextKo: "30분", durationTextEn: "30m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "양양국제공항", fromHubNameEn: "Yangyang Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "국내선 항공 (양양➔제주)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "속초시외버스터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "양양국제공항", toHubNameEn: "Yangyang Airport", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "속초 ➔ 양양공항 시외버스", transitNameEn: "Intercity Bus", fareKrw: 3200, durationTextKo: "30분", durationTextEn: "30m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 2, fromHubNameKo: "양양국제공항", fromHubNameEn: "Yangyang Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "국내선 항공 (양양➔제주)", transitNameEn: "Domestic Flight", fareKrw: 75000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     }
   ],
@@ -890,8 +890,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "추천경로",
       badgeTextEn: "Recommended",
       legs: [
-        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "제주 ➔ 김포 항공 (일반석)", transitNameEn: "Jeju ➔ Gimpo Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
-        { legOrder: 2, fromHubNameKo: "김포공항역", fromHubNameEn: "Gimpo Airport", toHubNameKo: "계양/검암/인천", toHubNameEn: "Incheon", mode: "SRT", modeIcon: "🚆", transitNameKo: "공항철도 일반열차", transitNameEn: "AREX Local", fareKrw: 1600, durationTextKo: "10분", durationTextEn: "10m", bookingPlatform: "TMONEY", bookingUrl: "https://www.arex.or.kr" },
+        { legOrder: 1, fromHubNameKo: "제주국제공항", fromHubNameEn: "Jeju Airport", toHubNameKo: "김포공항", toHubNameEn: "Gimpo Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "제주 ➔ 김포 항공 (일반석)", transitNameEn: "Jeju ➔ Gimpo Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 2, fromHubNameKo: "김포공항역", fromHubNameEn: "Gimpo Airport", toHubNameKo: "계양/검암/인천", toHubNameEn: "Incheon", mode: "SRT", modeIcon: "", transitNameKo: "공항철도 일반열차", transitNameEn: "AREX Local", fareKrw: 1600, durationTextKo: "10분", durationTextEn: "10m", bookingPlatform: "TMONEY", bookingUrl: "https://www.arex.or.kr" },
       ]
     },
   ],
@@ -907,8 +907,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "추천경로",
       badgeTextEn: "Recommended",
       legs: [
-        { legOrder: 1, fromHubNameKo: "계양/검암역", fromHubNameEn: "Gyeyang/Geomam", toHubNameKo: "김포공항역", toHubNameEn: "Gimpo Airport", mode: "SRT", modeIcon: "🚆", transitNameKo: "공항철도 일반열차", transitNameEn: "AREX Local", fareKrw: 1600, durationTextKo: "10분", durationTextEn: "10m", bookingPlatform: "TMONEY", bookingUrl: "https://www.arex.or.kr" },
-        { legOrder: 2, fromHubNameKo: "김포공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "🛫", transitNameKo: "김포 ➔ 제주 항공 (일반석)", transitNameEn: "Gimpo ➔ Jeju Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
+        { legOrder: 1, fromHubNameKo: "계양/검암역", fromHubNameEn: "Gyeyang/Geomam", toHubNameKo: "김포공항역", toHubNameEn: "Gimpo Airport", mode: "SRT", modeIcon: "", transitNameKo: "공항철도 일반열차", transitNameEn: "AREX Local", fareKrw: 1600, durationTextKo: "10분", durationTextEn: "10m", bookingPlatform: "TMONEY", bookingUrl: "https://www.arex.or.kr" },
+        { legOrder: 2, fromHubNameKo: "김포공항", fromHubNameEn: "Gimpo Airport", toHubNameKo: "제주국제공항", toHubNameEn: "Jeju Airport", mode: "FLIGHT", modeIcon: "", transitNameKo: "김포 ➔ 제주 항공 (일반석)", transitNameEn: "Gimpo ➔ Jeju Flight", fareKrw: 95000, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "AIRLINE", bookingUrl: "https://flight.naver.com" },
       ]
     },
   ],
@@ -959,8 +959,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "추천환승",
       badgeTextEn: "Best Route",
       legs: [
-        { legOrder: 1, fromHubNameKo: "부산역", fromHubNameEn: "Busan Stn", toHubNameKo: "동대구역", toHubNameEn: "Dongdaegu Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 17100, durationTextKo: "40분", durationTextEn: "40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "대구북부시외버스터미널", fromHubNameEn: "Daegu Bukbu Terminal", toHubNameKo: "속초시외버스터미널", toHubNameEn: "Sokcho Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "대구북부 ➔ 속초 시외버스", transitNameEn: "Intercity Bus", fareKrw: 42700, durationTextKo: "5시간 00분", durationTextEn: "5h 00m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "부산역", fromHubNameEn: "Busan Stn", toHubNameKo: "동대구역", toHubNameEn: "Dongdaegu Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 17100, durationTextKo: "40분", durationTextEn: "40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "대구북부시외버스터미널", fromHubNameEn: "Daegu Bukbu Terminal", toHubNameKo: "속초시외버스터미널", toHubNameEn: "Sokcho Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "대구북부 ➔ 속초 시외버스", transitNameEn: "Intercity Bus", fareKrw: 42700, durationTextKo: "5시간 00분", durationTextEn: "5h 00m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
     {
@@ -974,7 +974,7 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "환승편의",
       badgeTextEn: "Coast Scenic",
       legs: [
-        { legOrder: 1, fromHubNameKo: "부산종합터미널(노포)", fromHubNameEn: "Busan Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "동해선 직행 시외버스", transitNameEn: "Intercity Bus", fareKrw: 42000, durationTextKo: "5시간 00분", durationTextEn: "5h 00m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "부산종합터미널(노포)", fromHubNameEn: "Busan Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "동해선 직행 시외버스", transitNameEn: "Intercity Bus", fareKrw: 42000, durationTextKo: "5시간 00분", durationTextEn: "5h 00m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     }
   ],
@@ -991,8 +991,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "추천환승",
       badgeTextEn: "Best Route",
       legs: [
-        { legOrder: 1, fromHubNameKo: "속초시외버스터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "대구북부시외버스터미널", toHubNameEn: "Daegu Bukbu Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "속초 ➔ 대구북부 시외버스", transitNameEn: "Intercity Bus", fareKrw: 42700, durationTextKo: "5시간 00분", durationTextEn: "5h 00m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "동대구역", fromHubNameEn: "Dongdaegu Stn", toHubNameKo: "부산역", toHubNameEn: "Busan Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 17100, durationTextKo: "40분", durationTextEn: "40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "속초시외버스터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "대구북부시외버스터미널", toHubNameEn: "Daegu Bukbu Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "속초 ➔ 대구북부 시외버스", transitNameEn: "Intercity Bus", fareKrw: 42700, durationTextKo: "5시간 00분", durationTextEn: "5h 00m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 2, fromHubNameKo: "동대구역", fromHubNameEn: "Dongdaegu Stn", toHubNameKo: "부산역", toHubNameEn: "Busan Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 17100, durationTextKo: "40분", durationTextEn: "40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1019,8 +1019,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "최단철도",
       badgeTextEn: "Fastest Rail",
       legs: [
-        { legOrder: 1, fromHubNameKo: "전주역", fromHubNameEn: "Jeonju Stn", toHubNameKo: "오송역", toHubNameEn: "Osong Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 호남선", transitNameEn: "KTX Honam", fareKrw: 16600, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "오송역", fromHubNameEn: "Osong Stn", toHubNameKo: "신경주역", toHubNameEn: "Singyeongju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 경부선", transitNameEn: "KTX Gyeongbu", fareKrw: 30700, durationTextKo: "1시간 20분", durationTextEn: "1h 20m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "전주역", fromHubNameEn: "Jeonju Stn", toHubNameKo: "오송역", toHubNameEn: "Osong Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 호남선", transitNameEn: "KTX Honam", fareKrw: 16600, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "오송역", fromHubNameEn: "Osong Stn", toHubNameKo: "신경주역", toHubNameEn: "Singyeongju Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 경부선", transitNameEn: "KTX Gyeongbu", fareKrw: 30700, durationTextKo: "1시간 20분", durationTextEn: "1h 20m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     },
     {
@@ -1034,8 +1034,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "가성비",
       badgeTextEn: "Budget Choice",
       legs: [
-        { legOrder: 1, fromHubNameKo: "전주고속버스터미널", fromHubNameEn: "Jeonju Express Terminal", toHubNameKo: "서대구고속버스터미널", toHubNameEn: "Seodaegu Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "전주 ➔ 서대구 고속버스", transitNameEn: "Express Bus", fareKrw: 21200, durationTextKo: "2시간 50분", durationTextEn: "2h 50m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
-        { legOrder: 2, fromHubNameKo: "동대구역/서대구역", fromHubNameEn: "Daegu Stn", toHubNameKo: "신경주역", toHubNameEn: "Singyeongju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 8400, durationTextKo: "17분", durationTextEn: "17m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "전주고속버스터미널", fromHubNameEn: "Jeonju Express Terminal", toHubNameKo: "서대구고속버스터미널", toHubNameEn: "Seodaegu Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "전주 ➔ 서대구 고속버스", transitNameEn: "Express Bus", fareKrw: 21200, durationTextKo: "2시간 50분", durationTextEn: "2h 50m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
+        { legOrder: 2, fromHubNameKo: "동대구역/서대구역", fromHubNameEn: "Daegu Stn", toHubNameKo: "신경주역", toHubNameEn: "Singyeongju Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 8400, durationTextKo: "17분", durationTextEn: "17m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1050,8 +1050,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "신경주역", fromHubNameEn: "Singyeongju Stn", toHubNameKo: "오송역", toHubNameEn: "Osong Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 경부선", transitNameEn: "KTX Gyeongbu", fareKrw: 30700, durationTextKo: "1시간 20분", durationTextEn: "1h 20m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "오송역", fromHubNameEn: "Osong Stn", toHubNameKo: "전주역", toHubNameEn: "Jeonju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 호남선", transitNameEn: "KTX Honam", fareKrw: 16600, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "신경주역", fromHubNameEn: "Singyeongju Stn", toHubNameKo: "오송역", toHubNameEn: "Osong Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 경부선", transitNameEn: "KTX Gyeongbu", fareKrw: 30700, durationTextKo: "1시간 20분", durationTextEn: "1h 20m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "오송역", fromHubNameEn: "Osong Stn", toHubNameKo: "전주역", toHubNameEn: "Jeonju Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 호남선", transitNameEn: "KTX Honam", fareKrw: 16600, durationTextKo: "50분", durationTextEn: "50m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1068,8 +1068,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "쾌적철도",
       badgeTextEn: "Comfort Rail",
       legs: [
-        { legOrder: 1, fromHubNameKo: "전주역", fromHubNameEn: "Jeonju Stn", toHubNameKo: "용산/서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 34400, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "서울/청량리역", fromHubNameEn: "Seoul/Cheongnyangni", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "전주역", fromHubNameEn: "Jeonju Stn", toHubNameKo: "용산/서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 34400, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "서울/청량리역", fromHubNameEn: "Seoul/Cheongnyangni", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1095,8 +1095,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "최단시간",
       badgeTextEn: "Fastest Transfer",
       legs: [
-        { legOrder: 1, fromHubNameKo: "전주역", fromHubNameEn: "Jeonju Stn", toHubNameKo: "용산/서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 34400, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "서울경부터미널(강남)", fromHubNameEn: "Seoul Express Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "우등 고속버스 (서울➔속초)", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
+        { legOrder: 1, fromHubNameKo: "전주역", fromHubNameEn: "Jeonju Stn", toHubNameKo: "용산/서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 34400, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "서울경부터미널(강남)", fromHubNameEn: "Seoul Express Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "우등 고속버스 (서울➔속초)", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
       ]
     },
     {
@@ -1124,8 +1124,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "최단시간",
       badgeTextEn: "Fastest Transfer",
       legs: [
-        { legOrder: 1, fromHubNameKo: "속초고속터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "서울경부터미널(강남)", toHubNameEn: "Seoul Express Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "우등 고속버스 (속초➔서울)", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
-        { legOrder: 2, fromHubNameKo: "용산/서울역", fromHubNameEn: "Seoul Stn", toHubNameKo: "전주역", toHubNameEn: "Jeonju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 34400, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "속초고속터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "서울경부터미널(강남)", toHubNameEn: "Seoul Express Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "우등 고속버스 (속초➔서울)", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
+        { legOrder: 2, fromHubNameKo: "용산/서울역", fromHubNameEn: "Seoul Stn", toHubNameKo: "전주역", toHubNameEn: "Jeonju Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 고속철도", transitNameEn: "KTX Express", fareKrw: 34400, durationTextKo: "1시간 40분", durationTextEn: "1h 40m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1160,8 +1160,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "최단시간",
       badgeTextEn: "Fastest Route",
       legs: [
-        { legOrder: 1, fromHubNameKo: "신경주역", fromHubNameEn: "Singyeongju Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "동해선 KTX-이음", transitNameEn: "Donghae KTX-Eum", fareKrw: 34300, durationTextKo: "2시간 44분", durationTextEn: "2h 44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "강릉시외터미널", fromHubNameEn: "Gangneung Terminal", toHubNameKo: "속초시외터미널", toHubNameEn: "Sokcho Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "동해안 직행 시외버스", transitNameEn: "Intercity Bus", fareKrw: 7700, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 1, fromHubNameKo: "신경주역", fromHubNameEn: "Singyeongju Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "", transitNameKo: "동해선 KTX-이음", transitNameEn: "Donghae KTX-Eum", fareKrw: 34300, durationTextKo: "2시간 44분", durationTextEn: "2h 44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "강릉시외터미널", fromHubNameEn: "Gangneung Terminal", toHubNameKo: "속초시외터미널", toHubNameEn: "Sokcho Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "동해안 직행 시외버스", transitNameEn: "Intercity Bus", fareKrw: 7700, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
       ]
     },
     {
@@ -1189,8 +1189,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "최단시간",
       badgeTextEn: "Fastest Route",
       legs: [
-        { legOrder: 1, fromHubNameKo: "속초시외터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "강릉시외터미널", toHubNameEn: "Gangneung Terminal", mode: "INTERCITY_BUS", modeIcon: "🚌", transitNameKo: "동해안 직행 시외버스", transitNameEn: "Intercity Bus", fareKrw: 7700, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
-        { legOrder: 2, fromHubNameKo: "강릉역", fromHubNameEn: "Gangneung Stn", toHubNameKo: "신경주역", toHubNameEn: "Singyeongju Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "동해선 KTX-이음", transitNameEn: "Donghae KTX-Eum", fareKrw: 34300, durationTextKo: "2시간 44분", durationTextEn: "2h 44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "속초시외터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "강릉시외터미널", toHubNameEn: "Gangneung Terminal", mode: "INTERCITY_BUS", modeIcon: "", transitNameKo: "동해안 직행 시외버스", transitNameEn: "Intercity Bus", fareKrw: 7700, durationTextKo: "1시간 10분", durationTextEn: "1h 10m", bookingPlatform: "BUSTAGO", bookingUrl: "https://www.bustago.or.kr" },
+        { legOrder: 2, fromHubNameKo: "강릉역", fromHubNameEn: "Gangneung Stn", toHubNameKo: "신경주역", toHubNameEn: "Singyeongju Stn", mode: "KTX", modeIcon: "", transitNameKo: "동해선 KTX-이음", transitNameEn: "Donghae KTX-Eum", fareKrw: 34300, durationTextKo: "2시간 44분", durationTextEn: "2h 44m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1217,8 +1217,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "강릉역", fromHubNameEn: "Gangneung Stn", toHubNameKo: "서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "서울/용산역", fromHubNameEn: "Seoul/Yongsan", toHubNameKo: "여수엑스포역", toHubNameEn: "Yeosu Expo", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "강릉역", fromHubNameEn: "Gangneung Stn", toHubNameKo: "서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "서울/용산역", fromHubNameEn: "Seoul/Yongsan", toHubNameKo: "여수엑스포역", toHubNameEn: "Yeosu Expo", mode: "KTX", modeIcon: "", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1233,8 +1233,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "여수엑스포역", fromHubNameEn: "Yeosu Expo", toHubNameKo: "서울/용산역", toHubNameEn: "Seoul/Yongsan", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "서울역", fromHubNameEn: "Seoul Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "여수엑스포역", fromHubNameEn: "Yeosu Expo", toHubNameKo: "서울/용산역", toHubNameEn: "Seoul/Yongsan", mode: "KTX", modeIcon: "", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "서울역", fromHubNameEn: "Seoul Stn", toHubNameKo: "강릉역", toHubNameEn: "Gangneung Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX-이음 고속철도", transitNameEn: "KTX-Eum", fareKrw: 27600, durationTextKo: "1시간 57분", durationTextEn: "1h 57m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1257,8 +1257,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "최적환승",
       badgeTextEn: "Best Transfer",
       legs: [
-        { legOrder: 1, fromHubNameKo: "수원역", fromHubNameEn: "Suwon Stn", toHubNameKo: "천안아산역", toHubNameEn: "Cheonan-Asan Stn", mode: "SRT", modeIcon: "🚇", transitNameKo: "수도권 1호선 전철", transitNameEn: "Seoul Metro Line 1", fareKrw: 2750, durationTextKo: "1시간 04분", durationTextEn: "1h 04m", bookingPlatform: "TMONEY", bookingUrl: "https://txbus.t-money.co.kr" },
-        { legOrder: 2, fromHubNameKo: "천안아산역", fromHubNameEn: "Cheonan-Asan Stn", toHubNameKo: "여수엑스포역", toHubNameEn: "Yeosu Expo", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 35200, durationTextKo: "2시간 23분", durationTextEn: "2h 23m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "수원역", fromHubNameEn: "Suwon Stn", toHubNameKo: "천안아산역", toHubNameEn: "Cheonan-Asan Stn", mode: "SRT", modeIcon: "", transitNameKo: "수도권 1호선 전철", transitNameEn: "Seoul Metro Line 1", fareKrw: 2750, durationTextKo: "1시간 04분", durationTextEn: "1h 04m", bookingPlatform: "TMONEY", bookingUrl: "https://txbus.t-money.co.kr" },
+        { legOrder: 2, fromHubNameKo: "천안아산역", fromHubNameEn: "Cheonan-Asan Stn", toHubNameKo: "여수엑스포역", toHubNameEn: "Yeosu Expo", mode: "KTX", modeIcon: "", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 35200, durationTextKo: "2시간 23분", durationTextEn: "2h 23m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],
@@ -1275,8 +1275,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       badgeTextKo: "최적환승",
       badgeTextEn: "Best Transfer",
       legs: [
-        { legOrder: 1, fromHubNameKo: "여수엑스포역", fromHubNameEn: "Yeosu Expo", toHubNameKo: "천안아산역", toHubNameEn: "Cheonan-Asan Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 35200, durationTextKo: "2시간 23분", durationTextEn: "2h 23m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "천안아산역", fromHubNameEn: "Cheonan-Asan Stn", toHubNameKo: "수원역", toHubNameEn: "Suwon Stn", mode: "SRT", modeIcon: "🚇", transitNameKo: "수도권 1호선 전철", transitNameEn: "Seoul Metro Line 1", fareKrw: 2750, durationTextKo: "1시간 04분", durationTextEn: "1h 04m", bookingPlatform: "TMONEY", bookingUrl: "https://txbus.t-money.co.kr" },
+        { legOrder: 1, fromHubNameKo: "여수엑스포역", fromHubNameEn: "Yeosu Expo", toHubNameKo: "천안아산역", toHubNameEn: "Cheonan-Asan Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 35200, durationTextKo: "2시간 23분", durationTextEn: "2h 23m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "천안아산역", fromHubNameEn: "Cheonan-Asan Stn", toHubNameKo: "수원역", toHubNameEn: "Suwon Stn", mode: "SRT", modeIcon: "", transitNameKo: "수도권 1호선 전철", transitNameEn: "Seoul Metro Line 1", fareKrw: 2750, durationTextKo: "1시간 04분", durationTextEn: "1h 04m", bookingPlatform: "TMONEY", bookingUrl: "https://txbus.t-money.co.kr" },
       ]
     }
   ],
@@ -1291,8 +1291,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "여수엑스포역", fromHubNameEn: "Yeosu Expo", toHubNameKo: "용산/서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
-        { legOrder: 2, fromHubNameKo: "서울경부터미널", fromHubNameEn: "Seoul Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "우등 고속버스", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
+        { legOrder: 1, fromHubNameKo: "여수엑스포역", fromHubNameEn: "Yeosu Expo", toHubNameKo: "용산/서울역", toHubNameEn: "Seoul Stn", mode: "KTX", modeIcon: "", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 2, fromHubNameKo: "서울경부터미널", fromHubNameEn: "Seoul Terminal", toHubNameKo: "속초고속터미널", toHubNameEn: "Sokcho Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "우등 고속버스", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
       ]
     }
   ],
@@ -1307,8 +1307,8 @@ export const INTERCITY_FARE_TABLE: Record<string, IntercityFareInfo[]> = {
       isDefault: true,
       optionType: "FASTEST",
       legs: [
-        { legOrder: 1, fromHubNameKo: "속초고속터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "서울경부터미널", toHubNameEn: "Seoul Terminal", mode: "EXPRESS_BUS", modeIcon: "🚌", transitNameKo: "우등 고속버스", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
-        { legOrder: 2, fromHubNameKo: "용산/서울역", fromHubNameEn: "Seoul Stn", toHubNameKo: "여수엑스포역", toHubNameEn: "Yeosu Expo", mode: "KTX", modeIcon: "🚄", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
+        { legOrder: 1, fromHubNameKo: "속초고속터미널", fromHubNameEn: "Sokcho Terminal", toHubNameKo: "서울경부터미널", toHubNameEn: "Seoul Terminal", mode: "EXPRESS_BUS", modeIcon: "", transitNameKo: "우등 고속버스", transitNameEn: "Express Bus", fareKrw: 22300, durationTextKo: "2시간 20분", durationTextEn: "2h 20m", bookingPlatform: "KOBUS", bookingUrl: "https://www.kobus.co.kr" },
+        { legOrder: 2, fromHubNameKo: "용산/서울역", fromHubNameEn: "Seoul Stn", toHubNameKo: "여수엑스포역", toHubNameEn: "Yeosu Expo", mode: "KTX", modeIcon: "", transitNameKo: "KTX 전라선", transitNameEn: "KTX Express", fareKrw: 47200, durationTextKo: "3시간 00분", durationTextEn: "3h 00m", bookingPlatform: "KORAIL", bookingUrl: "https://www.letskorail.com" },
       ]
     }
   ],

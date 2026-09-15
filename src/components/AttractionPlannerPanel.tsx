@@ -157,111 +157,49 @@ export default function AttractionPlannerPanel({
   const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
 
   return (
-    <div className="space-y-5">
-      {/* 1. 패널 헤더 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-        <div>
-          <h4 className="text-base font-extrabold text-[#0f172a] flex items-center gap-2">
-            <span>{cityName}</span>
-            <span>{dict.planner.attractionBasketTitle || "관광 바스켓 플래너"}</span>
-          </h4>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {dict.planner.attractionBasketSubtitle || "도시 명소와 K-테마 액티비티를 자유롭게 담아 나만의 일정을 완성하세요."}
-          </p>
-        </div>
-
-        {/* 3대 서브탭 네비게이션 */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
-          <button
-            type="button"
-            onClick={() => setActiveSubTab("CITY")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeSubTab === "CITY"
-                ? "bg-white text-[#0f172a] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            {dict.planner.tabCitySpots || "도시 대표 명소"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab("THEME")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              activeSubTab === "THEME"
-                ? "bg-white text-[#0f172a] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            {dict.planner.tabThemeActivities || "K-테마 액티비티"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSubTab("BASKET")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-              activeSubTab === "BASKET"
-                ? "bg-[#e25c5c] text-white shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <span>{dict.planner.tabBasketOverview || "관광 바스켓"}</span>
-            {basketSummary.totalCount > 0 && (
-              <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                  activeSubTab === "BASKET" ? "bg-white/25 text-white" : "bg-rose-100 text-rose-700"
-                }`}
-              >
-                {basketSummary.totalCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* 2. 상단 실시간 관광 바스켓 상태 요약 바 (Live Summary Bar) */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-4 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-black text-rose-400 text-sm shrink-0 border border-white/10">
-            {basketSummary.totalCount}
+    <div className="space-y-6">
+      {/* 1. 관광 바스켓 요약 바 (Top Summary Bar: Food/Stay 플래너와 100% 동일한 위계 및 디자인 규격) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                {cityName} {locale === "ko" ? "관광 바스켓 플래너" : "Attraction Basket Planner"}
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500">
+              {locale === "ko"
+                ? "방문하고 싶은 명소와 K-체험을 자유롭게 담으면 총 입장료가 자동으로 계산됩니다."
+                : "Add attractions and activities. Total admission budget auto-calculates for your group."}
+            </p>
           </div>
-          <div>
-            <div className="text-xs text-slate-300 font-medium">
-              {cityName} {locale === "ko" ? "담긴 명소/체험" : "Selected Spots"}
-            </div>
-            <div className="text-sm font-extrabold text-white flex items-center gap-2">
-              <span>{basketSummary.totalCount}{locale === "ko" ? "곳 선택" : " spots"}</span>
-              <span className="text-slate-400 font-normal">|</span>
-              <span className="text-emerald-300 text-xs font-bold">
-                {dict.planner.freeSpotsCount || "무료"} {basketSummary.freeCount}{locale === "ko" ? "곳" : ""}
-              </span>
-              <span className="text-slate-400 font-normal">·</span>
-              <span className="text-rose-300 text-xs font-bold">
-                {dict.planner.paidSpotsCount || "유료"} {basketSummary.paidCount}{locale === "ko" ? "곳" : ""}
-              </span>
-            </div>
-          </div>
-        </div>
 
-        <div className="flex items-center justify-between md:justify-end gap-3 border-t md:border-t-0 pt-2.5 md:pt-0 border-white/10">
-          <div className="text-right">
-            <div className="text-[11px] text-slate-300">
-              {dict.planner.totalAdmissionFee || "총 입장료 합계"}
-              {adultCount > 1 && (
-                <span className="text-slate-400 ml-1">
-                  (1인 {formatKrw(basketSummary.totalPerPersonKrw)})
-                </span>
-              )}
-            </div>
-            <div className="text-base font-black text-white">
+          {/* 총 관광비 표시 (우측 정렬) */}
+          <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
+            <span className="text-[11px] font-bold text-slate-400">
+              {locale === "ko" ? `${cityName} 예상 관광비 (${adultCount}인)` : `${cityName} Attraction Budget (${adultCount}p)`}
+            </span>
+            <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
               {formatKrw(basketSummary.grandTotalKrw)}
-              {adultCount > 1 && (
-                <span className="text-xs font-normal text-slate-300 ml-1">
-                  ({adultCount}{locale === "ko" ? "명" : " travelers"})
-                </span>
-              )}
-            </div>
+            </span>
           </div>
+        </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+        {/* 담은 명소 상태 & 프로그레스 바 */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="text-slate-700 flex items-center gap-1.5 flex-wrap">
+              <span>{locale === "ko" ? "담은 명소·체험:" : "Selected Spots:"}</span>
+              <span className={`font-black ${basketSummary.totalCount > 0 ? "text-emerald-600" : "text-slate-400"}`}>
+                {basketSummary.totalCount}{locale === "ko" ? "곳 담김" : " items"}
+              </span>
+              <span className="text-[11px] text-slate-400 font-normal">
+                ({locale === "ko" ? "무료" : "Free"} {basketSummary.freeCount}{locale === "ko" ? "곳" : ""} · {locale === "ko" ? "유료" : "Paid"} {basketSummary.paidCount}{locale === "ko" ? "곳" : ""}
+                {adultCount > 1 && basketSummary.totalPerPersonKrw > 0 ? ` · 1인 ${formatKrw(basketSummary.totalPerPersonKrw)}` : ""})
+              </span>
+            </span>
+
+            {/* 바스켓 비우기 액션 */}
             {basketSummary.totalCount > 0 && (
               <button
                 type="button"
@@ -270,12 +208,81 @@ export default function AttractionPlannerPanel({
                     onClearCitySpots(city);
                   }
                 }}
-                className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-colors border border-white/15 cursor-pointer"
+                className="text-[11px] font-bold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer underline"
               >
-                {dict.planner.clearAttractionBasket || "비우기"}
+                {dict.planner.clearAttractionBasket || "바스켓 비우기"}
               </button>
             )}
           </div>
+
+          {/* Progress Bar */}
+          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
+            <div
+              className={`h-full transition-all duration-300 rounded-full ${
+                basketSummary.totalCount === 0
+                  ? "bg-slate-300"
+                  : "bg-emerald-500"
+              }`}
+              style={{
+                width: `${Math.min(100, basketSummary.totalCount > 0 ? Math.max(15, basketSummary.totalCount * 20) : 0)}%`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 2. 네비게이션 탭 (도시 대표 명소 / K-테마 액티비티 / 담은 바스켓: FoodPlanner와 100% 동일) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          {/* 도시 대표 명소 탭 */}
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("CITY")}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === "CITY"
+                ? "bg-[#0f172a] text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>{cityName} {locale === "ko" ? `대표 명소 (${spotsForCity.length}선)` : `Attractions (${spotsForCity.length})`}</span>
+          </button>
+
+          {/* K-테마 액티비티 탭 */}
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("THEME")}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === "THEME"
+                ? "bg-[#0f172a] text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>{locale === "ko" ? `K-테마 액티비티 (${themeActivitiesForCity.length}선)` : `K-Theme & Activities (${themeActivitiesForCity.length})`}</span>
+          </button>
+
+          {/* 담은 바스켓 탭 */}
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("BASKET")}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === "BASKET"
+                ? "bg-[#e25c5c] text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>{locale === "ko" ? "담은 바스켓" : "My Basket"}</span>
+            <span
+              className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                activeSubTab === "BASKET"
+                  ? "bg-white/25 text-white"
+                  : basketSummary.totalCount > 0
+                  ? "bg-rose-50 text-rose-600 border border-rose-200"
+                  : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {basketSummary.totalCount}
+            </span>
+          </button>
         </div>
       </div>
 
@@ -284,13 +291,15 @@ export default function AttractionPlannerPanel({
       {/* ================= SUBTAB 1: 도시 대표 명소 ================= */}
       {activeSubTab === "CITY" && (
         <div className="space-y-4">
-          {/* 카테고리 필터 바 */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              {locale === "ko" ? "도시 대표 관광지" : (dict.planner.cityAttractionsTitle || "City Attractions")}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                {cityName} {locale === "ko" ? `대표 명소 리스트 (${spotsForCity.length}선)` : `Attractions List (${spotsForCity.length})`}
+              </h4>
+            </div>
 
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+            {/* 카테고리 필터 태그 (FoodPlanner NATIONAL 탭과 동일 규격) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
               {[
                 { key: "ALL", labelKo: "전체", labelEn: "All" },
                 ...(selectedSpotKeys.size > 0
@@ -314,7 +323,7 @@ export default function AttractionPlannerPanel({
                     key={tab.key}
                     type="button"
                     onClick={() => setCategoryFilter(tab.key)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
                       isActive
                         ? isSavedTab
                           ? "bg-rose-500 text-white shadow-xs"
@@ -331,7 +340,7 @@ export default function AttractionPlannerPanel({
             </div>
           </div>
 
-          {/* 스팟 카드 그리드 */}
+          {/* 스팟 카드 그리드: FoodItemCard 규격과 100% 동일 */}
           {isLoading && displayedSpots.length === 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((idx) => (
@@ -377,22 +386,22 @@ export default function AttractionPlannerPanel({
                     }`}
                   >
                     <div className="space-y-2">
-                      {/* 이미지 썸네일 */}
+                      {/* 실사 이미지 썸네일 */}
                       {hasImage ? (
-                        <div className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 group/img shadow-2xs">
+                        <div className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 shadow-2xs">
                           <img
                             src={(rawSpot as any).imageUrl}
                             alt={name}
-                            className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src =
                                 "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80";
                             }}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover/img:opacity-40 transition-opacity" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
 
-                          {/* 선택 체크 배지 */}
+                          {/* 선택 체크마크 배지 */}
                           {isSelected && (
                             <div className="absolute top-2 left-2 z-10">
                               <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
@@ -411,7 +420,7 @@ export default function AttractionPlannerPanel({
                         </div>
                       ) : null}
 
-                      {/* 제목 & 가격 */}
+                      {/* 제목 & 가격: [명소명]           [가격] */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
                           {!hasImage && isSelected && (
@@ -468,44 +477,46 @@ export default function AttractionPlannerPanel({
                       </div>
 
                       {/* 설명 */}
-                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                      <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
                         {desc}
                       </p>
 
-                      {/* 지하철 / 휴무 / 시간 */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        {subway && (
-                          <div
-                            className="flex items-center gap-1 text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/70 truncate max-w-full"
-                            title={subway}
-                          >
-                            <span className="truncate">{subway}</span>
-                          </div>
-                        )}
-                        {closed && (
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${
-                              closed.includes("연중무휴") || closed.toLowerCase().includes("year-round")
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-amber-50 text-amber-800 border-amber-200"
-                            }`}
-                          >
-                            {closed}
-                          </span>
-                        )}
-                        {hours && (
-                          <span
-                            className="text-slate-500 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 truncate max-w-[200px]"
-                            title={hours}
-                          >
-                            {hours}
-                          </span>
-                        )}
-                      </div>
+                      {/* 지하철 / 휴무 / 시간 메타 정보 */}
+                      {(subway || closed || hours) && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          {subway && (
+                            <div
+                              className="flex items-center gap-1 text-[11px] font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/70 truncate max-w-full"
+                              title={subway}
+                            >
+                              <span className="truncate">{subway}</span>
+                            </div>
+                          )}
+                          {closed && (
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-bold border ${
+                                closed.includes("연중무휴") || closed.toLowerCase().includes("year-round")
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-amber-50 text-amber-800 border-amber-200"
+                              }`}
+                            >
+                              {closed}
+                            </span>
+                          )}
+                          {hours && (
+                            <span
+                              className="text-slate-500 text-[11px] font-medium px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 truncate max-w-[180px]"
+                              title={hours}
+                            >
+                              {hours}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* 액션 버튼 */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
+                    {/* 하단 버튼: [상세보기]              [예산에 담기] */}
+                    <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                       <button
                         type="button"
                         onClick={(e) => {
@@ -530,8 +541,8 @@ export default function AttractionPlannerPanel({
                         }`}
                       >
                         {isSelected
-                          ? (dict.planner.inBudgetButton || "✓ 담김")
-                          : (dict.planner.addToBudgetButton || "예산에 담기")}
+                          ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
+                          : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
                       </button>
                     </div>
                   </div>
@@ -571,11 +582,13 @@ export default function AttractionPlannerPanel({
       {activeSubTab === "THEME" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              {cityName} {dict.planner.tabThemeActivities || "K-테마 액티비티 & 문화 체험"}
-            </span>
-            <span className="text-xs text-slate-400 font-medium">
-              {themeActivitiesForCity.length}{locale === "ko" ? "개 프로그램" : " activities"}
+            <div className="flex items-center gap-1.5">
+              <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                {cityName} {locale === "ko" ? `K-테마 액티비티 (${themeActivitiesForCity.length}선)` : `K-Theme & Activities (${themeActivitiesForCity.length})`}
+              </h4>
+            </div>
+            <span className="text-xs text-slate-400">
+              {locale === "ko" ? "취향에 따라 골라 담기" : "Explore by Preference"}
             </span>
           </div>
 
@@ -584,50 +597,80 @@ export default function AttractionPlannerPanel({
               const name = locale === "ko" ? activity.nameKo : activity.nameEn;
               const desc = locale === "ko" ? activity.descKo : activity.descEn;
               const isSelected = selectedSpotKeys.has(normalizeSpotKey(spot.id));
+              const hasImage = !!activity.imageUrl;
 
               return (
                 <div
                   key={activity.id}
                   onClick={() => onToggleSpot(city, spot.id)}
-                  className={`rounded-2xl border p-4 flex flex-col justify-between transition-all duration-200 cursor-pointer group ${
+                  className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
                     isSelected
                       ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
                       : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
                   }`}
                 >
-                  <div className="space-y-2.5">
-                    {/* 상단 태그 & 가격 */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
+                  <div className="space-y-2">
+                    {/* 실사 썸네일 */}
+                    {hasImage && (
+                      <div className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-100 shadow-2xs">
+                        <img
+                          src={activity.imageUrl}
+                          alt={name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+
+                        {/* 선택 체크 배지 */}
                         {isSelected && (
+                          <div className="absolute top-2 left-2 z-10">
+                            <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
+                              ✓
+                            </span>
+                          </div>
+                        )}
+
+                        <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
+                          Photo
+                        </span>
+                      </div>
+                    )}
+
+                    {/* 상단 태그 & 가격: [액티비티명]        [가격] */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {!hasImage && isSelected && (
                           <span className="w-4 h-4 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-[10px] font-black shrink-0">
                             ✓
                           </span>
                         )}
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
-                          {dict.planner.themeActivityBadge || "K-액티비티"}
-                        </span>
-                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700">
-                          {activity.tag}
-                        </span>
+                        <h5
+                          className={`text-xs sm:text-sm font-black transition-colors line-clamp-1 ${
+                            isSelected ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
+                          }`}
+                          title={name}
+                        >
+                          {name}
+                        </h5>
                       </div>
 
-                      <span className="text-xs sm:text-sm font-black text-[#e25c5c] whitespace-nowrap">
+                      <span className="text-xs sm:text-sm font-black text-[#e25c5c] shrink-0 whitespace-nowrap">
                         {formatKrw(activity.priceKrw)}
                       </span>
                     </div>
 
-                    {/* 액티비티 제목 */}
-                    <h5
-                      className={`text-sm sm:text-base font-black transition-colors ${
-                        isSelected ? "text-[#e25c5c]" : "text-[#0f172a] group-hover:text-indigo-600"
-                      }`}
-                    >
-                      {name}
-                    </h5>
+                    {/* 태그 뱃지 */}
+                    <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                        {dict.planner.themeActivityBadge || "K-액티비티"}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700">
+                        {activity.tag}
+                      </span>
+                    </div>
 
                     {/* 설명 */}
-                    <p className="text-xs text-slate-600 leading-relaxed">
+                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
                       {desc}
                     </p>
 
@@ -655,7 +698,7 @@ export default function AttractionPlannerPanel({
                   </div>
 
                   {/* 하단 액션 버튼 */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-3">
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -680,8 +723,8 @@ export default function AttractionPlannerPanel({
                       }`}
                     >
                       {isSelected
-                        ? (dict.planner.inBudgetButton || "✓ 담김")
-                        : (dict.planner.addToBudgetButton || "예산에 담기")}
+                        ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")
+                        : (locale === "ko" ? "예산에 담기" : "Add to Budget")}
                     </button>
                   </div>
                 </div>
@@ -691,16 +734,32 @@ export default function AttractionPlannerPanel({
         </div>
       )}
 
-      {/* ================= SUBTAB 3: 관광 바스켓 요약 ================= */}
+      {/* ================= SUBTAB 3: 관광 바스켓 요약 (FoodPlanner BASKET 탭과 100% 동일) ================= */}
       {activeSubTab === "BASKET" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              {cityName} {dict.planner.tabBasketOverview || "담은 관광 명소 & 액티비티 목록"}
-            </span>
-            <span className="text-xs text-slate-500 font-bold">
-              {basketSummary.totalCount}{locale === "ko" ? "개 항목" : " items"}
-            </span>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                {cityName} {locale === "ko" ? "담은 관광 명소 & 액티비티" : "Selected Attractions & Activities"}
+              </h4>
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-[#e25c5c] border border-rose-200">
+                {basketSummary.totalCount}{locale === "ko" ? "곳" : " items"}
+              </span>
+            </div>
+
+            {basketSummary.totalCount > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm(dict.planner.clearAttractionBasketConfirm || "현재 도시의 담은 명소를 모두 비우시겠습니까?")) {
+                    onClearCitySpots(city);
+                  }
+                }}
+                className="text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "전체 비우기" : "Clear All"}
+              </button>
+            )}
           </div>
 
           {selectedSpotsInCity.length === 0 ? (
@@ -722,91 +781,111 @@ export default function AttractionPlannerPanel({
               </div>
             </div>
           ) : (
-            <div className="space-y-2.5">
-              {selectedSpotsInCity.map((spot, idx) => {
-                const isFree = spot.priceStatus === "FREE" || spot.price === 0;
-                const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
-                const totalItemPrice = spot.price * adultCount;
+            <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+              <div className="divide-y divide-slate-100">
+                {selectedSpotsInCity.map((spot, idx) => {
+                  const isFree = spot.priceStatus === "FREE" || spot.price === 0;
+                  const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
+                  const totalItemPrice = spot.price * adultCount;
 
-                return (
-                  <div
-                    key={spot.id || idx}
-                    className="bg-white border border-slate-200/80 rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition-colors"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="w-6 h-6 rounded-full bg-rose-50 text-[#e25c5c] font-black text-xs flex items-center justify-center shrink-0">
-                        {idx + 1}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h6 className="text-xs sm:text-sm font-extrabold text-[#0f172a] truncate" title={spotName}>
-                            {spotName}
-                          </h6>
-                          <span
-                            className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
-                              isFree
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-rose-50 text-rose-700 border border-rose-200"
-                            }`}
-                          >
-                            {isFree ? (locale === "ko" ? "무료" : "Free") : (locale === "ko" ? "유료" : "Paid")}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 truncate max-w-md">
-                          {spot.tag || "Attraction"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-right">
-                        <div className="text-xs sm:text-sm font-black text-[#0f172a]">
-                          {isFree ? (locale === "ko" ? "0원" : "₩0") : formatKrw(totalItemPrice)}
-                        </div>
-                        {!isFree && adultCount > 1 && (
-                          <div className="text-[10px] text-slate-400">
-                            1인 {formatKrw(spot.price)}
+                  return (
+                    <div
+                      key={spot.id || idx}
+                      className="p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="w-6 h-6 rounded-full bg-rose-50 text-[#e25c5c] font-black text-xs flex items-center justify-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h6 className="text-xs sm:text-sm font-extrabold text-[#0f172a] truncate" title={spotName}>
+                              {spotName}
+                            </h6>
+                            <span
+                              className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
+                                isFree
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-rose-50 text-rose-700 border border-rose-200"
+                              }`}
+                            >
+                              {isFree ? (locale === "ko" ? "무료" : "Free") : (locale === "ko" ? "유료" : "Paid")}
+                            </span>
                           </div>
-                        )}
+                          <p className="text-[11px] text-slate-400 truncate max-w-md">
+                            {spot.tag || "Attraction"}
+                          </p>
+                        </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => onToggleSpot(city, spot.id)}
-                        className="px-2 py-1 rounded-lg text-xs font-semibold text-rose-500 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer"
-                        title={locale === "ko" ? "제외하기" : "Remove"}
-                      >
-                        {locale === "ko" ? "제외" : "Remove"}
-                      </button>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <span className="text-xs sm:text-sm font-black text-[#0f172a] block">
+                            {isFree ? (locale === "ko" ? "0원" : "₩0") : formatKrw(totalItemPrice)}
+                          </span>
+                          {!isFree && adultCount > 1 && (
+                            <span className="text-[10px] text-slate-400 block">
+                              1인 {formatKrw(spot.price)}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onToggleSpot(city, spot.id)}
+                          className="px-2.5 py-1 text-xs font-bold text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg border border-slate-200 hover:border-rose-200 transition-colors cursor-pointer flex items-center gap-1"
+                          title={locale === "ko" ? "취소" : "Remove"}
+                        >
+                          <span>✕</span>
+                          <span>{locale === "ko" ? "취소" : "Remove"}</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              {/* 하단 총계 푸터 (FoodPlanner와 동일한 규격) */}
+              <div className="p-4 bg-slate-50 border-t border-slate-200/80 space-y-2 text-xs">
+                <div className="flex justify-between text-slate-500 font-medium">
+                  <span>{locale === "ko" ? "선택 명소 합계 (1인 기준)" : "Selected Spots Subtotal (Per Person)"}:</span>
+                  <span className="font-bold text-slate-800">{formatKrw(basketSummary.totalPerPersonKrw)}</span>
+                </div>
+
+                <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline text-sm font-black text-[#0f172a]">
+                  <span>{locale === "ko" ? `최종 관광비 합계 (${adultCount}인)` : `Total Attraction Budget (${adultCount}p)`}:</span>
+                  <span className="text-base sm:text-lg text-[#e25c5c]">
+                    {formatKrw(basketSummary.grandTotalKrw)}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* 4. 커스텀 명소 직접 추가 아코디언 (하단) */}
-      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 transition-all">
+      {/* 4. 커스텀 명소 직접 추가 카드 (StaySelectorPanel 커스텀 카드와 통일) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3">
         <button
           type="button"
           onClick={() => setIsCustomOpen(!isCustomOpen)}
-          className="w-full flex items-center justify-between text-left text-xs font-bold text-slate-700 hover:text-slate-900 cursor-pointer"
+          className="w-full flex items-center justify-between text-left cursor-pointer"
         >
-          <span className="flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-black">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center text-xs font-black">
               +
             </span>
-            <span>{dict.planner.customSpotAddTitle || "찾으시는 명소/체험 직접 추가"}</span>
-          </span>
-          <span className="text-slate-400 text-[11px]">
+            <span className="text-xs sm:text-sm font-black text-[#0f172a]">
+              {dict.planner.customSpotAddTitle || "찾으시는 명소/체험 직접 추가"}
+            </span>
+          </div>
+          <span className="text-xs font-bold text-slate-400">
             {isCustomOpen ? (locale === "ko" ? "접기 ▲" : "Close ▲") : (locale === "ko" ? "입력하기 ▼" : "Add ▼")}
           </span>
         </button>
 
         {isCustomOpen && (
-          <form onSubmit={handleCustomSubmit} className="mt-3 pt-3 border-t border-slate-200/60 space-y-3">
+          <form onSubmit={handleCustomSubmit} className="pt-3 border-t border-slate-100 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 mb-1">
@@ -842,7 +921,7 @@ export default function AttractionPlannerPanel({
               <button
                 type="button"
                 onClick={() => setIsCustomOpen(false)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-200/60 transition-colors cursor-pointer"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 {locale === "ko" ? "취소" : "Cancel"}
               </button>

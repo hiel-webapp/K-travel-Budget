@@ -1387,12 +1387,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     ? preferences.emergencyFundPct
     : (preferences.emergencyFundKrw === undefined || preferences.emergencyFundKrw === 0 ? 0.10 : undefined);
 
-  // 일일 용돈 총액 (전체 일정 통틀어: 1일 1인 단가 × 여행 인원 × 전체 박수)
+  // 일일 용돈 총액 (기본값: 30,000원(BALANCED), 1일 1인 단가 × 여행 인원 × 전체 박수)
   const firstCity = draft.selectedCities[0];
-  const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
+  const currentBasket = preferences.attractionByCity?.[firstCity] ?? "BALANCED";
   const dailyAllowancePerPerson = preferences.attractionCustomDailyKrw !== undefined
     ? preferences.attractionCustomDailyKrw
-    : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : currentBasket === "BALANCED" ? 30000 : 0);
+    : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
   const totalDailyAllowanceKrw = dailyAllowancePerPerson * adultCount * (draft.totalNights || 1);
 
   // K-스팟에서 담긴 맛집/카페 총액 계산
@@ -3401,7 +3401,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               },
                             ].map((preset) => {
                               const firstCity = draft.selectedCities[0];
-                              const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
+                              const currentBasket = preferences.attractionByCity?.[firstCity] ?? "BALANCED";
                               const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
 
                               return (
@@ -3448,10 +3448,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                           {(() => {
                             const firstCity = draft.selectedCities[0];
-                            const currentBasket = preferences.attractionByCity?.[firstCity] || "NONE";
+                            const currentBasket = preferences.attractionByCity?.[firstCity] ?? "BALANCED";
                             const currentDailyRate = preferences.attractionCustomDailyKrw !== undefined
                               ? preferences.attractionCustomDailyKrw
-                              : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : currentBasket === "BALANCED" ? 30000 : 0);
+                              : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
                             const totalNights = draft.totalNights || 1;
                             const adultCount = draft.adultCount || 1;
                             const totalActivityFund = currentDailyRate * adultCount * totalNights;

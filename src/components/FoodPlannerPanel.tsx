@@ -183,7 +183,7 @@ export default function FoodPlannerPanel({
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span className="text-slate-700 flex items-center gap-1.5">
                     <span>
-                      {locale === "ko" ? "담은 미식 아이템:" : "Selected Foods:"}
+                      {locale === "ko" ? "담은 음식:" : "Selected Foods:"}
                     </span>
                     <span className={`font-black ${isExceeded ? "text-rose-600" : "text-emerald-600"}`}>
                       {basketPlan.totalSelectedQuantity}
@@ -232,7 +232,7 @@ export default function FoodPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>{cityName} {locale === "ko" ? `대표 미식 (${cityFoods.all.length}선)` : `Specialties (${cityFoods.all.length})`}</span>
+            <span>{cityName} {locale === "ko" ? `대표 음식 (${cityFoods.all.length}선)` : `Specialties (${cityFoods.all.length})`}</span>
           </button>
 
           {/* 한국 대표 20선 탭 */}
@@ -245,7 +245,7 @@ export default function FoodPlannerPanel({
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
-            <span>{locale === "ko" ? `한국 대표 미식 (${NATIONAL_K_FOODS.length}선)` : `K-Signatures (${NATIONAL_K_FOODS.length})`}</span>
+            <span>{locale === "ko" ? `한국 대표 음식 (${NATIONAL_K_FOODS.length}선)` : `K-Signatures (${NATIONAL_K_FOODS.length})`}</span>
           </button>
 
           {/* 담은 바스켓 탭 */}
@@ -283,7 +283,7 @@ export default function FoodPlannerPanel({
           <div className="min-h-[36px] flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-                {cityName} {locale === "ko" ? `대표 미식 리스트 (${cityFoods.all.length}선)` : `Signature Food List (${cityFoods.all.length})`}
+                {cityName} {locale === "ko" ? `대표 음식 리스트 (${cityFoods.all.length}선)` : `Signature Food List (${cityFoods.all.length})`}
               </h4>
             </div>
             <span className="text-xs text-slate-400">
@@ -375,7 +375,7 @@ export default function FoodPlannerPanel({
               </h4>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
                 {locale === "ko"
-                  ? "도시별 대표 미식이나 한국 대표 음식 탭에서 먹고 싶은 요리를 골라 담아보세요!"
+                  ? "도시별 대표 음식이나 한국 대표 음식 탭에서 먹고 싶은 요리를 골라 담아보세요!"
                   : "Explore city specialties and national K-food favorites to add to your trip wishlist!"}
               </p>
               <button
@@ -506,7 +506,7 @@ export default function FoodPlannerPanel({
               <div className="absolute top-4 left-4 z-10 flex items-center gap-2 flex-wrap">
                 {previewFood.scope === "NATIONAL" ? (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-600/90 text-white shadow-md backdrop-blur-md">
-                    {locale === "ko" ? "한국 대표 미식" : "National Dish"}
+                    {locale === "ko" ? "한국 대표 음식" : "National Dish"}
                   </span>
                 ) : (
                   <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-600/90 text-white shadow-md backdrop-blur-md">
@@ -535,7 +535,7 @@ export default function FoodPlannerPanel({
               {/* Detailed Description */}
               <div>
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                  {locale === "ko" ? "미식 소개" : "About"}
+                  {locale === "ko" ? "음식 소개" : "About"}
                 </h4>
                 <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
                   {locale === "ko" ? previewFood.descKo : previewFood.descEn}

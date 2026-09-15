@@ -2,7 +2,7 @@ import { SupportedCity } from "../../../lib/trip-domain";
 import { FoodItemDefinition } from "../domain/types";
 
 // =========================================================================
-// 1.  한국 대표 미식 (National K-Signature 24선)
+// 1.  한국 대표 음식 (National K-Signature 24선)
 // =========================================================================
 export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
   // --- [그룹 1:  방한 외국인 최선호 4대 시그니처] ---
@@ -379,7 +379,7 @@ export const NATIONAL_K_FOODS: FoodItemDefinition[] = [
 ];
 
 // =========================================================================
-// 2. ️ 10개 도시별 로컬 대표 미식 (City Specialties 각 10선 = 총 100선)
+// 2. ️ 10개 도시별 로컬 대표 음식 (City Specialties 각 10선 = 총 100선)
 // =========================================================================
 export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> = {
   // === 1. 서울 (SEOUL) ===
@@ -882,7 +882,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       cityCode: "JEONJU",
       nameKo: "전주 비빔밥",
       nameEn: "Jeonju Bibimbap (Royal Mixed Rice)",
-      descKo: "사골 육수로 지은 밥에 황포묵, 육회, 콩나물, 계절 나물 등 오색 고명을 정갈하게 얹어 놋그릇에 담아내는 유네스코 미식",
+      descKo: "사골 육수로 지은 밥에 황포묵, 육회, 콩나물, 계절 나물 등 오색 고명을 정갈하게 얹어 놋그릇에 담아내는 유네스코 음식 창의도시 전주의 대표 요리",
       descEn: "World-renowned UNESCO traditional rice bowl cooked in rich beef bone broth, topped with seasonal namul, mung bean jelly, and seasoned beef's culinary crown jewel: beef broth rice served in heavy brass bowl with seasoned beef tartare and 10 herbs",
       categoryTag: "MEAL",
       unitPriceKrw: 14000,
@@ -1094,7 +1094,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       cityCode: "GANGNEUNG",
       nameKo: "강릉 꼬막비빔밥",
       nameEn: "Gangneung Ggomak Bibimbap (Spicy Seasoned Cockles)",
-      descKo: "통통하게 살이 오른 참꼬막을 고추, 쪽파, 참기름 특제 양념에 버무려 고소한 밥과 비벼 먹는 강릉 최고의 인기 미식",
+      descKo: "통통하게 살이 오른 참꼬막을 고추, 쪽파, 참기름 특제 양념에 버무려 고소한 밥과 비벼 먹는 강릉 최고의 인기 음식",
       descEn: "Massive platter of tender, freshly shucked cockle clams tossed in savory soy, sesame oil, and hot green peppers served with seasoned rice",
       categoryTag: "SEAFOOD",
       unitPriceKrw: 18000,
@@ -1798,7 +1798,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       cityCode: "INCHEON",
       nameKo: "월미도 조개구이",
       nameEn: "Wolmido Oceanfront Grilled Shellfish BBQ",
-      descKo: "가리비, 키조개, 백합, 치즈구이를 연탄불 위에 지글지글 구워 초고추장에 찍어 먹는 월미도 바닷가의 대표 미식",
+      descKo: "가리비, 키조개, 백합, 치즈구이를 연탄불 위에 지글지글 구워 초고추장에 찍어 먹는 월미도 바닷가의 대표 음식",
       descEn: "Interactive seaside tabletop BBQ feast grilling fresh scallops, pen shells, clams, and melted cheese over hot briquettes",
       categoryTag: "SEAFOOD",
       unitPriceKrw: 32000,
@@ -1898,7 +1898,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       cityCode: "YEOSU",
       nameKo: "여수 새조개 샤브샤브",
       nameEn: "Yeosu Saejogae Shabu-shabu (Bird Clam)",
-      descKo: "새의 부리를 닮은 고급 겨울 조개로, 맑은 채소 육수에 살짝 데쳐 쫄깃하고 달콤한 조갯살을 맛보는 여수 겨울 미식",
+      descKo: "새의 부리를 닮은 고급 겨울 조개로, 맑은 채소 육수에 살짝 데쳐 쫄깃하고 달콤한 조갯살을 맛보는 여수 겨울 대표 별미 음식",
       descEn: "Prized winter delicacy featuring sweet, plump bird clams lightly parboiled in fragrant broth with winter spinach and leeks",
       categoryTag: "SEAFOOD",
       unitPriceKrw: 35000,

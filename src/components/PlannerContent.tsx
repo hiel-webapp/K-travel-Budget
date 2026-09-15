@@ -19,6 +19,11 @@ import FoodPlannerPanel from "./FoodPlannerPanel";
 import FoodReceiptDetails from "./FoodReceiptDetails";
 import TransportPlannerPanel from "./TransportPlannerPanel";
 import AttractionPlannerPanel from "./AttractionPlannerPanel";
+import {
+  THEME_ACTIVITIES_CATALOG,
+  getRelatedThemeActivity,
+  themeActivityToAttractionSpot,
+} from "../features/budget/catalog/theme-activities";
 import { StaySelectorPanel } from "../features/budget/components/StaySelectorPanel";
 import type { StayArchetypeId, OccupancyMode } from "../features/budget/catalog/stay-archetypes";
 import SaveTripModal from "./planner/SaveTripModal";
@@ -1399,6 +1404,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const spotsForCity = [
       ...budgetPlaces.filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
       ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
+      ...THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === city).map(themeActivityToAttractionSpot),
     ];
     const selectedSpotKeys = new Set<string>();
     (citySel.selectedCourseIds || []).forEach((cid) => {
@@ -1932,8 +1938,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         ...spotsFromCourses,
       ]);
 
-      // 2) 클릭한 장소만 쏙 제외
+      // 2) 클릭한 장소만 쏙 제외 (연계된 액티비티가 있다면 함께 바스켓/예산에서 제외)
       mergedSpotIdsSet.delete(normalizeSpotKey(spotId));
+      const relatedAct = getRelatedThemeActivity(spotId, targetSpot?.nameKo);
+      if (relatedAct) {
+        mergedSpotIdsSet.delete(normalizeSpotKey(relatedAct.id));
+      }
       nextSpotIds = Array.from(mergedSpotIdsSet);
 
       // 3) 해당 코스는 개별 장소들로 분해되었으므로 selectedCourseIds에서 제외
@@ -1957,6 +1967,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
 
       nextSpotIds = currentCitySel.individualSpotIds.filter((id) => !isSameSpot(id, spotId));
+      // 연계된 K-테마 액티비티가 있다면 함께 바스켓/예산에서 제외
+      const relatedAct = getRelatedThemeActivity(spotId, targetSpot?.nameKo);
+      if (relatedAct) {
+        const normActId = normalizeSpotKey(relatedAct.id);
+        nextSpotIds = nextSpotIds.filter((id) => !isSameSpot(id, relatedAct.id) && normalizeSpotKey(id) !== normActId);
+      }
+
       setToastMessage(
         locale === "ko"
           ? `[${spotName}]이(가) 예산에서 제외되었습니다.`
@@ -4207,6 +4224,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const spotsForCity = [
                           ...budgetPlaces.filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
                           ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
+                          ...THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === city).map(themeActivityToAttractionSpot),
                         ];
                         const selectedSpotKeys = new Set<string>();
                         (citySel.selectedCourseIds || []).forEach((cid) => {

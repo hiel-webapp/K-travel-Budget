@@ -415,6 +415,9 @@ export default function AttractionPlannerPanel({
                 const isSelected = isSpotSelected || isIncludedInCourse;
                 const hasImage = (rawSpot as any).imageUrl && (rawSpot as any).imageUrl !== "/assets/default-place.jpg";
 
+                const relatedAct = getRelatedThemeActivity(rawSpot.id, name);
+                const isActivitySelected = !!(relatedAct && selectedSpotKeys.has(normalizeSpotKey(relatedAct.id)));
+
                 return (
                   <div
                     key={rawSpot.id}
@@ -446,6 +449,16 @@ export default function AttractionPlannerPanel({
                             <div className="absolute top-2 left-2 z-10">
                               <span className="w-5 h-5 rounded-full bg-[#e25c5c] text-white flex items-center justify-center text-xs font-black shadow-xs">
                                 ✓
+                              </span>
+                            </div>
+                          )}
+
+                          {/* 엑티비티 담김 배지 */}
+                          {isActivitySelected && (
+                            <div className="absolute top-2 right-2 z-10">
+                              <span className="px-2 py-0.5 rounded-full bg-purple-600 text-white text-[10px] font-black shadow-xs flex items-center gap-1">
+                                <span>✨</span>
+                                <span>{locale === "ko" ? "액티비티 담김" : "Activity"}</span>
                               </span>
                             </div>
                           )}
@@ -514,7 +527,29 @@ export default function AttractionPlannerPanel({
                             </span>
                           );
                         })()}
+                        {isActivitySelected && (
+                          <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 border border-purple-300 flex items-center gap-1">
+                            <span>✨</span>
+                            <span>{locale === "ko" ? "액티비티 포함" : "Activity Included"}</span>
+                          </span>
+                        )}
                       </div>
+
+                      {/* 연계 액티비티 선택 표식 배너 */}
+                      {isActivitySelected && relatedAct && (
+                        <div className="flex items-center justify-between text-[11px] font-bold bg-purple-50 text-purple-900 px-2.5 py-1.5 rounded-xl border border-purple-200 shadow-2xs">
+                          <span className="truncate flex items-center gap-1 min-w-0 pr-2">
+                            <span className="text-purple-600 font-extrabold">✨</span>
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-purple-100 text-purple-700 shrink-0">
+                              {locale === "ko" ? "액티비티 담김" : "Activity"}
+                            </span>
+                            <span className="truncate">{locale === "ko" ? relatedAct.nameKo : relatedAct.nameEn}</span>
+                          </span>
+                          <span className="font-extrabold text-purple-700 shrink-0 tabular-nums">
+                            +{formatKrw(relatedAct.priceKrw)}
+                          </span>
+                        </div>
+                      )}
 
                       {/* 설명 */}
                       <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">

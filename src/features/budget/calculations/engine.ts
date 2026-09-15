@@ -23,7 +23,8 @@ import {
   LOCAL_TRANSIT_OPTIONS,
 } from "../catalog/mock-catalog";
 import { applyFoodReplacements, applyFoodAddOns, calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "./food-engine";
-import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS } from "../catalog/attraction-spots";
+import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, isSameSpot } from "../catalog/attraction-spots";
+import { THEME_ACTIVITIES_CATALOG } from "../catalog/theme-activities";
 import { getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } from "../../../lib/transport/intercity-fares";
 
 /**
@@ -273,9 +274,14 @@ export function generateInitialBudgetPlan(
 
               let spotsPricePerPerson = 0;
               spotIdSet.forEach((sid) => {
-                const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid && s.cityCode === city);
-                if (spot && spot.priceStatus === "PAID") {
+                const spot = ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, sid) && s.cityCode === city);
+                if (spot && (spot.priceStatus === "PAID" || spot.price > 0)) {
                   spotsPricePerPerson += spot.price;
+                } else {
+                  const act = THEME_ACTIVITIES_CATALOG.find((a) => isSameSpot(a.id, sid) && a.cityCode === city);
+                  if (act && act.priceKrw > 0) {
+                    spotsPricePerPerson += act.priceKrw;
+                  }
                 }
               });
 

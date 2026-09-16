@@ -208,7 +208,13 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
       attractionByCity: {},
     });
 
-    router.push(`/${locale}/planner`);
+    const firstCity = draftToSave.selectedCities[0] || "SEOUL";
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("hh_planner_selected_city_tab", firstCity);
+      sessionStorage.setItem("hh_planner_active_category", "ACCOMMODATION");
+    }
+
+    router.push(`/${locale}/planner?tab=${firstCity}&cat=ACCOMMODATION`);
   };
 
   return (

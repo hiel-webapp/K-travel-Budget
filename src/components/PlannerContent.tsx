@@ -447,7 +447,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   });
 
-  // 탭 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: "ALL")
+  // 탭 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: 1번 도시)
   const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "TRANSPORT" | SupportedCity>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -460,7 +460,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         console.error("Failed to restore city tab:", e);
       }
     }
-    return "ALL";
+    if (hasActiveDraft()) {
+      try {
+        const d = loadTripDraft();
+        if (d.selectedCities && d.selectedCities.length > 0) {
+          return d.selectedCities[0];
+        }
+      } catch {}
+    }
+    return "SEOUL";
   });
 
   // 카테고리 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: "ACCOMMODATION")
@@ -2302,6 +2310,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           preferences: freshPreferences,
         };
       });
+
+      // 초기화 시 1번 도시 및 숙소 카테고리로 기본값 강제 정렬
+      const firstCity = draft.selectedCities[0] || "SEOUL";
+      setSelectedCityTab(firstCity);
+      setActiveCategory("ACCOMMODATION");
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("hh_planner_selected_city_tab", firstCity);
+        sessionStorage.setItem("hh_planner_active_category", "ACCOMMODATION");
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", firstCity);
+        url.searchParams.set("cat", "ACCOMMODATION");
+        window.history.replaceState(null, "", url.toString());
+      }
+
       setOccupancyModeByCity({});
       setEmergencyManualInput("");
       setActivityManualInput("");

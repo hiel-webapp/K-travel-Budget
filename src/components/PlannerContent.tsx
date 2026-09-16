@@ -3760,9 +3760,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   {/* 통합 바스켓 대시보드 헤더: 좌측 세로 3단 탭 (2/3 축소 슬림형) | 우측 선택된 바스켓 실시간 요약 (상단 고정 일치) */}
                   <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
                     <div className="flex flex-col sm:flex-row">
-                      {/* 좌측: 세로 3단 카테고리 탭 (숙소, 음식, 관광) - 약 2/3 크기 슬림 박스 */}
-                      <div className="sm:w-[150px] md:w-[160px] shrink-0 p-2.5 sm:p-3 bg-slate-50/80 border-b sm:border-b-0 sm:border-r border-slate-200/80 flex flex-col justify-center">
-                        <div className="grid grid-cols-3 sm:grid-cols-1 gap-1.5" role="tablist" aria-label="Budget categories">
+                      {/* 좌측: 세로 3단 카테고리 탭 (숙소, 음식, 관광) - 약 2/3 너비 슬림 & 높이 1.3배 확장 */}
+                      <div className="sm:w-[155px] md:w-[165px] shrink-0 p-2.5 sm:p-3 bg-slate-50/80 border-b sm:border-b-0 sm:border-r border-slate-200/80 flex flex-col justify-center">
+                        <div className="grid grid-cols-3 sm:grid-cols-1 gap-2" role="tablist" aria-label="Budget categories">
                           {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as const).map((cat) => {
                             const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
                             const isActive = effectiveCategory === cat;
@@ -3775,20 +3775,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 aria-selected={isActive}
                                 id={`cat-tab-${cat}`}
                                 onClick={() => setActiveCategory(cat)}
-                                className={`group relative flex flex-col sm:flex-row items-center justify-between p-2 sm:px-2.5 sm:py-2 rounded-xl border text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
+                                className={`group relative flex flex-col sm:flex-row items-center justify-between min-h-[46px] p-2.5 sm:px-3 sm:py-3.5 rounded-xl border text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
                                   isActive
                                     ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
                                     : "bg-white/80 border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-white"
                                 }`}
                               >
                                 {isActive && (
-                                  <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4.5 bg-[#e25c5c] rounded-r-full" />
+                                  <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#e25c5c] rounded-r-full" />
                                 )}
-                                <span className="text-xs font-black tracking-tight text-slate-800">
+                                <span className="text-xs sm:text-[13px] font-black tracking-tight text-slate-800">
                                   {data.label}
                                 </span>
                                 <span
-                                  className={`inline-block text-[9.5px] px-1.5 py-0.5 rounded-full transition-colors truncate max-w-[65px] sm:max-w-[70px] leading-tight shrink-0 mt-0.5 sm:mt-0 ${
+                                  className={`inline-block text-[10px] px-2 py-0.5 rounded-full transition-colors truncate max-w-[65px] sm:max-w-[70px] leading-tight shrink-0 mt-0.5 sm:mt-0 ${
                                     data.isSelected
                                       ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
                                       : "bg-slate-100 text-slate-400 font-medium"

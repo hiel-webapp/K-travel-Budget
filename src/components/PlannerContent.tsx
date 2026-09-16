@@ -561,6 +561,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isResetPlanModalOpen, setIsResetPlanModalOpen] = useState(false);
+  const [isResetNightsMenuOpen, setIsResetNightsMenuOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
@@ -1277,7 +1278,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  const handleResetCityNights = () => {
+  const handleResetCityNightsDefault = () => {
     if (state.status !== "ready") return;
     const currentDraft = state.draft;
     const maxTotalNights = currentDraft.totalNights || 5;
@@ -1295,14 +1296,47 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     persistPreferences({}, nextDraft);
 
     setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
+    setIsResetNightsMenuOpen(false);
 
     setToastMessage(
       locale === "ko"
-        ? `도시별 체류 기간이 기본 균등값으로 초기화되었습니다.`
+        ? `도시별 체류 기간이 기본 균등 분배로 초기화되었습니다.`
         : `City stay nights reset to default allocation.`
     );
     setTimeout(() => setToastMessage(null), 2500);
   };
+
+  const handleResetCityNightsZero = () => {
+    if (state.status !== "ready") return;
+    const currentDraft = state.draft;
+    const zeroAlloc = currentDraft.selectedCities.reduce(
+      (acc, c) => ({ ...acc, [c]: 0 }),
+      {}
+    );
+
+    const nextDraft: TripDraft = {
+      ...currentDraft,
+      cityNightAllocations: zeroAlloc,
+    };
+
+    const validation = validateTripDraft(nextDraft);
+    if (!validation.success) return;
+
+    saveTripDraft(nextDraft);
+    persistPreferences({}, nextDraft);
+
+    setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
+    setIsResetNightsMenuOpen(false);
+
+    setToastMessage(
+      locale === "ko"
+        ? `모든 도시 체류 박수가 0으로 비워졌습니다. 원하는 도시에 배분하세요.`
+        : `All city nights cleared to 0. Please allocate your nights.`
+    );
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleResetCityNights = handleResetCityNightsDefault;
 
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
@@ -2889,10 +2923,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 const isFull = unallocatedNights === 0;
 
                 return (
-                  <div className="flex items-center justify-between gap-2 px-1 text-xs">
+                  <div className="flex items-center justify-between gap-2 px-1 text-xs relative">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="font-bold text-slate-600 text-[11px] sm:text-xs">
-                        {locale === "ko" ? "체류 기간 배분:" : "Stay Allocation:"}
+                      <span className="font-extrabold text-slate-800 text-[11px] sm:text-xs">
+                        {locale === "ko" ? "방문 동선 & 체류 기간:" : "Route & Stay Nights:"}
                       </span>
                       <span
                         className={`px-2 py-0.5 rounded-full text-[10.5px] sm:text-[11px] font-extrabold transition-colors ${
@@ -2907,17 +2941,59 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               ? `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`
                               : `${currentAllocatedSum}/${maxNights}N allocated (${unallocatedNights}N left)`)}
                       </span>
+                      <span className="text-[10.5px] text-slate-400 font-medium hidden sm:inline">
+                        {locale === "ko" ? "• 카드를 좌우로 끌어 방문 순서 변경" : "• Drag cards to reorder route"}
+                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleResetCityNights}
-                      className="text-[11px] font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors px-2 py-0.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
-                      title={locale === "ko" ? "기본 균등 배분으로 초기화" : "Reset to default allocation"}
-                    >
-                      <span>↻</span>
-                      <span>{locale === "ko" ? "박수 초기화" : "Reset Nights"}</span>
-                    </button>
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setIsResetNightsMenuOpen(!isResetNightsMenuOpen)}
+                        className="text-[11px] font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0 border border-slate-200/90 bg-white shadow-2xs"
+                        title={locale === "ko" ? "체류 박수 초기화 옵션 선택" : "Reset stay nights options"}
+                      >
+                        <span>↻</span>
+                        <span>{locale === "ko" ? "박수 초기화" : "Reset Nights"}</span>
+                        <span className="text-[8px] text-slate-400">▼</span>
+                      </button>
+
+                      {isResetNightsMenuOpen && (
+                        <>
+                          <div
+                            className="fixed inset-0 z-30"
+                            onClick={() => setIsResetNightsMenuOpen(false)}
+                          />
+                          <div className="absolute right-0 top-full mt-1.5 w-56 bg-white rounded-xl shadow-xl border border-slate-200/90 py-1.5 z-40 text-xs font-semibold animate-in fade-in zoom-in-95 duration-100">
+                            <button
+                              type="button"
+                              onClick={handleResetCityNightsDefault}
+                              className="w-full text-left px-3.5 py-2 hover:bg-slate-50 text-slate-700 flex flex-col gap-0.5 cursor-pointer transition-colors"
+                            >
+                              <span className="font-extrabold text-slate-900">
+                                {locale === "ko" ? "기본 분배로 초기화" : "Reset to Default"}
+                              </span>
+                              <span className="text-[10.5px] text-slate-400 font-normal">
+                                {locale === "ko" ? "전체 일정에 맞춰 자동 균등 배분" : "Auto allocate evenly across cities"}
+                              </span>
+                            </button>
+                            <div className="border-t border-slate-100 my-1" />
+                            <button
+                              type="button"
+                              onClick={handleResetCityNightsZero}
+                              className="w-full text-left px-3.5 py-2 hover:bg-rose-50 text-rose-600 flex flex-col gap-0.5 cursor-pointer transition-colors"
+                            >
+                              <span className="font-extrabold text-rose-700">
+                                {locale === "ko" ? "모든 도시 0박으로 비우기" : "Clear All to 0 Nights"}
+                              </span>
+                              <span className="text-[10.5px] text-rose-400 font-normal">
+                                {locale === "ko" ? "직접 처음부터 원하는 대로 배분" : "Custom allocate from scratch"}
+                              </span>
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 );
               })()}
@@ -2969,7 +3045,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
                               : label
                           }
-                          className={`flex-1 min-w-[76px] sm:min-w-[100px] py-2 px-2 sm:px-2.5 rounded-2xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none flex flex-col items-center justify-center gap-1.5 shrink-0 ${
+                          className={`flex-1 min-w-[76px] sm:min-w-[100px] py-1.5 px-2 sm:px-2.5 rounded-2xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none flex flex-col items-center justify-center gap-1 shrink-0 ${
                             isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
                           } ${
                             isDraggingThis
@@ -2979,7 +3055,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
                           }`}
                         >
-                          {/* 1단: 동선 순서 번호 + 도시명 */}
+                          {/* 1단: 드래그 핸들 힌트 + 순서 번호 + 도시명 */}
                           <div className="flex items-center justify-center gap-1 min-w-0 pointer-events-none">
                             {isMultiCity && (
                               <span
@@ -2995,6 +3071,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <span className={`text-xs sm:text-[13px] font-black truncate max-w-[75px] sm:max-w-none ${isActive ? "text-[#e25c5c]" : "text-slate-800"}`}>
                               {label}
                             </span>
+                            {isMultiCity && (
+                              <span className="text-[9px] text-slate-300 select-none font-bold" title="드래그 가능">⠿</span>
+                            )}
                           </div>
 
                           {/* 2단: [N박 ▾] 체류 박수 드롭다운 셀렉트 */}
@@ -3043,160 +3122,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
           </div>
 
-          {/* Category Tabs / Cards (Only shown for individual city tabs: 3 categories with independent city amounts & status badges) */}
-          {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {
-            const currentCity = selectedCityTab as SupportedCity;
-            const cityNights = draft.cityNightAllocations[currentCity] || 0;
-            const adultCount = draft.adultCount || 1;
 
-            // 1. 숙박 (해당 도시 선택 숙소 및 금액)
-            const accSelection = preferences.accommodationByCity?.[currentCity];
-            let cityAccTotal = 0;
-            let cityAccStatus = locale === "ko" ? "선택 필요" : "Required";
-            let isAccSelected = false;
-
-            if (accSelection) {
-              if (typeof accSelection === "object" && (accSelection as any).kind === "CUSTOM") {
-                const custom = accSelection as any;
-                cityAccTotal = (custom.customPriceKrw || 0) * Math.max(1, cityNights);
-                cityAccStatus = custom.placeName || (locale === "ko" ? "직접 입력" : "Custom");
-                isAccSelected = true;
-              } else {
-                const archId = typeof accSelection === "string" ? accSelection : (accSelection as any).basketId || (accSelection as any).archetypeId;
-                const arch = STAY_ARCHETYPES.find((a) => a.id === archId);
-                if (arch) {
-                  cityAccTotal = getStayArchetypePrice(currentCity, arch.id) * Math.max(1, cityNights);
-                  cityAccStatus = locale === "ko" ? arch.titleKo : arch.titleEn;
-                  isAccSelected = true;
-                }
-              }
-            }
-
-            // 2. 음식 (해당 도시에 할당된 푸드 바스켓 금액 및 담긴 메뉴 수)
-            const safeTotalNights = draft.totalNights || 5;
-            const totalFoodBasketPlan = calculateFoodBasketPlan(
-              preferences.foodBasketSelections || [],
-              safeTotalNights,
-              adultCount
-            );
-            const cityFoodBasket = calculateCityFoodBasketPlan(
-              currentCity,
-              cityNights,
-              safeTotalNights,
-              totalFoodBasketPlan,
-              adultCount
-            );
-            const cityFoodTotal = cityFoodBasket.grandTotalKrw;
-            const cityFoodItemCount = cityFoodBasket.selectedItems.length;
-            const isFoodSelected = cityFoodItemCount > 0;
-            const cityFoodStatus = isFoodSelected
-              ? (locale === "ko" ? `${cityFoodItemCount}개 메뉴` : `${cityFoodItemCount} items`)
-              : (locale === "ko" ? "담은 음식 없음" : "No food added");
-
-            // 3. 관광 (해당 도시 담은 명소 및 테마 액티비티 금액)
-            const citySel = preferences.attractionSelections?.[currentCity] || { selectedCourseIds: [], individualSpotIds: [] };
-            const spotsForCity = [
-              ...budgetPlaces.filter((p) => p.city === currentCity && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
-              ...(dbAttractionsByCity[currentCity] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity)),
-              ...THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === currentCity).map(themeActivityToAttractionSpot),
-            ];
-            const selectedSpotKeys = new Set<string>();
-            (citySel.selectedCourseIds || []).forEach((cid) => {
-              const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-              if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-            });
-            (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-
-            let cityAttrTotal = 0;
-            const selectedSpotsCount = selectedSpotKeys.size;
-            selectedSpotKeys.forEach((normKey) => {
-              const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
-              if (spot && spot.priceStatus === "PAID" && spot.price > 0) {
-                cityAttrTotal += spot.price * adultCount;
-              }
-            });
-            const isAttrSelected = selectedSpotsCount > 0;
-            const cityAttrStatus = isAttrSelected
-              ? (locale === "ko" ? `${selectedSpotsCount}곳 담김` : `${selectedSpotsCount} spots`)
-              : (locale === "ko" ? "담은 명소 없음" : "No spots added");
-
-            const cityCategoryData: Record<
-              "ACCOMMODATION" | "FOOD" | "ATTRACTION",
-              {
-                label: string;
-                amount: number;
-                statusText: string;
-                isSelected: boolean;
-              }
-            > = {
-              ACCOMMODATION: {
-                label: getCategoryLabel("ACCOMMODATION", dict),
-                amount: cityAccTotal,
-                statusText: cityAccStatus,
-                isSelected: isAccSelected,
-              },
-              FOOD: {
-                label: getCategoryLabel("FOOD", dict),
-                amount: cityFoodTotal,
-                statusText: cityFoodStatus,
-                isSelected: isFoodSelected,
-              },
-              ATTRACTION: {
-                label: getCategoryLabel("ATTRACTION", dict),
-                amount: cityAttrTotal,
-                statusText: cityAttrStatus,
-                isSelected: isAttrSelected,
-              },
-            };
-
-            return (
-              <div className="grid grid-cols-3 gap-2 sm:gap-3" role="tablist" aria-label="Budget categories">
-                {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as const).map((cat) => {
-                  const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
-                  const isActive = effectiveCategory === cat;
-                  const data = cityCategoryData[cat];
-
-                  return (
-                    <button
-                      key={cat}
-                      role="tab"
-                      aria-selected={isActive}
-                      id={`cat-tab-${cat}`}
-                      onClick={() => setActiveCategory(cat)}
-                      className={`group relative flex flex-col items-center justify-center py-2 px-2 sm:py-2.5 sm:px-3 rounded-xl border text-center transition-all duration-155 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer overflow-hidden ${
-                        isActive
-                          ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
-                          : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-300 hover:bg-slate-50/50"
-                      }`}
-                    >
-                      {/* 상단 액센트 인디케이터 바 */}
-                      {isActive && (
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2.5px] bg-[#e25c5c] rounded-b-full" />
-                      )}
-
-                      {/* 카테고리 명칭 */}
-                      <span className="text-xs sm:text-[12.5px] font-black tracking-tight block text-slate-800 leading-tight">
-                        {data.label}
-                      </span>
-
-                      {/* 상태 뱃지 (미선택 vs 선택완료 요약) */}
-                      <div className="mt-1">
-                        <span
-                          className={`inline-block text-[9.5px] sm:text-[10px] px-2 py-0.5 rounded-full transition-colors truncate max-w-[105px] sm:max-w-[125px] leading-tight ${
-                            data.isSelected
-                              ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
-                              : "bg-slate-100 text-slate-400 font-medium"
-                          }`}
-                        >
-                          {data.statusText}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })()}
 
           {/* Active Category Panel */}
           <div
@@ -3255,104 +3181,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               return (
                 <div className="space-y-5">
-                  {/* 1. Dedicated Header Card: City Night Allocation Bar */}
-                  {(() => {
-                    const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
-                    const maxNights = draft.totalNights || 5;
-                    const unallocatedNights = maxNights - currentAllocatedSum;
-                    const isFull = unallocatedNights === 0;
 
-                    const titleKo = isFull
-                      ? `도시별 체류 기간 (${maxNights}박)`
-                      : `도시별 체류 기간 (총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 / ${unallocatedNights}박 여유)`;
-
-                    const titleEn = isFull
-                      ? `City Stay Duration (${maxNights}N)`
-                      : `City Stay Duration (${currentAllocatedSum}/${maxNights}N Allocated / ${unallocatedNights}N Left)`;
-
-                    return (
-                      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 space-y-3 shadow-2xs">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="text-xs font-black text-slate-800">
-                              {locale === "ko" ? "도시별 체류 기간 배분" : "City Stay Duration"}
-                            </h3>
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10.5px] font-extrabold transition-colors ${
-                                isFull
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                  : "bg-amber-50 text-amber-800 border border-amber-200"
-                              }`}
-                            >
-                              {isFull
-                                ? (locale === "ko" ? `전체 ${maxNights}박 배분 완료 (여유 0박)` : `All ${maxNights}N allocated`)
-                                : (locale === "ko"
-                                    ? `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`
-                                    : `${currentAllocatedSum}/${maxNights}N allocated (${unallocatedNights}N left)`)}
-                            </span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={handleResetCityNights}
-                            className="text-[11px] font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100 cursor-pointer"
-                            title={locale === "ko" ? "기본 균등 배분으로 초기화" : "Reset to default allocation"}
-                          >
-                            <span>↻</span>
-                            <span>{locale === "ko" ? "기본값 초기화" : "Reset"}</span>
-                          </button>
-                        </div>
-
-                        <div className={`grid gap-2.5 ${draft.selectedCities.length <= 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
-                          {draft.selectedCities.map((city, idx) => {
-                            const currentCityNights = draft.cityNightAllocations[city] ?? 0;
-                            const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
-                            const maxSelectable = currentCityNights + Math.max(0, unallocatedNights);
-                            const options = Array.from({ length: maxSelectable + 1 }, (_, i) => i);
-
-                            return (
-                              <div
-                                key={city}
-                                className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80 flex flex-col items-center justify-between text-center gap-2 shadow-2xs"
-                              >
-                                <div className="flex items-center justify-center gap-1">
-                                  <span className="w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 bg-slate-200 text-slate-600">
-                                    {idx + 1}
-                                  </span>
-                                  <span className="text-xs font-black text-slate-800 truncate">
-                                    {cityName}
-                                  </span>
-                                </div>
-
-                                <div className="relative inline-block w-full max-w-[105px]">
-                                  <select
-                                    value={currentCityNights}
-                                    onChange={(e) => {
-                                      handleSetCityNights(city, Number(e.target.value));
-                                    }}
-                                    className={`w-full text-center appearance-none py-1 pl-2.5 pr-5 rounded-lg text-xs font-black cursor-pointer border transition-all focus:outline-none focus:ring-1 focus:ring-[#e25c5c] ${
-                                      currentCityNights === 0
-                                        ? "bg-slate-100 text-slate-500 border-slate-300/80"
-                                        : "bg-white text-slate-900 border-slate-200 shadow-2xs hover:border-[#e25c5c]"
-                                    }`}
-                                  >
-                                    {options.map((opt) => (
-                                      <option key={opt} value={opt}>
-                                        {opt === 0 ? (locale === "ko" ? "당일 (0박)" : "Day (0N)") : `${opt}${locale === "ko" ? "박" : "N"}`}
-                                      </option>
-                                    ))}
-                                  </select>
-                                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400 text-[9px]">
-                                    ▼
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                );
-              })()}
 
                   {/* 2단 박스: 여행 전체 예산 설정 Outer Box Container */}
                   <div className="bg-slate-50/80 border border-slate-200/90 p-5 rounded-2xl space-y-4 shadow-2xs">
@@ -3819,9 +3648,174 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               />
             )}
 
-            {/* 2. Single City Tab Mode: City-Specific Category Options */}
-            {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (
-              <div className="space-y-6">
+            {/* 2. Single City Tab Mode: City-Specific Category Options (도시별 바스켓 박스) */}
+            {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {
+              const currentCity = selectedCityTab as SupportedCity;
+              const currentCityName = locale === "ko" ? (CITY_KOREAN_NAMES[currentCity] || currentCity) : (CITY_ENGLISH_NAMES[currentCity] || currentCity);
+              const cityNights = draft.cityNightAllocations[currentCity] ?? 0;
+              const adultCount = draft.adultCount || 1;
+
+              // 1. 숙박 (해당 도시 선택 숙소 및 금액)
+              const accSelection = preferences.accommodationByCity?.[currentCity];
+              let cityAccTotal = 0;
+              let cityAccStatus = locale === "ko" ? "선택 필요" : "Required";
+              let isAccSelected = false;
+
+              if (accSelection) {
+                if (typeof accSelection === "object" && (accSelection as any).kind === "CUSTOM") {
+                  const custom = accSelection as any;
+                  cityAccTotal = (custom.customPriceKrw || 0) * Math.max(1, cityNights);
+                  cityAccStatus = custom.placeName || (locale === "ko" ? "직접 입력" : "Custom");
+                  isAccSelected = true;
+                } else {
+                  const archId = typeof accSelection === "string" ? accSelection : (accSelection as any).basketId || (accSelection as any).archetypeId;
+                  const arch = STAY_ARCHETYPES.find((a) => a.id === archId);
+                  if (arch) {
+                    cityAccTotal = getStayArchetypePrice(currentCity, arch.id) * Math.max(1, cityNights);
+                    cityAccStatus = locale === "ko" ? arch.titleKo : arch.titleEn;
+                    isAccSelected = true;
+                  }
+                }
+              }
+
+              // 2. 음식 (해당 도시에 할당된 푸드 바스켓 금액 및 담긴 메뉴 수)
+              const safeTotalNights = draft.totalNights || 5;
+              const totalFoodBasketPlan = calculateFoodBasketPlan(
+                preferences.foodBasketSelections || [],
+                safeTotalNights,
+                adultCount
+              );
+              const cityFoodBasket = calculateCityFoodBasketPlan(
+                currentCity,
+                cityNights,
+                safeTotalNights,
+                totalFoodBasketPlan,
+                adultCount
+              );
+              const cityFoodTotal = cityFoodBasket.grandTotalKrw;
+              const cityFoodItemCount = cityFoodBasket.selectedItems.length;
+              const isFoodSelected = cityFoodItemCount > 0;
+              const cityFoodStatus = isFoodSelected
+                ? (locale === "ko" ? `${cityFoodItemCount}개 메뉴` : `${cityFoodItemCount} items`)
+                : (locale === "ko" ? "담은 음식 없음" : "No food added");
+
+              // 3. 관광 (해당 도시 담은 명소 및 테마 액티비티 금액)
+              const citySel = preferences.attractionSelections?.[currentCity] || { selectedCourseIds: [], individualSpotIds: [] };
+              const spotsForCity = [
+                ...budgetPlaces.filter((p) => p.city === currentCity && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
+                ...(dbAttractionsByCity[currentCity] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity)),
+                ...THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === currentCity).map(themeActivityToAttractionSpot),
+              ];
+              const selectedSpotKeys = new Set<string>();
+              (citySel.selectedCourseIds || []).forEach((cid) => {
+                const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+              });
+              (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+
+              let cityAttrTotal = 0;
+              const selectedSpotsCount = selectedSpotKeys.size;
+              selectedSpotKeys.forEach((normKey) => {
+                const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
+                if (spot && spot.priceStatus === "PAID" && spot.price > 0) {
+                  cityAttrTotal += spot.price * adultCount;
+                }
+              });
+              const isAttrSelected = selectedSpotsCount > 0;
+              const cityAttrStatus = isAttrSelected
+                ? (locale === "ko" ? `${selectedSpotsCount}곳 담김` : `${selectedSpotsCount} spots`)
+                : (locale === "ko" ? "담은 명소 없음" : "No spots added");
+
+              const cityCategoryData: Record<
+                "ACCOMMODATION" | "FOOD" | "ATTRACTION",
+                {
+                  label: string;
+                  amount: number;
+                  statusText: string;
+                  isSelected: boolean;
+                }
+              > = {
+                ACCOMMODATION: {
+                  label: getCategoryLabel("ACCOMMODATION", dict),
+                  amount: cityAccTotal,
+                  statusText: cityAccStatus,
+                  isSelected: isAccSelected,
+                },
+                FOOD: {
+                  label: getCategoryLabel("FOOD", dict),
+                  amount: cityFoodTotal,
+                  statusText: cityFoodStatus,
+                  isSelected: isFoodSelected,
+                },
+                ATTRACTION: {
+                  label: getCategoryLabel("ATTRACTION", dict),
+                  amount: cityAttrTotal,
+                  statusText: cityAttrStatus,
+                  isSelected: isAttrSelected,
+                },
+              };
+
+              return (
+                <div className="space-y-6">
+                  {/* 바스켓 박스 상단 헤더: 해당 도시 바스켓 타이틀 & 3개 카테고리 탭 (숙소 / 음식 / 관광) */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/80 border border-slate-200/90 shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#e25c5c]" />
+                        <h3 className="text-sm sm:text-[15px] font-black text-slate-900">
+                          {currentCityName} {locale === "ko" ? "여행 경비 바스켓" : "Expense Basket"}
+                        </h3>
+                        <span className="text-xs font-bold text-slate-500">
+                          ({cityNights === 0 ? (locale === "ko" ? "당일치기" : "Day trip") : `${cityNights}${locale === "ko" ? "박 " : "N "}${cityNights + 1}${locale === "ko" ? "일" : "D"}`})
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 3개 카테고리 선택 탭 버튼 (숙소 / 음식 / 관광) */}
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3" role="tablist" aria-label="Budget categories">
+                      {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as const).map((cat) => {
+                        const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
+                        const isActive = effectiveCategory === cat;
+                        const data = cityCategoryData[cat];
+
+                        return (
+                          <button
+                            key={cat}
+                            role="tab"
+                            aria-selected={isActive}
+                            id={`cat-tab-${cat}`}
+                            onClick={() => setActiveCategory(cat)}
+                            className={`group relative flex flex-col items-center justify-center py-2 px-2 sm:py-2.5 sm:px-3 rounded-xl border text-center transition-all duration-155 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer overflow-hidden ${
+                              isActive
+                                ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
+                                : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-300 hover:bg-slate-50/50"
+                            }`}
+                          >
+                            {isActive && (
+                              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2.5px] bg-[#e25c5c] rounded-b-full" />
+                            )}
+                            <span className="text-xs sm:text-[12.5px] font-black tracking-tight block text-slate-800 leading-tight">
+                              {data.label}
+                            </span>
+                            <div className="mt-1">
+                              <span
+                                className={`inline-block text-[9.5px] sm:text-[10px] px-2 py-0.5 rounded-full transition-colors truncate max-w-[105px] sm:max-w-[125px] leading-tight ${
+                                  data.isSelected
+                                    ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
+                                    : "bg-slate-100 text-slate-400 font-medium"
+                                }`}
+                              >
+                                {data.statusText}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 선택된 카테고리 상세 컨텐츠 */}
+                  <div className="space-y-6">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab as SupportedCity;
                   const cityNights = draft.cityNightAllocations[city] ?? 0;
@@ -4074,7 +4068,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   );
                 })()}
               </div>
-            )}
+            </div>
+          );
+        })()}
 
             {(() => {
               const activeNotice =

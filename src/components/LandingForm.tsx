@@ -70,8 +70,41 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Load saved draft safely on client side
+  // Load saved draft safely on client side, with deep linking URL params taking precedence
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const nightsParam = params.get("nights");
+    const adultsParam = params.get("adults");
+    const citiesParam = params.get("cities");
+    const presetParam = params.get("preset");
+
+    if (nightsParam || adultsParam || citiesParam) {
+      const parsedNights = nightsParam ? parseInt(nightsParam, 10) : draft.totalNights;
+      const parsedAdults = adultsParam ? parseInt(adultsParam, 10) : draft.adultCount;
+      const parsedCities = citiesParam
+        ? (citiesParam.split(",").filter((c) => ALL_CITY_OPTIONS.some((opt) => opt.key === c)) as SupportedCity[])
+        : draft.selectedCities;
+
+      const newAllocations = calculateDefaultNightAllocation(parsedCities, parsedNights);
+      const defaultBudget = getDefaultTargetBudgetByNights(parsedNights, parsedAdults);
+
+      setDraft((prev) => ({
+        ...prev,
+        totalNights: parsedNights,
+        adultCount: parsedAdults,
+        selectedCities: parsedCities,
+        cityNightAllocations: newAllocations,
+        budgetTier: defaultBudget.budgetTier,
+        targetBudgetKrw: defaultBudget.targetBudgetKrw,
+      }));
+
+      if (presetParam) {
+        setActivePresetId(presetParam as TravelPresetId);
+      }
+      return;
+    }
+
     const saved = loadActiveDraft();
     if (saved && saved.draft) {
       setDraft(saved.draft);
@@ -89,10 +122,41 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
     adultCount !== null &&
     draft.selectedCities.length >= 1;
 
-  // Save draft state on changes
+  // Save draft state on changes & synchronize with URL query string
   useEffect(() => {
     saveActiveDraft(draft, mobileStep);
-  }, [draft, mobileStep]);
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (draft.totalNights !== null) {
+        params.set("nights", draft.totalNights.toString());
+      } else {
+        params.delete("nights");
+      }
+
+      if (draft.adultCount !== null) {
+        params.set("adults", draft.adultCount.toString());
+      } else {
+        params.delete("adults");
+      }
+
+      if (draft.selectedCities.length > 0) {
+        params.set("cities", draft.selectedCities.join(","));
+      } else {
+        params.delete("cities");
+      }
+
+      if (activePresetId) {
+        params.set("preset", activePresetId);
+      } else {
+        params.delete("preset");
+      }
+
+      const newQuery = params.toString();
+      const newPath = newQuery ? `${window.location.pathname}?${newQuery}` : window.location.pathname;
+      window.history.replaceState(null, "", newPath);
+    }
+  }, [draft, mobileStep, activePresetId]);
 
   const handleSelectPreset = (preset: TravelPreset) => {
     setActivePresetId(preset.id);
@@ -314,7 +378,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                       }}
                       disabled={(totalNights || 1) <= 1}
                       aria-label="Decrease nights"
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-transform duration-150 ease-out cursor-pointer shadow-2xs active:scale-[0.97]"
                     >
                       -
                     </button>
@@ -331,7 +395,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                       }}
                       disabled={(totalNights || 0) >= 14}
                       aria-label="Increase nights"
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-transform duration-150 ease-out cursor-pointer shadow-2xs active:scale-[0.97]"
                     >
                       +
                     </button>
@@ -349,9 +413,9 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                           e.stopPropagation();
                           handleNightsChange(preset);
                         }}
-                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all text-center whitespace-nowrap px-1 cursor-pointer active:scale-95 ${
+                        className={`py-1.5 rounded-xl text-xs font-bold border transition-transform duration-150 ease-out text-center whitespace-nowrap px-1 cursor-pointer active:scale-[0.97] ${
                           totalNights === preset
-                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs ring-2 ring-teal-500/30 ring-offset-1"
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
@@ -389,7 +453,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                       }}
                       disabled={(adultCount || 1) <= 1}
                       aria-label="Decrease travelers"
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-transform duration-150 ease-out cursor-pointer shadow-2xs active:scale-[0.97]"
                     >
                       -
                     </button>
@@ -406,7 +470,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                       }}
                       disabled={(adultCount || 0) >= 10}
                       aria-label="Increase travelers"
-                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-transform duration-150 ease-out cursor-pointer shadow-2xs active:scale-[0.97]"
                     >
                       +
                     </button>
@@ -424,9 +488,9 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                           e.stopPropagation();
                           handleAdultsChange(countPreset);
                         }}
-                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center whitespace-nowrap px-1 active:scale-95 ${
+                        className={`py-1.5 rounded-xl text-xs font-bold border transition-transform duration-150 ease-out cursor-pointer text-center whitespace-nowrap px-1 active:scale-[0.97] ${
                           adultCount === countPreset
-                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs ring-2 ring-teal-500/30 ring-offset-1"
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
@@ -466,9 +530,9 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                             e.stopPropagation();
                             toggleCitySelection(cityOpt.key);
                           }}
-                          className={`min-h-[40px] px-1 py-1.5 rounded-xl border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center whitespace-nowrap active:scale-95 ${
+                          className={`min-h-[40px] px-1 py-1.5 rounded-xl border text-[13px] transition-transform duration-150 ease-out cursor-pointer flex items-center justify-center gap-1 text-center whitespace-nowrap active:scale-[0.97] ${
                             isSelected
-                              ? "bg-teal-50/80 border-2 border-teal-600 text-teal-900 font-bold shadow-2xs"
+                              ? "bg-teal-50/80 border-2 border-teal-600 text-teal-900 font-bold shadow-2xs ring-2 ring-teal-500/30 ring-offset-1"
                               : "bg-white border-neutral-200/60 text-neutral-600 font-medium hover:border-neutral-300"
                           }`}
                         >
@@ -564,11 +628,11 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-neutral-200/60">
-                  <button type="button" onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))} disabled={(totalNights || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">-</button>
+                  <button type="button" onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))} disabled={(totalNights || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">-</button>
                   <div className="text-center">
                     <span className="font-extrabold text-neutral-900 text-[18px] block">{totalNights !== null ? `${totalNights} Nights` : "기간 선택"}</span>
                   </div>
-                  <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">+</button>
+                  <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">+</button>
                 </div>
 
                 <div className="pt-1">
@@ -579,9 +643,9 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                         key={preset}
                         type="button"
                         onClick={() => handleNightsChange(preset)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer active:scale-95 ${
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all duration-150 ease-out cursor-pointer active:scale-[0.97] ${
                           totalNights === preset
-                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs ring-2 ring-teal-500/30 ring-offset-1"
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
@@ -601,11 +665,11 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                   <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">{adultCount !== null ? `${adultCount}명` : "미선택"}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-neutral-200/60">
-                  <button type="button" onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))} disabled={(adultCount || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">-</button>
+                  <button type="button" onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))} disabled={(adultCount || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">-</button>
                   <div className="text-center">
                     <span className="font-extrabold text-neutral-900 text-lg block">{adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}</span>
                   </div>
-                  <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">+</button>
+                  <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">+</button>
                 </div>
 
                 <div className="pt-1">
@@ -616,9 +680,9 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                         key={countPreset}
                         type="button"
                         onClick={() => handleAdultsChange(countPreset)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer active:scale-95 ${
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all duration-150 ease-out cursor-pointer active:scale-[0.97] ${
                           adultCount === countPreset
-                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs ring-2 ring-teal-500/30 ring-offset-1"
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
@@ -643,9 +707,9 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                       key={cityOpt.key}
                       type="button"
                       onClick={() => toggleCitySelection(cityOpt.key)}
-                      className={`min-h-[44px] px-2 py-2 rounded-xl border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center active:scale-95 ${
+                      className={`min-h-[44px] px-2 py-2 rounded-xl border text-[13px] transition-all duration-150 ease-out cursor-pointer flex items-center justify-center gap-1 text-center active:scale-[0.97] ${
                         draft.selectedCities.includes(cityOpt.key)
-                          ? "bg-teal-50/80 border-2 border-teal-600 text-teal-900 font-bold shadow-2xs"
+                          ? "bg-teal-50/80 border-2 border-teal-600 text-teal-900 font-bold shadow-2xs ring-2 ring-teal-500/30 ring-offset-1"
                           : "bg-white border-neutral-200/70 text-neutral-600 font-medium hover:border-neutral-300"
                       }`}
                     >
@@ -677,7 +741,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               type="button"
               disabled={totalNights === null}
               onClick={() => setMobileStep(2)}
-              className={`w-full min-h-[50px] rounded-[14px] text-[16px] font-bold transition-all ${
+              className={`w-full min-h-[50px] rounded-[14px] text-[16px] font-bold transition-all duration-150 ease-out active:scale-[0.97] ${
                 totalNights !== null
                   ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
                   : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
@@ -692,7 +756,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               <button
                 type="button"
                 onClick={() => setMobileStep(1)}
-                className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer"
+                className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97]"
               >
                 ← 이전
               </button>
@@ -700,7 +764,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                 type="button"
                 disabled={adultCount === null}
                 onClick={() => setMobileStep(3)}
-                className={`w-2/3 min-h-[50px] rounded-[14px] text-[15px] font-bold transition-all ${
+                className={`w-2/3 min-h-[50px] rounded-[14px] text-[15px] font-bold transition-all duration-150 ease-out active:scale-[0.97] ${
                   adultCount !== null
                     ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
@@ -716,14 +780,14 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               <button
                 type="button"
                 onClick={() => setMobileStep(2)}
-                className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer"
+                className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97]"
               >
                 ← 이전
               </button>
               <button
                 type="submit"
                 disabled={!isFormComplete}
-                className={`w-2/3 min-h-[50px] rounded-[14px] font-extrabold text-[16px] transition-all flex items-center justify-center gap-1 ${
+                className={`w-2/3 min-h-[50px] rounded-[14px] font-extrabold text-[16px] transition-all duration-150 ease-out active:scale-[0.97] flex items-center justify-center gap-1 ${
                   isFormComplete
                     ? "bg-[#b93829] text-white shadow-md hover:bg-[#a12f22] cursor-pointer"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"

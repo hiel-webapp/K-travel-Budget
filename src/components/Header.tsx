@@ -55,22 +55,22 @@ export default function Header({ locale, dict }: HeaderProps) {
   ] as const;
 
   return (
-    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50 transition-all duration-300">
+    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[94%] sm:w-[92%] max-w-5xl z-50 transition-all duration-300">
       <div
-        className={`w-full rounded-full transition-all duration-300 px-4 sm:px-6 md:px-7 ${
+        className={`w-full rounded-full transition-all duration-300 px-3 sm:px-6 md:px-7 ${
           isScrolled
             ? "bg-white/70 backdrop-blur-xl border border-neutral-200/70 shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
             : "bg-white/80 backdrop-blur-md border border-neutral-200/50 shadow-sm"
         }`}
       >
-        <div className="flex items-center justify-between h-[56px] md:h-[64px] relative">
+        <div className="flex items-center justify-between h-[54px] md:h-[64px] relative">
           
           {/* Mobile Left: Hamburger Toggle Button */}
           <div className="flex items-center md:hidden shrink-0">
             <button
               onClick={() => setIsMobileMenuOpen((prev) => !prev)}
               type="button"
-              className="p-2 text-neutral-700 hover:text-neutral-900 focus:outline-none rounded-full hover:bg-neutral-100/70 transition-all cursor-pointer"
+              className="p-2 text-neutral-700 hover:text-neutral-900 focus:outline-none rounded-full hover:bg-neutral-100/70 transition-all duration-150 ease-out active:scale-[0.95] cursor-pointer"
               aria-label={isMobileMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
               aria-expanded={isMobileMenuOpen}
             >
@@ -90,7 +90,7 @@ export default function Header({ locale, dict }: HeaderProps) {
           <div className="hidden md:flex justify-start shrink-0 items-center">
             <Link
               href={`/${locale}`}
-              className="text-xl font-black tracking-tight text-neutral-900 hover:opacity-80 transition-opacity focus-visible:outline-2 focus-visible:outline-teal-600 rounded-full py-1 shrink-0 whitespace-nowrap"
+              className="text-xl font-black tracking-tight text-neutral-900 hover:opacity-80 transition-all duration-150 ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-teal-600 rounded-full py-1 shrink-0 whitespace-nowrap"
               aria-label={dict.common.logoAlt}
             >
               HypeHeritage
@@ -101,7 +101,7 @@ export default function Header({ locale, dict }: HeaderProps) {
           <div className="md:hidden absolute left-1/2 -translate-x-1/2 pointer-events-auto">
             <Link
               href={`/${locale}`}
-              className="text-base font-black tracking-tight text-neutral-900 hover:opacity-80 transition-opacity rounded-full py-1 whitespace-nowrap"
+              className="text-base font-black tracking-tight text-neutral-900 hover:opacity-80 transition-all duration-150 ease-out active:scale-[0.97] rounded-full py-1 whitespace-nowrap"
               aria-label={dict.common.logoAlt}
             >
               HypeHeritage
@@ -117,7 +117,7 @@ export default function Header({ locale, dict }: HeaderProps) {
                   <li key={item.key} className="h-full flex items-center">
                     <Link
                       href={item.path}
-                      className={`text-[13px] tracking-tight transition-all rounded-full px-3.5 py-1.5 whitespace-nowrap flex items-center ${
+                      className={`text-[13px] tracking-tight transition-all duration-150 ease-out active:scale-[0.96] rounded-full px-3.5 py-1.5 whitespace-nowrap flex items-center ${
                         active
                           ? "bg-neutral-900 text-white font-semibold shadow-xs"
                           : "text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100/70 font-medium"
@@ -138,7 +138,7 @@ export default function Header({ locale, dict }: HeaderProps) {
             <div className="flex items-center text-[11px] font-medium border border-neutral-200/50 rounded-full p-1 bg-neutral-100/70 whitespace-nowrap">
               <Link
                 href={getLanguageLink("ko")}
-                className={`px-2.5 py-0.5 rounded-full transition-all ${
+                className={`px-2.5 py-0.5 rounded-full transition-all duration-150 ease-out active:scale-[0.95] ${
                   locale === "ko"
                     ? "bg-white text-neutral-900 shadow-xs font-semibold"
                     : "text-neutral-500 hover:text-neutral-800 font-medium"
@@ -149,7 +149,7 @@ export default function Header({ locale, dict }: HeaderProps) {
               </Link>
               <Link
                 href={getLanguageLink("en")}
-                className={`px-2.5 py-0.5 rounded-full transition-all ${
+                className={`px-2.5 py-0.5 rounded-full transition-all duration-150 ease-out active:scale-[0.95] ${
                   locale === "en"
                     ? "bg-white text-neutral-900 shadow-xs font-semibold"
                     : "text-neutral-500 hover:text-neutral-800 font-medium"
@@ -162,7 +162,7 @@ export default function Header({ locale, dict }: HeaderProps) {
 
             {/* User Profile Avatar */}
             <button
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200/80 text-neutral-600 transition-colors focus-visible:outline-2 focus-visible:outline-teal-500 shrink-0 cursor-pointer"
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200/80 text-neutral-600 transition-all duration-150 ease-out active:scale-[0.95] focus-visible:outline-2 focus-visible:outline-teal-500 shrink-0 cursor-pointer"
               aria-label={dict.common.userAccount}
               type="button"
             >

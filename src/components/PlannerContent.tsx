@@ -4729,16 +4729,29 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         {formatKrw(accTotal)}
                                       </span>
                                     </div>
-                                    {accItems.map((item) => (
-                                      <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
-                                        <span className="truncate pr-2">
-                                          {(item.sourceLabel && !item.sourceLabel.includes("Archetype") && !item.sourceLabel.includes("Mock"))
-                                            ? item.sourceLabel
-                                            : getBasketLabel(item.basketId, dict, locale, city)}
-                                        </span>
-                                        <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
-                                      </div>
-                                    ))}
+                                    {(() => {
+                                      const hasAccSelection = !!preferences.accommodationByCity?.[city];
+                                      const validItems = accItems.filter((item) => item.basketId !== "NONE" && item.sourceLabel !== "숙소 미선택");
+
+                                      if (hasAccSelection && validItems.length > 0) {
+                                        return validItems.map((item) => (
+                                          <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-600 pl-5">
+                                            <span className="truncate pr-2">
+                                              {(item.sourceLabel && !item.sourceLabel.includes("Archetype") && !item.sourceLabel.includes("Mock"))
+                                                ? item.sourceLabel
+                                                : getBasketLabel(item.basketId, dict, locale, city)}
+                                            </span>
+                                            <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                          </div>
+                                        ));
+                                      }
+
+                                      return (
+                                        <div className="text-[11px] text-slate-400 pl-5">
+                                          {locale === "ko" ? "미선택" : "Unselected"}
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
 
                                   {/* 2. 음식 */}
@@ -4751,57 +4764,65 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         {formatKrw(foodTotal)}
                                       </span>
                                     </div>
-                                    {/* 음식 품목 리스트 (관광 & 쇼핑과 동일한 직관적 플랫 리스트) */}
+                                    {/* 음식 품목 리스트 (선택된 음식이 없을 때 통일된 '미선택' 표시) */}
                                     {(() => {
                                       const primaryFood = foodItems[0];
                                       const basketPlan = isCalculatedMealPlan(primaryFood?.mealPlan)
                                         ? primaryFood.mealPlan.foodBasketPlan
                                         : undefined;
 
-                                      if (basketPlan) {
-                                        return (
-                                          <div className="space-y-1 pl-5">
-                                            {/* 선택된 대표 음식 목록 */}
-                                            {basketPlan.selectedItems.map((item) => {
-                                              const name = locale === "ko" ? item.food.nameKo : item.food.nameEn;
-                                              return (
-                                                <div key={item.food.id} className="flex justify-between items-center text-[11px] text-slate-600">
-                                                  <span className="truncate pr-2">{name} x{item.quantity}</span>
-                                                  <span className="tabular-nums font-medium text-slate-700 shrink-0">
-                                                    {formatKrw(item.subtotalKrw)}
-                                                  </span>
-                                                </div>
-                                              );
-                                            })}
+                                      const selectedFoods = basketPlan?.selectedItems || [];
+                                      const hasFoods = selectedFoods.length > 0 || cityCustomFood.length > 0;
 
+                                      if (!hasFoods) {
+                                        return (
+                                          <div className="text-[11px] text-slate-400 pl-5">
+                                            {locale === "ko" ? "미선택" : "Unselected"}
                                           </div>
                                         );
                                       }
 
-                                       return (
-                                         <div className="text-[11px] text-slate-400 pl-5 italic">
-                                           {locale === "ko" ? "담은 음식 없음" : "No foods selected"}
-                                         </div>
-                                       );
-                                    })()}
-                                    {cityCustomFood.length > 0 && (
-                                      <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">
-                                        <span className="text-[10px] font-bold text-amber-700 block">
-                                          {locale === "ko" ? "담은 맛집·카페" : "Added Gourmet"} ({cityCustomFood.length})
-                                        </span>
-                                        {cityCustomFood.map((fp) => {
-                                          const uPrice = fp.priceKrw ?? (fp as any).estimatedPriceKrw ?? (fp.category === "CAFE" ? 8000 : 18000);
-                                          const iTotal = uPrice * adultCount;
-                                          const fName = locale === "ko" ? (fp.translations?.ko?.title || (fp as any).title || (fp as any).nameKo) : (fp.translations?.en?.title || (fp as any).title || (fp as any).nameEn);
-                                          return (
-                                            <div key={fp.id} className="flex justify-between items-center text-[10px] text-slate-500">
-                                              <span className="truncate pr-2">{fName}</span>
-                                              <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(iTotal)}</span>
+                                      return (
+                                        <div className="space-y-1">
+                                          {/* 선택된 대표 음식 목록 */}
+                                          {selectedFoods.length > 0 && (
+                                            <div className="space-y-1 pl-5">
+                                              {selectedFoods.map((item) => {
+                                                const name = locale === "ko" ? item.food.nameKo : item.food.nameEn;
+                                                return (
+                                                  <div key={item.food.id} className="flex justify-between items-center text-[11px] text-slate-600">
+                                                    <span className="truncate pr-2">{name} x{item.quantity}</span>
+                                                    <span className="tabular-nums font-medium text-slate-700 shrink-0">
+                                                      {formatKrw(item.subtotalKrw)}
+                                                    </span>
+                                                  </div>
+                                                );
+                                              })}
                                             </div>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
+                                          )}
+
+                                          {/* 담은 맛집·카페 */}
+                                          {cityCustomFood.length > 0 && (
+                                            <div className="pl-5 pt-1 space-y-1 border-t border-dashed border-slate-200/80">
+                                              <span className="text-[10px] font-bold text-amber-700 block">
+                                                {locale === "ko" ? "담은 맛집·카페" : "Added Gourmet"} ({cityCustomFood.length})
+                                              </span>
+                                              {cityCustomFood.map((fp) => {
+                                                const uPrice = fp.priceKrw ?? (fp as any).estimatedPriceKrw ?? (fp.category === "CAFE" ? 8000 : 18000);
+                                                const iTotal = uPrice * adultCount;
+                                                const fName = locale === "ko" ? (fp.translations?.ko?.title || (fp as any).title || (fp as any).nameKo) : (fp.translations?.en?.title || (fp as any).title || (fp as any).nameEn);
+                                                return (
+                                                  <div key={fp.id} className="flex justify-between items-center text-[10px] text-slate-500">
+                                                    <span className="truncate pr-2">{fName}</span>
+                                                    <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(iTotal)}</span>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
                                   </div>
 
                                   {/* 3. 시내 교통 */}
@@ -4814,12 +4835,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         {formatKrw(transportTotal)}
                                       </span>
                                     </div>
-                                    {transportItems.map((item) => (
-                                      <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
-                                        <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
-                                        <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                    {transportItems.length > 0 ? (
+                                      transportItems.map((item) => (
+                                        <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
+                                          <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
+                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="text-[11px] text-slate-400 pl-5">
+                                        {locale === "ko" ? "미선택" : "Unselected"}
                                       </div>
-                                    ))}
+                                    )}
                                   </div>
 
                                   {/* 4. 관광 (사용자가 직접 담은 관광지 리스트) */}
@@ -4850,8 +4877,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         })}
                                       </div>
                                     ) : (
-                                      <div className="text-[11px] text-slate-400 pl-5 italic">
-                                        {locale === "ko" ? "담은 관광지 없음" : "No attractions selected"}
+                                      <div className="text-[11px] text-slate-400 pl-5">
+                                        {locale === "ko" ? "미선택" : "Unselected"}
                                       </div>
                                     )}
                                   </div>

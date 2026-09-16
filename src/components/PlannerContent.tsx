@@ -2878,236 +2878,170 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
             </div>
 
-            {/* 2단: 도시 이동 동선 탭 트랙 ([공항] -> [1 서울] -> [2 부산] -> [3 제주] -> [4 수원] -> [공항]) */}
-            <div
-              className="flex items-center justify-between border-b border-slate-200/90 pb-px w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0"
-              role="tablist"
-              aria-label="City route tabs"
-            >
-              {/* 출발 공항 고정 뱃지 (왼쪽 끝: 1단 여행 개요 탭 시작점과 수직 일치) */}
-              <div
-                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center shrink-0 select-none"
-                title={locale === "ko" ? "입국 공항 (여정의 시작)" : "Arrival Airport"}
-              >
-                <span>{locale === "ko" ? "공항" : "Airport"}</span>
-              </div>
-
-              {/* 공항 -> 첫 번째 도시 화살표 */}
-              <div className="flex-1 flex items-center justify-center min-w-[12px] sm:min-w-[18px] select-none text-slate-300 text-xs font-bold" aria-hidden="true">
-                ➔
-              </div>
-
+            {/* 2단: 도시 이동 동선 & 체류 기간 통합 트랙 (공항 제거, 3-in-1 일체형 카드) */}
+            <div className="space-y-2 pt-1 border-t border-slate-100">
+              {/* 체류 기간 배분 상태 요약 & 초기화 헤더 */}
               {(() => {
-                const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
-                const isMultiCity = draft.selectedCities.length > 1;
+                const selectedCities = draft.selectedCities;
+                const currentAllocatedSum = selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
+                const maxNights = draft.totalNights || 5;
+                const unallocatedNights = maxNights - currentAllocatedSum;
+                const isFull = unallocatedNights === 0;
 
-                return displayCityTabs.map((city, idx) => {
-                  const isActive = selectedCityTab === city;
-                  const isDraggingThis = dragCityTab === city;
-                  const label = locale === "ko"
-                    ? CITY_KOREAN_NAMES[city] || city
-                    : CITY_ENGLISH_NAMES[city] || city;
-
-                  return (
-                    <Fragment key={city}>
-                      <button
-                        role="tab"
-                        aria-selected={isActive}
-                        id={`city-tab-${city}`}
-                        aria-controls={`city-panel-${city}`}
-                        draggable={isMultiCity}
-                        onDragStart={(e) => handleTabDragStart(e, city)}
-                        onDragOver={(e) => handleTabDragOver(e, city)}
-                        onDrop={handleTabDrop}
-                        onDragEnd={handleTabDragEnd}
-                        onClick={() => {
-                          if (isDraggingTabRef.current) return;
-                          setSelectedCityTab(city);
-                          if (activeCategory === "CITY_TRANSPORT") {
-                            setActiveCategory("ACCOMMODATION");
-                          }
-                        }}
-                        title={
-                          isMultiCity
-                            ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
-                            : label
-                        }
-                        className={`h-8 px-2.5 sm:px-3 rounded-t-xl text-[12px] sm:text-[13px] font-bold border-t border-x transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none whitespace-nowrap flex items-center gap-1.5 shrink-0 ${
-                          isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
-                        } ${
-                          isDraggingThis
-                            ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
-                            : isActive
-                            ? "bg-[#e25c5c] text-white border-[#e25c5c] border-b-[#e25c5c] shadow-2xs z-10 font-extrabold"
-                            : "bg-[#faf9f6]/80 text-slate-600 border-slate-200/60 border-b-slate-200 hover:text-slate-900 hover:bg-white"
+                return (
+                  <div className="flex items-center justify-between gap-2 px-1 text-xs">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-slate-600 text-[11px] sm:text-xs">
+                        {locale === "ko" ? "체류 기간 배분:" : "Stay Allocation:"}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10.5px] sm:text-[11px] font-extrabold transition-colors ${
+                          isFull
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-amber-50 text-amber-800 border border-amber-200"
                         }`}
                       >
-                        {/* 동선 순서 번호 뱃지 */}
-                        {isMultiCity && (
-                          <span
-                            className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 transition-colors ${
-                              isActive
-                                ? "bg-white text-[#e25c5c]"
-                                : "bg-rose-100 text-[#e25c5c]"
-                            }`}
-                          >
-                            {idx + 1}
-                          </span>
-                        )}
-                        <span>{label}</span>
-                      </button>
+                        {isFull
+                          ? (locale === "ko" ? `전체 ${maxNights}박 배분 완료 (여유 0박)` : `All ${maxNights}N allocated (0N left)`)
+                          : (locale === "ko"
+                              ? `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`
+                              : `${currentAllocatedSum}/${maxNights}N allocated (${unallocatedNights}N left)`)}
+                      </span>
+                    </div>
 
-                      {/* 도시 간 이동 화살표 (➔) */}
-                      {idx < displayCityTabs.length - 1 && (
-                        <div className="flex-1 flex items-center justify-center min-w-[12px] sm:min-w-[18px] select-none text-slate-300 text-xs font-bold" aria-hidden="true">
-                          ➔
-                        </div>
-                      )}
-                    </Fragment>
-                  );
-                });
+                    <button
+                      type="button"
+                      onClick={handleResetCityNights}
+                      className="text-[11px] font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors px-2 py-0.5 rounded-lg hover:bg-slate-100 cursor-pointer shrink-0"
+                      title={locale === "ko" ? "기본 균등 배분으로 초기화" : "Reset to default allocation"}
+                    >
+                      <span>↻</span>
+                      <span>{locale === "ko" ? "박수 초기화" : "Reset Nights"}</span>
+                    </button>
+                  </div>
+                );
               })()}
 
-              {/* 마지막 도시 -> 귀국 공항 화살표 */}
-              <div className="flex-1 flex items-center justify-center min-w-[12px] sm:min-w-[18px] select-none text-slate-300 text-xs font-bold" aria-hidden="true">
-                ➔
-              </div>
-
-              {/* 귀국 공항 고정 뱃지 (오른쪽 끝: 1단 Info 버튼 끝점과 수직 일치) */}
+              {/* 도시 탭 트랙: 순수 도시 간 이동 화살표와 3-in-1 통합 카드 */}
               <div
-                className="h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border border-slate-200/90 bg-white text-slate-800 shadow-2xs flex items-center justify-center shrink-0 select-none"
-                title={locale === "ko" ? "귀국 공항 (여정의 마무리)" : "Departure Airport"}
+                className="flex items-center justify-between gap-1.5 w-full overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-1 min-w-0"
+                role="tablist"
+                aria-label="City route tabs"
               >
-                <span>{locale === "ko" ? "공항" : "Airport"}</span>
+                {(() => {
+                  const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
+                  const isMultiCity = draft.selectedCities.length > 1;
+                  const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
+                  const maxNights = draft.totalNights || 5;
+                  const unallocatedNights = maxNights - currentAllocatedSum;
+
+                  return displayCityTabs.map((city, idx) => {
+                    const isActive = selectedCityTab === city;
+                    const isDraggingThis = dragCityTab === city;
+                    const label = locale === "ko"
+                      ? CITY_KOREAN_NAMES[city] || city
+                      : CITY_ENGLISH_NAMES[city] || city;
+                    const currentCityNights = draft.cityNightAllocations[city] ?? 0;
+                    const maxSelectable = currentCityNights + Math.max(0, unallocatedNights);
+                    const options = Array.from({ length: maxSelectable + 1 }, (_, i) => i);
+
+                    return (
+                      <Fragment key={city}>
+                        <div
+                          role="tab"
+                          aria-selected={isActive}
+                          id={`city-tab-${city}`}
+                          aria-controls={`city-panel-${city}`}
+                          draggable={isMultiCity}
+                          onDragStart={(e) => handleTabDragStart(e, city)}
+                          onDragOver={(e) => handleTabDragOver(e, city)}
+                          onDrop={handleTabDrop}
+                          onDragEnd={handleTabDragEnd}
+                          onClick={() => {
+                            if (isDraggingTabRef.current) return;
+                            setSelectedCityTab(city);
+                            if (activeCategory === "CITY_TRANSPORT") {
+                              setActiveCategory("ACCOMMODATION");
+                            }
+                          }}
+                          title={
+                            isMultiCity
+                              ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
+                              : label
+                          }
+                          className={`flex-1 min-w-[76px] sm:min-w-[100px] py-2 px-2 sm:px-2.5 rounded-2xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none flex flex-col items-center justify-center gap-1.5 shrink-0 ${
+                            isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                          } ${
+                            isDraggingThis
+                              ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
+                              : isActive
+                              ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
+                              : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
+                          }`}
+                        >
+                          {/* 1단: 동선 순서 번호 + 도시명 */}
+                          <div className="flex items-center justify-center gap-1 min-w-0 pointer-events-none">
+                            {isMultiCity && (
+                              <span
+                                className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 transition-colors ${
+                                  isActive
+                                    ? "bg-[#e25c5c] text-white"
+                                    : "bg-rose-100 text-[#e25c5c]"
+                                }`}
+                              >
+                                {idx + 1}
+                              </span>
+                            )}
+                            <span className={`text-xs sm:text-[13px] font-black truncate max-w-[75px] sm:max-w-none ${isActive ? "text-[#e25c5c]" : "text-slate-800"}`}>
+                              {label}
+                            </span>
+                          </div>
+
+                          {/* 2단: [N박 ▾] 체류 박수 드롭다운 셀렉트 */}
+                          <div
+                            className="relative w-full max-w-[85px] sm:max-w-[95px]"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <select
+                              value={currentCityNights}
+                              onChange={(e) => {
+                                handleSetCityNights(city, Number(e.target.value));
+                              }}
+                              className={`w-full text-center appearance-none py-1 pl-2 pr-4 rounded-lg text-xs font-black cursor-pointer border transition-all focus:outline-none focus:ring-1 focus:ring-[#e25c5c] ${
+                                currentCityNights === 0
+                                  ? "bg-slate-100 text-slate-500 border-slate-300/80"
+                                  : isActive
+                                  ? "bg-white text-slate-900 border-rose-200 shadow-2xs hover:border-[#e25c5c]"
+                                  : "bg-slate-50 text-slate-900 border-slate-200 shadow-2xs hover:border-[#e25c5c]"
+                              }`}
+                            >
+                              {options.map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt === 0 ? (locale === "ko" ? "당일 (0박)" : "Day (0N)") : `${opt}${locale === "ko" ? "박" : "N"}`}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400 text-[8px]">
+                              ▼
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 도시 간 이동 화살표 (➔) - 마지막 도시 제외 */}
+                        {idx < displayCityTabs.length - 1 && (
+                          <div className="flex items-center justify-center min-w-[12px] sm:min-w-[18px] select-none text-slate-300 text-xs font-bold shrink-0" aria-hidden="true">
+                            ➔
+                          </div>
+                        )}
+                      </Fragment>
+                    );
+                  });
+                })()}
               </div>
             </div>
           </div>
-
-          {/* City Stay Duration Zero-Sum Panorama Bar (상하 2단 드롭다운 그리드) */}
-          {selectedCityTab !== "ALL" && (() => {
-            const selectedCities = draft.selectedCities;
-            if (!selectedCities || selectedCities.length === 0) return null;
-
-            const currentAllocatedSum = selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
-            const maxNights = draft.totalNights || 5;
-            const unallocatedNights = maxNights - currentAllocatedSum;
-            const isFull = unallocatedNights === 0;
-
-            return (
-              <div className="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-3.5 shadow-2xs space-y-2.5">
-                {/* 상단 상태 헤더 바 */}
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-bold text-slate-700">
-                      {locale === "ko" ? "체류 기간 배분:" : "Stay Allocation:"}
-                    </span>
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold transition-colors ${
-                        isFull
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : "bg-amber-50 text-amber-800 border border-amber-200"
-                      }`}
-                    >
-                      {isFull
-                        ? (locale === "ko" ? `전체 ${maxNights}박 배분 완료 (여유 0박)` : `All ${maxNights}N allocated (0N left)`)
-                        : (locale === "ko"
-                            ? `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`
-                            : `${currentAllocatedSum}/${maxNights}N allocated (${unallocatedNights}N left)`)}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleResetCityNights}
-                    className="text-[11px] font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors px-2 py-1 rounded-lg hover:bg-slate-100 cursor-pointer"
-                    title={locale === "ko" ? "기본 균등 배분으로 초기화" : "Reset to default allocation"}
-                  >
-                    <span>↻</span>
-                    <span>{locale === "ko" ? "기본값 초기화" : "Reset"}</span>
-                  </button>
-                </div>
-
-                {/* 가로 N개 도시 상하 2단 그리드 */}
-                <div
-                  className={`grid gap-2 ${
-                    selectedCities.length === 1
-                      ? "grid-cols-1"
-                      : selectedCities.length === 2
-                      ? "grid-cols-2"
-                      : selectedCities.length === 3
-                      ? "grid-cols-3"
-                      : "grid-cols-2 sm:grid-cols-4"
-                  }`}
-                >
-                  {selectedCities.map((city, idx) => {
-                    const currentCityNights = draft.cityNightAllocations[city] ?? 0;
-                    const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
-                    
-                    const maxSelectable = currentCityNights + Math.max(0, unallocatedNights);
-                    const options = Array.from({ length: maxSelectable + 1 }, (_, i) => i);
-                    const isCurrentTab = selectedCityTab === city;
-
-                    return (
-                      <div
-                        key={city}
-                        onClick={() => {
-                          setSelectedCityTab(city);
-                          if (activeCategory === "CITY_TRANSPORT") setActiveCategory("ACCOMMODATION");
-                        }}
-                        className={`p-2 sm:p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                          isCurrentTab
-                            ? "bg-rose-50/50 border-[#e25c5c] ring-1 ring-[#e25c5c]/20 shadow-xs"
-                            : "bg-slate-50/70 border-slate-200/80 hover:bg-white hover:border-slate-300"
-                        }`}
-                      >
-                        {/* 1단: 도시명 (순서 번호 포함) */}
-                        <div className="flex items-center justify-center gap-1 mb-1.5">
-                          <span
-                            className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 ${
-                              isCurrentTab ? "bg-[#e25c5c] text-white" : "bg-slate-200 text-slate-600"
-                            }`}
-                          >
-                            {idx + 1}
-                          </span>
-                          <span
-                            className={`text-xs font-black truncate max-w-[85px] sm:max-w-none ${
-                              isCurrentTab ? "text-[#e25c5c]" : "text-slate-800"
-                            }`}
-                          >
-                            {cityName}
-                          </span>
-                        </div>
-
-                        {/* 2단: [N박▾] 컴팩트 드롭다운 셀렉트 */}
-                        <div className="relative inline-block w-full max-w-[100px]" onClick={(e) => e.stopPropagation()}>
-                          <select
-                            value={currentCityNights}
-                            onChange={(e) => {
-                              handleSetCityNights(city, Number(e.target.value));
-                            }}
-                            className={`w-full text-center appearance-none py-1 pl-2.5 pr-5 rounded-lg text-xs font-black cursor-pointer border transition-all focus:outline-none focus:ring-1 focus:ring-[#e25c5c] ${
-                              currentCityNights === 0
-                                ? "bg-slate-100 text-slate-500 border-slate-300/80"
-                                : "bg-white text-slate-900 border-slate-200 shadow-2xs hover:border-[#e25c5c]"
-                            }`}
-                          >
-                            {options.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt === 0 ? (locale === "ko" ? "당일 (0박)" : "Day (0N)") : `${opt}${locale === "ko" ? "박" : "N"}`}
-                              </option>
-                            ))}
-                          </select>
-                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5 text-slate-400 text-[9px]">
-                            ▼
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })()}
 
           {/* Category Tabs / Cards (Only shown for individual city tabs: 3 categories with independent city amounts & status badges) */}
           {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {

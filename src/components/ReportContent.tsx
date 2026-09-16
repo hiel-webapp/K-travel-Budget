@@ -34,6 +34,7 @@ import {
 } from "../features/budget/catalog/attraction-spots";
 import { THEME_ACTIVITIES_CATALOG, themeActivityToAttractionSpot } from "../features/budget/catalog/theme-activities";
 import { STAY_ARCHETYPES, getStayArchetypePrice } from "../features/budget/catalog/stay-archetypes";
+import ReportBentoDashboard from "./report/ReportBentoDashboard";
 
 interface ReportContentProps {
   locale: Locale;
@@ -388,42 +389,32 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
 
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-6 text-slate-800 print:p-0 print:space-y-4">
-      {/* 1. Header with Actions (밝고 단정한 라이트 카드) */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 print:border-b-2 print:shadow-none">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+      {/* 1. Header with Route & Metadata (Craft.do 감성의 단정한 글래스 카드) */}
+      <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] print:border-b-2 print:shadow-none">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-neutral-100 pb-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-extrabold tracking-tight text-[#e25c5c] uppercase bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
+              <span className="text-[11px] font-extrabold tracking-tight text-teal-800 uppercase bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
                 HypeHeritage Travel Report
               </span>
-              <span className="text-xs font-semibold text-slate-500">
+              <span className="text-xs font-semibold text-neutral-500">
                 {totalNights}{locale === "ko" ? "박 " : "N "}{travelDays}{locale === "ko" ? "일" : "D"} · {adultCount}{locale === "ko" ? "인 성인" : " Adults"}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
               {dict.planner.reportTitle}
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
+            <p className="text-xs text-neutral-500 font-medium">
               {dict.planner.reportSubtitle}
             </p>
           </div>
 
-          {/* Action Tools */}
+          {/* Action Tools for Print / Edit */}
           <div className="flex items-center gap-2 shrink-0 print:hidden">
             <button
               type="button"
-              onClick={() => window.print()}
-              className="inline-flex h-9 px-3.5 items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors cursor-pointer shadow-2xs"
-            >
-              <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H7v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              <span>{locale === "ko" ? "인쇄 / PDF 저장" : "Print / PDF"}</span>
-            </button>
-            <button
-              type="button"
               onClick={() => router.push(`/${locale}/planner`)}
-              className="inline-flex h-9 px-3.5 items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex h-9 px-4 items-center gap-1.5 rounded-full bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs transition-transform duration-150 ease-out active:scale-95 cursor-pointer shadow-xs"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -434,19 +425,19 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         </div>
 
         {/* Selected Cities Tag Strip */}
-        <div className="pt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
-          <span className="text-slate-400 font-bold uppercase text-[10px]">ROUTE:</span>
+        <div className="pt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-neutral-600">
+          <span className="text-neutral-400 font-bold uppercase text-[10px] tracking-wider">ROUTE:</span>
           <div className="flex flex-wrap items-center gap-1.5">
             {draft.selectedCities.map((city, idx) => {
               const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
               const nights = draft.cityNightAllocations[city] || 0;
               return (
                 <React.Fragment key={city}>
-                  <span className="bg-slate-50 border border-slate-200/80 text-slate-800 px-2.5 py-1 rounded-lg text-xs font-bold">
+                  <span className="bg-neutral-100/80 border border-neutral-200/60 text-neutral-800 px-3 py-1 rounded-full text-xs font-bold">
                     {cityName} ({nights === 0 ? (locale === "ko" ? "당일" : "Day") : `${nights}${locale === "ko" ? "박" : "N"}`})
                   </span>
                   {idx < draft.selectedCities.length - 1 && (
-                    <span className="text-slate-300 font-bold text-xs">➔</span>
+                    <span className="text-neutral-300 font-bold text-xs">➔</span>
                   )}
                 </React.Fragment>
               );
@@ -455,98 +446,13 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         </div>
       </div>
 
-      {/* 2. Executive Financial KPI Strip (도시 탭 스타일의 밝고 세련된 화이트 카드) */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
-          {/* Total Budget */}
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-              {locale === "ko" ? "총 예상 경비" : "Estimated Total"}
-            </span>
-            <div className="text-2xl sm:text-3xl font-black tracking-tight tabular-nums text-slate-900">
-              {formatKrw(grandTotalKrw)}
-            </div>
-            <span className="text-[11px] text-slate-400 font-semibold block">
-              {locale === "ko" ? "직접 담은 항목 실비 종합" : "Selected items sum"}
-            </span>
-          </div>
-
-          {/* Per Traveler */}
-          <div className="space-y-1 pt-3 lg:pt-0 lg:pl-6">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                {locale === "ko" ? "1인당 예상 경비" : "Per Traveler"}
-              </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                {adultCount}{locale === "ko" ? "인 기준" : " Pax"}
-              </span>
-            </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight tabular-nums text-slate-900">
-              {formatKrw(perTravelerTotalKrw)}
-            </div>
-            <span className="text-[11px] text-slate-400 font-semibold block">
-              {adultCount}{locale === "ko" ? "인 균등 분할 계산" : " Divided by adults"}
-            </span>
-          </div>
-
-          {/* Daily Average */}
-          <div className="space-y-1 pt-3 lg:pt-0 lg:pl-6">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                {locale === "ko" ? "하루 평균 예산" : "Daily Average"}
-              </span>
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                {travelDays}{locale === "ko" ? "일간" : " Days"}
-              </span>
-            </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight tabular-nums text-slate-900">
-              {formatKrw(dailyAverageKrw)}
-            </div>
-            <span className="text-[11px] text-slate-400 font-semibold block">
-              {travelDays}{locale === "ko" ? "일간 일일 지출" : " Days daily spending"}
-            </span>
-          </div>
-
-          {/* Target Health Gauge */}
-          <div className="space-y-1 pt-3 lg:pt-0 lg:pl-6">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                {locale === "ko" ? "목표 예산 비교" : "Target Health"}
-              </span>
-              {targetBudget > 0 && (
-                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                  isOverBudget ? "bg-rose-50 text-rose-600 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                }`}>
-                  {isOverBudget ? (locale === "ko" ? "예산 초과" : "Over") : (locale === "ko" ? "충족" : "Safe")}
-                </span>
-              )}
-            </div>
-
-            {targetBudget > 0 ? (
-              <div className="space-y-1.5 pt-1">
-                <div className="flex items-baseline justify-between gap-2 text-xs font-bold tabular-nums">
-                  <span className="text-slate-600 shrink-0">{formatPercentage(targetUsagePercent)}</span>
-                  <span className={`shrink-0 ${isOverBudget ? "text-rose-600" : "text-emerald-700"}`}>
-                    {isOverBudget ? `+ ${formatKrw(diffAmount)}` : `- ${formatKrw(diffAmount)}`}
-                  </span>
-                </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      isOverBudget ? "bg-rose-500" : "bg-emerald-500"
-                    }`}
-                    style={{ width: `${Math.min(targetUsagePercent, 100)}%` }}
-                  />
-                </div>
-              </div>
-            ) : (
-              <span className="text-xs text-slate-400 font-semibold block pt-1.5">
-                {locale === "ko" ? "목표 예산 미설정" : "No target set"}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* 2. Executive Bento Grid Dashboard (Apple & Craft.do Asymmetric Grid) */}
+      <ReportBentoDashboard
+        calculations={calculations}
+        draft={draft}
+        locale={locale}
+        dict={dict}
+      />
 
       {/* 3. Balanced 2-Column Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -555,7 +461,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         {/* ========================================================================= */}
         <div className="lg:col-span-6 space-y-6">
           {/* Card: Budget Architecture Visual Gauges */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-4">
             <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
               <h2 className="text-sm font-black text-slate-900 tracking-tight">
                 {locale === "ko" ? "예산 구조 분석 및 지출 비중" : "Budget Architecture & Allocation"}
@@ -633,7 +539,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           </div>
 
           {/* Card: City Financial Audit Table */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-3">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">
             <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
               <h2 className="text-sm font-black text-slate-900 tracking-tight">
                 {locale === "ko" ? "도시별 4대 부문 지출 집계" : "City-by-City Expense Breakdown"}
@@ -681,7 +587,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
 
           {/* Card: Recommended Tour Courses (Curated Route Guide) */}
           {recommendedCourses.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-3">
+            <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">
               <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
                 <h2 className="text-sm font-black text-slate-900 tracking-tight">
                   {locale === "ko" ? "선택 도시 추천 코스 & 최적 동선 가이드" : "Curated Route & Tour Presets"}
@@ -698,11 +604,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   return (
                     <div
                       key={course.id}
-                      className="p-3.5 rounded-xl border border-slate-200/70 bg-slate-50/50 space-y-2"
+                      className="p-3.5 rounded-2xl border border-neutral-200/70 bg-neutral-50/70 space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black bg-slate-800 text-white px-2 py-0.5 rounded uppercase">
+                          <span className="text-[9px] font-black bg-neutral-900 text-white px-2 py-0.5 rounded-full uppercase">
                             {cityName}
                           </span>
                           <h3 className="text-xs font-bold text-slate-900">
@@ -725,11 +631,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           const spotName = spot ? (locale === "ko" ? spot.nameKo : spot.nameEn) : sid;
                           return (
                             <React.Fragment key={sid}>
-                              <span className="text-[10px] font-medium bg-white text-slate-800 px-2 py-0.5 rounded border border-slate-200">
+                              <span className="text-[10px] font-medium bg-white text-slate-800 px-2.5 py-0.5 rounded-full border border-neutral-200/80 shadow-2xs">
                                 {spotName}
                               </span>
                               {sIdx < course.spotIds.length - 1 && (
-                                <span className="text-slate-300 text-[10px] font-bold">➔</span>
+                                <span className="text-neutral-300 text-[10px] font-bold">➔</span>
                               )}
                             </React.Fragment>
                           );
@@ -744,7 +650,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
 
           {/* Card: Personalized K-Trend Tips */}
           {personalizedTrends.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-3">
+            <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">
               <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
                 <h2 className="text-sm font-black text-slate-900 tracking-tight">
                   {dict.trendSection.personalizedTitle}
@@ -761,16 +667,16 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   return (
                     <div
                       key={trend.id || idx}
-                      className="p-3 rounded-xl border border-slate-200/70 bg-slate-50/60 flex flex-col justify-between space-y-2 text-xs"
+                      className="p-3.5 rounded-2xl border border-neutral-200/70 bg-neutral-50/70 flex flex-col justify-between space-y-2 text-xs"
                     >
                       <div className="space-y-1">
-                        <span className="text-[9px] font-black text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded inline-block">
+                        <span className="text-[9px] font-black text-neutral-700 bg-white border border-neutral-200/80 px-2 py-0.5 rounded-full inline-block">
                           {cityName}
                         </span>
                         <h3 className="font-bold text-slate-900">{trans.title}</h3>
                         <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{trans.overview}</p>
                       </div>
-                      <div className="pt-1.5 border-t border-slate-200/50 text-[10px] text-slate-500">
+                      <div className="pt-1.5 border-t border-neutral-200/50 text-[10px] text-slate-500">
                         <span className="font-semibold text-slate-700">{reason}</span>
                       </div>
                     </div>
@@ -785,9 +691,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         {/* RIGHT COLUMN: OFFICIAL SMART RECEIPT (사용자가 직접 담은 항목만 100% 일치) */}
         {/* ========================================================================= */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
             {/* Receipt Header */}
-            <div className="bg-slate-50 border-b border-slate-200/80 p-4 sm:p-5 flex items-center justify-between">
+            <div className="bg-neutral-50/80 border-b border-neutral-200/70 p-4 sm:p-5 flex items-center justify-between">
               <div>
                 <span className="text-[10px] tracking-widest text-slate-400 block uppercase font-bold">
                   ITEMIZED EXPENSE AUDIT

@@ -24,7 +24,6 @@ import {
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { Locale } from "src/lib/i18n/locales";
 import TravelPresetSelector from "src/components/landing/TravelPresetSelector";
-import BudgetBentoDashboard from "src/components/landing/BudgetBentoDashboard";
 import {
   TravelPreset,
   TravelPresetId,
@@ -546,9 +545,6 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               </div>
             </div>
 
-            {/* ================= Phase 3: 실시간 예산 비대칭 벤토 그리드 대시보드 ================= */}
-            <BudgetBentoDashboard draft={draft} locale={locale} />
-
             {/* PC Bottom CTA Area */}
             <div className="mt-8 pt-6 border-t border-neutral-200/60 flex flex-col items-center gap-4">
               <div className="text-center text-[14px] text-neutral-600 font-medium py-2 px-5 rounded-full bg-neutral-100/70 max-w-lg mx-auto border border-neutral-200/60 flex items-center justify-center shadow-2xs">
@@ -720,11 +716,6 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                 </div>
               </div>
             )}
-
-            {/* Mobile Real-time Budget Bento Dashboard */}
-            <div className="mt-4">
-              <BudgetBentoDashboard draft={draft} locale={locale} />
-            </div>
           </div>
         )}
       </div>

@@ -31,6 +31,7 @@ import {
   AttractionSpot,
   isSameSpot,
   normalizeSpotKey,
+  registerCustomAttractionSpots,
 } from "../features/budget/catalog/attraction-spots";
 import { THEME_ACTIVITIES_CATALOG, themeActivityToAttractionSpot } from "../features/budget/catalog/theme-activities";
 import { STAY_ARCHETYPES, getStayArchetypePrice } from "../features/budget/catalog/stay-archetypes";
@@ -50,6 +51,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const [preferences, setPreferences] = useState<PlannerPreferences | null>(null);
   const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
   const [budgetPlaces, setBudgetPlaces] = useState<any[]>([]);
+  const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, AttractionSpot[]>>({});
 
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
@@ -60,6 +62,28 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           const res = loadPlannerPreferencesEx(loadedDraft);
           if (res.status === "valid") {
             setPreferences(res.preferences);
+          }
+
+          // 도시별 최신 관광지 DB 카탈로그 프리페치 (플래너와 100% 동일한 DB 명소 입장료 동기화)
+          if (Array.isArray(loadedDraft.selectedCities)) {
+            loadedDraft.selectedCities.forEach(async (city) => {
+              try {
+                const res = await fetch(`/api/catalog/attractions?city=${city}`);
+                const json = await res.json();
+                const validData = Array.isArray(json.data)
+                  ? json.data.filter((spot: any) => spot.cityCode === city)
+                  : [];
+                if (json.success && validData.length > 0) {
+                  registerCustomAttractionSpots(validData);
+                  setDbAttractionsByCity((prev) => ({
+                    ...prev,
+                    [city]: validData,
+                  }));
+                }
+              } catch (e) {
+                console.warn("[Report] Failed to fetch city attractions for:", city, e);
+              }
+            });
           }
         }
         setSavedPlaceIds(loadSavedPlaceIds());
@@ -79,8 +103,8 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   // 플래너와 100% 동일한 정밀 종합 예산 계산
   const calculations = useMemo(() => {
     if (!draft || !preferences) return null;
-    return calculateTripBudgetSummary(draft, preferences, budgetPlaces, locale);
-  }, [draft, preferences, budgetPlaces, locale]);
+    return calculateTripBudgetSummary(draft, preferences, budgetPlaces, locale, dbAttractionsByCity);
+  }, [draft, preferences, budgetPlaces, locale, dbAttractionsByCity]);
 
   if (!isHydrated) {
     return (

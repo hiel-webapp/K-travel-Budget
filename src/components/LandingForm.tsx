@@ -409,9 +409,11 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                   <span className="text-xl">→</span>
                 </button>
 
-                <span className="text-sm text-[#666b73] font-normal">
-                  {isFormComplete ? dict.landing.helper : "3가지 필수 여행 항목(기간, 인원, 목적지)을 모두 선택해 주세요."}
-                </span>
+                {!isFormComplete && (
+                  <span className="text-sm text-[#666b73] font-normal">
+                    3가지 필수 여행 항목(기간, 인원, 목적지)을 모두 선택해 주세요.
+                  </span>
+                )}
               </div>
             </div>
           </div>

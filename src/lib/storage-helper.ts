@@ -1008,7 +1008,12 @@ export function loadSavedTrips(): SavedTripItem[] {
   }
 }
 
-export function saveSavedTrip(
+export function getSingleSavedTrip(): SavedTripItem | null {
+  const trips = loadSavedTrips();
+  return trips.length > 0 ? trips[0] : null;
+}
+
+export function saveSingleTrip(
   title: string,
   draft: TripDraft,
   preferences: PlannerPreferences,
@@ -1016,7 +1021,6 @@ export function saveSavedTrip(
 ): boolean {
   if (!isClient()) return false;
   try {
-    const trips = loadSavedTrips();
     const id = generateTripFingerprint(draft);
     const nowStr = new Date().toISOString();
 
@@ -1025,20 +1029,19 @@ export function saveSavedTrip(
       new Set(currentPlaceIds.filter((pid): pid is string => typeof pid === "string" && pid.trim().length > 0))
     );
 
-    const nextTrips = trips.filter((t) => t.id !== id);
-    nextTrips.unshift({
+    const singleTrip: SavedTripItem = {
       id,
       title: title || `Trip to ${draft.selectedCities.join(" & ")}`,
       savedAt: nowStr,
       draft,
       preferences,
       savedPlaceIds: cleanPlaceIds,
-    });
+    };
 
     const envelope: SavedTripsEnvelope = {
       schemaVersion: 1,
       savedAt: nowStr,
-      trips: nextTrips,
+      trips: [singleTrip],
     };
 
     localStorage.setItem("hypeheritage_saved_trips", JSON.stringify(envelope));
@@ -1046,6 +1049,25 @@ export function saveSavedTrip(
   } catch {
     return false;
   }
+}
+
+export function deleteSingleSavedTrip(): boolean {
+  if (!isClient()) return false;
+  try {
+    localStorage.removeItem("hypeheritage_saved_trips");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function saveSavedTrip(
+  title: string,
+  draft: TripDraft,
+  preferences: PlannerPreferences,
+  savedPlaceIds?: string[]
+): boolean {
+  return saveSingleTrip(title, draft, preferences, savedPlaceIds);
 }
 
 export function deleteSavedTrip(id: string): boolean {

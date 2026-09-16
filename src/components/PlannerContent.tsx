@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
-import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces, generateTripFingerprint } from "../lib/storage-helper";
+import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, saveSingleTrip, getSingleSavedTrip, deleteSingleSavedTrip, restoreSavedTrip, SavedTripItem, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces, generateTripFingerprint } from "../lib/storage-helper";
 import type { PlaceItem } from "../lib/places/types";
 
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle, FoodBasketItemSelection } from "../features/budget/domain/types";
@@ -560,6 +560,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [savedTripItem, setSavedTripItem] = useState<SavedTripItem | null>(null);
   const [isResetPlanModalOpen, setIsResetPlanModalOpen] = useState(false);
   const [isResetNightsMenuOpen, setIsResetNightsMenuOpen] = useState(false);
   const [saveTitle, setSaveTitle] = useState("");
@@ -582,6 +584,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      setSavedTripItem(getSingleSavedTrip());
       setBudgetPlaces(loadBudgetPlaces());
       const handleSync = () => {
         setBudgetPlaces(loadBudgetPlaces());
@@ -2163,16 +2166,87 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
 
-  const handleSaveTripPlan = (e: React.FormEvent) => {
-    e.preventDefault();
+  const getAutoTripTitle = (d: TripDraft) => {
+    const cityNames = d.selectedCities
+      .map((c) => (locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c))
+      .join("·");
+    const nights = d.totalNights || 1;
+    const adults = d.adultCount || 1;
+    return locale === "ko"
+      ? `${cityNames} ${nights}박 ${nights + 1}일 (${adults}인)`
+      : `${cityNames} ${nights}N${nights + 1}D (${adults}p)`;
+  };
+
+  const handleSaveTripClick = () => {
     if (!latestPrefsRef.current) return;
-    const success = saveSavedTrip(saveTitle, draft, latestPrefsRef.current);
+    const existing = getSingleSavedTrip();
+    if (existing) {
+      setSavedTripItem(existing);
+      setIsSaveModalOpen(true);
+    } else {
+      const autoTitle = getAutoTripTitle(draft);
+      const success = saveSingleTrip(autoTitle, draft, latestPrefsRef.current);
+      if (success) {
+        setSavedTripItem(getSingleSavedTrip());
+        setToastMessage(
+          locale === "ko"
+            ? `현재 여행 일정("${autoTitle}")이 저장되었습니다.`
+            : `Trip "${autoTitle}" saved successfully.`
+        );
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    }
+  };
+
+  const handleConfirmOverwrite = () => {
+    if (!latestPrefsRef.current) return;
+    const autoTitle = getAutoTripTitle(draft);
+    const success = saveSingleTrip(autoTitle, draft, latestPrefsRef.current);
     if (success) {
-      setToastMessage(dict.planner.saveTripSuccess);
+      setSavedTripItem(getSingleSavedTrip());
       setIsSaveModalOpen(false);
-      setSaveTitle("");
+      setToastMessage(
+        locale === "ko"
+          ? `기존 여행을 덮어쓰고 "${autoTitle}" 일정이 저장되었습니다.`
+          : `Overwrote existing trip with "${autoTitle}".`
+      );
       setTimeout(() => setToastMessage(null), 3000);
     }
+  };
+
+  const handleConfirmRestore = () => {
+    if (!savedTripItem) return;
+    const success = restoreSavedTrip(savedTripItem.id);
+    if (success) {
+      latestPrefsRef.current = savedTripItem.preferences;
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          draft: savedTripItem.draft,
+          preferences: savedTripItem.preferences,
+        };
+      });
+      setIsRestoreModalOpen(false);
+      setToastMessage(
+        locale === "ko"
+          ? `저장된 "${savedTripItem.title}" 일정을 성공적으로 불러왔습니다.`
+          : `Loaded saved trip "${savedTripItem.title}".`
+      );
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+
+  const handleDeleteSavedTrip = () => {
+    deleteSingleSavedTrip();
+    setSavedTripItem(null);
+    setIsRestoreModalOpen(false);
+    setToastMessage(
+      locale === "ko"
+        ? "저장된 여행 일정이 삭제되었습니다."
+        : "Saved trip has been deleted."
+    );
+    setTimeout(() => setToastMessage(null), 2500);
   };
 
   const handleResetAllPlan = () => {
@@ -4941,11 +5015,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 </div>
                 {/* 여행 저장 버튼 (1열 풀 너비) */}
                 <button
-                  onClick={() => setIsSaveModalOpen(true)}
-                  className="w-full h-10 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs text-center transition-colors cursor-pointer"
+                  onClick={handleSaveTripClick}
+                  className="w-full h-10 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                 >
+                  <span>💾</span>
                   <span>{dict.planner.saveTrip}</span>
                 </button>
+
+                {/* 저장된 여행 불러오기 버튼 (저장된 여행이 있을 때만 노출) */}
+                {savedTripItem && (
+                  <button
+                    type="button"
+                    onClick={() => setIsRestoreModalOpen(true)}
+                    className="w-full h-10 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 text-xs font-bold transition-all flex items-center justify-between cursor-pointer group shadow-2xs"
+                    title={locale === "ko" ? "저장된 여행 불러오기" : "Load saved trip"}
+                  >
+                    <span className="flex items-center gap-1.5 min-w-0 truncate">
+                      <span className="text-emerald-600 font-black text-sm">↺</span>
+                      <span className="truncate text-slate-800 font-extrabold">{savedTripItem.title}</span>
+                    </span>
+                    <span className="text-[10.5px] text-emerald-700 font-bold shrink-0 ml-1.5 px-2 py-0.5 rounded-md bg-white border border-emerald-200 group-hover:bg-emerald-50">
+                      {locale === "ko" ? "불러오기" : "Load"}
+                    </span>
+                  </button>
+                )}
                 {[
                   { label: dict.planner.shareReceipt, key: "share" }
                 ].map((btn) => (
@@ -4984,18 +5077,89 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         </div>
       )}
 
-      {/* Save Trip Modal */}
+      {/* Save / Overwrite Trip Modal */}
       <SaveTripModal
         isOpen={isSaveModalOpen}
-        saveTitle={saveTitle}
-        onSaveTitleChange={setSaveTitle}
-        onClose={() => {
-          setIsSaveModalOpen(false);
-          setSaveTitle("");
-        }}
-        onSave={handleSaveTripPlan}
+        onClose={() => setIsSaveModalOpen(false)}
+        onConfirmOverwrite={handleConfirmOverwrite}
+        existingTrip={savedTripItem}
+        newTripTitle={getAutoTripTitle(draft)}
+        locale={locale}
         dict={dict}
       />
+
+      {/* Restore Trip Modal */}
+      {isRestoreModalOpen && savedTripItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="restore-trip-modal-title"
+          onClick={() => setIsRestoreModalOpen(false)}
+        >
+          <div
+            className="bg-white max-w-md w-full rounded-2xl border border-slate-200/90 shadow-2xl p-5 sm:p-6 space-y-4 text-left animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {locale === "ko" ? "저장된 여행 불러오기" : "Restore Saved Trip"}
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              <h3 id="restore-trip-modal-title" className="text-base font-extrabold text-[#0f172a] tracking-tight">
+                {locale === "ko" ? "저장된 여행 일정을 불러오시겠습니까?" : "Restore saved trip itinerary?"}
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {locale === "ko"
+                  ? "저장된 여행을 불러오면 현재 작성 중인 미저장 내용은 보관된 여행 일정으로 교체됩니다."
+                  : "Restoring the saved trip will replace your current unsaved itinerary."}
+              </p>
+            </div>
+
+            <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 space-y-1">
+              <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider block">
+                {locale === "ko" ? "보관 중인 여행" : "Saved Trip Details"}
+              </span>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-black text-slate-800 truncate">
+                  {savedTripItem.title}
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                  {new Date(savedTripItem.savedAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={handleDeleteSavedTrip}
+                className="text-xs font-bold text-rose-500 hover:text-rose-700 hover:underline p-1 cursor-pointer transition-colors"
+              >
+                {locale === "ko" ? "저장 삭제" : "Delete"}
+              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRestoreModalOpen(false)}
+                  className="h-9 px-4 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs cursor-pointer transition-colors"
+                >
+                  {locale === "ko" ? "취소" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmRestore}
+                  className="h-9 px-4 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 active:bg-emerald-800 font-bold text-xs cursor-pointer transition-colors shadow-2xs"
+                >
+                  {locale === "ko" ? "불러오기 실행" : "Confirm Restore"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================= ↺ 계획 초기화 확인 모달 ================= */}
       {isResetPlanModalOpen && (

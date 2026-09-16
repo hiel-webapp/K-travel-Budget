@@ -253,10 +253,11 @@ export function formatKrw(amount: number): string {
 }
 
 /**
- * 예산 사용률을 소수점 첫째자리 백분율 스트링으로 반환
+ * 예산 사용률을 소수점 첫째자리 백분율 스트링으로 반환 (예: 26.1%)
  */
 export function formatPercentage(ratio: number): string {
-  return `${ratio}%`;
+  if (isNaN(ratio) || !isFinite(ratio)) return "0.0%";
+  return `${ratio.toFixed(1)}%`;
 }
 
 /**

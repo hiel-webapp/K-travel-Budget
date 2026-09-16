@@ -524,10 +524,10 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
 
             {targetBudget > 0 ? (
               <div className="space-y-1.5 pt-1">
-                <div className="flex items-baseline justify-between text-xs font-mono font-bold">
-                  <span className="text-slate-600">{formatPercentage(targetUsagePercent)}</span>
-                  <span className={isOverBudget ? "text-rose-600" : "text-emerald-700"}>
-                    {isOverBudget ? `+${formatKrw(diffAmount)}` : `-${formatKrw(diffAmount)}`}
+                <div className="flex items-baseline justify-between gap-2 text-xs font-bold tabular-nums">
+                  <span className="text-slate-600 shrink-0">{formatPercentage(targetUsagePercent)}</span>
+                  <span className={`shrink-0 ${isOverBudget ? "text-rose-600" : "text-emerald-700"}`}>
+                    {isOverBudget ? `+ ${formatKrw(diffAmount)}` : `- ${formatKrw(diffAmount)}`}
                   </span>
                 </div>
                 <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -566,7 +566,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-600">{locale === "ko" ? "카테고리별 비중" : "Category Breakdown"}</span>
-                <span className="font-mono font-bold text-slate-900 text-xs">{formatKrw(grandTotalKrw)}</span>
+                <span className="font-bold text-slate-900 text-xs tabular-nums">{formatKrw(grandTotalKrw)}</span>
               </div>
               <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
                 {categoryGauges.map((item, idx) => {
@@ -586,7 +586,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   <div key={idx} className="flex items-center gap-1 min-w-0">
                     <span className={`h-2 w-2 rounded-full ${item.color} shrink-0`}></span>
                     <span className="font-semibold text-slate-700 truncate text-[10px]">{item.label}</span>
-                    <span className="font-mono font-bold text-slate-900 ml-auto text-[10px]">{item.pct}%</span>
+                    <span className="font-bold text-slate-900 ml-auto text-[10px] tabular-nums">{item.pct}%</span>
                   </div>
                 ))}
               </div>
@@ -596,7 +596,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-bold text-slate-600">{locale === "ko" ? "도시별 비중" : "City Allocation"}</span>
-                <span className="font-mono font-bold text-slate-900 text-xs">{formatKrw(sumCitySubtotals)}</span>
+                <span className="font-bold text-slate-900 text-xs tabular-nums">{formatKrw(sumCitySubtotals)}</span>
               </div>
               <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
                 {draft.selectedCities.map((city, idx) => {
@@ -624,7 +624,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     <div key={city} className="flex items-center gap-1.5">
                       <span className={`h-2 w-2 rounded-full ${palette.bg} shrink-0`}></span>
                       <span className="font-semibold text-slate-700 text-[11px]">{cityName}</span>
-                      <span className="font-mono font-bold text-slate-900 text-[11px]">{pct}%</span>
+                      <span className="font-bold text-slate-900 text-[11px] tabular-nums">{pct}%</span>
                     </div>
                   );
                 })}
@@ -663,14 +663,14 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                         <td className="py-2.5 font-bold text-slate-900">
                           {locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
                         </td>
-                        <td className="py-2.5 text-center text-slate-500 font-mono text-[11px]">
+                        <td className="py-2.5 text-center text-slate-500 text-[11px] tabular-nums">
                           {cInfo.nights === 0 ? (locale === "ko" ? "당일" : "Day") : `${cInfo.nights}N`}
                         </td>
-                        <td className="py-2.5 text-right font-mono text-slate-600">{formatKrw(cInfo.stayTotalKrw)}</td>
-                        <td className="py-2.5 text-right font-mono text-slate-600">{formatKrw(cInfo.foodTotalKrw)}</td>
-                        <td className="py-2.5 text-right font-mono text-slate-600">{formatKrw(cInfo.transportTotalKrw)}</td>
-                        <td className="py-2.5 text-right font-mono text-slate-600">{formatKrw(cInfo.attractionTotalKrw)}</td>
-                        <td className="py-2.5 text-right font-mono font-black text-slate-900">{formatKrw(cInfo.subtotalKrw)}</td>
+                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.stayTotalKrw)}</td>
+                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.foodTotalKrw)}</td>
+                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.transportTotalKrw)}</td>
+                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.attractionTotalKrw)}</td>
+                        <td className="py-2.5 text-right tabular-nums font-black text-slate-900">{formatKrw(cInfo.subtotalKrw)}</td>
                       </tr>
                     );
                   })}
@@ -709,7 +709,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             {locale === "ko" ? course.nameKo : course.nameEn}
                           </h3>
                         </div>
-                        <span className="text-[11px] font-mono font-bold text-slate-500">
+                        <span className="text-[11px] font-bold text-slate-500 tabular-nums">
                           {locale === "ko" ? `약 ${course.estimatedHours}시간` : `~${course.estimatedHours}h`}
                         </span>
                       </div>
@@ -789,7 +789,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             {/* Receipt Header */}
             <div className="bg-slate-50 border-b border-slate-200/80 p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-mono tracking-widest text-slate-400 block uppercase font-bold">
+                <span className="text-[10px] tracking-widest text-slate-400 block uppercase font-bold">
                   ITEMIZED EXPENSE AUDIT
                 </span>
                 <h2 className="text-base font-black tracking-tight text-slate-900 mt-0.5">
@@ -797,8 +797,8 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                 </h2>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-slate-400 block font-mono font-bold">GRAND TOTAL</span>
-                <span className="text-base sm:text-lg font-black font-mono tabular-nums text-slate-900">
+                <span className="text-[10px] text-slate-400 block font-bold">GRAND TOTAL</span>
+                <span className="text-base sm:text-lg font-black tabular-nums text-slate-900">
                   {formatKrw(grandTotalKrw)}
                 </span>
               </div>
@@ -819,11 +819,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           <span className="font-bold text-slate-900 block">
                             {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono block">
+                          <span className="text-[10px] text-slate-400 block">
                             {locale === "ko" ? "한국 여행 자율 쇼핑 예산" : "Custom shopping budget"}
                           </span>
                         </div>
-                        <strong className="font-mono font-black text-slate-900 tabular-nums shrink-0">
+                        <strong className="font-black text-slate-900 tabular-nums shrink-0">
                           {formatKrw(shoppingAmountKrw)}
                         </strong>
                       </div>
@@ -835,11 +835,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           <span className="font-bold text-slate-900 block">
                             {locale === "ko" ? "일일 용돈" : "Daily Allowance"}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono block">
+                          <span className="text-[10px] text-slate-400 block tabular-nums">
                             {formatKrw(dailyAllowancePerPerson)} × {adultCount}인 × {totalNights}박
                           </span>
                         </div>
-                        <strong className="font-mono font-black text-slate-900 tabular-nums shrink-0">
+                        <strong className="font-black text-slate-900 tabular-nums shrink-0">
                           {formatKrw(totalDailyAllowanceKrw)}
                         </strong>
                       </div>
@@ -851,11 +851,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           <span className="font-bold text-slate-900 block">
                             {locale === "ko" ? "여행 비상금" : "Emergency Fund"}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono block">
+                          <span className="text-[10px] text-slate-400 block">
                             {emergencyPct > 0 ? `기본 경비 대비 ${Math.round(emergencyPct * 100)}%` : "고정 비상금"}
                           </span>
                         </div>
-                        <strong className="font-mono font-black text-slate-900 tabular-nums shrink-0">
+                        <strong className="font-black text-slate-900 tabular-nums shrink-0">
                           {formatKrw(computedEmergencyKrw)}
                         </strong>
                       </div>
@@ -882,7 +882,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           ({cInfo.nights === 0 ? (locale === "ko" ? "당일치기" : "Day trip") : `${cInfo.nights}${locale === "ko" ? "박" : "N"}`})
                         </span>
                       </div>
-                      <span className="font-mono font-bold text-slate-900 text-xs">
+                      <span className="font-bold text-slate-900 text-xs tabular-nums">
                         {formatKrw(cInfo.subtotalKrw)}
                       </span>
                     </div>
@@ -901,12 +901,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                               </span>
                             </div>
                             {cInfo.hasStay && (
-                              <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                              <span className="text-[10px] text-slate-400 block mt-0.5 tabular-nums">
                                 1박 {formatKrw(cInfo.stayNightlyPrice)} × {cInfo.nights}박
                               </span>
                             )}
                           </div>
-                          <strong className="font-mono font-bold text-slate-900 tabular-nums shrink-0">
+                          <strong className="font-bold text-slate-900 tabular-nums shrink-0">
                             {formatKrw(cInfo.stayTotalKrw)}
                           </strong>
                         </div>
@@ -927,7 +927,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                               </span>
                             </div>
                           </div>
-                          <strong className="font-mono font-bold text-slate-900 tabular-nums shrink-0">
+                          <strong className="font-bold text-slate-900 tabular-nums shrink-0">
                             {formatKrw(cInfo.foodTotalKrw)}
                           </strong>
                         </div>
@@ -942,7 +942,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                   <span className="truncate pr-2">
                                     {fName} ×{fItem.quantity}
                                   </span>
-                                  <span className="font-mono tabular-nums font-medium text-slate-700 shrink-0">
+                                  <span className="tabular-nums font-medium text-slate-700 shrink-0">
                                     {formatKrw(fItem.subtotalKrw)}
                                   </span>
                                 </div>
@@ -965,7 +965,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                               </span>
                             </div>
                           </div>
-                          <strong className="font-mono font-bold text-slate-900 tabular-nums shrink-0">
+                          <strong className="font-bold text-slate-900 tabular-nums shrink-0">
                             {formatKrw(cInfo.transportTotalKrw)}
                           </strong>
                         </div>
@@ -986,7 +986,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                               </span>
                             </div>
                           </div>
-                          <strong className="font-mono font-bold text-slate-900 tabular-nums shrink-0">
+                          <strong className="font-bold text-slate-900 tabular-nums shrink-0">
                             {formatKrw(cInfo.attractionTotalKrw)}
                           </strong>
                         </div>
@@ -1008,7 +1008,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                     )}
                                     {sName}
                                   </span>
-                                  <span className="font-mono tabular-nums font-medium text-slate-900 shrink-0">
+                                  <span className="tabular-nums font-medium text-slate-900 shrink-0">
                                     {isFree ? (locale === "ko" ? "무료" : "Free") : formatKrw(spot.price * adultCount)}
                                   </span>
                                 </div>
@@ -1029,7 +1029,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     <span className="font-black text-slate-900 text-sm">
                       {dict.planner.intercityTransportation}
                     </span>
-                    <span className="font-mono font-bold text-slate-900 text-xs">
+                    <span className="font-bold text-slate-900 text-xs tabular-nums">
                       {formatKrw(intercityTotal)}
                     </span>
                   </div>
@@ -1041,11 +1041,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           <span className="font-bold text-slate-800 block">
                             {item.sourceLabel || getBasketLabel(item.basketId, dict, locale)}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono block">
+                          <span className="text-[10px] text-slate-400 block tabular-nums">
                             {getCalculationExpression(item, dict, locale)}
                           </span>
                         </div>
-                        <strong className="font-mono font-bold text-slate-900 tabular-nums shrink-0">
+                        <strong className="font-bold text-slate-900 tabular-nums shrink-0">
                           {formatKrw(item.lineTotalKrw)}
                         </strong>
                       </div>

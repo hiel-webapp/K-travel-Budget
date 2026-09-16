@@ -3085,9 +3085,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       aria-selected={isActive}
                       id={`cat-tab-${cat}`}
                       onClick={() => setActiveCategory(cat)}
-                      className={`group relative flex flex-col items-center justify-between p-3 sm:py-3.5 sm:px-4 rounded-2xl border text-center transition-all duration-155 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
+                      className={`group relative flex flex-col items-center justify-center py-3 px-2 sm:py-3.5 sm:px-4 rounded-2xl border text-center transition-all duration-155 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
                         isActive
-                          ? "bg-white border-[#e25c5c] shadow-sm ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
+                          ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
                           : "bg-white border-slate-200/90 text-slate-500 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
                     >
@@ -3104,22 +3104,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </span>
 
                       {/* 상태 뱃지 (미선택 vs 선택완료 요약) */}
-                      <div className="mt-1">
+                      <div className="mt-1.5">
                         <span
-                          className={`inline-block text-[10px] sm:text-[10.5px] font-semibold px-2 py-0.5 rounded-full transition-colors truncate max-w-[120px] ${
+                          className={`inline-block text-[10px] sm:text-[10.5px] px-2.5 py-0.5 rounded-full transition-colors truncate max-w-[130px] ${
                             data.isSelected
-                              ? "bg-rose-50 text-[#e25c5c] border border-rose-100/80 font-bold"
-                              : "bg-slate-100 text-slate-400"
+                              ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
+                              : "bg-slate-100 text-slate-400 font-medium"
                           }`}
                         >
                           {data.statusText}
                         </span>
                       </div>
-
-                      {/* 해당 도시 독립 금액 */}
-                      <span className="mt-1.5 text-xs sm:text-sm font-extrabold text-[#0f172a] block font-mono tabular-nums">
-                        {formatKrw(data.amount)}
-                      </span>
                     </button>
                   );
                 })}

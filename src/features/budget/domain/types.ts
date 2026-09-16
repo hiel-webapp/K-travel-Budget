@@ -392,6 +392,8 @@ export interface PlannerPreferencesV5 {
   emergencyFundKrw?: number;
 }
 
+export type ShoppingOption = "NONE" | "BEAUTY" | "FASHION" | "SOUVENIR" | "CUSTOM";
+
 export interface PlannerPreferences {
   schemaVersion: number;
   tripFingerprint: string;
@@ -409,6 +411,10 @@ export interface PlannerPreferences {
   cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
   foodBasketSelections?: FoodBasketItemSelection[];
+  shoppingOption?: ShoppingOption;
+  shoppingCustomInput?: string;
+  shoppingAmountKrw?: number;
+  occupancyModeByCity?: Record<string, OccupancyMode>;
 }
 
 export interface PlannerPreferencesEnvelope {

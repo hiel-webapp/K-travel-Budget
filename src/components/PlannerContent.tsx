@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, Fragment } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
@@ -32,6 +32,7 @@ import {
   type OccupancyMode,
 } from "../features/budget/catalog/stay-archetypes";
 import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
+import { calculateTripBudgetSummary } from "../features/budget/calculations/trip-budget-calculator";
 import SaveTripModal from "./planner/SaveTripModal";
 import BudgetTierModal from "./planner/BudgetTierModal";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -576,15 +577,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [savedPlaceCount, setSavedPlaceCount] = useState<number>(0);
   type ShoppingOption = "NONE" | "BEAUTY" | "FASHION" | "SOUVENIR" | "CUSTOM";
-  const [shoppingOption, setShoppingOption] = useState<ShoppingOption>("BEAUTY");
-  const [shoppingCustomInput, setShoppingCustomInput] = useState<string>("");
+  const [shoppingOption, setShoppingOption] = useState<ShoppingOption>(() => {
+    if (state.status === "ready" && state.preferences.shoppingOption) {
+      return state.preferences.shoppingOption;
+    }
+    return "BEAUTY";
+  });
+  const [shoppingCustomInput, setShoppingCustomInput] = useState<string>(() => {
+    if (state.status === "ready" && state.preferences.shoppingCustomInput) {
+      return state.preferences.shoppingCustomInput;
+    }
+    return "";
+  });
 
   const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
   const [activityManualInput, setActivityManualInput] = useState<string>("");
   const [visibleAttractionsCountByCity, setVisibleAttractionsCountByCity] = useState<Record<string, number>>({});
   const [attractionCategoryFilterByCity, setAttractionCategoryFilterByCity] = useState<Record<string, string>>({});
   const [visibleAccommodationsCountByCity, setVisibleAccommodationsCountByCity] = useState<Record<string, number>>({});
-  const [occupancyModeByCity, setOccupancyModeByCity] = useState<Record<string, OccupancyMode>>({});
+  const [occupancyModeByCity, setOccupancyModeByCity] = useState<Record<string, OccupancyMode>>(() => {
+    if (state.status === "ready" && state.preferences.occupancyModeByCity) {
+      return state.preferences.occupancyModeByCity;
+    }
+    return {};
+  });
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
   const [expandedReceiptCities, setExpandedReceiptCities] = useState<Record<string, boolean>>({});
   const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
@@ -960,9 +976,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         localTransitStyle: nextPrefs.localTransitStyle ?? current.localTransitStyle,
         cityTransitStyles: nextPrefs.cityTransitStyles ?? current.cityTransitStyles,
         isKobusPassApplied: nextPrefs.isKobusPassApplied ?? current.isKobusPassApplied,
+        shoppingOption: nextPrefs.shoppingOption ?? current.shoppingOption ?? shoppingOption,
+        shoppingCustomInput: nextPrefs.shoppingCustomInput ?? current.shoppingCustomInput ?? shoppingCustomInput,
+        shoppingAmountKrw: nextPrefs.shoppingAmountKrw ?? current.shoppingAmountKrw,
+        occupancyModeByCity: nextPrefs.occupancyModeByCity ?? current.occupancyModeByCity ?? occupancyModeByCity,
       });
     },
-    [state]
+    [state, shoppingOption, shoppingCustomInput, occupancyModeByCity]
   );
 
   const handleSelectIntercityOverride = (routeKey: string, mode: IntercityTransportMode | string) => {
@@ -1473,106 +1493,36 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const { draft, preferences } = state;
   const adultCount = draft.adultCount || 1;
 
-  // 쇼핑 예산 금액 산출 (1인 기준 옵션 × adultCount 또는 직접 입력)
-  const shoppingAmountKrw = (() => {
-    if (shoppingOption === "NONE") return 0;
-    if (shoppingOption === "BEAUTY") return 200000 * adultCount;
-    if (shoppingOption === "FASHION") return 300000 * adultCount;
-    if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
-    if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
-    return 0;
-  })();
+  // 통합 단일 예산 계산기 연동 (ReportContent와 100% 동일한 수치 보장)
+  const mergedPreferences: PlannerPreferences = useMemo(() => ({
+    ...preferences,
+    shoppingOption,
+    shoppingCustomInput,
+    occupancyModeByCity,
+    emergencyFundKrw:
+      emergencyManualInput !== "" && emergencyManualInput !== "0"
+        ? parseInt(emergencyManualInput, 10) || 0
+        : preferences.emergencyFundKrw,
+  }), [preferences, shoppingOption, shoppingCustomInput, occupancyModeByCity, emergencyManualInput]);
 
-  const activeEmergencyPct = preferences.emergencyFundPct !== undefined
-    ? preferences.emergencyFundPct
-    : (preferences.emergencyFundKrw === undefined || preferences.emergencyFundKrw === 0 ? 0.10 : undefined);
+  const summary = useMemo(() => {
+    return calculateTripBudgetSummary(draft, mergedPreferences, budgetPlaces, locale, dbAttractionsByCity);
+  }, [draft, mergedPreferences, budgetPlaces, locale, dbAttractionsByCity]);
 
-  // 일일 용돈 총액 (기본값: 30,000원(BALANCED), 1일 1인 단가 × 여행 인원 × 전체 박수)
-  const firstCity = draft.selectedCities[0];
-  const currentBasket = preferences.attractionByCity?.[firstCity] ?? "BALANCED";
-  const dailyAllowancePerPerson = preferences.attractionCustomDailyKrw !== undefined
-    ? preferences.attractionCustomDailyKrw
-    : ((currentBasket as string) === "NONE" ? 0 : currentBasket === "MOSTLY_FREE" ? 10000 : currentBasket === "EXPERIENCE_RICH" ? 50000 : 30000);
-  const totalDailyAllowanceKrw = dailyAllowancePerPerson * adultCount * (draft.totalNights || 1);
-
-  // K-스팟에서 담긴 맛집/카페 총액 계산
-  const allCustomFoodTotalKrw = budgetPlaces
+  const shoppingAmountKrw = summary.shoppingAmountKrw;
+  const activeEmergencyPct = summary.emergencyPct;
+  const dailyAllowancePerPerson = summary.dailyAllowancePerPerson;
+  const totalDailyAllowanceKrw = summary.totalDailyAllowanceKrw;
+  const allCustomFoodTotalKrw = (budgetPlaces || [])
     .filter((p) => p.category === "RESTAURANT" || p.category === "CAFE")
     .reduce((sum, p) => sum + (p.priceKrw ?? (p as any).estimatedPriceKrw ?? (p.category === "CAFE" ? 8000 : 18000)) * adultCount, 0);
-
-  // 사용자가 선택한 유료 관광지 명소 총액 계산
-  let allCustomAttractionTotalKrw = 0;
-  draft.selectedCities.forEach((city) => {
-    const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-    const spotsForCity = [
-      ...budgetPlaces.filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
-      ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
-      ...THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === city).map(themeActivityToAttractionSpot),
-    ];
-    const selectedSpotKeys = new Set<string>();
-    (citySel.selectedCourseIds || []).forEach((cid) => {
-      const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-      if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-    });
-    (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-    selectedSpotKeys.forEach((normKey) => {
-      const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
-      if (spot && spot.priceStatus === "PAID" && spot.price > 0) {
-        allCustomAttractionTotalKrw += spot.price * adultCount;
-      }
-    });
-  });
-
-  // 도시별 순수 기본 경비 (숙소 + 음식 + 시내교통 + 도시 간/공항 교통)
-  const basePlanForEmergency = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
-    accommodation: preferences.accommodationByCity,
-    foodTier: preferences.foodTier,
-    food: preferences.foodOverrides,
-    foodAddOns: preferences.addOnSelections,
-    foodBasketSelections: preferences.foodBasketSelections,
-    attraction: draft.selectedCities.reduce((acc, c) => ({ ...acc, [c]: "NONE" as BudgetBasketId }), {}),
-    attractionSelections: undefined,
-    attractionCustomDailyKrw: undefined,
-    emergencyFundKrw: 0,
-    intercityTransportOverrides: preferences.intercityTransportOverrides,
-    localTransitStyle: preferences.localTransitStyle,
-    cityTransitStyles: preferences.cityTransitStyles,
-    isKobusPassApplied: preferences.isKobusPassApplied,
-    occupancyMode: occupancyModeByCity,
-  });
-
-  // 기본 여행 경비 = (모든 도시 숙박 + 식비 + 시내교통 + 선택한 관광지) + 도시 간/공항 이동 교통
-  const baseTripExpensesKrw = basePlanForEmergency.grandTotalKrw + allCustomFoodTotalKrw + allCustomAttractionTotalKrw;
-
-  // 비상금 비율 계산 기준 총액 = 기본 여행 경비 + 쇼핑 예산 + 일일 용돈
+  const baseTripExpensesKrw = summary.baseTripExpensesKrw;
   const baseEmergencyGrandTotal = baseTripExpensesKrw + shoppingAmountKrw + totalDailyAllowanceKrw;
-  const emergencyAdultCount = adultCount;
-  const computedEmergencyKrw = activeEmergencyPct !== undefined && activeEmergencyPct > 0 && emergencyManualInput === ""
-    ? Math.round(((baseEmergencyGrandTotal / emergencyAdultCount) * activeEmergencyPct) / 1000) * 1000 * emergencyAdultCount
-    : ((emergencyManualInput !== "" && emergencyManualInput !== "0") ? (parseInt(emergencyManualInput, 10) || 0) * emergencyAdultCount : ((preferences.emergencyFundKrw || 0) * emergencyAdultCount));
-
-  const perPersonEmergencyKrw = Math.round(computedEmergencyKrw / emergencyAdultCount);
-
-  // 최종 예상 총액 = 기본 여행 경비 + 쇼핑 예산 + 일일 용돈 + 여행 비상금
-  const finalGrandTotalKrw = baseTripExpensesKrw + shoppingAmountKrw + totalDailyAllowanceKrw + computedEmergencyKrw;
-  const finalPerTravelerTotalKrw = Math.round(finalGrandTotalKrw / adultCount);
-
-  const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
-    accommodation: preferences.accommodationByCity,
-    foodTier: preferences.foodTier,
-    food: preferences.foodOverrides,
-    foodAddOns: preferences.addOnSelections,
-    foodBasketSelections: preferences.foodBasketSelections,
-    attraction: draft.selectedCities.reduce((acc, c) => ({ ...acc, [c]: "NONE" as BudgetBasketId }), {}),
-    attractionSelections: undefined,
-    attractionCustomDailyKrw: undefined,
-    emergencyFundKrw: computedEmergencyKrw,
-    intercityTransportOverrides: preferences.intercityTransportOverrides,
-    localTransitStyle: preferences.localTransitStyle,
-    cityTransitStyles: preferences.cityTransitStyles,
-    isKobusPassApplied: preferences.isKobusPassApplied,
-    occupancyMode: occupancyModeByCity,
-  });
+  const computedEmergencyKrw = summary.computedEmergencyKrw;
+  const perPersonEmergencyKrw = Math.round(computedEmergencyKrw / adultCount);
+  const finalGrandTotalKrw = summary.grandTotalKrw;
+  const finalPerTravelerTotalKrw = summary.perTravelerTotalKrw;
+  const plan = summary.basePlan;
 
   const handleCopySummary = () => {
     try {
@@ -3230,7 +3180,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const citySubtotalMap: Record<string, number> = {};
               let sumCitySubtotals = 0;
               draft.selectedCities.forEach((city) => {
-                const sub = plan.citySections[city]?.subtotalKrw || 0;
+                const sub = summary.cityBreakdown[city]?.subtotalKrw || 0;
                 citySubtotalMap[city] = sub;
                 sumCitySubtotals += sub;
               });
@@ -3244,27 +3194,39 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 { bg: "bg-amber-600", text: "text-amber-600", border: "border-amber-100", lightBg: "bg-amber-50/50" },
               ];
 
-              // Category Amounts Data
-              const categoryMeta = [
-                { cat: "ACCOMMODATION", label: locale === "ko" ? "숙소" : "Stay", colorBg: "bg-blue-500" },
-                { cat: "FOOD", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
-                { cat: "CITY_TRANSPORT", label: locale === "ko" ? "교통" : "Transport", colorBg: "bg-indigo-500" },
-                { cat: "ATTRACTION", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
+              const grandTotal = finalGrandTotalKrw || 1;
+              const categorySubtotals = [
+                {
+                  label: locale === "ko" ? "숙소" : "Stay",
+                  amount: summary.categoryTotals.stay,
+                  pct: Math.round((summary.categoryTotals.stay / grandTotal) * 100),
+                  colorBg: "bg-teal-600",
+                },
+                {
+                  label: locale === "ko" ? "식비" : "Dining",
+                  amount: summary.categoryTotals.food,
+                  pct: Math.round((summary.categoryTotals.food / grandTotal) * 100),
+                  colorBg: "bg-rose-500",
+                },
+                {
+                  label: locale === "ko" ? "교통" : "Transit",
+                  amount: summary.categoryTotals.transport,
+                  pct: Math.round((summary.categoryTotals.transport / grandTotal) * 100),
+                  colorBg: "bg-indigo-600",
+                },
+                {
+                  label: locale === "ko" ? "쇼핑·체험·비상금" : "Flex & Misc",
+                  amount: summary.categoryTotals.flex,
+                  pct: Math.max(
+                    0,
+                    100 -
+                      Math.round((summary.categoryTotals.stay / grandTotal) * 100) -
+                      Math.round((summary.categoryTotals.food / grandTotal) * 100) -
+                      Math.round((summary.categoryTotals.transport / grandTotal) * 100)
+                  ),
+                  colorBg: "bg-amber-500",
+                },
               ];
-
-              const grandTotal = plan.grandTotalKrw || 1;
-              const categorySubtotals = categoryMeta.map((item) => {
-                const amount =
-                  item.cat === "CITY_TRANSPORT"
-                    ? getCombinedTransportSubtotal(plan)
-                    : plan.categoryTotals[item.cat as BudgetCategory] || 0;
-                return {
-                  label: item.label,
-                  amount,
-                  pct: Math.round((amount / grandTotal) * 100),
-                  colorBg: item.colorBg,
-                };
-              });
 
               return (
                 <div className="space-y-5">
@@ -3438,9 +3400,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       if (isSelected) {
                                         setShoppingOption("NONE");
                                         setShoppingCustomInput("");
+                                        persistPreferences({
+                                          shoppingOption: "NONE",
+                                          shoppingCustomInput: "",
+                                        });
                                       } else {
                                         setShoppingOption(opt.id as ShoppingOption);
                                         setShoppingCustomInput("");
+                                        persistPreferences({
+                                          shoppingOption: opt.id as ShoppingOption,
+                                          shoppingCustomInput: "",
+                                        });
                                       }
                                     }}
                                     className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
@@ -3468,8 +3438,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   placeholder={locale === "ko" ? "직접 입력" : "Custom"}
                                   value={shoppingCustomInput}
                                   onChange={(e) => {
-                                    setShoppingCustomInput(e.target.value);
+                                    const val = e.target.value;
+                                    setShoppingCustomInput(val);
                                     setShoppingOption("CUSTOM");
+                                    persistPreferences({
+                                      shoppingOption: "CUSTOM",
+                                      shoppingCustomInput: val,
+                                    });
                                   }}
                                 />
                               </div>
@@ -5047,7 +5022,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {/* 1열: 예산 리포트 만들기 (메인) & 계획 초기화 (우측 작은 버튼) */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => router.push(`/${locale}/report`)}
+                    onClick={() => {
+                      persistPreferences({
+                        shoppingOption,
+                        shoppingCustomInput,
+                        occupancyModeByCity,
+                      });
+                      router.push(`/${locale}/report`);
+                    }}
                     className="flex-1 h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>{dict.planner.generateReport}</span>

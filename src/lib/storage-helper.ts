@@ -20,6 +20,8 @@ import {
   FoodAddOnOverrides,
   LocalTransitStyle,
   FoodBasketItemSelection,
+  ShoppingOption,
+  OccupancyMode,
 } from "../features/budget/domain/types";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { IntercityTransportMode } from "./transport/intercity-fares";
@@ -609,6 +611,10 @@ export interface SavePlannerPreferencesInput {
   localTransitStyle?: LocalTransitStyle;
   cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
+  shoppingOption?: ShoppingOption;
+  shoppingCustomInput?: string;
+  shoppingAmountKrw?: number;
+  occupancyModeByCity?: Record<string, OccupancyMode>;
   draft: TripDraft;
 }
 
@@ -652,6 +658,10 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       localTransitStyle: input.localTransitStyle,
       cityTransitStyles: input.cityTransitStyles,
       isKobusPassApplied: input.isKobusPassApplied,
+      shoppingOption: input.shoppingOption,
+      shoppingCustomInput: input.shoppingCustomInput,
+      shoppingAmountKrw: input.shoppingAmountKrw,
+      occupancyModeByCity: input.occupancyModeByCity,
     };
 
     const envelope: PlannerPreferencesEnvelope = {

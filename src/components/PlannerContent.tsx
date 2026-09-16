@@ -3658,7 +3658,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               // 1. 숙박 (해당 도시 선택 숙소 및 금액)
               const accSelection = preferences.accommodationByCity?.[currentCity];
               let cityAccTotal = 0;
-              let cityAccStatus = locale === "ko" ? "선택 필요" : "Required";
+              let cityAccStatus = locale === "ko" ? "미선택" : "Unselected";
               let isAccSelected = false;
 
               if (accSelection) {
@@ -3697,7 +3697,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const isFoodSelected = cityFoodItemCount > 0;
               const cityFoodStatus = isFoodSelected
                 ? (locale === "ko" ? `${cityFoodItemCount}개 메뉴` : `${cityFoodItemCount} items`)
-                : (locale === "ko" ? "담은 음식 없음" : "No food added");
+                : (locale === "ko" ? "미선택" : "Unselected");
 
               // 3. 관광 (해당 도시 담은 명소 및 테마 액티비티 금액)
               const citySel = preferences.attractionSelections?.[currentCity] || { selectedCourseIds: [], individualSpotIds: [] };
@@ -3724,7 +3724,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const isAttrSelected = selectedSpotsCount > 0;
               const cityAttrStatus = isAttrSelected
                 ? (locale === "ko" ? `${selectedSpotsCount}곳 담김` : `${selectedSpotsCount} spots`)
-                : (locale === "ko" ? "담은 명소 없음" : "No spots added");
+                : (locale === "ko" ? "미선택" : "Unselected");
 
               const cityCategoryData: Record<
                 "ACCOMMODATION" | "FOOD" | "ATTRACTION",
@@ -3757,65 +3757,53 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               return (
                 <div className="space-y-6">
-                  {/* 통합 바스켓 대시보드 헤더: 좌측 세로 3단 탭 | 우측 선택된 바스켓 실시간 요약 */}
+                  {/* 통합 바스켓 대시보드 헤더: 좌측 세로 3단 탭 (2/3 축소 슬림형) | 우측 선택된 바스켓 실시간 요약 (상단 고정 일치) */}
                   <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
                     <div className="flex flex-col sm:flex-row">
-                      {/* 좌측: 도시 타이틀 & 세로 3단 카테고리 탭 (숙소, 음식, 관광) */}
-                      <div className="sm:w-[240px] md:w-[260px] shrink-0 p-3.5 sm:p-4 bg-slate-50/80 border-b sm:border-b-0 sm:border-r border-slate-200/80 flex flex-col justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-2.5 px-0.5">
-                            <span className="w-2 h-2 rounded-full bg-[#e25c5c] shrink-0" />
-                            <h3 className="text-xs sm:text-[13px] font-black text-slate-900 truncate">
-                              {currentCityName} {locale === "ko" ? "여행 경비 바스켓" : "Expense Basket"}
-                            </h3>
-                            <span className="text-[10px] font-bold text-slate-400 shrink-0">
-                              ({cityNights === 0 ? (locale === "ko" ? "당일" : "Day") : `${cityNights}${locale === "ko" ? "박" : "N"}`})
-                            </span>
-                          </div>
+                      {/* 좌측: 세로 3단 카테고리 탭 (숙소, 음식, 관광) - 약 2/3 크기 슬림 박스 */}
+                      <div className="sm:w-[150px] md:w-[160px] shrink-0 p-2.5 sm:p-3 bg-slate-50/80 border-b sm:border-b-0 sm:border-r border-slate-200/80 flex flex-col justify-center">
+                        <div className="grid grid-cols-3 sm:grid-cols-1 gap-1.5" role="tablist" aria-label="Budget categories">
+                          {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as const).map((cat) => {
+                            const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
+                            const isActive = effectiveCategory === cat;
+                            const data = cityCategoryData[cat];
 
-                          <div className="grid grid-cols-3 sm:grid-cols-1 gap-1.5 sm:gap-2" role="tablist" aria-label="Budget categories">
-                            {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as const).map((cat) => {
-                              const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
-                              const isActive = effectiveCategory === cat;
-                              const data = cityCategoryData[cat];
-
-                              return (
-                                <button
-                                  key={cat}
-                                  role="tab"
-                                  aria-selected={isActive}
-                                  id={`cat-tab-${cat}`}
-                                  onClick={() => setActiveCategory(cat)}
-                                  className={`group relative flex flex-col sm:flex-row items-center justify-between p-2 sm:px-3 sm:py-2.5 rounded-xl border text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
-                                    isActive
-                                      ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
-                                      : "bg-white/80 border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-white"
+                            return (
+                              <button
+                                key={cat}
+                                role="tab"
+                                aria-selected={isActive}
+                                id={`cat-tab-${cat}`}
+                                onClick={() => setActiveCategory(cat)}
+                                className={`group relative flex flex-col sm:flex-row items-center justify-between p-2 sm:px-2.5 sm:py-2 rounded-xl border text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
+                                  isActive
+                                    ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
+                                    : "bg-white/80 border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-white"
+                                }`}
+                              >
+                                {isActive && (
+                                  <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4.5 bg-[#e25c5c] rounded-r-full" />
+                                )}
+                                <span className="text-xs font-black tracking-tight text-slate-800">
+                                  {data.label}
+                                </span>
+                                <span
+                                  className={`inline-block text-[9.5px] px-1.5 py-0.5 rounded-full transition-colors truncate max-w-[65px] sm:max-w-[70px] leading-tight shrink-0 mt-0.5 sm:mt-0 ${
+                                    data.isSelected
+                                      ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
+                                      : "bg-slate-100 text-slate-400 font-medium"
                                   }`}
                                 >
-                                  {isActive && (
-                                    <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-[#e25c5c] rounded-r-full" />
-                                  )}
-                                  <span className="text-xs sm:text-[12.5px] font-black tracking-tight text-slate-800">
-                                    {data.label}
-                                  </span>
-                                  <span
-                                    className={`inline-block text-[9.5px] sm:text-[10px] px-2 py-0.5 rounded-full transition-colors truncate max-w-[100px] leading-tight shrink-0 mt-1 sm:mt-0 ${
-                                      data.isSelected
-                                        ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
-                                        : "bg-slate-100 text-slate-400 font-medium"
-                                    }`}
-                                  >
-                                    {data.statusText}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
+                                  {data.statusText}
+                                </span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
 
-                      {/* 우측: 선택된 카테고리에 해당하는 바스켓 요약 패널 */}
-                      <div className="flex-1 p-4 sm:p-5 flex flex-col justify-center">
+                      {/* 우측: 선택된 카테고리에 해당하는 바스켓 요약 패널 (상단 고정 및 높이 통일로 흔들림 방지) */}
+                      <div className="flex-1 p-4 sm:p-5 flex flex-col justify-start">
                         {/* 1. 숙소 바스켓 요약 */}
                         {((activeCategory === "ACCOMMODATION" || activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND")) && (() => {
                           const accOverride = preferences.accommodationByCity[currentCity];
@@ -3844,13 +3832,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           const hasSelection = isCustomStay || !!currentArchetype;
 
                           return (
-                            <div className="space-y-3">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3 min-h-[58px]">
                                 <div className="space-y-0.5">
-                                  <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                                  <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight leading-tight">
                                     {currentCityName} {locale === "ko" ? "숙소 바스켓" : "Stay Basket"}
                                   </h3>
-                                  <p className="text-xs text-slate-500">
+                                  <p className="text-xs text-slate-500 line-clamp-1">
                                     {!hasSelection
                                       ? (locale === "ko"
                                           ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
@@ -3865,18 +3853,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   </p>
                                 </div>
                                 <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-0.5 shrink-0">
-                                  <span className="text-[11px] font-bold text-slate-400">
+                                  <span className="text-[11px] font-bold text-slate-400 leading-none">
                                     {locale === "ko"
                                       ? `${currentCityName} 총 숙소비 (${cityNights}박 · ${adultCount}인)`
                                       : `Total Stay (${cityNights}N · ${adultCount}p)`}
                                   </span>
-                                  <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+                                  <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight leading-none mt-1 sm:mt-0">
                                     {formatKrw(totalStayCostKrw)}
                                   </span>
                                 </div>
                               </div>
 
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                              <div className="pt-2.5 min-h-[36px] flex items-center justify-between gap-2 text-xs">
                                 <div className="flex items-center gap-1.5 text-slate-700 font-bold">
                                   <span>{locale === "ko" ? "1인당 실제 부담액:" : "Per Traveler:"}</span>
                                   <strong className="text-slate-900 font-black">
@@ -3902,29 +3890,29 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           const isExceeded = cityFoodBasket.totalSelectedQuantity > cityFoodBasket.expectedMealsCount;
 
                           return (
-                            <div className="space-y-3">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3 min-h-[58px]">
                                 <div className="space-y-0.5">
-                                  <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                                  <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight leading-tight">
                                     {currentCityName} {locale === "ko" ? "음식 바스켓" : "Food Basket"}
                                   </h3>
-                                  <p className="text-xs text-slate-500">
+                                  <p className="text-xs text-slate-500 line-clamp-1">
                                     {locale === "ko"
                                       ? "먹고 싶은 음식을 자유롭게 담으면 일정에 맞춰 총 식비가 자동으로 계산됩니다."
                                       : "Add foods you wish to eat. Total budget auto-adjusts to your trip duration."}
                                   </p>
                                 </div>
                                 <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-0.5 shrink-0">
-                                  <span className="text-[11px] font-bold text-slate-400">
+                                  <span className="text-[11px] font-bold text-slate-400 leading-none">
                                     {locale === "ko" ? `${currentCityName} 예상 식비 (${adultCount}인)` : `Food Budget (${adultCount}p)`}
                                   </span>
-                                  <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+                                  <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight leading-none mt-1 sm:mt-0">
                                     {formatKrw(cityFoodBasket.grandTotalKrw)}
                                   </span>
                                 </div>
                               </div>
 
-                              <div className="space-y-2">
+                              <div className="pt-2.5 min-h-[36px] flex flex-col justify-center space-y-1.5">
                                 <div className="flex items-center justify-between text-xs font-bold">
                                   <span className="text-slate-700 flex items-center gap-1.5">
                                     <span>{locale === "ko" ? "담은 음식:" : "Selected Foods:"}</span>
@@ -3974,29 +3962,29 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           });
 
                           return (
-                            <div className="space-y-3">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3 min-h-[58px]">
                                 <div className="space-y-0.5">
-                                  <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                                  <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight leading-tight">
                                     {currentCityName} {locale === "ko" ? "관광 바스켓" : "Attraction Basket"}
                                   </h3>
-                                  <p className="text-xs text-slate-500">
+                                  <p className="text-xs text-slate-500 line-clamp-1">
                                     {locale === "ko"
                                       ? "방문하고 싶은 명소와 K-체험을 자유롭게 담으면 총 입장료가 자동으로 계산됩니다."
                                       : "Add attractions and activities. Total admission budget auto-calculates for your group."}
                                   </p>
                                 </div>
                                 <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-0.5 shrink-0">
-                                  <span className="text-[11px] font-bold text-slate-400">
+                                  <span className="text-[11px] font-bold text-slate-400 leading-none">
                                     {locale === "ko" ? `${currentCityName} 예상 관광비 (${adultCount}인)` : `Attraction Budget (${adultCount}p)`}
                                   </span>
-                                  <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+                                  <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight leading-none mt-1 sm:mt-0">
                                     {formatKrw(cityAttrTotal)}
                                   </span>
                                 </div>
                               </div>
 
-                              <div className="space-y-2">
+                              <div className="pt-2.5 min-h-[36px] flex flex-col justify-center space-y-1.5">
                                 <div className="flex items-center justify-between text-xs font-bold">
                                   <span className="text-slate-700 flex items-center gap-1.5 flex-wrap">
                                     <span>{locale === "ko" ? "담은 명소·체험:" : "Selected Spots:"}</span>

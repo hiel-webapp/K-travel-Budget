@@ -2899,16 +2899,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </>
                 )}
 
-                {/* 계획 초기화 버튼 */}
-                <button
-                  type="button"
-                  onClick={() => setIsResetPlanModalOpen(true)}
-                  className="h-8 px-2.5 sm:px-3 text-[11px] sm:text-xs font-bold rounded-xl text-slate-600 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200/90 hover:border-rose-200 transition-colors cursor-pointer shadow-2xs flex items-center gap-1.5 shrink-0"
-                  title={locale === "ko" ? "선택한 숙소, 음식, 관광, 교통 바스켓 초기화" : "Reset budget plan baskets"}
-                >
-                  <span className="text-xs">↺</span>
-                  <span>{locale === "ko" ? "계획 초기화" : "Reset Plan"}</span>
-                </button>
+
               </div>
             </div>
 
@@ -4930,26 +4921,31 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </div>
 
               <div className="space-y-2 pt-1">
-                <button
-                  onClick={() => router.push(`/${locale}/report`)}
-                  className="w-full h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <span>{dict.planner.generateReport}</span>
-                </button>
-                <div className="grid grid-cols-2 gap-2">
+                {/* 1열: 예산 리포트 만들기 (메인) & 계획 초기화 (우측 작은 버튼) */}
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setIsSaveModalOpen(true)}
-                    className="h-10 px-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs text-center transition-colors cursor-pointer"
+                    onClick={() => router.push(`/${locale}/report`)}
+                    className="flex-1 h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>{dict.planner.saveTrip}</span>
+                    <span>{dict.planner.generateReport}</span>
                   </button>
                   <button
-                    onClick={handleCopySummary}
-                    className="h-10 px-3 rounded-xl bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs text-center transition-colors cursor-pointer"
+                    type="button"
+                    onClick={() => setIsResetPlanModalOpen(true)}
+                    className="h-11 px-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 font-bold text-xs text-center transition-colors cursor-pointer flex items-center justify-center gap-1 shrink-0 shadow-2xs"
+                    title={locale === "ko" ? "선택한 숙소, 음식, 관광, 교통 바스켓 초기화" : "Reset budget plan baskets"}
                   >
-                    <span>{dict.planner.copySummaryButton}</span>
+                    <span className="text-xs">↺</span>
+                    <span>{locale === "ko" ? "계획 초기화" : "Reset Plan"}</span>
                   </button>
                 </div>
+                {/* 여행 저장 버튼 (1열 풀 너비) */}
+                <button
+                  onClick={() => setIsSaveModalOpen(true)}
+                  className="w-full h-10 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs text-center transition-colors cursor-pointer"
+                >
+                  <span>{dict.planner.saveTrip}</span>
+                </button>
                 {[
                   { label: dict.planner.shareReceipt, key: "share" }
                 ].map((btn) => (

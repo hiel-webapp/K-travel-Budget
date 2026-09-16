@@ -10,7 +10,8 @@ export const en: Dictionary = {
     planner: "Planner",
     trend: "K-Trend",
     guide: "K-Guide",
-    savedTrips: "Saved Trips",
+    savedTrips: "Budget Report",
+    report: "Budget Report",
     places: "K-Spots",
   },
   footer: {

@@ -8,7 +8,8 @@ export const ko = {
     planner: "플래너",
     trend: "K-트렌드",
     guide: "K-가이드",
-    savedTrips: "저장한 여행",
+    savedTrips: "예산 리포트",
+    report: "예산 리포트",
     places: "K-스팟",
   },
   footer: {

@@ -40,7 +40,7 @@ export default function Header({ locale, dict }: HeaderProps) {
     { key: "places", label: dict.navigation.places, path: `/${locale}/places` },
     { key: "trend", label: dict.navigation.trend, path: `/${locale}/trend` },
     { key: "guide", label: dict.navigation.guide, path: `/${locale}/guide` },
-    { key: "saved-trips", label: dict.navigation.savedTrips, path: `/${locale}/saved-trips` },
+    { key: "report", label: (dict.navigation as any).report || dict.navigation.savedTrips, path: `/${locale}/report` },
   ] as const;
 
   return (

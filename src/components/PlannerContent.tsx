@@ -2901,19 +2901,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <span className="text-xs">↺</span>
                   <span>{locale === "ko" ? "계획 초기화" : "Reset Plan"}</span>
                 </button>
-
-                {/* 예산 리포트 바로가기 버튼 */}
-                <button
-                  type="button"
-                  onClick={() => router.push(`/${locale}/report`)}
-                  className="h-8 px-3 text-[11px] sm:text-xs font-extrabold rounded-xl text-white bg-slate-900 hover:bg-slate-800 transition-colors cursor-pointer shadow-2xs flex items-center gap-1 shrink-0"
-                  title={locale === "ko" ? "예산 리포트 전체 보기" : "View Budget Report"}
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <span>{locale === "ko" ? "예산 리포트" : "Report"}</span>
-                </button>
               </div>
             </div>
 
@@ -4005,34 +3992,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     <h3 className="text-lg font-extrabold tracking-tight text-[#0f172a]">
                       {dict.planner.receiptTitle}
                     </h3>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => router.push(`/${locale}/report`)}
-                        className="text-[11px] font-extrabold px-2.5 py-1 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
-                        title={locale === "ko" ? "예산 리포트로 바로 이동" : "Go to Report"}
-                      >
-                        <span>{locale === "ko" ? "리포트 보기" : "Report"}</span>
-                        <span>→</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const freshAlloc = calculateDefaultNightAllocation(draft.selectedCities, draft.totalNights || 5);
-                          setEditDraft({
-                            ...draft,
-                            cityNightAllocations: freshAlloc,
-                          });
-                          setEditTab("NIGHTS");
-                          setEditError(null);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="text-xs font-bold text-[#e25c5c] hover:underline hover:text-[#d14b4b] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1 flex items-center gap-1 transition-colors"
-                      >
-                        <span>{dict.planner.editTripDetails}</span>
-                        <span>→</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const freshAlloc = calculateDefaultNightAllocation(draft.selectedCities, draft.totalNights || 5);
+                        setEditDraft({
+                          ...draft,
+                          cityNightAllocations: freshAlloc,
+                        });
+                        setEditTab("NIGHTS");
+                        setEditError(null);
+                        setIsEditModalOpen(true);
+                      }}
+                      className="text-xs font-bold text-[#e25c5c] hover:underline hover:text-[#d14b4b] cursor-pointer focus-visible:outline-2 focus-visible:outline-[#e25c5c] p-1 flex items-center gap-1 transition-colors"
+                    >
+                      <span>{dict.planner.editTripDetails}</span>
+                      <span>→</span>
+                    </button>
                   </div>
 
                   {/* Trip Details Badges inside Receipt Header (Replaces '초안') */}

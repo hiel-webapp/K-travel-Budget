@@ -61,7 +61,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     return (
       <div className="flex h-96 w-full items-center justify-center">
         <div className="flex flex-col items-center space-y-3">
-          <div className="h-9 w-9 animate-spin rounded-full border-3 border-slate-200 border-t-[#0f172a]"></div>
+          <div className="h-9 w-9 animate-spin rounded-full border-3 border-slate-200 border-t-[#e25c5c]"></div>
           <p className="text-xs font-semibold text-slate-500 tracking-tight">
             {locale === "ko" ? "예산 리포트를 불러오는 중입니다..." : "Loading travel budget report..."}
           </p>
@@ -70,22 +70,31 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     );
   }
 
-  if (!draft || !preferences) {
+  // 예산이 편성되지 않은 상태 (draft 또는 preferences가 없거나 도시가 없는 경우)
+  const hasValidPlan = draft && preferences && draft.selectedCities && draft.selectedCities.length > 0;
+
+  if (!hasValidPlan) {
     return (
       <div className="flex min-h-[calc(100vh-14rem)] w-full items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md rounded-2xl border border-slate-200/90 bg-white p-8 text-center shadow-xl shadow-slate-100 flex flex-col items-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-800">
-            <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="w-full max-w-md rounded-2xl border border-slate-200/90 bg-white p-8 sm:p-10 text-center shadow-xl shadow-slate-100 flex flex-col items-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-[#e25c5c]">
+            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h2 className="mt-4 text-xl font-black text-slate-900 tracking-tight">{dict.planner.missingTitle}</h2>
-          <p className="mt-2 text-xs text-slate-500 leading-relaxed max-w-sm">{dict.planner.missingDescription}</p>
+          <h2 className="mt-5 text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            {locale === "ko" ? "아직 편성된 예산이 없습니다" : dict.planner.missingTitle}
+          </h2>
+          <p className="mt-2.5 text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm">
+            {locale === "ko"
+              ? "예산 리포트를 확인하시려면 먼저 플래너에서 여행 일정과 예산을 편성해 주세요."
+              : dict.planner.missingDescription}
+          </p>
           <button
-            onClick={() => router.push(`/${locale}`)}
-            className="mt-6 flex w-full items-center justify-center gap-2 h-11 px-5 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-sm hover:bg-slate-800 transition-all cursor-pointer"
+            onClick={() => router.push(`/${locale}/planner`)}
+            className="mt-6 flex w-full items-center justify-center gap-2 h-11 px-5 rounded-xl bg-[#0f172a] text-white hover:bg-slate-800 font-extrabold text-sm shadow-sm transition-all cursor-pointer"
           >
-            <span>{dict.planner.missingButton}</span>
+            <span>{locale === "ko" ? "여행 예산 편성하러 가기" : dict.planner.missingButton}</span>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
@@ -95,7 +104,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     );
   }
 
-  // Budget Engine 계산
+  // Budget Engine 계산 구동
   const plan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,
     food: preferences.foodOverrides,
@@ -114,7 +123,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const isOverBudget = targetBudget > 0 && plan.grandTotalKrw > targetBudget;
   const diffAmount = Math.abs(plan.grandTotalKrw - targetBudget);
 
-  // 도시별/카테고리별 요약 데이터
+  // 도시별/카테고리별 요약 데이터 계산
   const citySubtotalMap: Record<string, number> = {};
   let sumCitySubtotals = 0;
   draft.selectedCities.forEach((city) => {
@@ -125,10 +134,10 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const safeCitySum = Math.max(1, sumCitySubtotals);
 
   const cityPalette = [
-    { bg: "bg-slate-900", border: "border-slate-800", text: "text-slate-900" },
-    { bg: "bg-indigo-600", border: "border-indigo-600", text: "text-indigo-600" },
-    { bg: "bg-emerald-600", border: "border-emerald-600", text: "text-emerald-600" },
-    { bg: "bg-amber-600", border: "border-amber-600", text: "text-amber-600" },
+    { bg: "bg-slate-800", border: "border-slate-300", text: "text-slate-800" },
+    { bg: "bg-indigo-600", border: "border-indigo-300", text: "text-indigo-600" },
+    { bg: "bg-emerald-600", border: "border-emerald-300", text: "text-emerald-600" },
+    { bg: "bg-amber-600", border: "border-amber-300", text: "text-amber-600" },
   ];
 
   const categoryMeta = [
@@ -152,14 +161,16 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     };
   });
 
-  // 추천 여행 코스 필터링 (최대 2개 코스로 간결하게 엄선)
+  // 추천 여행 코스 필터링 (최대 2개로 간결하게 구성)
   const recommendedCourses = TOUR_COURSE_PRESETS.filter((course) =>
     draft.selectedCities.includes(course.cityCode as SupportedCity)
   ).slice(0, 2);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-6 text-slate-800 print:p-0 print:space-y-4">
-      {/* 1. Header with Actions */}
+      {/* ========================================================================= */}
+      {/* 1. Header with Actions (밝고 세련된 화이트 카드) */}
+      {/* ========================================================================= */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 print:border-b-2 print:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="space-y-1">
@@ -226,44 +237,56 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         </div>
       </div>
 
-      {/* 2. Executive Financial KPI Strip */}
-      <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-md shadow-slate-900/10">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+      {/* ========================================================================= */}
+      {/* 2. EXECUTIVE FINANCIAL KPI STRIP (도시 탭 요약 바와 동일한 화사한 라이트 스타일) */}
+      {/* ========================================================================= */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
           {/* Total Budget */}
           <div className="space-y-1">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
               {locale === "ko" ? "총 예상 경비" : "Estimated Total"}
             </span>
-            <div className="text-2xl sm:text-3xl font-black tracking-tight tabular-nums text-white">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight tabular-nums text-slate-900">
               {formatKrw(plan.grandTotalKrw)}
             </div>
-            <span className="text-[10px] text-slate-400 font-medium block">
+            <span className="text-[11px] text-slate-400 font-semibold block">
               {locale === "ko" ? "모든 지출 항목 종합" : "All expenses combined"}
             </span>
           </div>
 
           {/* Per Traveler */}
           <div className="space-y-1 pt-3 lg:pt-0 lg:pl-6">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              {locale === "ko" ? "1인당 예상 경비" : "Per Traveler"}
-            </span>
-            <div className="text-xl sm:text-2xl font-extrabold tracking-tight tabular-nums text-slate-100">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                {locale === "ko" ? "1인당 예상 경비" : "Per Traveler"}
+              </span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                {draft.adultCount}{locale === "ko" ? "인 기준" : " Pax"}
+              </span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black tracking-tight tabular-nums text-slate-900">
               {formatKrw(plan.perTravelerTotalKrw)}
             </div>
-            <span className="text-[10px] text-slate-400 font-medium block">
-              {draft.adultCount}{locale === "ko" ? "인 기준 균등 분할" : " Travelers divided"}
+            <span className="text-[11px] text-slate-400 font-semibold block">
+              {draft.adultCount}{locale === "ko" ? "인 균등 분할 계산" : " Divided by adults"}
             </span>
           </div>
 
           {/* Daily Average */}
           <div className="space-y-1 pt-3 lg:pt-0 lg:pl-6">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-              {locale === "ko" ? "하루 평균 예산" : "Daily Average"}
-            </span>
-            <div className="text-xl sm:text-2xl font-extrabold tracking-tight tabular-nums text-slate-100">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                {locale === "ko" ? "하루 평균 예산" : "Daily Average"}
+              </span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                {(draft.totalNights || 5) + 1}{locale === "ko" ? "일간" : " Days"}
+              </span>
+            </div>
+            <div className="text-xl sm:text-2xl font-black tracking-tight tabular-nums text-slate-900">
               {formatKrw(plan.dailyAverageKrw)}
             </div>
-            <span className="text-[10px] text-slate-400 font-medium block">
+            <span className="text-[11px] text-slate-400 font-semibold block">
               {(draft.totalNights || 5) + 1}{locale === "ko" ? "일간 일일 지출" : " Days daily spending"}
             </span>
           </div>
@@ -271,37 +294,37 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           {/* Target Health Gauge */}
           <div className="space-y-1 pt-3 lg:pt-0 lg:pl-6">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
                 {locale === "ko" ? "목표 예산 비교" : "Target Health"}
               </span>
               {targetBudget > 0 && (
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                  isOverBudget ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                  isOverBudget ? "bg-rose-50 text-rose-600 border border-rose-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                 }`}>
-                  {isOverBudget ? (locale === "ko" ? "초과" : "Over") : (locale === "ko" ? "충족" : "Safe")}
+                  {isOverBudget ? (locale === "ko" ? "예산 초과" : "Over") : (locale === "ko" ? "충족" : "Safe")}
                 </span>
               )}
             </div>
 
             {targetBudget > 0 ? (
-              <div className="space-y-1.5 pt-0.5">
-                <div className="flex items-baseline justify-between text-xs font-mono">
-                  <span className="text-slate-400 font-bold">{formatPercentage(plan.targetBudgetUsagePercent)}</span>
-                  <span className={`font-bold ${isOverBudget ? "text-red-400" : "text-emerald-400"}`}>
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-baseline justify-between text-xs font-mono font-bold">
+                  <span className="text-slate-600">{formatPercentage(plan.targetBudgetUsagePercent)}</span>
+                  <span className={isOverBudget ? "text-rose-600" : "text-emerald-700"}>
                     {isOverBudget ? `+${formatKrw(diffAmount)}` : `-${formatKrw(diffAmount)}`}
                   </span>
                 </div>
-                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${
-                      isOverBudget ? "bg-red-500" : "bg-emerald-500"
+                      isOverBudget ? "bg-rose-500" : "bg-emerald-500"
                     }`}
                     style={{ width: `${Math.min(plan.targetBudgetUsagePercent, 100)}%` }}
                   />
                 </div>
               </div>
             ) : (
-              <span className="text-xs text-slate-500 block pt-1">
+              <span className="text-xs text-slate-400 font-semibold block pt-1.5">
                 {locale === "ko" ? "목표 예산 미설정" : "No target set"}
               </span>
             )}
@@ -309,7 +332,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         </div>
       </div>
 
-      {/* 3. Balanced 2-Column Dashboard */}
+      {/* ========================================================================= */}
+      {/* 3. Balanced 2-Column Dashboard (밝고 정갈한 카드 구성) */}
+      {/* ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ========================================================================= */}
         {/* LEFT COLUMN: BUDGET ARCHITECTURE & CITY AUDIT (6 COLS) */}
@@ -468,7 +493,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black bg-slate-900 text-white px-2 py-0.5 rounded uppercase">
+                          <span className="text-[9px] font-black bg-slate-800 text-white px-2 py-0.5 rounded uppercase">
                             {cityName}
                           </span>
                           <h3 className="text-xs font-bold text-slate-900">
@@ -548,23 +573,23 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         </div>
 
         {/* ========================================================================= */}
-        {/* RIGHT COLUMN: OFFICIAL SMART RECEIPT (6 COLS) */}
+        {/* RIGHT COLUMN: OFFICIAL SMART RECEIPT (화이트/연그레이 라이트 헤더) */}
         {/* ========================================================================= */}
         <div className="lg:col-span-6 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-            {/* Receipt Header */}
-            <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
+            {/* Receipt Header (밝고 세련된 라이트 헤더) */}
+            <div className="bg-slate-50 border-b border-slate-200/80 p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-mono tracking-widest text-slate-400 block uppercase">
+                <span className="text-[10px] font-mono tracking-widest text-slate-400 block uppercase font-bold">
                   ITEMIZED EXPENSE AUDIT
                 </span>
-                <h2 className="text-base font-black tracking-tight text-white mt-0.5">
+                <h2 className="text-base font-black tracking-tight text-slate-900 mt-0.5">
                   {locale === "ko" ? "스마트 예산 영수증 세부 내역" : "Smart Budget Receipt"}
                 </h2>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-slate-400 block font-mono">GRAND TOTAL</span>
-                <span className="text-base sm:text-lg font-black font-mono tabular-nums text-emerald-400">
+                <span className="text-[10px] text-slate-400 block font-mono font-bold">GRAND TOTAL</span>
+                <span className="text-base sm:text-lg font-black font-mono tabular-nums text-slate-900">
                   {formatKrw(plan.grandTotalKrw)}
                 </span>
               </div>
@@ -666,7 +691,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           {item.category === "ATTRACTION" && (selectedSpots.length > 0 || selectedActivities.length > 0) && (
                             <div className="mt-1.5 bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/60 text-[11px] space-y-1.5">
                               <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                                {locale === "ko" ? "담은 관광 명소 및 액티비티" : "Selected Spots & Activities"}
+                                {locale === "ko" ? "선택 명소 및 액티비티" : "Selected Spots & Activities"}
                               </span>
                               <div className="space-y-1">
                                 {selectedSpots.map((spot) => spot && (

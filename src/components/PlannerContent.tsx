@@ -3661,17 +3661,40 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               let cityAccStatus = locale === "ko" ? "미선택" : "Unselected";
               let isAccSelected = false;
 
+              const isCustomStay =
+                typeof accSelection === "object" &&
+                accSelection !== null &&
+                "kind" in accSelection &&
+                ((accSelection as any).kind === "PLACE" || (accSelection as any).kind === "CUSTOM");
+
               if (accSelection) {
-                if (typeof accSelection === "object" && (accSelection as any).kind === "CUSTOM") {
+                const isSolo = adultCount <= 1;
+                const occupancyMode = occupancyModeByCity[currentCity] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
+                const isPair = !isSolo && occupancyMode === "SHARED_PAIR";
+                const sharedRoomCount = Math.ceil(adultCount / 2);
+                const roomCount = isSolo ? 1 : isPair ? sharedRoomCount : adultCount;
+
+                if (isCustomStay) {
                   const custom = accSelection as any;
-                  cityAccTotal = (custom.customPriceKrw || 0) * Math.max(1, cityNights);
-                  cityAccStatus = custom.placeName || (locale === "ko" ? "직접 입력" : "Custom");
+                  const nightlyPrice = custom.nightlyPriceKrw || custom.customPriceKrw || 0;
+                  cityAccTotal = nightlyPrice * roomCount * Math.max(1, cityNights);
+                  cityAccStatus = custom.placeNameKo || custom.placeNameEn || custom.placeName || (locale === "ko" ? "직접 입력" : "Custom");
                   isAccSelected = true;
                 } else {
-                  const archId = typeof accSelection === "string" ? accSelection : (accSelection as any).basketId || (accSelection as any).archetypeId;
-                  const arch = STAY_ARCHETYPES.find((a) => a.id === archId);
+                  let selectedArch: StayArchetypeId | null = null;
+                  const bId = typeof accSelection === "string" ? accSelection : (accSelection as any).basketId;
+                  if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") selectedArch = "HOSTEL_GUESTHOUSE";
+                  else if (bId === "HANOK_BOUTIQUE") selectedArch = "HANOK_BOUTIQUE";
+                  else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") selectedArch = "LUXURY_SKYLINE";
+                  else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") selectedArch = "BUSINESS_HOTEL";
+                  else if (typeof accSelection === "string") {
+                    const matched = STAY_ARCHETYPES.find((a) => a.id === accSelection);
+                    if (matched) selectedArch = matched.id;
+                  }
+
+                  const arch = selectedArch ? STAY_ARCHETYPES.find((a) => a.id === selectedArch) : null;
                   if (arch) {
-                    cityAccTotal = getStayArchetypePrice(currentCity, arch.id) * Math.max(1, cityNights);
+                    cityAccTotal = getStayArchetypePrice(currentCity, arch.id) * roomCount * Math.max(1, cityNights);
                     cityAccStatus = locale === "ko" ? arch.titleKo : arch.titleEn;
                     isAccSelected = true;
                   }

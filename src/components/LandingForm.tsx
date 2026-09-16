@@ -24,6 +24,7 @@ import {
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { Locale } from "src/lib/i18n/locales";
 import TravelPresetSelector from "src/components/landing/TravelPresetSelector";
+import BudgetBentoDashboard from "src/components/landing/BudgetBentoDashboard";
 import {
   TravelPreset,
   TravelPresetId,
@@ -53,6 +54,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
   const [draft, setDraft] = useState<TripDraft>(DEFAULT_TRIP_DRAFT);
   const [mobileStep, setMobileStep] = useState<1 | 2 | 3>(1);
+  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [activePresetId, setActivePresetId] = useState<TravelPresetId | null>(null);
 
@@ -107,11 +109,13 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
     setActivePresetId(null);
     setDraft(EMPTY_TRIP_DRAFT);
     setMobileStep(1);
+    setActiveStep(1);
     setValidationError(null);
   };
 
   const handleNightsChange = (newNights: number) => {
     setActivePresetId(null);
+    setActiveStep(1);
     const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
     const defaultBudget = getDefaultTargetBudgetByNights(newNights, draft.adultCount);
     setDraft((prev) => ({
@@ -125,6 +129,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
   const handleAdultsChange = (newAdults: number) => {
     setActivePresetId(null);
+    setActiveStep(2);
     const defaultBudget = getDefaultTargetBudgetByNights(draft.totalNights, newAdults);
     setDraft((prev) => ({
       ...prev,
@@ -136,6 +141,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
   const toggleCitySelection = (cityCode: SupportedCity) => {
     setActivePresetId(null);
+    setActiveStep(3);
     let nextCities: SupportedCity[];
     if (draft.selectedCities.includes(cityCode)) {
       nextCities = draft.selectedCities.filter((c) => c !== cityCode);
@@ -256,12 +262,12 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
         />
       </div>
 
-      <div className="w-full max-w-5xl mx-auto bg-white border border-[#dedede] rounded-[24px] p-5 sm:p-7 md:p-8 shadow-xs">
+      <div className="w-full max-w-5xl mx-auto bg-white/90 backdrop-blur-md border border-neutral-200/70 rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         {/* ================= PC / TABLET VIEW (!isMobile) ================= */}
         {!isMobile && (
           <div>
             {validationError && (
-              <div className="text-xs text-[#ef4444] font-semibold mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-center" aria-live="polite">
+              <div className="text-xs text-[#ef4444] font-semibold mb-4 p-3 bg-red-50 border border-red-200 rounded-2xl text-center" aria-live="polite">
                 {validationError}
               </div>
             )}
@@ -271,7 +277,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                 <button
                   type="button"
                   onClick={handleResetDraft}
-                  className="text-xs font-semibold text-slate-500 hover:text-[#b93829] flex items-center gap-1 transition-colors cursor-pointer bg-slate-100 hover:bg-red-50 px-3.5 py-1.5 rounded-full border border-slate-200"
+                  className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 flex items-center gap-1 transition-all cursor-pointer bg-neutral-100 hover:bg-neutral-200/70 px-3.5 py-1.5 rounded-full border border-neutral-200/60 active:scale-95"
                 >
                   <span>↺</span>
                   <span>일정 초기화</span>
@@ -279,56 +285,74 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               </div>
             )}
 
-            {/* PC 3-Step Cards Grid */}
-            <div className="grid grid-cols-3 gap-5 items-stretch">
-              {/* Step 1 Card */}
-              <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs flex flex-col justify-between">
+            {/* PC 3-Step Bento Cards Grid with Active Focus & Dimming */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+              {/* Step 1 Bento Card */}
+              <div
+                onClick={() => setActiveStep(1)}
+                className={`rounded-3xl p-6 sm:p-7 border transition-all duration-300 flex flex-col justify-between cursor-pointer ${
+                  activeStep === 1
+                    ? "scale-[1.01] border-teal-500/60 shadow-[0_12px_36px_rgba(20,184,166,0.08)] ring-2 ring-teal-500/20 opacity-100 bg-white"
+                    : "opacity-70 border-neutral-200/60 bg-neutral-50/50 hover:opacity-90"
+                }`}
+              >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-[#1d1d1f]">1단계: 여행 기간 설정</span>
-                    <span className="text-xs font-extrabold text-[#b93829]">
+                    <span className="text-[15px] font-bold text-neutral-900">1단계: 여행 기간 설정</span>
+                    <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
+                      activeStep === 1 ? "bg-teal-50 text-teal-700 border border-teal-200/60" : "text-neutral-500"
+                    }`}>
                       {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
                     </span>
                   </div>
-                  <div className="grid grid-cols-[36px_1fr_36px] items-center gap-1.5 bg-white p-2.5 rounded-[14px] border border-[#dedede] w-full">
+                  <div className="grid grid-cols-[36px_1fr_36px] items-center gap-1.5 bg-neutral-50/80 p-2 rounded-2xl border border-neutral-200/60 w-full">
                     <button
                       type="button"
-                      onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNightsChange(Math.max(1, (totalNights || 5) - 1));
+                      }}
                       disabled={(totalNights || 1) <= 1}
                       aria-label="Decrease nights"
-                      className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer justify-self-start"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
                     >
                       -
                     </button>
                     <div className="text-center min-w-0 px-0.5 overflow-hidden">
-                      <span className="font-extrabold text-[#1d1d1f] text-sm lg:text-[16px] leading-tight block truncate">
+                      <span className="font-extrabold text-neutral-900 text-sm lg:text-[15px] leading-tight block truncate">
                         {totalNights !== null ? `${totalNights} Nights` : "기간 선택"}
                       </span>
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNightsChange(Math.min(14, (totalNights || 0) + 1));
+                      }}
                       disabled={(totalNights || 0) >= 14}
                       aria-label="Increase nights"
-                      className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer justify-self-end"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
                     >
                       +
                     </button>
                   </div>
                 </div>
 
-                <div className="pt-2">
-                  <span className="text-xs font-semibold text-[#666b73] block mb-2">일정 빠른 선택:</span>
+                <div className="pt-3">
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">일정 빠른 선택:</span>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[3, 5, 7, 10].map((preset) => (
                       <button
                         key={preset}
                         type="button"
-                        onClick={() => handleNightsChange(preset)}
-                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all text-center whitespace-nowrap px-1 cursor-pointer ${
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNightsChange(preset);
+                        }}
+                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all text-center whitespace-nowrap px-1 cursor-pointer active:scale-95 ${
                           totalNights === preset
-                            ? "bg-[#b93829] border-[#b93829] text-white"
-                            : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
                         {preset}박
@@ -338,54 +362,72 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                 </div>
               </div>
 
-              {/* Step 2 Card */}
-              <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs flex flex-col justify-between">
+              {/* Step 2 Bento Card */}
+              <div
+                onClick={() => setActiveStep(2)}
+                className={`rounded-3xl p-6 sm:p-7 border transition-all duration-300 flex flex-col justify-between cursor-pointer ${
+                  activeStep === 2
+                    ? "scale-[1.01] border-teal-500/60 shadow-[0_12px_36px_rgba(20,184,166,0.08)] ring-2 ring-teal-500/20 opacity-100 bg-white"
+                    : "opacity-70 border-neutral-200/60 bg-neutral-50/50 hover:opacity-90"
+                }`}
+              >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-[#1d1d1f]">2단계: 여행 인원 선택</span>
-                    <span className="text-xs font-extrabold text-[#b93829]">
+                    <span className="text-[15px] font-bold text-neutral-900">2단계: 여행 인원 선택</span>
+                    <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
+                      activeStep === 2 ? "bg-teal-50 text-teal-700 border border-teal-200/60" : "text-neutral-500"
+                    }`}>
                       {adultCount !== null ? `${adultCount}명` : "미선택"}
                     </span>
                   </div>
-                  <div className="grid grid-cols-[36px_1fr_36px] items-center gap-1.5 bg-white p-2.5 rounded-[14px] border border-[#dedede] w-full">
+                  <div className="grid grid-cols-[36px_1fr_36px] items-center gap-1.5 bg-neutral-50/80 p-2 rounded-2xl border border-neutral-200/60 w-full">
                     <button
                       type="button"
-                      onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAdultsChange(Math.max(1, (adultCount || 2) - 1));
+                      }}
                       disabled={(adultCount || 1) <= 1}
                       aria-label="Decrease travelers"
-                      className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer justify-self-start"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
                     >
                       -
                     </button>
                     <div className="text-center min-w-0 px-0.5 overflow-hidden">
-                      <span className="font-extrabold text-[#1d1d1f] text-sm lg:text-[16px] leading-tight block truncate">
+                      <span className="font-extrabold text-neutral-900 text-sm lg:text-[15px] leading-tight block truncate">
                         {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
                       </span>
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAdultsChange(Math.min(10, (adultCount || 0) + 1));
+                      }}
                       disabled={(adultCount || 0) >= 10}
                       aria-label="Increase travelers"
-                      className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-lg transition-colors cursor-pointer justify-self-end"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-lg transition-all cursor-pointer shadow-2xs active:scale-95"
                     >
                       +
                     </button>
                   </div>
                 </div>
 
-                <div className="pt-2">
-                  <span className="text-xs font-semibold text-[#666b73] block mb-2">인원 빠른 선택:</span>
+                <div className="pt-3">
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">인원 빠른 선택:</span>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[1, 2, 3, 4].map((countPreset) => (
                       <button
                         key={countPreset}
                         type="button"
-                        onClick={() => handleAdultsChange(countPreset)}
-                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center whitespace-nowrap px-1 ${
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAdultsChange(countPreset);
+                        }}
+                        className={`py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer text-center whitespace-nowrap px-1 active:scale-95 ${
                           adultCount === countPreset
-                            ? "bg-[#b93829] border-[#b93829] text-white"
-                            : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
                         {countPreset}명
@@ -395,12 +437,23 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                 </div>
               </div>
 
-              {/* Step 3 Card */}
-              <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs flex flex-col justify-between">
+              {/* Step 3 Bento Card */}
+              <div
+                onClick={() => setActiveStep(3)}
+                className={`rounded-3xl p-6 sm:p-7 border transition-all duration-300 flex flex-col justify-between cursor-pointer ${
+                  activeStep === 3
+                    ? "scale-[1.01] border-teal-500/60 shadow-[0_12px_36px_rgba(20,184,166,0.08)] ring-2 ring-teal-500/20 opacity-100 bg-white"
+                    : "opacity-70 border-neutral-200/60 bg-neutral-50/50 hover:opacity-90"
+                }`}
+              >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-[#1d1d1f]">3단계: 여행 목적지 선택</span>
-                    <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
+                    <span className="text-[15px] font-bold text-neutral-900">3단계: 여행 목적지 선택</span>
+                    <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
+                      activeStep === 3 ? "bg-teal-50 text-teal-700 border border-teal-200/60" : "text-neutral-500"
+                    }`}>
+                      다중 ({draft.selectedCities.length}/4)
+                    </span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
                     {ALL_CITY_OPTIONS.map((cityOpt) => {
@@ -409,14 +462,17 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                         <button
                           key={cityOpt.key}
                           type="button"
-                          onClick={() => toggleCitySelection(cityOpt.key)}
-                          className={`min-h-[42px] px-1 py-1.5 rounded-[12px] border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center whitespace-nowrap ${
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleCitySelection(cityOpt.key);
+                          }}
+                          className={`min-h-[40px] px-1 py-1.5 rounded-xl border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center whitespace-nowrap active:scale-95 ${
                             isSelected
-                              ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                              : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                              ? "bg-teal-50/80 border-2 border-teal-600 text-teal-900 font-bold shadow-2xs"
+                              : "bg-white border-neutral-200/60 text-neutral-600 font-medium hover:border-neutral-300"
                           }`}
                         >
-                          {isSelected && <span className="text-[#b93829] font-bold text-xs shrink-0">✓</span>}
+                          {isSelected && <span className="text-teal-600 font-bold text-xs shrink-0">✓</span>}
                           <span>{cityOpt.nameKo}</span>
                         </button>
                       );
@@ -426,9 +482,12 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               </div>
             </div>
 
+            {/* ================= Phase 3: 실시간 예산 비대칭 벤토 그리드 대시보드 ================= */}
+            <BudgetBentoDashboard draft={draft} locale={locale} />
+
             {/* PC Bottom CTA Area */}
-            <div className="mt-8 pt-6 border-t border-[#dedede]/60 flex flex-col items-center gap-4">
-              <div className="text-center text-[14px] text-[#666b73] font-medium py-2 px-5 rounded-full bg-[#faf9f7] max-w-lg mx-auto border border-[#dedede] flex items-center justify-center shadow-2xs">
+            <div className="mt-8 pt-6 border-t border-neutral-200/60 flex flex-col items-center gap-4">
+              <div className="text-center text-[14px] text-neutral-600 font-medium py-2 px-5 rounded-full bg-neutral-100/70 max-w-lg mx-auto border border-neutral-200/60 flex items-center justify-center shadow-2xs">
                 {getAllocationSummaryText()}
               </div>
 
@@ -497,33 +556,33 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
             {/* Mobile Step 1: 여행 기간 */}
             {mobileStep === 1 && (
-              <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="bg-[#faf9f7] p-5 rounded-[22px] border border-neutral-200/70 space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-[#1d1d1f]">1단계: 여행 기간 설정</span>
-                  <span className="text-[17px] font-extrabold text-[#b93829]">
+                  <span className="text-[15px] font-bold text-neutral-900">1단계: 여행 기간 설정</span>
+                  <span className="text-[16px] font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
                     {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
-                  <button type="button" onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))} disabled={(totalNights || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">-</button>
+                <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-neutral-200/60">
+                  <button type="button" onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))} disabled={(totalNights || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">-</button>
                   <div className="text-center">
-                    <span className="font-extrabold text-[#1d1d1f] text-[20px] block">{totalNights !== null ? `${totalNights} Nights` : "기간 선택"}</span>
+                    <span className="font-extrabold text-neutral-900 text-[18px] block">{totalNights !== null ? `${totalNights} Nights` : "기간 선택"}</span>
                   </div>
-                  <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
+                  <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">+</button>
                 </div>
 
                 <div className="pt-1">
-                  <span className="text-xs font-semibold text-[#666b73] block mb-2">일정 빠른 선택:</span>
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">일정 빠른 선택:</span>
                   <div className="grid grid-cols-4 gap-2">
                     {[3, 5, 7, 10].map((preset) => (
                       <button
                         key={preset}
                         type="button"
                         onClick={() => handleNightsChange(preset)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer active:scale-95 ${
                           totalNights === preset
-                            ? "bg-[#b93829] border-[#b93829] text-white"
-                            : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
                         {preset}박
@@ -536,31 +595,31 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
             {/* Mobile Step 2: 여행 인원 */}
             {mobileStep === 2 && (
-              <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="bg-[#faf9f7] p-5 rounded-[22px] border border-neutral-200/70 space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-[#1d1d1f]">2단계: 여행 인원 선택</span>
-                  <span className="text-xs font-extrabold text-[#b93829]">{adultCount !== null ? `${adultCount}명` : "미선택"}</span>
+                  <span className="text-[15px] font-bold text-neutral-900">2단계: 여행 인원 선택</span>
+                  <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">{adultCount !== null ? `${adultCount}명` : "미선택"}</span>
                 </div>
-                <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-[14px] border border-[#dedede]">
-                  <button type="button" onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))} disabled={(adultCount || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">-</button>
+                <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-neutral-200/60">
+                  <button type="button" onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))} disabled={(adultCount || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">-</button>
                   <div className="text-center">
-                    <span className="font-extrabold text-[#1d1d1f] text-xl block">{adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}</span>
+                    <span className="font-extrabold text-neutral-900 text-lg block">{adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}</span>
                   </div>
-                  <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-[10px] bg-slate-100 hover:bg-[#b93829] hover:text-white disabled:opacity-30 text-[#1d1d1f] font-bold text-xl transition-colors cursor-pointer">+</button>
+                  <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-all cursor-pointer active:scale-95">+</button>
                 </div>
 
                 <div className="pt-1">
-                  <span className="text-xs font-semibold text-[#666b73] block mb-2">인원 빠른 선택:</span>
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">인원 빠른 선택:</span>
                   <div className="grid grid-cols-4 gap-2">
                     {[1, 2, 3, 4].map((countPreset) => (
                       <button
                         key={countPreset}
                         type="button"
                         onClick={() => handleAdultsChange(countPreset)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        className={`py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer active:scale-95 ${
                           adultCount === countPreset
-                            ? "bg-[#b93829] border-[#b93829] text-white"
-                            : "bg-white border-[#dedede] text-slate-700 hover:border-slate-300"
+                            ? "bg-teal-700 border-teal-700 text-white shadow-xs"
+                            : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
                         {countPreset}명
@@ -573,10 +632,10 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
             {/* Mobile Step 3: 여행 목적지 */}
             {mobileStep === 3 && (
-              <div className="bg-[#faf9f7] p-5 rounded-[18px] border border-[#dedede] space-y-4 shadow-2xs">
+              <div className="bg-[#faf9f7] p-5 rounded-[22px] border border-neutral-200/70 space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-[#1d1d1f]">3단계: 여행 목적지 선택</span>
-                  <span className="text-xs text-[#b93829] font-bold">다중 선택 ({draft.selectedCities.length}/4)</span>
+                  <span className="text-[15px] font-bold text-neutral-900">3단계: 여행 목적지 선택</span>
+                  <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">다중 ({draft.selectedCities.length}/4)</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {ALL_CITY_OPTIONS.map((cityOpt) => (
@@ -584,19 +643,24 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                       key={cityOpt.key}
                       type="button"
                       onClick={() => toggleCitySelection(cityOpt.key)}
-                      className={`min-h-[48px] px-2 py-2.5 rounded-[12px] border text-[14px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
+                      className={`min-h-[44px] px-2 py-2 rounded-xl border text-[13px] transition-all cursor-pointer flex items-center justify-center gap-1 text-center active:scale-95 ${
                         draft.selectedCities.includes(cityOpt.key)
-                          ? "bg-[#fdf2f2] border-2 border-[#b93829] text-[#1d1d1f] font-bold shadow-2xs"
-                          : "bg-white border-[#dedede] text-[#666b73] font-semibold hover:border-slate-300"
+                          ? "bg-teal-50/80 border-2 border-teal-600 text-teal-900 font-bold shadow-2xs"
+                          : "bg-white border-neutral-200/70 text-neutral-600 font-medium hover:border-neutral-300"
                       }`}
                     >
-                      {draft.selectedCities.includes(cityOpt.key) && <span className="text-[#b93829] font-bold text-xs">✓</span>}
+                      {draft.selectedCities.includes(cityOpt.key) && <span className="text-teal-600 font-bold text-xs">✓</span>}
                       {cityOpt.nameKo}
                     </button>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Mobile Real-time Budget Bento Dashboard */}
+            <div className="mt-4">
+              <BudgetBentoDashboard draft={draft} locale={locale} />
+            </div>
           </div>
         )}
       </div>

@@ -23,6 +23,12 @@ import {
 } from "src/lib/storage-helper";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { Locale } from "src/lib/i18n/locales";
+import TravelPresetSelector from "src/components/landing/TravelPresetSelector";
+import {
+  TravelPreset,
+  TravelPresetId,
+  getTravelPresetById,
+} from "src/lib/presets/travel-presets";
 
 interface LandingFormProps {
   locale: Locale;
@@ -48,6 +54,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
   const [draft, setDraft] = useState<TripDraft>(DEFAULT_TRIP_DRAFT);
   const [mobileStep, setMobileStep] = useState<1 | 2 | 3>(1);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [activePresetId, setActivePresetId] = useState<TravelPresetId | null>(null);
 
   // Reliable JS-based mobile detection to completely avoid CSS 'hidden' media-query bugs
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -85,14 +92,26 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
     saveActiveDraft(draft, mobileStep);
   }, [draft, mobileStep]);
 
+  const handleSelectPreset = (preset: TravelPreset) => {
+    setActivePresetId(preset.id);
+    setDraft(preset.draft);
+    setValidationError(null);
+  };
+
+  const handleClearPreset = () => {
+    setActivePresetId(null);
+  };
+
   const handleResetDraft = () => {
     clearActiveDraft();
+    setActivePresetId(null);
     setDraft(EMPTY_TRIP_DRAFT);
     setMobileStep(1);
     setValidationError(null);
   };
 
   const handleNightsChange = (newNights: number) => {
+    setActivePresetId(null);
     const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
     const defaultBudget = getDefaultTargetBudgetByNights(newNights, draft.adultCount);
     setDraft((prev) => ({
@@ -105,6 +124,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
   };
 
   const handleAdultsChange = (newAdults: number) => {
+    setActivePresetId(null);
     const defaultBudget = getDefaultTargetBudgetByNights(draft.totalNights, newAdults);
     setDraft((prev) => ({
       ...prev,
@@ -115,6 +135,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
   };
 
   const toggleCitySelection = (cityCode: SupportedCity) => {
+    setActivePresetId(null);
     let nextCities: SupportedCity[];
     if (draft.selectedCities.includes(cityCode)) {
       nextCities = draft.selectedCities.filter((c) => c !== cityCode);
@@ -200,12 +221,17 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
       return;
     }
 
+    const activePreset = activePresetId ? getTravelPresetById(activePresetId) : null;
+    const initialPreferences = activePreset?.preferences;
+
     savePlannerPreferences({
       draft: draftToSave,
-      accommodationByCity: {},
-      foodOverrides: {},
-      foodAddOnOverrides: {},
-      attractionByCity: {},
+      accommodationByCity: initialPreferences?.accommodationByCity || {},
+      foodOverrides: initialPreferences?.foodOverrides || {},
+      foodAddOnOverrides: initialPreferences?.foodAddOnOverrides || {},
+      foodBasketSelections: initialPreferences?.foodBasketSelections,
+      attractionByCity: initialPreferences?.attractionByCity || {},
+      attractionSelections: initialPreferences?.attractionSelections || {},
     });
 
     const firstCity = draftToSave.selectedCities[0] || "SEOUL";
@@ -219,6 +245,17 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
+      {/* 3가지 추천 여행 스타일 프리셋 */}
+      <div className="w-full max-w-5xl mx-auto mb-6">
+        <TravelPresetSelector
+          locale={locale}
+          dict={dict}
+          activePresetId={activePresetId}
+          onSelectPreset={handleSelectPreset}
+          onClearPreset={handleClearPreset}
+        />
+      </div>
+
       <div className="w-full max-w-5xl mx-auto bg-white border border-[#dedede] rounded-[24px] p-5 sm:p-7 md:p-8 shadow-xs">
         {/* ================= PC / TABLET VIEW (!isMobile) ================= */}
         {!isMobile && (

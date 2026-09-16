@@ -35,6 +35,7 @@ import {
 import { THEME_ACTIVITIES_CATALOG, themeActivityToAttractionSpot } from "../features/budget/catalog/theme-activities";
 import { STAY_ARCHETYPES, getStayArchetypePrice } from "../features/budget/catalog/stay-archetypes";
 import ReportBentoDashboard from "./report/ReportBentoDashboard";
+import ReportShareBar from "./report/ReportShareBar";
 
 interface ReportContentProps {
   locale: Locale;
@@ -978,6 +979,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           </div>
         </div>
       </div>
+
+      {/* 4. Bottom Report Storage & Share Bar (인쇄 / PDF / 공유하기 / 링크 복사) */}
+      <ReportShareBar locale={locale} />
     </div>
   );
 }

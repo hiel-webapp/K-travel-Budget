@@ -362,27 +362,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const diffAmount = Math.abs(grandTotalKrw - targetBudget);
   const targetUsagePercent = targetBudget > 0 ? (grandTotalKrw / targetBudget) * 100 : 0;
 
-  // 카테고리 비중 계산
-  const safeGrandTotal = Math.max(1, grandTotalKrw);
-  const categoryGauges = [
-    { label: locale === "ko" ? "숙소" : "Stay", amount: sumAccTotal, color: "bg-blue-500" },
-    { label: locale === "ko" ? "음식" : "Food", amount: sumFoodTotal, color: "bg-amber-500" },
-    { label: locale === "ko" ? "교통" : "Transit", amount: sumTransportTotal + intercityTotal, color: "bg-indigo-500" },
-    { label: locale === "ko" ? "관광" : "Attr", amount: sumAttractionTotal, color: "bg-emerald-500" },
-    { label: locale === "ko" ? "자율/비상금" : "Flex", amount: shoppingAmountKrw + totalDailyAllowanceKrw + computedEmergencyKrw, color: "bg-purple-500" },
-  ].map((c) => ({
-    ...c,
-    pct: Math.round((c.amount / safeGrandTotal) * 100),
-  }));
-
-  const safeCitySum = Math.max(1, sumCitySubtotals);
-  const cityPalette = [
-    { bg: "bg-slate-800" },
-    { bg: "bg-indigo-600" },
-    { bg: "bg-emerald-600" },
-    { bg: "bg-amber-600" },
-  ];
-
   // 추천 코스 필터링 (최대 2개 엄선)
   const recommendedCourses = TOUR_COURSE_PRESETS.filter((course) =>
     draft.selectedCities.includes(course.cityCode as SupportedCity)
@@ -461,84 +440,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         {/* LEFT COLUMN: BUDGET ARCHITECTURE & CITY AUDIT (6 COLS) */}
         {/* ========================================================================= */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Card: Budget Architecture Visual Gauges */}
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-4">
-            <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
-              <h2 className="text-sm font-black text-slate-900 tracking-tight">
-                {locale === "ko" ? "예산 구조 분석 및 지출 비중" : "Budget Architecture & Allocation"}
-              </h2>
-            </div>
-
-            {/* Category Gauge */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-600">{locale === "ko" ? "카테고리별 비중" : "Category Breakdown"}</span>
-                <span className="font-bold text-slate-900 text-xs tabular-nums">{formatKrw(grandTotalKrw)}</span>
-              </div>
-              <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
-                {categoryGauges.map((item, idx) => {
-                  if (item.pct <= 0) return null;
-                  return (
-                    <div
-                      key={idx}
-                      style={{ width: `${item.pct}%` }}
-                      className={`${item.color} transition-all duration-300 relative`}
-                      title={`${item.label}: ${item.pct}% (${formatKrw(item.amount)})`}
-                    />
-                  );
-                })}
-              </div>
-              <div className="grid grid-cols-5 gap-1.5 pt-1 text-xs">
-                {categoryGauges.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-1 min-w-0">
-                    <span className={`h-2 w-2 rounded-full ${item.color} shrink-0`}></span>
-                    <span className="font-semibold text-slate-700 truncate text-[10px]">{item.label}</span>
-                    <span className="font-bold text-slate-900 ml-auto text-[10px] tabular-nums">{item.pct}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* City Gauge */}
-            <div className="space-y-2 pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-600">{locale === "ko" ? "도시별 비중" : "City Allocation"}</span>
-                <span className="font-bold text-slate-900 text-xs tabular-nums">{formatKrw(sumCitySubtotals)}</span>
-              </div>
-              <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
-                {draft.selectedCities.map((city, idx) => {
-                  const sub = cityBreakdown[city]?.subtotalKrw || 0;
-                  const pct = Math.round((sub / safeCitySum) * 100);
-                  if (pct <= 0) return null;
-                  const palette = cityPalette[idx % cityPalette.length];
-                  return (
-                    <div
-                      key={city}
-                      style={{ width: `${pct}%` }}
-                      className={`${palette.bg} transition-all duration-300 relative`}
-                      title={`${CITY_KOREAN_NAMES[city] || city}: ${pct}% (${formatKrw(sub)})`}
-                    />
-                  );
-                })}
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1.5 pt-1 text-xs">
-                {draft.selectedCities.map((city, idx) => {
-                  const sub = cityBreakdown[city]?.subtotalKrw || 0;
-                  const pct = Math.round((sub / safeCitySum) * 100);
-                  const palette = cityPalette[idx % cityPalette.length];
-                  const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[city] || city) : (CITY_ENGLISH_NAMES[city] || city);
-                  return (
-                    <div key={city} className="flex items-center gap-1.5">
-                      <span className={`h-2 w-2 rounded-full ${palette.bg} shrink-0`}></span>
-                      <span className="font-semibold text-slate-700 text-[11px]">{cityName}</span>
-                      <span className="font-bold text-slate-900 text-[11px] tabular-nums">{pct}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
           {/* Card: City Financial Audit Table */}
           <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">
             <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">

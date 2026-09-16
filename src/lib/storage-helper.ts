@@ -25,6 +25,7 @@ import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { IntercityTransportMode } from "./transport/intercity-fares";
 import { PlaceItem } from "./places/types";
 import { normalizeSpotKey, isSameSpot, TOUR_COURSE_PRESETS } from "../features/budget/catalog/attraction-spots";
+import { STAY_ARCHETYPES } from "../features/budget/catalog/stay-archetypes";
 
 const NEW_STORAGE_KEY = "hypeheritage_trip_draft";
 const LEGACY_STORAGE_KEY = "k_travel_state";
@@ -504,21 +505,39 @@ function validateSingleAccommodation(
   if (!draft.selectedCities.includes(city)) return false;
   if (!val) return false;
 
-  if (typeof val === "object" && val !== null && "kind" in val) {
+  // 1. 객체 형태
+  if (typeof val === "object" && val !== null) {
     const obj = val as any;
+    // A. 저장된 장소/K-스팟 형태
     if (obj.kind === "PLACE") {
       return !(!obj.placeId || typeof obj.nightlyPriceKrw !== "number" || obj.nightlyPriceKrw < 0);
     }
-    return MOCK_PRICE_CATALOG.some(
-      (b) =>
-        b.category === "ACCOMMODATION" &&
-        b.id === obj.basketId &&
-        (b.applicableCity === city || b.applicableCity === "SEOUL" || !b.applicableCity) &&
-        b.isActive
-    );
+    // B. 직접 입력 커스텀 숙소 형태
+    if (obj.kind === "CUSTOM") {
+      return typeof obj.customPriceKrw === "number" && obj.customPriceKrw >= 0;
+    }
+    // C. 아키타입 객체 형태
+    if (obj.kind === "ARCHETYPE" && typeof obj.archetypeId === "string") {
+      return STAY_ARCHETYPES.some((a) => a.id === obj.archetypeId);
+    }
+    // D. 레거시 바스켓 티어 객체 형태
+    if (obj.basketId && typeof obj.basketId === "string") {
+      if (STAY_ARCHETYPES.some((a) => a.id === obj.basketId)) return true;
+      return MOCK_PRICE_CATALOG.some(
+        (b) =>
+          b.category === "ACCOMMODATION" &&
+          b.id === obj.basketId &&
+          (b.applicableCity === city || b.applicableCity === "SEOUL" || !b.applicableCity) &&
+          b.isActive
+      );
+    }
   }
 
+  // 2. 문자열 형태 (STAY_ARCHETYPES ID 또는 레거시 basketId)
   if (typeof val === "string") {
+    if (STAY_ARCHETYPES.some((a) => a.id === val)) {
+      return true;
+    }
     return MOCK_PRICE_CATALOG.some(
       (b) =>
         b.category === "ACCOMMODATION" &&

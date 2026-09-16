@@ -25,7 +25,13 @@ import {
   themeActivityToAttractionSpot,
 } from "../features/budget/catalog/theme-activities";
 import { StaySelectorPanel } from "../features/budget/components/StaySelectorPanel";
-import type { StayArchetypeId, OccupancyMode } from "../features/budget/catalog/stay-archetypes";
+import {
+  STAY_ARCHETYPES,
+  getStayArchetypePrice,
+  type StayArchetypeId,
+  type OccupancyMode,
+} from "../features/budget/catalog/stay-archetypes";
+import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import SaveTripModal from "./planner/SaveTripModal";
 import BudgetTierModal from "./planner/BudgetTierModal";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -908,6 +914,45 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   };
 
+  /**
+   * 플래너 선호도(숙소, 음식 바스켓, 관광, 교통 등)를 유실 없이 안전하게 저장하는 통합 헬퍼
+   */
+  const persistPreferences = useCallback(
+    (nextPrefs: Partial<PlannerPreferences>, targetDraft?: TripDraft): boolean => {
+      if (state.status !== "ready") return false;
+      const current = latestPrefsRef.current || state.preferences;
+      const activeDraft = targetDraft || state.draft;
+      return savePlannerPreferences({
+        draft: activeDraft,
+        accommodationByCity: nextPrefs.accommodationByCity ?? current.accommodationByCity ?? {},
+        foodTier: nextPrefs.foodTier ?? current.foodTier,
+        foodOverrides: nextPrefs.foodOverrides ?? current.foodOverrides ?? {},
+        foodAddOnOverrides: nextPrefs.addOnSelections ?? current.addOnSelections ?? {},
+        foodBasketSelections: nextPrefs.foodBasketSelections ?? current.foodBasketSelections ?? [],
+        attractionByCity: nextPrefs.attractionByCity ?? current.attractionByCity ?? {},
+        attractionSelections: nextPrefs.attractionSelections ?? current.attractionSelections ?? {},
+        attractionCustomDailyKrw:
+          nextPrefs.attractionCustomDailyKrw !== undefined
+            ? nextPrefs.attractionCustomDailyKrw
+            : current.attractionCustomDailyKrw,
+        emergencyFundKrw:
+          nextPrefs.emergencyFundKrw !== undefined
+            ? nextPrefs.emergencyFundKrw
+            : current.emergencyFundKrw,
+        emergencyFundPct:
+          nextPrefs.emergencyFundPct !== undefined
+            ? nextPrefs.emergencyFundPct
+            : current.emergencyFundPct,
+        intercityTransportOverrides:
+          nextPrefs.intercityTransportOverrides ?? current.intercityTransportOverrides,
+        localTransitStyle: nextPrefs.localTransitStyle ?? current.localTransitStyle,
+        cityTransitStyles: nextPrefs.cityTransitStyles ?? current.cityTransitStyles,
+        isKobusPassApplied: nextPrefs.isKobusPassApplied ?? current.isKobusPassApplied,
+      });
+    },
+    [state]
+  );
+
   const handleSelectIntercityOverride = (routeKey: string, mode: IntercityTransportMode | string) => {
     if (state.status !== "ready") return;
     const currentOverrides = state.preferences.intercityTransportOverrides || {};
@@ -920,21 +965,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       intercityTransportOverrides: updatedOverrides,
     };
 
-    savePlannerPreferences({
-      draft: state.draft,
-      accommodationByCity: nextPrefs.accommodationByCity,
-      foodTier: nextPrefs.foodTier,
-      foodOverrides: nextPrefs.foodOverrides,
-      foodAddOnOverrides: nextPrefs.addOnSelections,
-      attractionByCity: nextPrefs.attractionByCity,
-      attractionSelections: nextPrefs.attractionSelections,
-      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
-      emergencyFundKrw: nextPrefs.emergencyFundKrw,
-      emergencyFundPct: nextPrefs.emergencyFundPct,
-      intercityTransportOverrides: updatedOverrides,
-      localTransitStyle: nextPrefs.localTransitStyle,
-      isKobusPassApplied: nextPrefs.isKobusPassApplied,
-    });
+    persistPreferences({ intercityTransportOverrides: updatedOverrides });
 
     setState({
       ...state,
@@ -956,21 +987,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       cityTransitStyles: updatedCityStyles,
     };
 
-    savePlannerPreferences({
-      draft: state.draft,
-      accommodationByCity: nextPrefs.accommodationByCity,
-      foodTier: nextPrefs.foodTier,
-      foodOverrides: nextPrefs.foodOverrides,
-      foodAddOnOverrides: nextPrefs.addOnSelections,
-      attractionByCity: nextPrefs.attractionByCity,
-      attractionSelections: nextPrefs.attractionSelections,
-      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
-      emergencyFundKrw: nextPrefs.emergencyFundKrw,
-      emergencyFundPct: nextPrefs.emergencyFundPct,
-      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
+    persistPreferences({
       localTransitStyle: style,
       cityTransitStyles: updatedCityStyles,
-      isKobusPassApplied: nextPrefs.isKobusPassApplied,
     });
 
     setState({
@@ -991,22 +1010,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       cityTransitStyles: updatedCityStyles,
     };
 
-    savePlannerPreferences({
-      draft: state.draft,
-      accommodationByCity: nextPrefs.accommodationByCity,
-      foodTier: nextPrefs.foodTier,
-      foodOverrides: nextPrefs.foodOverrides,
-      foodAddOnOverrides: nextPrefs.addOnSelections,
-      attractionByCity: nextPrefs.attractionByCity,
-      attractionSelections: nextPrefs.attractionSelections,
-      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
-      emergencyFundKrw: nextPrefs.emergencyFundKrw,
-      emergencyFundPct: nextPrefs.emergencyFundPct,
-      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
-      localTransitStyle: nextPrefs.localTransitStyle,
-      cityTransitStyles: updatedCityStyles,
-      isKobusPassApplied: nextPrefs.isKobusPassApplied,
-    });
+    persistPreferences({ cityTransitStyles: updatedCityStyles });
 
     setState({
       ...state,
@@ -1159,16 +1163,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
     saveTripDraft(finalDraft);
     if (state.status === "ready") {
-      savePlannerPreferences({
-        accommodationByCity: state.preferences.accommodationByCity,
-        foodOverrides: state.preferences.foodOverrides,
-        foodAddOnOverrides: state.preferences.addOnSelections,
-        attractionByCity: state.preferences.attractionByCity,
-        attractionSelections: state.preferences.attractionSelections,
-        emergencyFundKrw: state.preferences.emergencyFundKrw,
-        emergencyFundPct: state.preferences.emergencyFundPct,
-        draft: finalDraft,
-      });
+      persistPreferences({}, finalDraft);
     }
 
     setState((prev) => {
@@ -1220,16 +1215,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     if (!validation.success) return;
 
     saveTripDraft(nextDraft);
-    savePlannerPreferences({
-      accommodationByCity: state.preferences.accommodationByCity,
-      foodOverrides: state.preferences.foodOverrides,
-      foodAddOnOverrides: state.preferences.addOnSelections,
-      attractionByCity: state.preferences.attractionByCity,
-      attractionSelections: state.preferences.attractionSelections,
-      emergencyFundKrw: state.preferences.emergencyFundKrw,
-      emergencyFundPct: state.preferences.emergencyFundPct,
-      draft: nextDraft,
-    });
+    persistPreferences({}, nextDraft);
 
     setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
 
@@ -1507,16 +1493,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       [city]: accSelectionObj,
     };
 
-    const saved = savePlannerPreferences({
+    const saved = persistPreferences({
       accommodationByCity: nextAcc,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
-      attractionByCity: preferences.attractionByCity,
-      attractionSelections: preferences.attractionSelections,
-      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -1661,16 +1639,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const nextAcc = { ...preferences.accommodationByCity };
     delete nextAcc[cityTarget];
 
-    const saved = savePlannerPreferences({
+    const saved = persistPreferences({
       accommodationByCity: nextAcc,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
-      attractionByCity: preferences.attractionByCity,
-      attractionSelections: preferences.attractionSelections,
-      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -1696,16 +1666,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       [city]: basketId,
     };
 
-    const saved = savePlannerPreferences({
-      accommodationByCity: preferences.accommodationByCity,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
+    const saved = persistPreferences({
       attractionByCity: nextAttr,
-      attractionSelections: preferences.attractionSelections,
-      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -1731,16 +1693,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       nextAttr[city] = basketId;
     });
 
-    const saved = savePlannerPreferences({
-      accommodationByCity: preferences.accommodationByCity,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
+    const saved = persistPreferences({
       attractionByCity: nextAttr,
-      attractionSelections: preferences.attractionSelections,
       attractionCustomDailyKrw: undefined,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -1768,16 +1723,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const nextAttrSel = { ...preferences.attractionSelections };
     delete nextAttrSel[cityTarget];
 
-    const saved = savePlannerPreferences({
-      accommodationByCity: preferences.accommodationByCity,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
+    const saved = persistPreferences({
       attractionByCity: nextAttr,
       attractionSelections: nextAttrSel,
-      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -1872,16 +1820,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       },
     };
 
-    const saved = savePlannerPreferences({
-      accommodationByCity: preferences.accommodationByCity,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
-      attractionByCity: preferences.attractionByCity,
+    const saved = persistPreferences({
       attractionSelections: nextAttractionSelections,
-      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -2001,16 +1941,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       },
     };
 
-    const saved = savePlannerPreferences({
-      accommodationByCity: preferences.accommodationByCity,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
-      attractionByCity: preferences.attractionByCity,
+    const saved = persistPreferences({
       attractionSelections: nextAttractionSelections,
-      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -2061,16 +1993,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       },
     };
 
-    const saved = savePlannerPreferences({
-      accommodationByCity: preferences.accommodationByCity,
-      foodOverrides: preferences.foodOverrides,
-      foodAddOnOverrides: preferences.addOnSelections,
-      attractionByCity: preferences.attractionByCity,
+    const saved = persistPreferences({
       attractionSelections: nextAttractionSelections,
-      attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
-      emergencyFundKrw: preferences.emergencyFundKrw,
-      emergencyFundPct: preferences.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -2672,16 +2596,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
     if (!isValValid(raw) || raw === 0) {
       if (!latestPrefsRef.current) return;
-      const saved = savePlannerPreferences({
-        accommodationByCity: latestPrefsRef.current.accommodationByCity,
-        foodOverrides: latestPrefsRef.current.foodOverrides,
-        foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
-        attractionByCity: latestPrefsRef.current.attractionByCity,
-        attractionSelections: latestPrefsRef.current.attractionSelections,
+      const saved = persistPreferences({
         attractionCustomDailyKrw: undefined,
-        emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
-        emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
-        draft,
       });
       if (saved) {
         latestPrefsRef.current = {
@@ -2694,16 +2610,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
 
     if (!latestPrefsRef.current) return;
-    const saved = savePlannerPreferences({
-      accommodationByCity: latestPrefsRef.current.accommodationByCity,
-      foodOverrides: latestPrefsRef.current.foodOverrides,
-      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
-      attractionByCity: latestPrefsRef.current.attractionByCity,
-      attractionSelections: latestPrefsRef.current.attractionSelections,
+    const saved = persistPreferences({
       attractionCustomDailyKrw: raw,
-      emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
-      emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
-      draft,
     });
 
     if (saved) {
@@ -2727,15 +2635,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleEmergencyFundPctChange = (pct: number) => {
     if (!latestPrefsRef.current) return;
     setEmergencyManualInput("");
-    const saved = savePlannerPreferences({
-      accommodationByCity: latestPrefsRef.current.accommodationByCity,
-      foodOverrides: latestPrefsRef.current.foodOverrides,
-      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
-      attractionByCity: latestPrefsRef.current.attractionByCity,
-      attractionSelections: latestPrefsRef.current.attractionSelections,
+    const saved = persistPreferences({
       emergencyFundKrw: undefined,
       emergencyFundPct: pct,
-      draft,
     });
 
     if (saved) {
@@ -3063,39 +2965,167 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             );
           })()}
 
-          {/* Category Tabs / Cards (Only shown for individual city tabs: 3 categories without redundant transport) */}
-          {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (
-            <div className="grid grid-cols-3 gap-2 sm:gap-3" role="tablist" aria-label="Budget categories">
-              {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as BudgetCategory[]).map((cat) => {
-                const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
-                const isActive = effectiveCategory === cat;
-                const label = getCategoryLabel(cat, dict);
-                const amount = plan.categoryTotals[cat] || 0;
+          {/* Category Tabs / Cards (Only shown for individual city tabs: 3 categories with independent city amounts & status badges) */}
+          {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {
+            const currentCity = selectedCityTab as SupportedCity;
+            const cityNights = draft.cityNightAllocations[currentCity] || 0;
+            const adultCount = draft.adultCount || 1;
 
-                return (
-                  <button
-                    key={cat}
-                    role="tab"
-                    aria-selected={isActive}
-                    id={`cat-tab-${cat}`}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`flex flex-col items-center justify-between p-3 rounded-xl border text-center transition-all duration-155 focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${isActive
-                        ? "bg-white border-[#e25c5c] shadow-sm text-[#0f172a]"
-                        : "bg-white border-slate-200/80 text-slate-500 hover:border-slate-300"
+            // 1. 숙박 (해당 도시 선택 숙소 및 금액)
+            const accSelection = preferences.accommodationByCity?.[currentCity];
+            let cityAccTotal = 0;
+            let cityAccStatus = locale === "ko" ? "선택 필요" : "Required";
+            let isAccSelected = false;
+
+            if (accSelection) {
+              if (typeof accSelection === "object" && (accSelection as any).kind === "CUSTOM") {
+                const custom = accSelection as any;
+                cityAccTotal = (custom.customPriceKrw || 0) * Math.max(1, cityNights);
+                cityAccStatus = custom.placeName || (locale === "ko" ? "직접 입력" : "Custom");
+                isAccSelected = true;
+              } else {
+                const archId = typeof accSelection === "string" ? accSelection : (accSelection as any).basketId || (accSelection as any).archetypeId;
+                const arch = STAY_ARCHETYPES.find((a) => a.id === archId);
+                if (arch) {
+                  cityAccTotal = getStayArchetypePrice(currentCity, arch.id) * Math.max(1, cityNights);
+                  cityAccStatus = locale === "ko" ? arch.titleKo : arch.titleEn;
+                  isAccSelected = true;
+                }
+              }
+            }
+
+            // 2. 음식 (해당 도시에 할당된 푸드 바스켓 금액 및 담긴 메뉴 수)
+            const safeTotalNights = draft.totalNights || 5;
+            const totalFoodBasketPlan = calculateFoodBasketPlan(
+              preferences.foodBasketSelections || [],
+              safeTotalNights,
+              adultCount
+            );
+            const cityFoodBasket = calculateCityFoodBasketPlan(
+              currentCity,
+              cityNights,
+              safeTotalNights,
+              totalFoodBasketPlan,
+              adultCount
+            );
+            const cityFoodTotal = cityFoodBasket.grandTotalKrw;
+            const cityFoodItemCount = cityFoodBasket.selectedItems.length;
+            const isFoodSelected = cityFoodItemCount > 0;
+            const cityFoodStatus = isFoodSelected
+              ? (locale === "ko" ? `${cityFoodItemCount}개 메뉴` : `${cityFoodItemCount} items`)
+              : (locale === "ko" ? "담은 음식 없음" : "No food added");
+
+            // 3. 관광 (해당 도시 담은 명소 및 테마 액티비티 금액)
+            const citySel = preferences.attractionSelections?.[currentCity] || { selectedCourseIds: [], individualSpotIds: [] };
+            const spotsForCity = [
+              ...budgetPlaces.filter((p) => p.city === currentCity && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
+              ...(dbAttractionsByCity[currentCity] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity)),
+              ...THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === currentCity).map(themeActivityToAttractionSpot),
+            ];
+            const selectedSpotKeys = new Set<string>();
+            (citySel.selectedCourseIds || []).forEach((cid) => {
+              const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+              if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+            });
+            (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+
+            let cityAttrTotal = 0;
+            const selectedSpotsCount = selectedSpotKeys.size;
+            selectedSpotKeys.forEach((normKey) => {
+              const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
+              if (spot && spot.priceStatus === "PAID" && spot.price > 0) {
+                cityAttrTotal += spot.price * adultCount;
+              }
+            });
+            const isAttrSelected = selectedSpotsCount > 0;
+            const cityAttrStatus = isAttrSelected
+              ? (locale === "ko" ? `${selectedSpotsCount}곳 담김` : `${selectedSpotsCount} spots`)
+              : (locale === "ko" ? "담은 명소 없음" : "No spots added");
+
+            const cityCategoryData: Record<
+              "ACCOMMODATION" | "FOOD" | "ATTRACTION",
+              {
+                label: string;
+                amount: number;
+                statusText: string;
+                isSelected: boolean;
+              }
+            > = {
+              ACCOMMODATION: {
+                label: getCategoryLabel("ACCOMMODATION", dict),
+                amount: cityAccTotal,
+                statusText: cityAccStatus,
+                isSelected: isAccSelected,
+              },
+              FOOD: {
+                label: getCategoryLabel("FOOD", dict),
+                amount: cityFoodTotal,
+                statusText: cityFoodStatus,
+                isSelected: isFoodSelected,
+              },
+              ATTRACTION: {
+                label: getCategoryLabel("ATTRACTION", dict),
+                amount: cityAttrTotal,
+                statusText: cityAttrStatus,
+                isSelected: isAttrSelected,
+              },
+            };
+
+            return (
+              <div className="grid grid-cols-3 gap-2 sm:gap-3" role="tablist" aria-label="Budget categories">
+                {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as const).map((cat) => {
+                  const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
+                  const isActive = effectiveCategory === cat;
+                  const data = cityCategoryData[cat];
+
+                  return (
+                    <button
+                      key={cat}
+                      role="tab"
+                      aria-selected={isActive}
+                      id={`cat-tab-${cat}`}
+                      onClick={() => setActiveCategory(cat)}
+                      className={`group relative flex flex-col items-center justify-between p-3 sm:py-3.5 sm:px-4 rounded-2xl border text-center transition-all duration-155 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
+                        isActive
+                          ? "bg-white border-[#e25c5c] shadow-sm ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
+                          : "bg-white border-slate-200/90 text-slate-500 hover:border-slate-300 hover:bg-slate-50/50"
                       }`}
-                  >
-                    <div className={`h-1 w-6 rounded-full mb-1.5 ${isActive ? "bg-[#e25c5c]" : "bg-slate-200"}`}></div>
-                    <span className="text-[11px] font-bold tracking-tight block sm:text-xs">
-                      {label}
-                    </span>
-                    <span className="mt-1 text-[11px] sm:text-[13px] font-extrabold text-[#0f172a] block">
-                      {formatKrw(amount)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                    >
+                      {/* 상단 인디케이터 바 */}
+                      <div
+                        className={`h-1 rounded-full mb-1.5 transition-all ${
+                          isActive ? "bg-[#e25c5c] w-7" : "bg-slate-200 w-5 group-hover:bg-slate-300"
+                        }`}
+                      ></div>
+
+                      {/* 카테고리 명칭 */}
+                      <span className="text-xs sm:text-[13px] font-black tracking-tight block text-slate-800">
+                        {data.label}
+                      </span>
+
+                      {/* 상태 뱃지 (미선택 vs 선택완료 요약) */}
+                      <div className="mt-1">
+                        <span
+                          className={`inline-block text-[10px] sm:text-[10.5px] font-semibold px-2 py-0.5 rounded-full transition-colors truncate max-w-[120px] ${
+                            data.isSelected
+                              ? "bg-rose-50 text-[#e25c5c] border border-rose-100/80 font-bold"
+                              : "bg-slate-100 text-slate-400"
+                          }`}
+                        >
+                          {data.statusText}
+                        </span>
+                      </div>
+
+                      {/* 해당 도시 독립 금액 */}
+                      <span className="mt-1.5 text-xs sm:text-sm font-extrabold text-[#0f172a] block font-mono tabular-nums">
+                        {formatKrw(data.amount)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* Active Category Panel */}
           <div

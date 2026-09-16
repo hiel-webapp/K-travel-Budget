@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { loadTripDraft, loadPlannerPreferencesEx, loadSavedPlaceIds } from "../lib/storage-helper";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
@@ -35,7 +35,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const [draft, setDraft] = useState<TripDraft | null>(null);
   const [preferences, setPreferences] = useState<PlannerPreferences | null>(null);
   const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
-  const [activeReceiptCity, setActiveReceiptCity] = useState<string>("ALL");
 
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
@@ -58,23 +57,13 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     return () => cancelAnimationFrame(handle);
   }, []);
 
-  // 고유 리포트 번호 및 생성일
-  const reportMeta = useMemo(() => {
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, ".");
-    const randomHash = Math.random().toString(36).substring(2, 7).toUpperCase();
-    return {
-      reportId: `HH-KR-${randomHash}`,
-      date: dateStr,
-    };
-  }, []);
-
   if (!isHydrated) {
     return (
       <div className="flex h-96 w-full items-center justify-center">
         <div className="flex flex-col items-center space-y-3">
           <div className="h-9 w-9 animate-spin rounded-full border-3 border-slate-200 border-t-[#0f172a]"></div>
           <p className="text-xs font-semibold text-slate-500 tracking-tight">
-            {locale === "ko" ? "맞춤 여행 예산 리포트를 생성하는 중입니다..." : "Generating travel budget report..."}
+            {locale === "ko" ? "예산 리포트를 불러오는 중입니다..." : "Loading travel budget report..."}
           </p>
         </div>
       </div>
@@ -143,10 +132,10 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   ];
 
   const categoryMeta = [
-    { cat: "ACCOMMODATION", label: locale === "ko" ? "숙소" : "Stay", colorBg: "bg-blue-500", colorText: "text-blue-700" },
-    { cat: "FOOD", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500", colorText: "text-amber-700" },
-    { cat: "CITY_TRANSPORT", label: locale === "ko" ? "교통" : "Transit", colorBg: "bg-indigo-500", colorText: "text-indigo-700" },
-    { cat: "ATTRACTION", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500", colorText: "text-emerald-700" },
+    { cat: "ACCOMMODATION", label: locale === "ko" ? "숙소" : "Stay", colorBg: "bg-blue-500" },
+    { cat: "FOOD", label: locale === "ko" ? "음식" : "Food", colorBg: "bg-amber-500" },
+    { cat: "CITY_TRANSPORT", label: locale === "ko" ? "교통" : "Transit", colorBg: "bg-indigo-500" },
+    { cat: "ATTRACTION", label: locale === "ko" ? "관광" : "Attractions", colorBg: "bg-emerald-500" },
   ];
 
   const grandTotal = plan.grandTotalKrw || 1;
@@ -160,37 +149,34 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
       amount,
       pct: Math.round((amount / grandTotal) * 100),
       colorBg: item.colorBg,
-      colorText: item.colorText,
     };
   });
 
-  // 추천 여행 코스 필터링
+  // 추천 여행 코스 필터링 (최대 2개 코스로 간결하게 엄선)
   const recommendedCourses = TOUR_COURSE_PRESETS.filter((course) =>
     draft.selectedCities.includes(course.cityCode as SupportedCity)
-  );
+  ).slice(0, 2);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-6 text-slate-800 print:p-0 print:space-y-4">
-      {/* ========================================================================= */}
-      {/* 1. OFFICIAL REPORT HEADER BANNER */}
-      {/* ========================================================================= */}
+      {/* 1. Header with Actions */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-5 sm:p-6 print:border-b-2 print:shadow-none">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-black tracking-widest text-slate-900 uppercase bg-slate-100 px-2 py-0.5 rounded">
-                OFFICIAL REPORT
+              <span className="text-[11px] font-extrabold tracking-tight text-[#e25c5c] uppercase bg-rose-50 px-2 py-0.5 rounded border border-rose-100">
+                HypeHeritage Travel Report
               </span>
-              <span className="text-xs font-mono font-bold text-slate-400">
-                {reportMeta.reportId}
-              </span>
-              <span className="text-xs font-medium text-slate-400">
-                · {reportMeta.date}
+              <span className="text-xs font-semibold text-slate-500">
+                {(draft.totalNights || 5)}{locale === "ko" ? "박 " : "N "}{(draft.totalNights || 5) + 1}{locale === "ko" ? "일" : "D"} · {draft.adultCount}{locale === "ko" ? "인 성인" : " Adults"}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              {locale === "ko" ? "대한민국 맞춤 여행 예산 종합 리포트" : "Korea Travel Comprehensive Budget Report"}
+              {dict.planner.reportTitle}
             </h1>
+            <p className="text-xs text-slate-500 font-medium">
+              {dict.planner.reportSubtitle}
+            </p>
           </div>
 
           {/* Action Tools */}
@@ -213,44 +199,35 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
               </svg>
-              <span>{locale === "ko" ? "플래너로 돌아가기" : "Back to Planner"}</span>
+              <span>{dict.planner.reportBackToPlanner}</span>
             </button>
           </div>
         </div>
 
-        {/* Trip Meta Quick Tags */}
-        <div className="pt-3.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 px-3 py-1.5 rounded-xl">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">CITIES</span>
-            <span className="font-extrabold text-slate-900">
-              {draft.selectedCities.map((c) => (locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c)).join(" ➔ ")}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 px-3 py-1.5 rounded-xl">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">SCHEDULE</span>
-            <span className="font-extrabold text-slate-900">
-              {(draft.totalNights || 5)}{locale === "ko" ? "박 " : "N "}{(draft.totalNights || 5) + 1}{locale === "ko" ? "일" : "D"}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 px-3 py-1.5 rounded-xl">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">TRAVELERS</span>
-            <span className="font-extrabold text-slate-900">
-              {draft.adultCount}{locale === "ko" ? "인 성인" : " Adults"}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/70 px-3 py-1.5 rounded-xl ml-auto">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">STATUS</span>
-            <span className="font-extrabold text-emerald-700">
-              {locale === "ko" ? "검증 완료된 예산안" : "Verified Calculation"}
-            </span>
+        {/* Selected Cities Tag Strip */}
+        <div className="pt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
+          <span className="text-slate-400 font-bold uppercase text-[10px]">ROUTE:</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {draft.selectedCities.map((city, idx) => {
+              const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
+              const nights = draft.cityNightAllocations[city] || 0;
+              return (
+                <React.Fragment key={city}>
+                  <span className="bg-slate-50 border border-slate-200/80 text-slate-800 px-2.5 py-1 rounded-lg text-xs font-bold">
+                    {cityName} ({nights === 0 ? (locale === "ko" ? "당일" : "Day") : `${nights}${locale === "ko" ? "박" : "N"}`})
+                  </span>
+                  {idx < draft.selectedCities.length - 1 && (
+                    <span className="text-slate-300 font-bold text-xs">➔</span>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. EXECUTIVE FINANCIAL SUMMARY (COMPACT KPI STRIP) */}
-      {/* ========================================================================= */}
-      <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-md shadow-slate-900/10 relative overflow-hidden">
+      {/* 2. Executive Financial KPI Strip */}
+      <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-md shadow-slate-900/10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
           {/* Total Budget */}
           <div className="space-y-1">
@@ -274,7 +251,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               {formatKrw(plan.perTravelerTotalKrw)}
             </div>
             <span className="text-[10px] text-slate-400 font-medium block">
-              {draft.adultCount}{locale === "ko" ? "인 기준 분할" : " Travelers divided"}
+              {draft.adultCount}{locale === "ko" ? "인 기준 균등 분할" : " Travelers divided"}
             </span>
           </div>
 
@@ -332,28 +309,25 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 3. TWO-COLUMN BALANCED DASHBOARD LAYOUT */}
-      {/* ========================================================================= */}
+      {/* 3. Balanced 2-Column Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ----------------------------------------------------------------------- */}
-        {/* LEFT COLUMN: ANALYTICS, CHARTS, TIMELINE & CITY SUMMARY (7 COLS) */}
-        {/* ----------------------------------------------------------------------- */}
-        <div className="lg:col-span-7 space-y-6">
+        {/* ========================================================================= */}
+        {/* LEFT COLUMN: BUDGET ARCHITECTURE & CITY AUDIT (6 COLS) */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-6 space-y-6">
           {/* Card: Budget Architecture Visual Gauges */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-4">
             <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
-              <h2 className="text-sm font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-                <span>{locale === "ko" ? "예산 구조 분석 및 지출 비중" : "Budget Architecture & Allocation"}</span>
+              <h2 className="text-sm font-black text-slate-900 tracking-tight">
+                {locale === "ko" ? "예산 구조 분석 및 지출 비중" : "Budget Architecture & Allocation"}
               </h2>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">VISUAL INSIGHTS</span>
             </div>
 
             {/* Category Gauge */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-600">{locale === "ko" ? "항목별 지출 비중" : "Category Breakdown"}</span>
-                <span className="font-mono text-slate-400 text-[11px]">{formatKrw(plan.grandTotalKrw)}</span>
+                <span className="font-bold text-slate-600">{locale === "ko" ? "카테고리별 비중" : "Category Breakdown"}</span>
+                <span className="font-mono font-bold text-slate-900 text-xs">{formatKrw(plan.grandTotalKrw)}</span>
               </div>
               <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
                 {categorySubtotals.map((item, idx) => {
@@ -382,8 +356,8 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             {/* City Gauge */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-600">{locale === "ko" ? "도시별 지출 비중" : "City Allocation"}</span>
-                <span className="font-mono text-slate-400 text-[11px]">{formatKrw(sumCitySubtotals)}</span>
+                <span className="font-bold text-slate-600">{locale === "ko" ? "도시별 비중" : "City Allocation"}</span>
+                <span className="font-mono font-bold text-slate-900 text-xs">{formatKrw(sumCitySubtotals)}</span>
               </div>
               <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-2xs">
                 {draft.selectedCities.map((city, idx) => {
@@ -419,13 +393,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             </div>
           </div>
 
-          {/* Card: City Financial Audit Table (Compact Financial Sheet) */}
+          {/* Card: City Financial Audit Table */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-3">
             <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
               <h2 className="text-sm font-black text-slate-900 tracking-tight">
                 {locale === "ko" ? "도시별 4대 부문 지출 집계" : "City-by-City Expense Breakdown"}
               </h2>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">AUDIT SHEET</span>
             </div>
 
             <div className="overflow-x-auto">
@@ -472,19 +445,14 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             </div>
           </div>
 
-          {/* Card: Recommended Tour Courses (Curated Route Blueprint) */}
+          {/* Card: Recommended Tour Courses (Curated Route Guide) */}
           {recommendedCourses.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-3">
-              <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-black text-slate-900 tracking-tight">
-                    {locale === "ko" ? "선택 도시 추천 코스 & 최적 동선 가이드" : "Curated Route & Tour Presets"}
-                  </h2>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    {locale === "ko" ? "동선을 최적화한 권역별 대표 추천 투어입니다." : "Route-optimized course recommendations."}
-                  </p>
-                </div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase">ROUTE BLUEPRINT</span>
+              <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+                <h2 className="text-sm font-black text-slate-900 tracking-tight">
+                  {locale === "ko" ? "선택 도시 추천 코스 & 최적 동선 가이드" : "Curated Route & Tour Presets"}
+                </h2>
+                <span className="text-[10px] font-bold text-slate-400 uppercase">RECOMMENDED</span>
               </div>
 
               <div className="space-y-3 pt-1">
@@ -496,11 +464,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   return (
                     <div
                       key={course.id}
-                      className="p-3.5 rounded-xl border border-slate-200/70 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all space-y-2"
+                      className="p-3.5 rounded-xl border border-slate-200/70 bg-slate-50/50 space-y-2"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black bg-slate-900 text-white px-2 py-0.5 rounded uppercase tracking-wide">
+                          <span className="text-[9px] font-black bg-slate-900 text-white px-2 py-0.5 rounded uppercase">
                             {cityName}
                           </span>
                           <h3 className="text-xs font-bold text-slate-900">
@@ -508,7 +476,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           </h3>
                         </div>
                         <span className="text-[11px] font-mono font-bold text-slate-500">
-                          {locale === "ko" ? `약 ${course.estimatedHours}시간 소요` : `~${course.estimatedHours}h`}
+                          {locale === "ko" ? `약 ${course.estimatedHours}시간` : `~${course.estimatedHours}h`}
                         </span>
                       </div>
 
@@ -516,14 +484,14 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                         {locale === "ko" ? course.descKo : course.descEn}
                       </p>
 
-                      {/* Route Spots Sequence Tag */}
+                      {/* Route Spots Sequence */}
                       <div className="flex flex-wrap items-center gap-1.5 pt-1">
                         {course.spotIds.map((sid, sIdx) => {
                           const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
                           const spotName = spot ? (locale === "ko" ? spot.nameKo : spot.nameEn) : sid;
                           return (
                             <React.Fragment key={sid}>
-                              <span className="text-[10px] font-medium bg-white text-slate-800 px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+                              <span className="text-[10px] font-medium bg-white text-slate-800 px-2 py-0.5 rounded border border-slate-200">
                                 {spotName}
                               </span>
                               {sIdx < course.spotIds.length - 1 && (
@@ -540,18 +508,17 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             </div>
           )}
 
-          {/* Card: Personalized K-Trend Recommendations */}
+          {/* Card: Personalized K-Trend Tips */}
           {personalizedTrends.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs space-y-3">
               <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
                 <h2 className="text-sm font-black text-slate-900 tracking-tight">
                   {dict.trendSection.personalizedTitle}
                 </h2>
-                <span className="text-[10px] font-bold text-slate-400 uppercase">CURATED INSIGHTS</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                {personalizedTrends.slice(0, 4).map(({ trend, reason }, idx) => {
+                {personalizedTrends.slice(0, 2).map(({ trend, reason }, idx) => {
                   const trans = trend.translations[locale === "en" ? "en" : "ko"];
                   const cityName = trend.city === "ALL"
                     ? (locale === "en" ? "All Cities" : "전체 도시")
@@ -563,12 +530,10 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       className="p-3 rounded-xl border border-slate-200/70 bg-slate-50/60 flex flex-col justify-between space-y-2 text-xs"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-black text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
-                            {cityName}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-slate-900 line-clamp-1">{trans.title}</h3>
+                        <span className="text-[9px] font-black text-slate-600 bg-white border border-slate-200 px-1.5 py-0.5 rounded inline-block">
+                          {cityName}
+                        </span>
+                        <h3 className="font-bold text-slate-900">{trans.title}</h3>
                         <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{trans.overview}</p>
                       </div>
                       <div className="pt-1.5 border-t border-slate-200/50 text-[10px] text-slate-500">
@@ -582,19 +547,19 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           )}
         </div>
 
-        {/* ----------------------------------------------------------------------- */}
-        {/* RIGHT COLUMN: OFFICIAL SMART RECEIPT & BASKET AUDIT (5 COLS) */}
-        {/* ----------------------------------------------------------------------- */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* ========================================================================= */}
+        {/* RIGHT COLUMN: OFFICIAL SMART RECEIPT (6 COLS) */}
+        {/* ========================================================================= */}
+        <div className="lg:col-span-6 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-            {/* Receipt Header Strip */}
+            {/* Receipt Header */}
             <div className="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-mono tracking-widest text-slate-400 block uppercase">
                   ITEMIZED EXPENSE AUDIT
                 </span>
                 <h2 className="text-base font-black tracking-tight text-white mt-0.5">
-                  {locale === "ko" ? "스마트 예산 공식 영수증" : "Smart Budget Receipt"}
+                  {locale === "ko" ? "스마트 예산 영수증 세부 내역" : "Smart Budget Receipt"}
                 </h2>
               </div>
               <div className="text-right">
@@ -605,39 +570,10 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               </div>
             </div>
 
-            {/* City Filter Tabs for Smart Receipt */}
-            <div className="bg-slate-50 border-b border-slate-200/80 px-4 py-2 flex items-center gap-1.5 overflow-x-auto text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setActiveReceiptCity("ALL")}
-                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                  activeReceiptCity === "ALL"
-                    ? "bg-slate-900 text-white shadow-2xs"
-                    : "text-slate-600 hover:bg-slate-200/60"
-                }`}
-              >
-                {locale === "ko" ? "전체 보기" : "All Items"}
-              </button>
-              {draft.selectedCities.map((city) => (
-                <button
-                  key={city}
-                  type="button"
-                  onClick={() => setActiveReceiptCity(city)}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-                    activeReceiptCity === city
-                      ? "bg-slate-900 text-white shadow-2xs"
-                      : "text-slate-600 hover:bg-slate-200/60"
-                  }`}
-                >
-                  {locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
-                </button>
-              ))}
-            </div>
-
             {/* Receipt Items Body */}
             <div className="p-4 sm:p-5 space-y-5 divide-y divide-slate-100 text-xs">
               {/* Trip-wide Section: Shopping, Allowance, Emergency Fund */}
-              {(activeReceiptCity === "ALL") && plan.tripWideSection.lineItems.length > 0 && (
+              {plan.tripWideSection.lineItems.length > 0 && (
                 <div className="space-y-2.5">
                   <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
                     {locale === "ko" ? "공통 자율 예산 (쇼핑 · 용돈 · 비상금)" : "Common Flexible Expenses"}
@@ -664,7 +600,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
 
               {/* City-by-City Itemized Sections */}
               {draft.selectedCities.map((city) => {
-                if (activeReceiptCity !== "ALL" && activeReceiptCity !== city) return null;
                 const section = plan.citySections[city];
                 if (!section || section.lineItems.length === 0) return null;
 
@@ -731,7 +666,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           {item.category === "ATTRACTION" && (selectedSpots.length > 0 || selectedActivities.length > 0) && (
                             <div className="mt-1.5 bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/60 text-[11px] space-y-1.5">
                               <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                                {locale === "ko" ? "선택 명소 및 액티비티" : "Selected Spots & Activities"}
+                                {locale === "ko" ? "담은 관광 명소 및 액티비티" : "Selected Spots & Activities"}
                               </span>
                               <div className="space-y-1">
                                 {selectedSpots.map((spot) => spot && (
@@ -766,7 +701,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               })}
 
               {/* Intercity Transit (KTX) */}
-              {(activeReceiptCity === "ALL") && plan.intercitySection.lineItems.length > 0 && (
+              {plan.intercitySection.lineItems.length > 0 && (
                 <div className="pt-4 space-y-2">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
                     <span className="font-black text-slate-900 text-sm">

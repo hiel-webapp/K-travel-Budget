@@ -32,6 +32,7 @@ export interface StaySelectorPanelProps {
   customStayOverride?: { placeName: string; nightlyPriceKrw: number } | null;
   onSaveCustomStay?: (city: SupportedCity, placeName: string, nightlyPriceKrw: number) => void;
   onResetCustomStay?: (city: SupportedCity) => void;
+  hideHeader?: boolean;
 }
 
 export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
@@ -49,6 +50,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   customStayOverride = null,
   onSaveCustomStay,
   onResetCustomStay,
+  hideHeader = false,
 }) => {
   const [customNameInput, setCustomNameInput] = useState(() => customStayOverride?.placeName || "");
   const [customPriceInput, setCustomPriceInput] = useState(() =>
@@ -137,66 +139,68 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   return (
     <div className="space-y-6">
       {/* 1. 숙박 바스켓 요약 바 (Top Summary Bar: 음식 탭과 동일한 위계 및 카드 규격) */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
-                {cityName} {locale === "ko" ? "숙소 바스켓" : "Stay Basket"}
-              </h3>
+      {!hideHeader && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                  {cityName} {locale === "ko" ? "숙소 바스켓" : "Stay Basket"}
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500">
+                {!hasSelection
+                  ? (locale === "ko"
+                      ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
+                      : "Select a stay archetype or enter your custom booked stay.")
+                  : isCustomActive
+                  ? (locale === "ko"
+                      ? `직접 입력 숙소: "${customStayOverride?.placeName}" (1박 ${formatKrw(nightlyRoomPrice)})`
+                      : `Custom stay: "${customStayOverride?.placeName}" (${formatKrw(nightlyRoomPrice)}/nt)`)
+                  : (locale === "ko"
+                      ? `선택된 숙소: ${locale === "ko" ? currentArchetype?.titleKo : currentArchetype?.titleEn} (1박 평균 ${formatKrw(nightlyRoomPrice)})`
+                      : `Selected: ${currentArchetype?.titleEn} (${formatKrw(nightlyRoomPrice)}/nt)`)}
+              </p>
             </div>
-            <p className="text-xs text-slate-500">
-              {!hasSelection
-                ? (locale === "ko"
-                    ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
-                    : "Select a stay archetype or enter your custom booked stay.")
-                : isCustomActive
-                ? (locale === "ko"
-                    ? `직접 입력 숙소: "${customStayOverride?.placeName}" (1박 ${formatKrw(nightlyRoomPrice)})`
-                    : `Custom stay: "${customStayOverride?.placeName}" (${formatKrw(nightlyRoomPrice)}/nt)`)
-                : (locale === "ko"
-                    ? `선택된 숙소: ${locale === "ko" ? currentArchetype?.titleKo : currentArchetype?.titleEn} (1박 평균 ${formatKrw(nightlyRoomPrice)})`
-                    : `Selected: ${currentArchetype?.titleEn} (${formatKrw(nightlyRoomPrice)}/nt)`)}
-            </p>
+
+            {/* 총 숙소비 표시 (우측 대형 강조) */}
+            <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
+              <span className="text-[11px] font-bold text-slate-400">
+                {locale === "ko"
+                  ? `${cityName} 총 숙소비 (${cityNights}박 · ${adultCount}인)`
+                  : `${cityName} Total Stay (${cityNights} Nts · ${adultCount}p)`}
+              </span>
+              <div className="flex items-baseline gap-2 justify-end">
+                <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+                  {formatKrw(totalStayCostKrw)}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* 총 숙소비 표시 (우측 대형 강조) */}
-          <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
-            <span className="text-[11px] font-bold text-slate-400">
-              {locale === "ko"
-                ? `${cityName} 총 숙소비 (${cityNights}박 · ${adultCount}인)`
-                : `${cityName} Total Stay (${cityNights} Nts · ${adultCount}p)`}
-            </span>
-            <div className="flex items-baseline gap-2 justify-end">
-              <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
-                {formatKrw(totalStayCostKrw)}
+          {/* 하단 세부 정보 바 (1인당 실제 부담액 & 객실 이용 방식 칩) */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-slate-700 font-bold flex items-center gap-1.5">
+                <span>{locale === "ko" ? "1인당 실제 부담액:" : "Per Traveler:"}</span>
+                <strong className="text-slate-900 font-black">
+                  {formatKrw(perPersonStayCostKrw)}
+                </strong>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
+                {isSoloTraveler
+                  ? (locale === "ko" ? "1인 1실 단독" : "1 Room")
+                  : isPairSplit
+                  ? (locale === "ko" ? `2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `2-in-1 Room (${sharedRoomCount} rms)`)
+                  : (locale === "ko" ? `전원 1인 1실 (${adultCount}개 객실)` : `1 Room each (${adultCount} rms)`)}
               </span>
             </div>
           </div>
         </div>
-
-        {/* 하단 세부 정보 바 (1인당 실제 부담액 & 객실 이용 방식 칩) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-slate-700 font-bold flex items-center gap-1.5">
-              <span>{locale === "ko" ? "1인당 실제 부담액:" : "Per Traveler:"}</span>
-              <strong className="text-slate-900 font-black">
-                {formatKrw(perPersonStayCostKrw)}
-              </strong>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
-              {isSoloTraveler
-                ? (locale === "ko" ? "1인 1실 단독" : "1 Room")
-                : isPairSplit
-                ? (locale === "ko" ? `2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `2-in-1 Room (${sharedRoomCount} rms)`)
-                : (locale === "ko" ? `전원 1인 1실 (${adultCount}개 객실)` : `1 Room each (${adultCount} rms)`)}
-            </span>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* 2. Step 1: 4-Tier Stay Archetype Cards Grid */}
       <div className="space-y-3">

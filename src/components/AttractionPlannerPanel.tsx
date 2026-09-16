@@ -34,6 +34,7 @@ export interface AttractionPlannerPanelProps {
   customAttractionPlaces: AttractionSpot[];
   isLoading?: boolean;
   onAddCustomSpot?: (city: SupportedCity, name: string, priceKrw: number) => void;
+  hideHeader?: boolean;
 }
 
 export default function AttractionPlannerPanel({
@@ -51,6 +52,7 @@ export default function AttractionPlannerPanel({
   customAttractionPlaces,
   isLoading = false,
   onAddCustomSpot,
+  hideHeader = false,
 }: AttractionPlannerPanelProps) {
   const [activeSubTab, setActiveSubTab] = useState<"CITY" | "BASKET">("CITY");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
@@ -212,77 +214,79 @@ export default function AttractionPlannerPanel({
   return (
     <div className="w-full space-y-5">
       {/* 1. 관광 바스켓 요약 바 (Top Summary Bar: Food/Stay 플래너와 100% 동일한 위계 및 디자인 규격) */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
-                {cityName} {locale === "ko" ? "관광 바스켓" : "Attraction Basket"}
-              </h3>
+      {!hideHeader && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-[#0f172a] tracking-tight">
+                  {cityName} {locale === "ko" ? "관광 바스켓" : "Attraction Basket"}
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500">
+                {locale === "ko"
+                  ? "방문하고 싶은 명소와 K-체험을 자유롭게 담으면 총 입장료가 자동으로 계산됩니다."
+                  : "Add attractions and activities. Total admission budget auto-calculates for your group."}
+              </p>
             </div>
-            <p className="text-xs text-slate-500">
-              {locale === "ko"
-                ? "방문하고 싶은 명소와 K-체험을 자유롭게 담으면 총 입장료가 자동으로 계산됩니다."
-                : "Add attractions and activities. Total admission budget auto-calculates for your group."}
-            </p>
+
+            {/* 총 관광비 표시 (우측 정렬) */}
+            <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
+              <span className="text-[11px] font-bold text-slate-400">
+                {locale === "ko" ? `${cityName} 예상 관광비 (${adultCount}인)` : `${cityName} Attraction Budget (${adultCount}p)`}
+              </span>
+              <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+                {formatKrw(basketSummary.grandTotalKrw)}
+              </span>
+            </div>
           </div>
 
-          {/* 총 관광비 표시 (우측 정렬) */}
-          <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-1">
-            <span className="text-[11px] font-bold text-slate-400">
-              {locale === "ko" ? `${cityName} 예상 관광비 (${adultCount}인)` : `${cityName} Attraction Budget (${adultCount}p)`}
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
-              {formatKrw(basketSummary.grandTotalKrw)}
-            </span>
-          </div>
-        </div>
-
-        {/* 담은 명소 상태 & 프로그레스 바 */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs font-bold">
-            <span className="text-slate-700 flex items-center gap-1.5 flex-wrap">
-              <span>{locale === "ko" ? "담은 명소·체험:" : "Selected Spots:"}</span>
-              <span className="font-black text-emerald-600">
-                {basketSummary.totalCount}{locale === "ko" ? "곳 담김" : " items"}
+          {/* 담은 명소 상태 & 프로그레스 바 */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold">
+              <span className="text-slate-700 flex items-center gap-1.5 flex-wrap">
+                <span>{locale === "ko" ? "담은 명소·체험:" : "Selected Spots:"}</span>
+                <span className="font-black text-emerald-600">
+                  {basketSummary.totalCount}{locale === "ko" ? "곳 담김" : " items"}
+                </span>
+                <span className="text-[11px] text-slate-400 font-normal">
+                  ({locale === "ko" ? "무료" : "Free"} {basketSummary.freeCount}{locale === "ko" ? "곳" : ""} · {locale === "ko" ? "유료" : "Paid"} {basketSummary.paidCount}{locale === "ko" ? "곳" : ""}
+                  {adultCount > 1 && basketSummary.totalPerPersonKrw > 0 ? ` · 1인 ${formatKrw(basketSummary.totalPerPersonKrw)}` : ""})
+                </span>
               </span>
-              <span className="text-[11px] text-slate-400 font-normal">
-                ({locale === "ko" ? "무료" : "Free"} {basketSummary.freeCount}{locale === "ko" ? "곳" : ""} · {locale === "ko" ? "유료" : "Paid"} {basketSummary.paidCount}{locale === "ko" ? "곳" : ""}
-                {adultCount > 1 && basketSummary.totalPerPersonKrw > 0 ? ` · 1인 ${formatKrw(basketSummary.totalPerPersonKrw)}` : ""})
-              </span>
-            </span>
 
-            {/* 바스켓 비우기 액션 */}
-            {basketSummary.totalCount > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (window.confirm(dict.planner.clearAttractionBasketConfirm || "현재 도시의 담은 명소를 모두 비우시겠습니까?")) {
-                    onClearCitySpots(city);
-                  }
+              {/* 바스켓 비우기 액션 */}
+              {basketSummary.totalCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(dict.planner.clearAttractionBasketConfirm || "현재 도시의 담은 명소를 모두 비우시겠습니까?")) {
+                      onClearCitySpots(city);
+                    }
+                  }}
+                  className="text-[11px] font-bold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer underline"
+                >
+                  {dict.planner.clearAttractionBasket || "바스켓 비우기"}
+                </button>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
+              <div
+                className={`h-full transition-all duration-300 rounded-full ${
+                  basketSummary.totalCount === 0
+                    ? "bg-slate-300"
+                    : "bg-emerald-500"
+                }`}
+                style={{
+                  width: `${Math.min(100, basketSummary.totalCount > 0 ? Math.max(15, basketSummary.totalCount * 20) : 0)}%`,
                 }}
-                className="text-[11px] font-bold text-slate-400 hover:text-rose-600 transition-colors cursor-pointer underline"
-              >
-                {dict.planner.clearAttractionBasket || "바스켓 비우기"}
-              </button>
-            )}
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
-            <div
-              className={`h-full transition-all duration-300 rounded-full ${
-                basketSummary.totalCount === 0
-                  ? "bg-slate-300"
-                  : "bg-emerald-500"
-              }`}
-              style={{
-                width: `${Math.min(100, basketSummary.totalCount > 0 ? Math.max(15, basketSummary.totalCount * 20) : 0)}%`,
-              }}
-            />
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 2. 네비게이션 탭 (도시 대표 명소 / K-테마 액티비티 / 담은 바스켓: FoodPlanner와 100% 동일) */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-2">

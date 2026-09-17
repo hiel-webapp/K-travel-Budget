@@ -7,10 +7,16 @@ import {
 import { validateTripDraft } from "../../trip-domain";
 
 describe("Travel Presets Unit Tests", () => {
-  it("3대 여행 스타일 프리셋이 정확히 3개 정의되어 있어야 함", () => {
-    expect(TRAVEL_PRESETS.length).toBe(3);
+  it("여행 스타일 프리셋이 5개 정의되어 있어야 함", () => {
+    expect(TRAVEL_PRESETS.length).toBe(5);
     const ids = TRAVEL_PRESETS.map((p) => p.id);
-    expect(ids).toEqual(["K_TREND_VIBES", "K_HERITAGE_SOUL", "K_NATURE_CHILL"]);
+    expect(ids).toEqual([
+      "K_TREND_VIBES",
+      "K_HERITAGE_SOUL",
+      "K_NATURE_CHILL",
+      "K_JEJU_ESCAPE",
+      "K_FOODIE_GOURMET",
+    ]);
   });
 
   it("모든 프리셋의 TripDraft는 검증 규칙(validateTripDraft)을 통과해야 함", () => {

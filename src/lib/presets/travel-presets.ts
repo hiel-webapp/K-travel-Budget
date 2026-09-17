@@ -183,14 +183,14 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
     badgeText: "text-sky-800",
     routeTextKo: "서울 2박 + 강릉 3박 (5박 6일)",
     routeTextEn: "Seoul 2N + Gangneung 3N (5N 6D)",
-    estimatedBudgetKrw: 1400000,
-    highlightTagsKo: ["#안목커피거리", "#동해오션뷰", "#한강피크닉", "#KTX직통"],
-    highlightTagsEn: ["#AnmokCoffee", "#EastSeaView", "#HangangPicnic", "#DirectKTX"],
+    estimatedBudgetKrw: 1300000,
+    highlightTagsKo: ["#안목커피거리", "#동해오션뷰", "#BTS버스정류장", "#KTX직통"],
+    highlightTagsEn: ["#AnmokCoffee", "#EastSeaView", "#BTSBusStop", "#DirectKTX"],
     draft: {
       totalNights: 5,
       adultCount: 2,
       budgetTier: "STANDARD",
-      targetBudgetKrw: 2800000, // 2인 기준
+      targetBudgetKrw: 2600000, // 2인 기준
       selectedCities: ["SEOUL", "GANGNEUNG"],
       cityNightAllocations: {
         SEOUL: 2,
@@ -204,17 +204,27 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
         GANGNEUNG: "BUSINESS_HOTEL",
       },
       foodBasketSelections: [
+        // 서울 (SEOUL): 2종
         { foodId: "nat_chimaek", quantity: 1, cityCode: "SEOUL" },
+        { foodId: "seoul_korean_toast", quantity: 1, cityCode: "SEOUL" },
+        // 강릉 (GANGNEUNG): 3종
+        { foodId: "gangneung_sundubu", quantity: 1, cityCode: "GANGNEUNG" },
+        { foodId: "anmok_ocean_cafe", quantity: 1, cityCode: "GANGNEUNG" },
+        { foodId: "jumunjin_seafood_market", quantity: 1, cityCode: "GANGNEUNG" },
       ],
       attractionSelections: {
         SEOUL: {
           selectedCourseIds: ["seoul_course_river"],
-          individualSpotIds: [],
+          individualSpotIds: ["seoul_hangang_healing", "seoul_n_tower"],
         },
         GANGNEUNG: {
           selectedCourseIds: ["gangneung_course_highlight"],
-          individualSpotIds: [],
+          individualSpotIds: ["gangneung_bts_bus_stop", "gangneung_arte_museum", "gangneung_anmok_gyeongpo"],
         },
+      },
+      emergencyFundKrw: 50000,
+      intercityTransportOverrides: {
+        "SEOUL-GANGNEUNG": "KTX",
       },
     },
   },

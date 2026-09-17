@@ -116,14 +116,14 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
     badgeText: "text-amber-800",
     routeTextKo: "서울 2박 + 전주 1박 + 경주 2박 (5박 6일)",
     routeTextEn: "Seoul 2N + Jeonju 1N + Gyeongju 2N (5N 6D)",
-    estimatedBudgetKrw: 1450000,
+    estimatedBudgetKrw: 1700000,
     highlightTagsKo: ["#한옥스테이", "#경복궁한복", "#전주비빔밥", "#불국사대릉원"],
     highlightTagsEn: ["#HanokStay", "#HanbokPalace", "#JeonjuBibimbap", "#UNESCOBulguksa"],
     draft: {
       totalNights: 5,
       adultCount: 2,
       budgetTier: "STANDARD",
-      targetBudgetKrw: 2900000, // 2인 기준
+      targetBudgetKrw: 3400000, // 2인 기준
       selectedCities: ["SEOUL", "JEONJU", "GYEONGJU"],
       cityNightAllocations: {
         SEOUL: 2,
@@ -139,23 +139,31 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
         GYEONGJU: "HANOK_BOUTIQUE",
       },
       foodBasketSelections: [
-        { foodId: "nat_bulgogi", quantity: 2, cityCode: "SEOUL" },
-        { foodId: "nat_bibimbap", quantity: 2, cityCode: "JEONJU" },
+        // 서울 (SEOUL): 2종
+        { foodId: "nat_bulgogi", quantity: 1, cityCode: "SEOUL" },
+        { foodId: "insadong_traditional_tea", quantity: 1, cityCode: "SEOUL" },
+        // 전주 (JEONJU): 2종
+        { foodId: "nat_bibimbap", quantity: 1, cityCode: "JEONJU" },
+        { foodId: "jeonju_choco_pie", quantity: 1, cityCode: "JEONJU" },
+        // 경주 (GYEONGJU): 2종
+        { foodId: "gyeongju_ssambap", quantity: 1, cityCode: "GYEONGJU" },
+        { foodId: "hwangnam_bread", quantity: 1, cityCode: "GYEONGJU" },
       ],
       attractionSelections: {
         SEOUL: {
           selectedCourseIds: ["seoul_course_heritage"],
-          individualSpotIds: [],
+          individualSpotIds: ["seoul_palace_hanbok", "seoul_changdeok_secret", "seoul_insadong_ssamzi"],
         },
         JEONJU: {
           selectedCourseIds: ["jeonju_course_highlight"],
-          individualSpotIds: [],
+          individualSpotIds: ["jeonju_hanok_heritage", "jeonju_gyeonggijeon"],
         },
         GYEONGJU: {
           selectedCourseIds: ["gyeongju_course_unesco_heritage"],
-          individualSpotIds: [],
+          individualSpotIds: ["gyeongju_unesco_temple", "gyeongju_daereungwon_night"],
         },
       },
+      emergencyFundKrw: 50000,
     },
   },
   {

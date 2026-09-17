@@ -132,9 +132,9 @@ function getDefaultCourseForThemeAndCity(presetId: TravelPresetId, city: Support
       GYEONGJU: "gyeongju_course_unesco_heritage",
     },
     K_FOODIE_GOURMET: {
-      SEOUL: "seoul_course_heritage",
-      JEONJU: "jeonju_course_highlight",
-      BUSAN: "busan_course_nampo_culture",
+      SEOUL: "seoul_course_foodie",
+      JEONJU: "jeonju_course_foodie",
+      BUSAN: "busan_course_foodie",
       GANGNEUNG: "gangneung_course_highlight",
       JEJU: "jeju_course_east_unesco",
       GYEONGJU: "gyeongju_course_unesco_heritage",

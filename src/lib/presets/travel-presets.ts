@@ -330,24 +330,33 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
         BUSAN: "BUSINESS_HOTEL",
       },
       foodBasketSelections: [
+        // 서울 (SEOUL): 3종
+        { foodId: "gwangjang_yukhoe_bindaetteok", quantity: 1, cityCode: "SEOUL" },
         { foodId: "nat_chimaek", quantity: 1, cityCode: "SEOUL" },
-        { foodId: "nat_bibimbap", quantity: 2, cityCode: "JEONJU" },
-        { foodId: "busan_dwaeji_gukbap", quantity: 2, cityCode: "BUSAN" },
+        { foodId: "myeongdong_kfood_snack", quantity: 1, cityCode: "SEOUL" },
+        // 전주 (JEONJU): 2종
+        { foodId: "nat_bibimbap", quantity: 1, cityCode: "JEONJU" },
+        { foodId: "jeonju_gamaek_culture", quantity: 1, cityCode: "JEONJU" },
+        // 부산 (BUSAN): 3종
+        { foodId: "busan_dwaeji_gukbap", quantity: 1, cityCode: "BUSAN" },
+        { foodId: "jagalchi_raw_fish", quantity: 1, cityCode: "BUSAN" },
+        { foodId: "busan_nampo_street_snack", quantity: 1, cityCode: "BUSAN" },
       ],
       attractionSelections: {
         SEOUL: {
-          selectedCourseIds: ["seoul_course_heritage"],
-          individualSpotIds: ["seoul_gwangjang"],
+          selectedCourseIds: ["seoul_course_foodie"],
+          individualSpotIds: ["seoul_gwangjang_market", "seoul_palace_hanok"],
         },
         JEONJU: {
-          selectedCourseIds: ["jeonju_course_highlight"],
-          individualSpotIds: [],
+          selectedCourseIds: ["jeonju_course_foodie"],
+          individualSpotIds: ["jeonju_hanok_night_food"],
         },
         BUSAN: {
-          selectedCourseIds: ["busan_course_nampo_culture"],
-          individualSpotIds: [],
+          selectedCourseIds: ["busan_course_foodie"],
+          individualSpotIds: ["busan_jagalchi_biff", "busan_gwangalli_night"],
         },
       },
+      emergencyFundKrw: 50000,
     },
   },
 ];

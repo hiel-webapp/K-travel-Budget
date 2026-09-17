@@ -23,11 +23,19 @@ export default function TravelPresetSelector({
 }: TravelPresetSelectorProps) {
   const totalPresets = TRAVEL_PRESETS.length; // 5개
 
-  // 3배 복제 배열을 구성하여 양방향 무한 루프 구현 ([0~4], [5~9 원본], [10~14])
-  const extendedPresets = [...TRAVEL_PRESETS, ...TRAVEL_PRESETS, ...TRAVEL_PRESETS];
+  // 5배 확장 배열로 앞뒤 충분한 버퍼 확보 (총 25개) -> 고속 연속 스와이프 시에도 카드 소실 완전 방지
+  // [0~4 (Set 0)], [5~9 (Set 1)], [10~14 (Center Set 2)], [15~19 (Set 3)], [20~24 (Set 4)]
+  const extendedPresets = [
+    ...TRAVEL_PRESETS,
+    ...TRAVEL_PRESETS,
+    ...TRAVEL_PRESETS,
+    ...TRAVEL_PRESETS,
+    ...TRAVEL_PRESETS,
+  ];
 
-  // 초기 위치: 중앙 세트의 첫 번째 아이템 (인덱스 5)
-  const [currentIndex, setCurrentIndex] = useState(totalPresets);
+  const BASE_INDEX = totalPresets * 2; // 10 (중앙 세트의 시작 인덱스)
+
+  const [currentIndex, setCurrentIndex] = useState(BASE_INDEX);
   const [isTransitioning, setIsTransitioning] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -37,7 +45,8 @@ export default function TravelPresetSelector({
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
   const preventClickRef = useRef(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const safetyTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 반응형 한 번에 노출될 카드 수 계산 (PC: 3, Tablet: 2, Mobile: 1)
   useEffect(() => {
@@ -56,32 +65,59 @@ export default function TravelPresetSelector({
     return () => window.removeEventListener("resize", updateVisibleCount);
   }, []);
 
-  // 다음 슬라이드 이동 (무한 순환)
+  // 안전 정규화 함수: 중앙 세트(BASE_INDEX ~ BASE_INDEX + totalPresets - 1)로 무지연 순간 이동
+  const normalizeToCenter = useCallback((targetIndex: number) => {
+    const mod = ((targetIndex % totalPresets) + totalPresets) % totalPresets;
+    const normalized = BASE_INDEX + mod;
+    setIsTransitioning(false);
+    setCurrentIndex(normalized);
+  }, [totalPresets, BASE_INDEX]);
+
+  // 다음 슬라이드 이동
   const handleNext = useCallback(() => {
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev + 1);
-  }, []);
 
-  // 이전 슬라이드 이동 (무한 순환)
+    // transitionend 이벤트 누락 대비 480ms 안전 타이머
+    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
+    safetyTimerRef.current = setTimeout(() => {
+      setCurrentIndex((curr) => {
+        if (curr >= BASE_INDEX + totalPresets || curr < BASE_INDEX) {
+          setIsTransitioning(false);
+          const mod = ((curr % totalPresets) + totalPresets) % totalPresets;
+          return BASE_INDEX + mod;
+        }
+        return curr;
+      });
+    }, 480);
+  }, [BASE_INDEX, totalPresets]);
+
+  // 이전 슬라이드 이동
   const handlePrev = useCallback(() => {
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev - 1);
-  }, []);
 
-  // 트랜지션 완료 시 클론 경계 체크 및 무한 루프 점프 (순간 이동)
+    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
+    safetyTimerRef.current = setTimeout(() => {
+      setCurrentIndex((curr) => {
+        if (curr >= BASE_INDEX + totalPresets || curr < BASE_INDEX) {
+          setIsTransitioning(false);
+          const mod = ((curr % totalPresets) + totalPresets) % totalPresets;
+          return BASE_INDEX + mod;
+        }
+        return curr;
+      });
+    }, 480);
+  }, [BASE_INDEX, totalPresets]);
+
+  // 트랜지션 완료 시 중앙 세트로 무지연 순간 이동
   const handleTransitionEnd = () => {
-    if (currentIndex >= totalPresets * 2) {
-      // 오른쪽 끝 클론 도달 -> 애니메이션 끄고 중앙 세트로 순간 이동
-      setIsTransitioning(false);
-      setCurrentIndex((prev) => prev - totalPresets);
-    } else if (currentIndex < totalPresets) {
-      // 왼쪽 끝 클론 도달 -> 애니메이션 끄고 중앙 세트로 순간 이동
-      setIsTransitioning(false);
-      setCurrentIndex((prev) => prev + totalPresets);
+    if (currentIndex >= BASE_INDEX + totalPresets || currentIndex < BASE_INDEX) {
+      normalizeToCenter(currentIndex);
     }
   };
 
-  // 순간 이동 후 트랜지션 다시 활성화
+  // 순간 이동 후 트랜지션 재활성화
   useEffect(() => {
     if (!isTransitioning) {
       const timer = setTimeout(() => {
@@ -94,21 +130,26 @@ export default function TravelPresetSelector({
   // n초(4초) 자동 롤링 타이머
   useEffect(() => {
     if (!isPlaying || isPaused) {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
       return;
     }
 
-    timerRef.current = setInterval(() => {
+    autoPlayTimerRef.current = setInterval(() => {
       handleNext();
     }, 4000);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
     };
   }, [isPlaying, isPaused, handleNext]);
 
   // ================= 마우스 드래그 핸들러 (PC Drag to Slide) =================
   const handleMouseDown = (e: React.MouseEvent) => {
+    // 연속 조작 전 현재 위치가 중앙을 벗어났다면 먼저 즉시 중앙으로 동기화하여 여유 버퍼 확보
+    if (currentIndex < BASE_INDEX || currentIndex >= BASE_INDEX + totalPresets) {
+      normalizeToCenter(currentIndex);
+    }
+
     isDraggingRef.current = true;
     dragStartXRef.current = e.clientX;
     preventClickRef.current = false;
@@ -150,6 +191,10 @@ export default function TravelPresetSelector({
 
   // ================= 터치 스와이프 핸들러 (모바일) =================
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (currentIndex < BASE_INDEX || currentIndex >= BASE_INDEX + totalPresets) {
+      normalizeToCenter(currentIndex);
+    }
+
     dragStartXRef.current = e.touches[0].clientX;
     preventClickRef.current = false;
     setIsPaused(true);
@@ -183,7 +228,7 @@ export default function TravelPresetSelector({
 
   const handleDotClick = (targetIndex: number) => {
     setIsTransitioning(true);
-    setCurrentIndex(totalPresets + targetIndex);
+    setCurrentIndex(BASE_INDEX + targetIndex);
   };
 
   return (
@@ -217,9 +262,9 @@ export default function TravelPresetSelector({
         )}
       </div>
 
-      {/* 프리셋 캐러셀 뷰포트 (자연스러운 무한 루프 + 마우스 드래그 & 터치 스와이프) */}
+      {/* 프리셋 캐러셀 뷰포트 (5배 확장 방탄 버퍼 + 완벽한 무한 루프) */}
       <div
-        className="relative overflow-hidden rounded-2xl cursor-grab active:cursor-grabbing"
+        className="relative overflow-hidden rounded-2xl cursor-grab active:cursor-grabbing min-h-[280px] sm:min-h-[295px]"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}

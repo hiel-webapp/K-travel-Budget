@@ -7,12 +7,14 @@ import FoodCatalogPanel from "./FoodCatalogPanel";
 import AttractionCatalogPanel from "./AttractionCatalogPanel";
 import TourCoursePanel from "./TourCoursePanel";
 import SortingConfigModal from "./SortingConfigModal";
+import ChangePinModal from "./ChangePinModal";
 
 type AdminTab = "PRESETS" | "FOODS" | "ATTRACTIONS" | "COURSES";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<AdminTab>("PRESETS");
   const [isSortingModalOpen, setIsSortingModalOpen] = useState<boolean>(false);
+  const [isPinModalOpen, setIsPinModalOpen] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
 
@@ -56,6 +58,14 @@ export default function AdminDashboard() {
 
           {/* Quick Actions */}
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsPinModalOpen(true)}
+              className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1.5"
+            >
+              <span>🔑</span> PIN 변경
+            </button>
+
             <button
               type="button"
               onClick={() => setIsSortingModalOpen(true)}
@@ -134,6 +144,12 @@ export default function AdminDashboard() {
       <SortingConfigModal
         isOpen={isSortingModalOpen}
         onClose={() => setIsSortingModalOpen(false)}
+      />
+
+      {/* PIN Change Modal */}
+      <ChangePinModal
+        isOpen={isPinModalOpen}
+        onClose={() => setIsPinModalOpen(false)}
       />
     </div>
   );

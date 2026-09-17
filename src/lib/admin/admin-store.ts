@@ -22,6 +22,7 @@ export interface AdminStoreData {
   attractionSpots: AttractionSpot[];
   tourCourses: TourCoursePreset[];
   sortingRulesByCity: Record<string, SortingRuleType>;
+  adminPin?: string;
   lastUpdated: string;
 }
 
@@ -481,4 +482,28 @@ function applyAttractionSorting(items: AttractionSpot[], rule: SortingRuleType):
     default:
       return list;
   }
+}
+
+// ==========================================
+// 6. Admin Authentication & PIN Management
+// ==========================================
+
+export async function getAdminPin(): Promise<string> {
+  const store = await loadAdminStore();
+  return process.env.ADMIN_PIN || store.adminPin || "1234";
+}
+
+export async function verifyAdminPin(pin: string): Promise<boolean> {
+  const currentPin = await getAdminPin();
+  return currentPin.trim() === pin.trim();
+}
+
+export async function updateAdminPin(newPin: string): Promise<boolean> {
+  if (!newPin || newPin.trim().length < 4) {
+    throw new Error("PIN 번호는 최소 4자리 이상이어야 합니다.");
+  }
+  const store = await loadAdminStore();
+  store.adminPin = newPin.trim();
+  await saveAdminStore(store);
+  return true;
 }

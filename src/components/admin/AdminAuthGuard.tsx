@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 
 const ADMIN_PIN_KEY = "hh_admin_session_auth";
-const DEFAULT_PIN = "1234";
 
 interface AdminAuthGuardProps {
   children: React.ReactNode;
@@ -14,6 +13,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const [pinInput, setPinInput] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [isChecking, setIsChecking] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem(ADMIN_PIN_KEY);
@@ -23,20 +23,45 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     setIsChecking(false);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === DEFAULT_PIN) {
-      sessionStorage.setItem(ADMIN_PIN_KEY, "true");
-      setIsAuthenticated(true);
-      setErrorMsg("");
-    } else {
-      setErrorMsg("관리자 인증 PIN 번호가 일치하지 않습니다. (기본 PIN: 1234)");
+    if (!pinInput.trim()) {
+      setErrorMsg("PIN 코드를 입력해주세요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMsg("");
+
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "VERIFY",
+          pin: pinInput.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        sessionStorage.setItem(ADMIN_PIN_KEY, "true");
+        setIsAuthenticated(true);
+        setErrorMsg("");
+      } else {
+        setErrorMsg(data.error || "관리자 인증 PIN 번호가 일치하지 않습니다.");
+      }
+    } catch {
+      setErrorMsg("인증 서버 통신 중 오류가 발생했습니다.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleLogout = () => {
     sessionStorage.removeItem(ADMIN_PIN_KEY);
     setIsAuthenticated(false);
+    setPinInput("");
   };
 
   if (isChecking) {
@@ -70,9 +95,10 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
                 type="password"
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
-                placeholder="4자리 PIN (기본값: 1234)"
+                placeholder="PIN 코드 입력"
                 autoFocus
-                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-3 text-center text-xl tracking-widest text-white placeholder-slate-500 transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                disabled={isSubmitting}
+                className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-3 text-center text-xl tracking-widest text-white placeholder-slate-500 transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:opacity-50"
               />
             </div>
 
@@ -84,15 +110,12 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500 active:scale-[0.98]"
+              disabled={isSubmitting}
+              className="w-full rounded-xl bg-indigo-600 py-3 font-semibold text-white shadow-lg shadow-indigo-600/30 transition-all hover:bg-indigo-500 active:scale-[0.98] disabled:opacity-50"
             >
-              대시보드 접속
+              {isSubmitting ? "인증 확인 중..." : "대시보드 접속"}
             </button>
           </form>
-
-          <div className="mt-6 text-center text-xs text-slate-500">
-            초기 기본 PIN: <span className="font-mono text-slate-400">1234</span>
-          </div>
         </div>
       </div>
     );

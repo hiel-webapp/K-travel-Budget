@@ -21,7 +21,14 @@ export default function TravelPresetSelector({
   onSelectPreset,
   onClearPreset,
 }: TravelPresetSelectorProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const totalPresets = TRAVEL_PRESETS.length; // 5개
+
+  // 3배 복제 배열을 구성하여 양방향 무한 루프 구현 ([0~4], [5~9 원본], [10~14])
+  const extendedPresets = [...TRAVEL_PRESETS, ...TRAVEL_PRESETS, ...TRAVEL_PRESETS];
+
+  // 초기 위치: 중앙 세트의 첫 번째 아이템 (인덱스 5)
+  const [currentIndex, setCurrentIndex] = useState(totalPresets);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [visibleCount, setVisibleCount] = useState(3);
@@ -49,18 +56,40 @@ export default function TravelPresetSelector({
     return () => window.removeEventListener("resize", updateVisibleCount);
   }, []);
 
-  const totalPresets = TRAVEL_PRESETS.length;
-  const maxIndex = Math.max(0, totalPresets - visibleCount);
-
-  // 다음 슬라이드 이동 (순환)
+  // 다음 슬라이드 이동 (무한 순환)
   const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  }, [maxIndex]);
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev + 1);
+  }, []);
 
-  // 이전 슬라이드 이동 (순환)
+  // 이전 슬라이드 이동 (무한 순환)
   const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
-  }, [maxIndex]);
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev - 1);
+  }, []);
+
+  // 트랜지션 완료 시 클론 경계 체크 및 무한 루프 점프 (순간 이동)
+  const handleTransitionEnd = () => {
+    if (currentIndex >= totalPresets * 2) {
+      // 오른쪽 끝 클론 도달 -> 애니메이션 끄고 중앙 세트로 순간 이동
+      setIsTransitioning(false);
+      setCurrentIndex((prev) => prev - totalPresets);
+    } else if (currentIndex < totalPresets) {
+      // 왼쪽 끝 클론 도달 -> 애니메이션 끄고 중앙 세트로 순간 이동
+      setIsTransitioning(false);
+      setCurrentIndex((prev) => prev + totalPresets);
+    }
+  };
+
+  // 순간 이동 후 트랜지션 다시 활성화
+  useEffect(() => {
+    if (!isTransitioning) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(true);
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [isTransitioning]);
 
   // n초(4초) 자동 롤링 타이머
   useEffect(() => {
@@ -92,7 +121,6 @@ export default function TravelPresetSelector({
     if (Math.abs(diff) > 6) {
       preventClickRef.current = true;
     }
-    // 부드러운 드래그 저항감 피드백
     setDragOffset(diff * 0.4);
   };
 
@@ -108,7 +136,6 @@ export default function TravelPresetSelector({
     }
     setDragOffset(0);
 
-    // 클릭 방지 플래그 150ms 후 초기화
     setTimeout(() => {
       preventClickRef.current = false;
     }, 150);
@@ -151,13 +178,21 @@ export default function TravelPresetSelector({
     }, 150);
   };
 
+  // 도트 인디케이터용 현재 원본 인덱스 계산 (0 ~ 4)
+  const activeDotIndex = ((currentIndex % totalPresets) + totalPresets) % totalPresets;
+
+  const handleDotClick = (targetIndex: number) => {
+    setIsTransitioning(true);
+    setCurrentIndex(totalPresets + targetIndex);
+  };
+
   return (
     <div
       className="w-full space-y-3.5 mb-6 select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* 헤더 타이틀 (한국관광공사 서브텍스트 제거) */}
+      {/* 헤더 타이틀 */}
       <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 px-1">
         <div>
           <div className="flex items-center gap-2">
@@ -182,7 +217,7 @@ export default function TravelPresetSelector({
         )}
       </div>
 
-      {/* 프리셋 캐러셀 뷰포트 (마우스 드래그 & 터치 스와이프 지원) */}
+      {/* 프리셋 캐러셀 뷰포트 (자연스러운 무한 루프 + 마우스 드래그 & 터치 스와이프) */}
       <div
         className="relative overflow-hidden rounded-2xl cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
@@ -194,14 +229,17 @@ export default function TravelPresetSelector({
         onTouchEnd={handleTouchEnd}
       >
         <div
+          onTransitionEnd={handleTransitionEnd}
           className={`flex ${
-            dragOffset !== 0 ? "transition-none" : "transition-transform duration-500 ease-out"
+            isTransitioning && dragOffset === 0
+              ? "transition-transform duration-500 ease-out"
+              : "transition-none"
           } will-change-transform`}
           style={{
             transform: `translateX(calc(-${currentIndex * (100 / visibleCount)}% + ${dragOffset}px))`,
           }}
         >
-          {TRAVEL_PRESETS.map((preset) => {
+          {extendedPresets.map((preset, index) => {
             const isSelected = activePresetId === preset.id;
             const badge = locale === "ko" ? preset.badgeKo : preset.badgeEn;
             const title = locale === "ko" ? preset.titleKo : preset.titleEn;
@@ -211,7 +249,7 @@ export default function TravelPresetSelector({
 
             return (
               <div
-                key={preset.id}
+                key={`${preset.id}-${index}`}
                 className="px-1.5 shrink-0"
                 style={{ width: `${100 / visibleCount}%` }}
               >
@@ -242,7 +280,7 @@ export default function TravelPresetSelector({
                     draggable={false}
                   />
 
-                  {/* 하단 집약형 딥 다크 그라데이션 오버레이 (상단 투명 -> 하단 짙은 블랙으로 가독성 100% 확보) */}
+                  {/* 하단 집약형 딥 다크 그라데이션 오버레이 */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 via-45% to-black/20 pointer-events-none" />
 
                   {/* 선택 시 테두리 광원 링 */}
@@ -250,7 +288,7 @@ export default function TravelPresetSelector({
                     <div className="absolute inset-0 border-2 border-teal-400 rounded-2xl pointer-events-none z-20" />
                   )}
 
-                  {/* 1. 상단 영역: 뱃지 & 선택 인디케이터만 배치하여 중앙 이미지 개방감 확보 */}
+                  {/* 1. 상단 영역: 뱃지 & 선택 인디케이터 */}
                   <div className="relative z-10 flex items-center justify-between gap-2">
                     <span className="text-[10.5px] font-black px-2.5 py-0.5 rounded-full backdrop-blur-md bg-white/25 border border-white/40 text-white shadow-md tracking-tight">
                       {badge}
@@ -268,9 +306,8 @@ export default function TravelPresetSelector({
                     </div>
                   </div>
 
-                  {/* 2. 하단 영역: 메인 타이틀, 서브타이틀, 동선 뱃지, 구분선, 태그 & 예산 집약 */}
+                  {/* 2. 하단 영역: 순백색 타이틀, 서브타이틀, 동선, 구분선, 태그 & 예산 */}
                   <div className="relative z-10 w-full space-y-2.5">
-                    {/* 타이틀 & 슬로건 (다른 글자와 동일한 순백색으로 가독성 극대화) */}
                     <div>
                       <h3
                         style={{ color: "#ffffff" }}
@@ -333,15 +370,15 @@ export default function TravelPresetSelector({
           </button>
         </div>
 
-        {/* 중앙: 도트 인디케이터 */}
+        {/* 중앙: 도트 인디케이터 (0 ~ 4) */}
         <div className="flex items-center gap-1.5">
-          {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
+          {Array.from({ length: totalPresets }).map((_, idx) => (
             <button
               key={idx}
               type="button"
-              onClick={() => setCurrentIndex(idx)}
+              onClick={() => handleDotClick(idx)}
               className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                currentIndex === idx
+                activeDotIndex === idx
                   ? "w-6 bg-teal-600 shadow-xs"
                   : "w-1.5 bg-slate-200 hover:bg-slate-300"
               }`}

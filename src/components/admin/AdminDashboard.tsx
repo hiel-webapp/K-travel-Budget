@@ -8,10 +8,12 @@ import AttractionCatalogPanel from "./AttractionCatalogPanel";
 import TourCoursePanel from "./TourCoursePanel";
 import SortingConfigModal from "./SortingConfigModal";
 import ChangePinModal from "./ChangePinModal";
+import { useAdminAuth } from "./AdminAuthGuard";
 
 type AdminTab = "PRESETS" | "FOODS" | "ATTRACTIONS" | "COURSES";
 
 export default function AdminDashboard() {
+  const { logout } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>("PRESETS");
   const [isSortingModalOpen, setIsSortingModalOpen] = useState<boolean>(false);
   const [isPinModalOpen, setIsPinModalOpen] = useState<boolean>(false);
@@ -57,7 +59,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <button
               type="button"
               onClick={() => setIsPinModalOpen(true)}
@@ -92,6 +94,16 @@ export default function AdminDashboard() {
               <span>플래너 미리보기</span>
               <span>↗</span>
             </Link>
+
+            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
+
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-all flex items-center gap-1"
+            >
+              <span>로그아웃</span>
+            </button>
           </div>
         </div>
 

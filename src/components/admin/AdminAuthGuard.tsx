@@ -8,6 +8,16 @@ interface AdminAuthGuardProps {
   children: React.ReactNode;
 }
 
+interface AdminAuthContextType {
+  logout: () => void;
+}
+
+export const AdminAuthContext = React.createContext<AdminAuthContextType>({
+  logout: () => {},
+});
+
+export const useAdminAuth = () => React.useContext(AdminAuthContext);
+
 export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [pinInput, setPinInput] = useState<string>("");
@@ -122,16 +132,8 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   }
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <div className="absolute right-4 top-4 z-50">
-        <button
-          onClick={handleLogout}
-          className="rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white transition-all"
-        >
-          관리자 로그아웃
-        </button>
-      </div>
+    <AdminAuthContext.Provider value={{ logout: handleLogout }}>
       {children}
-    </div>
+    </AdminAuthContext.Provider>
   );
 }

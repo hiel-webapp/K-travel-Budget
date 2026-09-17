@@ -84,7 +84,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+      <div className="admin-theme flex min-h-screen items-center justify-center bg-slate-950 px-4">
         <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-8 shadow-2xl backdrop-blur-xl">
           <div className="mb-6 text-center">
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-300 ring-2 ring-indigo-500/50">
@@ -133,7 +133,9 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
   return (
     <AdminAuthContext.Provider value={{ logout: handleLogout }}>
-      {children}
+      <div className="admin-theme min-h-screen bg-slate-950 text-slate-100">
+        {children}
+      </div>
     </AdminAuthContext.Provider>
   );
 }

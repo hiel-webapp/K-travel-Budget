@@ -56,7 +56,23 @@ body {
 /* Base Headings Typography Standards */
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
-  color: var(--text-primary);
+  color: inherit;
+}
+
+/* Admin Dashboard Specific Dark Theme Contrast Guarantee */
+.admin-theme {
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  color: #f8fafc !important;
+}
+
+.admin-theme h1,
+.admin-theme h2,
+.admin-theme h3,
+.admin-theme h4,
+.admin-theme h5,
+.admin-theme h6 {
+  color: #ffffff !important;
 }
 
 /* Tabular numbers for price alignment without breaking KRW symbol scale */

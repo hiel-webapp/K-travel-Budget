@@ -138,7 +138,7 @@ export default function TourCoursePanel() {
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-lg">
         <div>
-          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm">
+          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm" style={{ color: "#ffffff" }}>
             <span>🗺️</span> 도시별 투어 코스 관리
           </h2>
           <p className="mt-1 text-xs font-semibold text-slate-200">
@@ -200,7 +200,7 @@ export default function TourCoursePanel() {
                     <span className="rounded-md border border-indigo-500/40 bg-indigo-950/70 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300">
                       {CITY_KOREAN_NAMES[course.cityCode] || course.cityCode} · {course.estimatedHours}시간
                     </span>
-                    <h3 className="text-base font-bold text-white mt-1.5">{course.nameKo}</h3>
+                    <h3 className="text-base font-bold text-white mt-1.5" style={{ color: "#ffffff" }}>{course.nameKo}</h3>
                     <p className="text-xs font-medium text-slate-300">{course.nameEn}</p>
                   </div>
                   <div className="flex items-center gap-1.5">

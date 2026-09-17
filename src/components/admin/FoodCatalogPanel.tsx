@@ -172,7 +172,7 @@ export default function FoodCatalogPanel() {
       {/* Top Filter & Actions */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-lg">
         <div>
-          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm">
+          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm" style={{ color: "#ffffff" }}>
             <span>🍲</span> 음식 카탈로그 관리
           </h2>
           <p className="mt-1 text-xs font-semibold text-slate-200">

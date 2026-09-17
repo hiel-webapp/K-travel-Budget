@@ -132,7 +132,7 @@ export default function PresetManagerPanel() {
       {/* Top Action Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-lg">
         <div>
-          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm">
+          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm" style={{ color: "#ffffff" }}>
             <span>🗺️</span> 여행 코스 프리셋 관리
           </h2>
           <p className="mt-1 text-xs font-semibold text-slate-200">
@@ -231,17 +231,17 @@ export default function PresetManagerPanel() {
                       )}
                     </div>
 
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <span>{preset.titleKo}</span>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2" style={{ color: "#ffffff" }}>
+                      <span style={{ color: "#ffffff" }}>{preset.titleKo}</span>
                       <span className="text-xs font-semibold text-slate-300">({preset.titleEn})</span>
                     </h3>
 
-                    <p className="text-xs font-medium text-slate-300 line-clamp-1">{preset.taglineKo}</p>
+                    <p className="text-xs font-medium text-slate-200 line-clamp-1">{preset.taglineKo}</p>
 
                     <div className="flex items-center gap-3 text-xs pt-1 flex-wrap font-medium">
-                      <span className="text-slate-300 font-semibold">동선: <span className="text-white">{preset.routeTextKo}</span></span>
+                      <span className="text-slate-200 font-semibold">동선: <span className="text-white font-bold">{preset.routeTextKo}</span></span>
                       <span className="text-slate-500">·</span>
-                      <span className="font-bold text-indigo-300">
+                      <span className="font-extrabold text-indigo-300">
                         1인 예산: ₩{preset.estimatedBudgetKrw?.toLocaleString()}
                       </span>
                     </div>

@@ -5,7 +5,7 @@ import { loadAdminStore } from "../../../../lib/admin/admin-store";
 
 export async function POST(req: NextRequest) {
   try {
-    const store = loadAdminStore();
+    const store = await loadAdminStore();
     const presetsPath = path.join(process.cwd(), "src", "lib", "presets", "travel-presets.ts");
 
     // Format presets into clean TS string

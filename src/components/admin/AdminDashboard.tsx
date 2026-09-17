@@ -48,6 +48,10 @@ export default function AdminDashboard() {
                 ADMIN CONSOLE
               </span>
             </div>
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-[11px] font-bold text-emerald-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>원격 클라우드 DB 실시간 동기화 (저장 즉시 실제 웹 반영)</span>
+            </div>
           </div>
 
           {/* Quick Actions */}

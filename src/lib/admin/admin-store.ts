@@ -28,12 +28,18 @@ export interface AdminStoreData {
 const DATA_DIR = path.join(process.cwd(), "data");
 const STORE_FILE = path.join(DATA_DIR, "admin-store.json");
 
+const SUPABASE_STORAGE_URL = "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/admin_data/admin-store.json";
+const SUPABASE_PUBLIC_URL = "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/admin-store.json";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDY5MzQzNSwiZXhwIjoyMTAwMjY5NDM1fQ.p6Dqme9d0QdKyg5ijvvmeEwT0BJ5fdi8vATCc_IkW7Q";
+
 let memoryCache: AdminStoreData | null = null;
 
 function ensureDataDirectory() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch {}
 }
 
 function getInitialStore(): AdminStoreData {
@@ -80,66 +86,118 @@ function getInitialStore(): AdminStoreData {
   };
 }
 
-export function loadAdminStore(): AdminStoreData {
+/**
+ * Supabase Storage에서 실시간 최신 데이터를 다운로드합니다.
+ */
+async function fetchFromSupabase(): Promise<AdminStoreData | null> {
+  try {
+    const res = await fetch(`${SUPABASE_PUBLIC_URL}?t=${Date.now()}`, {
+      cache: "no-store",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+      },
+    });
+
+    if (res.ok) {
+      const data = (await res.json()) as AdminStoreData;
+      if (data && Array.isArray(data.presets) && data.presets.length > 0) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("[AdminStore] Supabase live fetch failed, fallback to local:", err);
+  }
+  return null;
+}
+
+/**
+ * Supabase Storage로 실시간 업로드하여 전 세계에 즉시 배포합니다.
+ */
+async function uploadToSupabase(data: AdminStoreData): Promise<void> {
+  try {
+    await fetch(SUPABASE_STORAGE_URL, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        "x-upsert": "true",
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.error("[AdminStore] Supabase live upload failed:", err);
+  }
+}
+
+/**
+ * 비동기 로드: Supabase 원격 DB를 1순위로 조회하고, 실패 시 로컬 파일/메모리 캐시를 사용합니다.
+ */
+export async function loadAdminStore(): Promise<AdminStoreData> {
+  const remote = await fetchFromSupabase();
+  if (remote) {
+    memoryCache = remote;
+    setDynamicPresets(remote.presets);
+    ensureDataDirectory();
+    try {
+      fs.writeFileSync(STORE_FILE, JSON.stringify(remote, null, 2), "utf-8");
+    } catch {}
+    return remote;
+  }
+
   if (memoryCache) {
     return memoryCache;
   }
 
   ensureDataDirectory();
 
-  if (!fs.existsSync(STORE_FILE)) {
-    const initial = getInitialStore();
-    saveAdminStore(initial);
-    memoryCache = initial;
-    setDynamicPresets(initial.presets);
-    return initial;
+  if (fs.existsSync(STORE_FILE)) {
+    try {
+      const raw = fs.readFileSync(STORE_FILE, "utf-8");
+      const parsed = JSON.parse(raw) as AdminStoreData;
+      memoryCache = parsed;
+      setDynamicPresets(parsed.presets);
+      return parsed;
+    } catch {}
   }
 
-  try {
-    const raw = fs.readFileSync(STORE_FILE, "utf-8");
-    const parsed = JSON.parse(raw) as Partial<AdminStoreData>;
-
-    const merged: AdminStoreData = {
-      presets: Array.isArray(parsed.presets) && parsed.presets.length > 0 ? parsed.presets : getInitialStore().presets,
-      foodItems: Array.isArray(parsed.foodItems) && parsed.foodItems.length > 0 ? parsed.foodItems : getInitialStore().foodItems,
-      attractionSpots: Array.isArray(parsed.attractionSpots) && parsed.attractionSpots.length > 0 ? parsed.attractionSpots : getInitialStore().attractionSpots,
-      tourCourses: Array.isArray(parsed.tourCourses) && parsed.tourCourses.length > 0 ? parsed.tourCourses : getInitialStore().tourCourses,
-      sortingRulesByCity: parsed.sortingRulesByCity || getInitialStore().sortingRulesByCity,
-      lastUpdated: parsed.lastUpdated || new Date().toISOString(),
-    };
-
-    memoryCache = merged;
-    setDynamicPresets(merged.presets);
-    return merged;
-  } catch (error) {
-    console.error("[AdminStore] Failed to read store file, falling back to base initial:", error);
-    const initial = getInitialStore();
-    memoryCache = initial;
-    return initial;
-  }
+  const initial = getInitialStore();
+  memoryCache = initial;
+  setDynamicPresets(initial.presets);
+  return initial;
 }
 
-export function saveAdminStore(data: AdminStoreData): void {
-  ensureDataDirectory();
+/**
+ * 비동기 저장: 로컬 파일 및 메모리에 저장 후, Supabase Storage로 즉시 실시간 동기화합니다.
+ */
+export async function saveAdminStore(data: AdminStoreData): Promise<void> {
   data.lastUpdated = new Date().toISOString();
-  fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), "utf-8");
   memoryCache = data;
   setDynamicPresets(data.presets);
+
+  ensureDataDirectory();
+  try {
+    fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), "utf-8");
+  } catch {}
+
+  // Supabase 원격 실시간 저장
+  await uploadToSupabase(data);
 }
 
 // ==========================================
 // 1. Preset Management API Methods
 // ==========================================
 
-export function getAdminPresets(includeInactive = true): TravelPreset[] {
-  const store = loadAdminStore();
+export async function getAdminPresets(includeInactive = true): Promise<TravelPreset[]> {
+  const store = await loadAdminStore();
   const sorted = [...store.presets].sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   if (includeInactive) return sorted;
   return sorted.filter((p) => p.isActive !== false);
 }
 
-export function createAdminPreset(newPreset: TravelPreset): TravelPreset {
-  const store = loadAdminStore();
+export async function createAdminPreset(newPreset: TravelPreset): Promise<TravelPreset> {
+  const store = await loadAdminStore();
   const maxOrder = store.presets.reduce((max, p) => Math.max(max, p.order ?? 0), 0);
   const preset: TravelPreset = {
     ...newPreset,
@@ -155,12 +213,12 @@ export function createAdminPreset(newPreset: TravelPreset): TravelPreset {
     store.presets.push(preset);
   }
 
-  saveAdminStore(store);
+  await saveAdminStore(store);
   return preset;
 }
 
-export function updateAdminPreset(id: string, updates: Partial<TravelPreset>): TravelPreset {
-  const store = loadAdminStore();
+export async function updateAdminPreset(id: string, updates: Partial<TravelPreset>): Promise<TravelPreset> {
+  const store = await loadAdminStore();
   const idx = store.presets.findIndex((p) => p.id === id);
   if (idx === -1) {
     throw new Error(`Preset with ID ${id} not found`);
@@ -173,12 +231,12 @@ export function updateAdminPreset(id: string, updates: Partial<TravelPreset>): T
   };
 
   store.presets[idx] = updated;
-  saveAdminStore(store);
+  await saveAdminStore(store);
   return updated;
 }
 
-export function deleteAdminPreset(id: string, hardDelete = false): void {
-  const store = loadAdminStore();
+export async function deleteAdminPreset(id: string, hardDelete = false): Promise<void> {
+  const store = await loadAdminStore();
   if (hardDelete) {
     store.presets = store.presets.filter((p) => p.id !== id);
   } else {
@@ -187,26 +245,26 @@ export function deleteAdminPreset(id: string, hardDelete = false): void {
       store.presets[idx].isActive = false;
     }
   }
-  saveAdminStore(store);
+  await saveAdminStore(store);
 }
 
-export function reorderAdminPresets(orderedIds: string[]): TravelPreset[] {
-  const store = loadAdminStore();
+export async function reorderAdminPresets(orderedIds: string[]): Promise<TravelPreset[]> {
+  const store = await loadAdminStore();
   orderedIds.forEach((id, idx) => {
     const p = store.presets.find((item) => item.id === id);
     if (p) {
       p.order = idx + 1;
     }
   });
-  saveAdminStore(store);
+  await saveAdminStore(store);
   return getAdminPresets(true);
 }
 
-export function resetAdminPresets(): TravelPreset[] {
-  const store = loadAdminStore();
+export async function resetAdminPresets(): Promise<TravelPreset[]> {
+  const store = await loadAdminStore();
   const initial = getInitialStore();
   store.presets = initial.presets;
-  saveAdminStore(store);
+  await saveAdminStore(store);
   return store.presets;
 }
 
@@ -214,12 +272,12 @@ export function resetAdminPresets(): TravelPreset[] {
 // 2. Food Management API Methods
 // ==========================================
 
-export function getAdminFoods(filter?: {
+export async function getAdminFoods(filter?: {
   city?: SupportedCity | "NATIONAL" | "ALL";
   scope?: PlacementScope | "ALL";
   includeInactive?: boolean;
-}): FoodItemDefinition[] {
-  const store = loadAdminStore();
+}): Promise<FoodItemDefinition[]> {
+  const store = await loadAdminStore();
   let items = [...store.foodItems];
 
   if (!filter?.includeInactive) {
@@ -246,8 +304,8 @@ export function getAdminFoods(filter?: {
   return applyFoodSorting(items, rule);
 }
 
-export function saveAdminFood(item: FoodItemDefinition): FoodItemDefinition {
-  const store = loadAdminStore();
+export async function saveAdminFood(item: FoodItemDefinition): Promise<FoodItemDefinition> {
+  const store = await loadAdminStore();
   const targetItem: FoodItemDefinition = {
     ...item,
     targetScope: item.targetScope || "BOTH",
@@ -261,26 +319,26 @@ export function saveAdminFood(item: FoodItemDefinition): FoodItemDefinition {
     store.foodItems.push(targetItem);
   }
 
-  saveAdminStore(store);
+  await saveAdminStore(store);
   return targetItem;
 }
 
-export function deleteAdminFood(id: string): void {
-  const store = loadAdminStore();
+export async function deleteAdminFood(id: string): Promise<void> {
+  const store = await loadAdminStore();
   store.foodItems = store.foodItems.filter((f) => f.id !== id);
-  saveAdminStore(store);
+  await saveAdminStore(store);
 }
 
 // ==========================================
 // 3. Attraction Management API Methods
 // ==========================================
 
-export function getAdminAttractions(filter?: {
+export async function getAdminAttractions(filter?: {
   city?: SupportedCity | "ALL";
   scope?: PlacementScope | "ALL";
   includeInactive?: boolean;
-}): AttractionSpot[] {
-  const store = loadAdminStore();
+}): Promise<AttractionSpot[]> {
+  const store = await loadAdminStore();
   let items = [...store.attractionSpots];
 
   if (!filter?.includeInactive) {
@@ -303,8 +361,8 @@ export function getAdminAttractions(filter?: {
   return applyAttractionSorting(items, rule);
 }
 
-export function saveAdminAttraction(spot: AttractionSpot): AttractionSpot {
-  const store = loadAdminStore();
+export async function saveAdminAttraction(spot: AttractionSpot): Promise<AttractionSpot> {
+  const store = await loadAdminStore();
   const targetSpot: AttractionSpot = {
     ...spot,
     targetScope: spot.targetScope || "BOTH",
@@ -318,59 +376,59 @@ export function saveAdminAttraction(spot: AttractionSpot): AttractionSpot {
     store.attractionSpots.push(targetSpot);
   }
 
-  saveAdminStore(store);
+  await saveAdminStore(store);
   return targetSpot;
 }
 
-export function deleteAdminAttraction(id: string): void {
-  const store = loadAdminStore();
+export async function deleteAdminAttraction(id: string): Promise<void> {
+  const store = await loadAdminStore();
   store.attractionSpots = store.attractionSpots.filter((s) => s.id !== id);
-  saveAdminStore(store);
+  await saveAdminStore(store);
 }
 
 // ==========================================
 // 4. Tour Courses Management
 // ==========================================
 
-export function getAdminTourCourses(city?: SupportedCity | "ALL"): TourCoursePreset[] {
-  const store = loadAdminStore();
+export async function getAdminTourCourses(city?: SupportedCity | "ALL"): Promise<TourCoursePreset[]> {
+  const store = await loadAdminStore();
   if (city && city !== "ALL") {
     return store.tourCourses.filter((c) => c.cityCode === city);
   }
   return store.tourCourses;
 }
 
-export function saveAdminTourCourse(course: TourCoursePreset): TourCoursePreset {
-  const store = loadAdminStore();
+export async function saveAdminTourCourse(course: TourCoursePreset): Promise<TourCoursePreset> {
+  const store = await loadAdminStore();
   const idx = store.tourCourses.findIndex((c) => c.id === course.id);
   if (idx >= 0) {
     store.tourCourses[idx] = course;
   } else {
     store.tourCourses.push(course);
   }
-  saveAdminStore(store);
+  await saveAdminStore(store);
   return course;
 }
 
-export function deleteAdminTourCourse(id: string): void {
-  const store = loadAdminStore();
+export async function deleteAdminTourCourse(id: string): Promise<void> {
+  const store = await loadAdminStore();
   store.tourCourses = store.tourCourses.filter((c) => c.id !== id);
-  saveAdminStore(store);
+  await saveAdminStore(store);
 }
 
 // ==========================================
 // 5. Sorting Rules Configuration
 // ==========================================
 
-export function getAdminSortingRules(): Record<string, SortingRuleType> {
-  const store = loadAdminStore();
+export async function getAdminSortingRules(): Promise<Record<string, SortingRuleType>> {
+  const store = await loadAdminStore();
   return store.sortingRulesByCity;
 }
 
-export function saveAdminSortingRule(city: string, rule: SortingRuleType): void {
-  const store = loadAdminStore();
+export async function saveAdminSortingRule(city: string, rule: SortingRuleType): Promise<void> {
+  const store = await loadAdminStore();
   store.sortingRulesByCity[city] = rule;
-  saveAdminStore(store);
+  await saveAdminStore(store);
 }
 
 // ==========================================

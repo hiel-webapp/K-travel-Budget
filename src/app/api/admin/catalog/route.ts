@@ -27,12 +27,12 @@ export async function GET(req: NextRequest) {
     const responseData: Record<string, any> = { success: true };
 
     if (type === "FOOD" || type === "ALL") {
-      responseData.foods = getAdminFoods({ city, scope, includeInactive });
+      responseData.foods = await getAdminFoods({ city, scope, includeInactive });
     }
 
     if (type === "ATTRACTION" || type === "ALL") {
       const attractionCity = city === "NATIONAL" ? "ALL" : (city as SupportedCity | "ALL");
-      responseData.attractions = getAdminAttractions({
+      responseData.attractions = await getAdminAttractions({
         city: attractionCity,
         scope,
         includeInactive,
@@ -41,11 +41,11 @@ export async function GET(req: NextRequest) {
 
     if (type === "COURSE" || type === "ALL") {
       const courseCity = city === "NATIONAL" ? "ALL" : (city as SupportedCity | "ALL");
-      responseData.courses = getAdminTourCourses(courseCity);
+      responseData.courses = await getAdminTourCourses(courseCity);
     }
 
     if (type === "SORTING" || type === "ALL") {
-      responseData.sortingRules = getAdminSortingRules();
+      responseData.sortingRules = await getAdminSortingRules();
     }
 
     return NextResponse.json(responseData);
@@ -63,15 +63,15 @@ export async function POST(req: NextRequest) {
       if (!city || !rule) {
         return NextResponse.json({ success: false, error: "city and rule are required" }, { status: 400 });
       }
-      saveAdminSortingRule(city, rule as SortingRuleType);
-      return NextResponse.json({ success: true, sortingRules: getAdminSortingRules() });
+      await saveAdminSortingRule(city, rule as SortingRuleType);
+      return NextResponse.json({ success: true, sortingRules: await getAdminSortingRules() });
     }
 
     if (type === "FOOD") {
       if (!data || !data.id || !data.nameKo) {
         return NextResponse.json({ success: false, error: "Invalid food data" }, { status: 400 });
       }
-      const saved = saveAdminFood(data);
+      const saved = await saveAdminFood(data);
       return NextResponse.json({ success: true, item: saved });
     }
 
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       if (!data || !data.id || !data.nameKo) {
         return NextResponse.json({ success: false, error: "Invalid attraction data" }, { status: 400 });
       }
-      const saved = saveAdminAttraction(data);
+      const saved = await saveAdminAttraction(data);
       return NextResponse.json({ success: true, item: saved });
     }
 
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       if (!data || !data.id || !data.nameKo) {
         return NextResponse.json({ success: false, error: "Invalid course data" }, { status: 400 });
       }
-      const saved = saveAdminTourCourse(data);
+      const saved = await saveAdminTourCourse(data);
       return NextResponse.json({ success: true, item: saved });
     }
 
@@ -108,17 +108,17 @@ export async function DELETE(req: NextRequest) {
     }
 
     if (type === "FOOD") {
-      deleteAdminFood(id);
+      await deleteAdminFood(id);
       return NextResponse.json({ success: true, message: `Food ${id} removed` });
     }
 
     if (type === "ATTRACTION") {
-      deleteAdminAttraction(id);
+      await deleteAdminAttraction(id);
       return NextResponse.json({ success: true, message: `Attraction ${id} removed` });
     }
 
     if (type === "COURSE") {
-      deleteAdminTourCourse(id);
+      await deleteAdminTourCourse(id);
       return NextResponse.json({ success: true, message: `Course ${id} removed` });
     }
 

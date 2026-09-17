@@ -599,7 +599,7 @@
     {
       "id": "nat_chimaek",
       "scope": "NATIONAL",
-      "nameKo": "한강 K-치맥 & 한강라면 세트",
+      "nameKo": "치킨",
       "nameEn": "Han River Chimaek & Instant Ramyeon Set",
       "descKo": "바삭하게 튀겨낸 치킨과 시원한 맥주, 한강 즉석 라면을 함께 즐기는 국민 야식",
       "descEn": "Crispy Korean fried chicken, cold draft beer, and instant boiling Han River ramyeon combo",
@@ -10105,5 +10105,5 @@
     "GANGNEUNG": "RECOMMENDED",
     "GYEONGJU": "RECOMMENDED"
   },
-  "lastUpdated": "2026-09-17T10:37:15.081Z"
+  "lastUpdated": "2026-09-17T10:41:58.196Z"
 }

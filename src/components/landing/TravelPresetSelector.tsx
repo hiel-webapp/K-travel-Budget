@@ -23,17 +23,19 @@ export default function TravelPresetSelector({
 }: TravelPresetSelectorProps) {
   const totalPresets = TRAVEL_PRESETS.length; // 5개
 
-  // 5배 확장 배열로 앞뒤 충분한 버퍼 확보 (총 25개) -> 고속 연속 스와이프 시에도 카드 소실 완전 방지
-  // [0~4 (Set 0)], [5~9 (Set 1)], [10~14 (Center Set 2)], [15~19 (Set 3)], [20~24 (Set 4)]
-  const extendedPresets = [
-    ...TRAVEL_PRESETS,
-    ...TRAVEL_PRESETS,
-    ...TRAVEL_PRESETS,
-    ...TRAVEL_PRESETS,
-    ...TRAVEL_PRESETS,
-  ];
+  // 15개 세트(총 75개 카드)로 구성된 광활한 연속 무한 트랙
+  // 사용자가 한 방향으로 수십 번을 넘겨도 중간에 인덱스 점프나 튕김 없이 물 흐르듯 연속 회전
+  const SET_COUNT = 15;
+  const CENTER_SET = Math.floor(SET_COUNT / 2); // 7번째 세트 (인덱스 35~39)
+  const BASE_INDEX = CENTER_SET * totalPresets; // 35
 
-  const BASE_INDEX = totalPresets * 2; // 10 (중앙 세트의 시작 인덱스)
+  const extendedPresets = React.useMemo(() => {
+    const list: TravelPreset[] = [];
+    for (let i = 0; i < SET_COUNT; i++) {
+      list.push(...TRAVEL_PRESETS);
+    }
+    return list;
+  }, [totalPresets]);
 
   const [currentIndex, setCurrentIndex] = useState(BASE_INDEX);
   const [isTransitioning, setIsTransitioning] = useState(true);
@@ -44,9 +46,10 @@ export default function TravelPresetSelector({
 
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
+  const dragStartTimeRef = useRef(0);
   const preventClickRef = useRef(false);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const safetyTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const idleReCenterTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 반응형 한 번에 노출될 카드 수 계산 (PC: 3, Tablet: 2, Mobile: 1)
   useEffect(() => {
@@ -65,67 +68,41 @@ export default function TravelPresetSelector({
     return () => window.removeEventListener("resize", updateVisibleCount);
   }, []);
 
-  // 안전 정규화 함수: 중앙 세트(BASE_INDEX ~ BASE_INDEX + totalPresets - 1)로 무지연 순간 이동
-  const normalizeToCenter = useCallback((targetIndex: number) => {
-    const mod = ((targetIndex % totalPresets) + totalPresets) % totalPresets;
-    const normalized = BASE_INDEX + mod;
-    setIsTransitioning(false);
-    setCurrentIndex(normalized);
-  }, [totalPresets, BASE_INDEX]);
+  // 유휴 시간(Idle 2.5초) 동안만 조용히 중앙 세트로 재배치 (조작 중에는 절대 점프하지 않음)
+  const scheduleQuietReCenter = useCallback(() => {
+    if (idleReCenterTimerRef.current) clearTimeout(idleReCenterTimerRef.current);
+    idleReCenterTimerRef.current = setTimeout(() => {
+      setCurrentIndex((curr) => {
+        // 중앙에서 2세트(10개) 이상 벗어났을 때만, 조용히 트랜지션 없이 중앙으로 동기화
+        if (curr < BASE_INDEX - 10 || curr > BASE_INDEX + 10) {
+          setIsTransitioning(false);
+          const mod = ((curr % totalPresets) + totalPresets) % totalPresets;
+          const normalized = BASE_INDEX + mod;
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              setIsTransitioning(true);
+            }, 50);
+          });
+          return normalized;
+        }
+        return curr;
+      });
+    }, 2500);
+  }, [BASE_INDEX, totalPresets]);
 
-  // 다음 슬라이드 이동
+  // 다음 슬라이드 이동 (부드러운 전진)
   const handleNext = useCallback(() => {
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev + 1);
+    scheduleQuietReCenter();
+  }, [scheduleQuietReCenter]);
 
-    // transitionend 이벤트 누락 대비 480ms 안전 타이머
-    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
-    safetyTimerRef.current = setTimeout(() => {
-      setCurrentIndex((curr) => {
-        if (curr >= BASE_INDEX + totalPresets || curr < BASE_INDEX) {
-          setIsTransitioning(false);
-          const mod = ((curr % totalPresets) + totalPresets) % totalPresets;
-          return BASE_INDEX + mod;
-        }
-        return curr;
-      });
-    }, 480);
-  }, [BASE_INDEX, totalPresets]);
-
-  // 이전 슬라이드 이동
+  // 이전 슬라이드 이동 (부드러운 후진)
   const handlePrev = useCallback(() => {
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev - 1);
-
-    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
-    safetyTimerRef.current = setTimeout(() => {
-      setCurrentIndex((curr) => {
-        if (curr >= BASE_INDEX + totalPresets || curr < BASE_INDEX) {
-          setIsTransitioning(false);
-          const mod = ((curr % totalPresets) + totalPresets) % totalPresets;
-          return BASE_INDEX + mod;
-        }
-        return curr;
-      });
-    }, 480);
-  }, [BASE_INDEX, totalPresets]);
-
-  // 트랜지션 완료 시 중앙 세트로 무지연 순간 이동
-  const handleTransitionEnd = () => {
-    if (currentIndex >= BASE_INDEX + totalPresets || currentIndex < BASE_INDEX) {
-      normalizeToCenter(currentIndex);
-    }
-  };
-
-  // 순간 이동 후 트랜지션 재활성화
-  useEffect(() => {
-    if (!isTransitioning) {
-      const timer = setTimeout(() => {
-        setIsTransitioning(true);
-      }, 30);
-      return () => clearTimeout(timer);
-    }
-  }, [isTransitioning]);
+    scheduleQuietReCenter();
+  }, [scheduleQuietReCenter]);
 
   // n초(4초) 자동 롤링 타이머
   useEffect(() => {
@@ -145,35 +122,40 @@ export default function TravelPresetSelector({
 
   // ================= 마우스 드래그 핸들러 (PC Drag to Slide) =================
   const handleMouseDown = (e: React.MouseEvent) => {
-    // 연속 조작 전 현재 위치가 중앙을 벗어났다면 먼저 즉시 중앙으로 동기화하여 여유 버퍼 확보
-    if (currentIndex < BASE_INDEX || currentIndex >= BASE_INDEX + totalPresets) {
-      normalizeToCenter(currentIndex);
-    }
-
+    if (idleReCenterTimerRef.current) clearTimeout(idleReCenterTimerRef.current);
     isDraggingRef.current = true;
     dragStartXRef.current = e.clientX;
+    dragStartTimeRef.current = Date.now();
     preventClickRef.current = false;
     setIsPaused(true);
+    setIsTransitioning(false); // 드래그 중에는 마우스 움직임과 1:1 직결
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDraggingRef.current) return;
     const diff = e.clientX - dragStartXRef.current;
-    if (Math.abs(diff) > 6) {
+    if (Math.abs(diff) > 5) {
       preventClickRef.current = true;
     }
-    setDragOffset(diff * 0.4);
+    // 마우스 추종 계수 0.85로 매우 즉각적인 반응성 부여
+    setDragOffset(diff * 0.85);
   };
 
   const handleMouseUp = () => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     setIsPaused(false);
+    setIsTransitioning(true);
 
-    if (dragOffset < -40) {
+    const elapsed = Date.now() - dragStartTimeRef.current;
+    const isQuickFlick = elapsed < 250 && Math.abs(dragOffset) > 20;
+
+    if (dragOffset < -35 || (isQuickFlick && dragOffset < 0)) {
       handleNext();
-    } else if (dragOffset > 40) {
+    } else if (dragOffset > 35 || (isQuickFlick && dragOffset > 0)) {
       handlePrev();
+    } else {
+      scheduleQuietReCenter();
     }
     setDragOffset(0);
 
@@ -191,30 +173,36 @@ export default function TravelPresetSelector({
 
   // ================= 터치 스와이프 핸들러 (모바일) =================
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (currentIndex < BASE_INDEX || currentIndex >= BASE_INDEX + totalPresets) {
-      normalizeToCenter(currentIndex);
-    }
-
+    if (idleReCenterTimerRef.current) clearTimeout(idleReCenterTimerRef.current);
     dragStartXRef.current = e.touches[0].clientX;
+    dragStartTimeRef.current = Date.now();
     preventClickRef.current = false;
     setIsPaused(true);
+    setIsTransitioning(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const currentX = e.touches[0].clientX;
     const diff = currentX - dragStartXRef.current;
-    if (Math.abs(diff) > 6) {
+    if (Math.abs(diff) > 5) {
       preventClickRef.current = true;
     }
-    setDragOffset(diff * 0.4);
+    setDragOffset(diff * 0.85);
   };
 
   const handleTouchEnd = () => {
     setIsPaused(false);
-    if (dragOffset < -40) {
+    setIsTransitioning(true);
+
+    const elapsed = Date.now() - dragStartTimeRef.current;
+    const isQuickFlick = elapsed < 250 && Math.abs(dragOffset) > 20;
+
+    if (dragOffset < -35 || (isQuickFlick && dragOffset < 0)) {
       handleNext();
-    } else if (dragOffset > 40) {
+    } else if (dragOffset > 35 || (isQuickFlick && dragOffset > 0)) {
       handlePrev();
+    } else {
+      scheduleQuietReCenter();
     }
     setDragOffset(0);
 
@@ -226,9 +214,15 @@ export default function TravelPresetSelector({
   // 도트 인디케이터용 현재 원본 인덱스 계산 (0 ~ 4)
   const activeDotIndex = ((currentIndex % totalPresets) + totalPresets) % totalPresets;
 
+  // 도트 클릭 시 가장 가까운 방향으로 부드럽게 회전 이동
   const handleDotClick = (targetIndex: number) => {
     setIsTransitioning(true);
-    setCurrentIndex(BASE_INDEX + targetIndex);
+    const currentMod = ((currentIndex % totalPresets) + totalPresets) % totalPresets;
+    let diff = targetIndex - currentMod;
+    if (diff > 2) diff -= totalPresets;
+    if (diff < -2) diff += totalPresets;
+    setCurrentIndex((prev) => prev + diff);
+    scheduleQuietReCenter();
   };
 
   return (
@@ -262,9 +256,10 @@ export default function TravelPresetSelector({
         )}
       </div>
 
-      {/* 프리셋 캐러셀 뷰포트 (5배 확장 방탄 버퍼 + 완벽한 무한 루프) */}
+      {/* 프리셋 캐러셀 뷰포트 (완벽한 무한 연속 회전 트랙) */}
       <div
         className="relative overflow-hidden rounded-2xl cursor-grab active:cursor-grabbing min-h-[280px] sm:min-h-[295px]"
+        style={{ touchAction: "pan-y" }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -274,10 +269,9 @@ export default function TravelPresetSelector({
         onTouchEnd={handleTouchEnd}
       >
         <div
-          onTransitionEnd={handleTransitionEnd}
           className={`flex ${
             isTransitioning && dragOffset === 0
-              ? "transition-transform duration-500 ease-out"
+              ? "transition-transform duration-600 ease-[cubic-bezier(0.25,1,0.5,1)]"
               : "transition-none"
           } will-change-transform`}
           style={{

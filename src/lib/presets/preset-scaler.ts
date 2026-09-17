@@ -88,6 +88,9 @@ export function scalePresetPreferences(
     attractionSelections: scaledAttractionSelections,
     shoppingOption: preferences.shoppingOption,
     shoppingAmountKrw: preferences.shoppingAmountKrw,
+    emergencyFundKrw: preferences.emergencyFundKrw,
+    emergencyFundPct: preferences.emergencyFundPct,
+    intercityTransportOverrides: preferences.intercityTransportOverrides,
   };
 }
 

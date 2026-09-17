@@ -53,14 +53,14 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
     badgeText: "text-rose-700",
     routeTextKo: "서울 3박 + 부산 2박 (5박 6일)",
     routeTextEn: "Seoul 3N + Busan 2N (5N 6D)",
-    estimatedBudgetKrw: 1350000,
+    estimatedBudgetKrw: 1380000,
     highlightTagsKo: ["#성수팝업", "#홍대감성", "#광안리야경", "#비즈니스호텔"],
     highlightTagsEn: ["#SeongsuPopup", "#Hongdae", "#GwangalliNight", "#BusinessHotel"],
     draft: {
       totalNights: 5,
       adultCount: 2,
       budgetTier: "STANDARD",
-      targetBudgetKrw: 2700000, // 2인 기준
+      targetBudgetKrw: 2760000, // 2인 기준
       selectedCities: ["SEOUL", "BUSAN"],
       cityNightAllocations: {
         SEOUL: 3,
@@ -74,19 +74,28 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
         BUSAN: "BUSINESS_HOTEL",
       },
       foodBasketSelections: [
-        { foodId: "nat_samgyeopsal", quantity: 2, cityCode: "SEOUL" },
+        // 서울 (SEOUL): 3종
+        { foodId: "nat_samgyeopsal", quantity: 1, cityCode: "SEOUL" },
         { foodId: "nat_chimaek", quantity: 1, cityCode: "SEOUL" },
-        { foodId: "busan_dwaeji_gukbap", quantity: 2, cityCode: "BUSAN" },
+        { foodId: "seoul_cafe_latte", quantity: 1, cityCode: "SEOUL" },
+        // 부산 (BUSAN): 3종
+        { foodId: "busan_dwaeji_gukbap", quantity: 1, cityCode: "BUSAN" },
+        { foodId: "busan_seafood_night", quantity: 1, cityCode: "BUSAN" },
+        { foodId: "busan_street_snack", quantity: 1, cityCode: "BUSAN" },
       ],
       attractionSelections: {
         SEOUL: {
           selectedCourseIds: ["seoul_course_trend"],
-          individualSpotIds: [],
+          individualSpotIds: ["seoul_seongsu_popup", "seoul_ddp_hongdae", "seoul_n_tower"],
         },
         BUSAN: {
           selectedCourseIds: ["busan_course_night_trend"],
-          individualSpotIds: [],
+          individualSpotIds: ["busan_blueline_park", "busan_ocean_night"],
         },
+      },
+      emergencyFundKrw: 50000,
+      intercityTransportOverrides: {
+        "SEOUL-BUSAN": "KTX",
       },
     },
   },

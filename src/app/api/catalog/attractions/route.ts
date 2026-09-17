@@ -52,10 +52,36 @@ function parseBilingualTitle(title: string): { nameKo: string; nameEn: string } 
   };
 }
 
+import { getAdminAttractions } from "../../../../lib/admin/admin-store";
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const city = (searchParams.get("city") || "SEOUL").toUpperCase();
+
+    // 1. 관리자 / Supabase 실시간 동적 스토어 조회 (K_SPOT 전용 및 비활성 제외)
+    const adminSpots = await getAdminAttractions({
+      city: city as SupportedCity,
+      scope: "CITY_PLANNER",
+      includeInactive: false,
+    });
+
+    if (adminSpots && adminSpots.length > 0) {
+      return NextResponse.json(
+        {
+          success: true,
+          source: "ADMIN_SUPABASE_STORE",
+          count: adminSpots.length,
+          data: adminSpots,
+        },
+        {
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+          },
+        }
+      );
+    }
+
     const areaCode = CITY_TO_AREA_CODE[city];
     if (!areaCode) {
       return NextResponse.json({

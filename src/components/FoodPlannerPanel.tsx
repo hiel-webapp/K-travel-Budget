@@ -15,6 +15,7 @@ import {
   CITY_SPECIALTY_FOODS,
   ALL_FOOD_ITEMS,
   FOOD_CATALOG_BY_ID,
+  registerCustomFoodItems,
 } from "../features/budget/catalog/food-catalog";
 import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import { formatKrw } from "../features/budget/presentation/formatters";
@@ -61,6 +62,20 @@ export default function FoodPlannerPanel({
   const [activeCityTab, setActiveCityTab] = useState<SupportedCity>(currentCity);
   const [nationalCategoryFilter, setNationalCategoryFilter] = useState<"ALL" | FoodCategoryTag>("ALL");
   const [previewFood, setPreviewFood] = useState<FoodItemDefinition | null>(null);
+  const [dynamicFoods, setDynamicFoods] = useState<FoodItemDefinition[]>([]);
+
+  // 관리자 / Supabase 실시간 동적 카탈로그 로드
+  useEffect(() => {
+    fetch("/api/admin/catalog?type=FOOD")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.foods) && data.foods.length > 0) {
+          registerCustomFoodItems(data.foods);
+          setDynamicFoods(data.foods);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // 현재 활성화된 도시 목록 (전달된 selectedCities 기준 또는 기본 도시)
   const availableCities = useMemo(() => {
@@ -106,19 +121,36 @@ export default function FoodPlannerPanel({
     return map;
   }, [basketSelections, activeCityTab, currentCity]);
 
-  // 활성 도시의 10대 대표 음식 (Top 3 vs 탐색 7선)
+  // 활성 도시의 10대 대표 음식 (Top 3 vs 탐색 7선) - K-스팟 전용 아이템은 제외
   const cityFoods = useMemo(() => {
-    const list = CITY_SPECIALTY_FOODS[activeCityTab] || [];
+    let list: FoodItemDefinition[];
+    if (dynamicFoods.length > 0) {
+      list = dynamicFoods.filter(
+        (f) => f.cityCode === activeCityTab && f.targetScope !== "K_SPOT" && f.isActive !== false
+      );
+    } else {
+      list = (CITY_SPECIALTY_FOODS[activeCityTab] || []).filter(
+        (f) => f.targetScope !== "K_SPOT" && f.isActive !== false
+      );
+    }
     const top3 = list.filter((f) => f.isMustEatTop3);
     const explore7 = list.filter((f) => !f.isMustEatTop3);
     return { all: list, top3, explore7 };
-  }, [activeCityTab]);
+  }, [activeCityTab, dynamicFoods]);
 
-  // 한국 대표 음식 필터링
+  // 한국 대표 음식 필터링 - K-스팟 전용 아이템은 제외
   const filteredNationalFoods = useMemo(() => {
-    if (nationalCategoryFilter === "ALL") return NATIONAL_K_FOODS;
-    return NATIONAL_K_FOODS.filter((f) => f.categoryTag === nationalCategoryFilter);
-  }, [nationalCategoryFilter]);
+    let base: FoodItemDefinition[];
+    if (dynamicFoods.length > 0) {
+      base = dynamicFoods.filter(
+        (f) => f.scope === "NATIONAL" && f.targetScope !== "K_SPOT" && f.isActive !== false
+      );
+    } else {
+      base = NATIONAL_K_FOODS.filter((f) => f.targetScope !== "K_SPOT" && f.isActive !== false);
+    }
+    if (nationalCategoryFilter === "ALL") return base;
+    return base.filter((f) => f.categoryTag === nationalCategoryFilter);
+  }, [nationalCategoryFilter, dynamicFoods]);
 
   const handleAdd = (foodId: string, cityCode?: SupportedCity) => {
     if (onUpdateQuantity) {

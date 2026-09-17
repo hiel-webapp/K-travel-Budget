@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Locale } from "../../lib/i18n/locales";
 import type { Dictionary } from "../../lib/i18n/dictionaries/ko";
-import { TRAVEL_PRESETS, TravelPreset, TravelPresetId } from "../../lib/presets/travel-presets";
+import { TRAVEL_PRESETS, TravelPreset, TravelPresetId, setDynamicPresets } from "../../lib/presets/travel-presets";
 import { formatKrw } from "../../features/budget/presentation/formatters";
 
 interface TravelPresetSelectorProps {
@@ -30,6 +30,7 @@ export default function TravelPresetSelector({
       .then((res) => res.json())
       .then((data) => {
         if (data?.success && Array.isArray(data.presets) && data.presets.length > 0) {
+          setDynamicPresets(data.presets);
           setPresets(data.presets);
         }
       })

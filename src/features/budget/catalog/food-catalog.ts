@@ -2287,3 +2287,29 @@ export function getCityFoods(city: SupportedCity): FoodItemDefinition[] {
 export function getFoodById(id: string): FoodItemDefinition | undefined {
   return FOOD_CATALOG_BY_ID.get(id);
 }
+
+export function registerCustomFoodItems(items: FoodItemDefinition[]) {
+  items.forEach((item) => {
+    if (!item || !item.id) return;
+    FOOD_CATALOG_BY_ID.set(item.id, item);
+
+    const allIdx = ALL_FOOD_ITEMS.findIndex((f) => f.id === item.id);
+    if (allIdx >= 0) {
+      ALL_FOOD_ITEMS[allIdx] = item;
+    } else {
+      ALL_FOOD_ITEMS.push(item);
+    }
+
+    if (item.scope === "NATIONAL") {
+      const natIdx = NATIONAL_K_FOODS.findIndex((f) => f.id === item.id);
+      if (natIdx >= 0) NATIONAL_K_FOODS[natIdx] = item;
+      else NATIONAL_K_FOODS.push(item);
+    } else if (item.cityCode) {
+      const list = CITY_SPECIALTY_FOODS[item.cityCode] || [];
+      const cityIdx = list.findIndex((f) => f.id === item.id);
+      if (cityIdx >= 0) list[cityIdx] = item;
+      else list.push(item);
+      CITY_SPECIALTY_FOODS[item.cityCode] = list;
+    }
+  });
+}

@@ -23,10 +23,9 @@ export default function TravelPresetSelector({
 }: TravelPresetSelectorProps) {
   const totalPresets = TRAVEL_PRESETS.length; // 5개
 
-  // 15개 세트(총 75개 카드)로 구성된 광활한 연속 무한 트랙
-  // 사용자가 한 방향으로 수십 번을 넘겨도 중간에 인덱스 점프나 튕김 없이 물 흐르듯 연속 회전
+  // 15개 세트(총 75개 카드)로 구성된 연속 무한 트랙
   const SET_COUNT = 15;
-  const CENTER_SET = Math.floor(SET_COUNT / 2); // 7번째 세트 (인덱스 35~39)
+  const CENTER_SET = Math.floor(SET_COUNT / 2); // 7번째 세트
   const BASE_INDEX = CENTER_SET * totalPresets; // 35
 
   const extendedPresets = React.useMemo(() => {
@@ -38,12 +37,13 @@ export default function TravelPresetSelector({
   }, [totalPresets]);
 
   const [currentIndex, setCurrentIndex] = useState(BASE_INDEX);
-  const [isTransitioning, setIsTransitioning] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [visibleCount, setVisibleCount] = useState(3);
-  const [dragOffset, setDragOffset] = useState(0);
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
   const dragStartTimeRef = useRef(0);
@@ -51,7 +51,7 @@ export default function TravelPresetSelector({
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   const idleReCenterTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 반응형 한 번에 노출될 카드 수 계산 (PC: 3, Tablet: 2, Mobile: 1)
+  // 반응형 카드 노출 수 계산
   useEffect(() => {
     const updateVisibleCount = () => {
       if (window.innerWidth < 640) {
@@ -68,45 +68,35 @@ export default function TravelPresetSelector({
     return () => window.removeEventListener("resize", updateVisibleCount);
   }, []);
 
-  // 유휴 시간(Idle 2.5초) 동안만 조용히 중앙 세트로 재배치 (조작 중에는 절대 점프하지 않음)
+  // 유휴 시간(2.5초) 동안만 조용히 중앙 세트로 보정
   const scheduleQuietReCenter = useCallback(() => {
     if (idleReCenterTimerRef.current) clearTimeout(idleReCenterTimerRef.current);
     idleReCenterTimerRef.current = setTimeout(() => {
       setCurrentIndex((curr) => {
-        // 중앙에서 2세트(10개) 이상 벗어났을 때만, 조용히 트랜지션 없이 중앙으로 동기화
         if (curr < BASE_INDEX - 10 || curr > BASE_INDEX + 10) {
-          setIsTransitioning(false);
           const mod = ((curr % totalPresets) + totalPresets) % totalPresets;
-          const normalized = BASE_INDEX + mod;
-          requestAnimationFrame(() => {
-            setTimeout(() => {
-              setIsTransitioning(true);
-            }, 50);
-          });
-          return normalized;
+          return BASE_INDEX + mod;
         }
         return curr;
       });
     }, 2500);
   }, [BASE_INDEX, totalPresets]);
 
-  // 다음 슬라이드 이동 (부드러운 전진)
+  // 다음 슬라이드 이동
   const handleNext = useCallback(() => {
-    setIsTransitioning(true);
     setCurrentIndex((prev) => prev + 1);
     scheduleQuietReCenter();
   }, [scheduleQuietReCenter]);
 
-  // 이전 슬라이드 이동 (부드러운 후진)
+  // 이전 슬라이드 이동
   const handlePrev = useCallback(() => {
-    setIsTransitioning(true);
     setCurrentIndex((prev) => prev - 1);
     scheduleQuietReCenter();
   }, [scheduleQuietReCenter]);
 
-  // n초(4초) 자동 롤링 타이머
+  // 4초 자동 롤링
   useEffect(() => {
-    if (!isPlaying || isPaused) {
+    if (!isPlaying || isPaused || isDragging) {
       if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
       return;
     }
@@ -118,105 +108,75 @@ export default function TravelPresetSelector({
     return () => {
       if (autoPlayTimerRef.current) clearInterval(autoPlayTimerRef.current);
     };
-  }, [isPlaying, isPaused, handleNext]);
+  }, [isPlaying, isPaused, isDragging, handleNext]);
 
-  // ================= 마우스 드래그 핸들러 (PC Drag to Slide) =================
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // ================= 마우스 및 터치 드래그 핸들러 =================
+  const startDrag = (clientX: number) => {
     if (idleReCenterTimerRef.current) clearTimeout(idleReCenterTimerRef.current);
     isDraggingRef.current = true;
-    dragStartXRef.current = e.clientX;
+    dragStartXRef.current = clientX;
     dragStartTimeRef.current = Date.now();
     preventClickRef.current = false;
     setIsPaused(true);
-    setIsTransitioning(false); // 드래그 중에는 마우스 움직임과 1:1 직결
+    setIsDragging(true);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const updateDrag = (clientX: number) => {
     if (!isDraggingRef.current) return;
-    const diff = e.clientX - dragStartXRef.current;
+    const diff = clientX - dragStartXRef.current;
     if (Math.abs(diff) > 5) {
       preventClickRef.current = true;
     }
-    // 마우스 추종 계수 0.85로 매우 즉각적인 반응성 부여
-    setDragOffset(diff * 0.85);
+    // 손가락/마우스와 1:1 완벽 추종으로 걸림 없는 반응성 제공
+    setDragOffset(diff);
   };
 
-  const handleMouseUp = () => {
+  const endDrag = () => {
     if (!isDraggingRef.current) return;
     isDraggingRef.current = false;
     setIsPaused(false);
-    setIsTransitioning(true);
 
-    const elapsed = Date.now() - dragStartTimeRef.current;
-    const isQuickFlick = elapsed < 250 && Math.abs(dragOffset) > 20;
+    const elapsed = Math.max(1, Date.now() - dragStartTimeRef.current);
+    const velocity = dragOffset / elapsed; // px per ms (관성 속도)
+    const isFastFlick = Math.abs(velocity) > 0.35; // 빠른 튕김 제스처 감지
 
-    if (dragOffset < -35 || (isQuickFlick && dragOffset < 0)) {
+    // 카드가 걸리지 않고 매끄럽게 빨려 들어가도록 임계값 계산
+    // 40px 이상 끌었거나, 빠르게 튕겼을 때 즉시 다음 카드로 전환
+    if (dragOffset < -40 || (isFastFlick && dragOffset < -15)) {
       handleNext();
-    } else if (dragOffset > 35 || (isQuickFlick && dragOffset > 0)) {
+    } else if (dragOffset > 40 || (isFastFlick && dragOffset > 15)) {
       handlePrev();
     } else {
       scheduleQuietReCenter();
     }
+
+    // 마우스를 놓는 순간 트랜지션 애니메이션이 드래그 오프셋에서 시작하여 0으로 부드럽게 복귀하도록 보장
     setDragOffset(0);
+    setIsDragging(false);
 
     setTimeout(() => {
       preventClickRef.current = false;
     }, 150);
   };
 
+  // PC 마우스 이벤트
+  const handleMouseDown = (e: React.MouseEvent) => startDrag(e.clientX);
+  const handleMouseMove = (e: React.MouseEvent) => updateDrag(e.clientX);
+  const handleMouseUp = () => endDrag();
   const handleMouseLeave = () => {
-    if (isDraggingRef.current) {
-      handleMouseUp();
-    }
+    if (isDraggingRef.current) endDrag();
     setIsPaused(false);
   };
 
-  // ================= 터치 스와이프 핸들러 (모바일) =================
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (idleReCenterTimerRef.current) clearTimeout(idleReCenterTimerRef.current);
-    dragStartXRef.current = e.touches[0].clientX;
-    dragStartTimeRef.current = Date.now();
-    preventClickRef.current = false;
-    setIsPaused(true);
-    setIsTransitioning(false);
-  };
+  // 모바일 터치 이벤트
+  const handleTouchStart = (e: React.TouchEvent) => startDrag(e.touches[0].clientX);
+  const handleTouchMove = (e: React.TouchEvent) => updateDrag(e.touches[0].clientX);
+  const handleTouchEnd = () => endDrag();
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const currentX = e.touches[0].clientX;
-    const diff = currentX - dragStartXRef.current;
-    if (Math.abs(diff) > 5) {
-      preventClickRef.current = true;
-    }
-    setDragOffset(diff * 0.85);
-  };
-
-  const handleTouchEnd = () => {
-    setIsPaused(false);
-    setIsTransitioning(true);
-
-    const elapsed = Date.now() - dragStartTimeRef.current;
-    const isQuickFlick = elapsed < 250 && Math.abs(dragOffset) > 20;
-
-    if (dragOffset < -35 || (isQuickFlick && dragOffset < 0)) {
-      handleNext();
-    } else if (dragOffset > 35 || (isQuickFlick && dragOffset > 0)) {
-      handlePrev();
-    } else {
-      scheduleQuietReCenter();
-    }
-    setDragOffset(0);
-
-    setTimeout(() => {
-      preventClickRef.current = false;
-    }, 150);
-  };
-
-  // 도트 인디케이터용 현재 원본 인덱스 계산 (0 ~ 4)
+  // 도트 인디케이터 계산
   const activeDotIndex = ((currentIndex % totalPresets) + totalPresets) % totalPresets;
 
-  // 도트 클릭 시 가장 가까운 방향으로 부드럽게 회전 이동
   const handleDotClick = (targetIndex: number) => {
-    setIsTransitioning(true);
     const currentMod = ((currentIndex % totalPresets) + totalPresets) % totalPresets;
     let diff = targetIndex - currentMod;
     if (diff > 2) diff -= totalPresets;
@@ -256,8 +216,9 @@ export default function TravelPresetSelector({
         )}
       </div>
 
-      {/* 프리셋 캐러셀 뷰포트 (완벽한 무한 연속 회전 트랙) */}
+      {/* 프리셋 캐러셀 뷰포트 */}
       <div
+        ref={containerRef}
         className="relative overflow-hidden rounded-2xl cursor-grab active:cursor-grabbing min-h-[280px] sm:min-h-[295px]"
         style={{ touchAction: "pan-y" }}
         onMouseDown={handleMouseDown}
@@ -269,11 +230,11 @@ export default function TravelPresetSelector({
         onTouchEnd={handleTouchEnd}
       >
         <div
-          className={`flex ${
-            isTransitioning && dragOffset === 0
-              ? "transition-transform duration-600 ease-[cubic-bezier(0.25,1,0.5,1)]"
-              : "transition-none"
-          } will-change-transform`}
+          className={`flex will-change-transform ${
+            isDragging
+              ? "transition-none"
+              : "transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          }`}
           style={{
             transform: `translateX(calc(-${currentIndex * (100 / visibleCount)}% + ${dragOffset}px))`,
           }}
@@ -310,7 +271,7 @@ export default function TravelPresetSelector({
                       : "border-neutral-200/80 hover:border-neutral-300"
                   }`}
                 >
-                  {/* 배경 이미지 (한국관광공사 고화질 실사) */}
+                  {/* 배경 이미지 */}
                   <img
                     src={preset.imageUrl}
                     alt={title}
@@ -345,7 +306,7 @@ export default function TravelPresetSelector({
                     </div>
                   </div>
 
-                  {/* 2. 하단 영역: 순백색 타이틀, 서브타이틀, 동선, 구분선, 태그 & 예산 */}
+                  {/* 2. 하단 영역: 타이틀, 서브타이틀, 동선, 구분선, 태그 & 예산 */}
                   <div className="relative z-10 w-full space-y-2.5">
                     <div>
                       <h3
@@ -394,9 +355,9 @@ export default function TravelPresetSelector({
         </div>
       </div>
 
-      {/* 하단 컨트롤러 바: 좌우 이동, 페이지네이션 도트, 자동 롤링 상태 */}
+      {/* 하단 컨트롤러 바 */}
       <div className="flex items-center justify-between px-2 pt-1">
-        {/* 좌측 정보 (자동 재생 안내) */}
+        {/* 좌측 정보 (자동 재생 토글) */}
         <div className="flex items-center gap-2">
           <button
             type="button"

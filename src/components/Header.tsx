@@ -49,7 +49,8 @@ export default function Header({ locale, dict }: HeaderProps) {
   const navItems = [
     { key: "planner", label: dict.navigation.planner, path: `/${locale}/planner` },
     { key: "places", label: dict.navigation.places, path: `/${locale}/places` },
-    { key: "trend", label: dict.navigation.trend, path: `/${locale}/trend` },
+    // 추후 필요 시 재활성화 가능하도록 임시 숨김 처리
+    // { key: "trend", label: dict.navigation.trend, path: `/${locale}/trend` },
     { key: "guide", label: dict.navigation.guide, path: `/${locale}/guide` },
     { key: "report", label: (dict.navigation as any).report || dict.navigation.savedTrips, path: `/${locale}/report` },
   ] as const;

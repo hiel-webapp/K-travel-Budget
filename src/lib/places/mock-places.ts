@@ -6,7 +6,7 @@ import { SHOW_LOCAL_SPOTS } from "../config/spots-visibility";
 // 플래너 10대 도시 관광지 카탈로그 (각 도시별 완벽 분리 및 공식 웹사이트 연동)
 // SHOW_LOCAL_SPOTS 플래그를 통해 로컬 명소 노출/숨김을 손쉽게 제어
 export const ALL_CITY_CATALOG_PLACES: PlaceItem[] = ATTRACTION_SPOTS_CATALOG
-  .filter((spot) => SHOW_LOCAL_SPOTS || !spot.isLocal)
+  .filter((spot) => (SHOW_LOCAL_SPOTS || !spot.isLocal) && spot.targetScope !== "CITY_PLANNER" && spot.isActive !== false)
   .map((spot) => {
     let category: PlaceCategory = "LANDMARK";
     if (spot.categoryType === "명소") category = "LANDMARK";

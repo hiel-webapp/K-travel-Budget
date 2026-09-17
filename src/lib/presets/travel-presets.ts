@@ -2,12 +2,7 @@ import { SupportedCity, TripDraft } from "../trip-domain";
 import { BudgetBasketId, FoodBasketItemSelection } from "../../features/budget/domain/types";
 import type { SavePlannerPreferencesInput } from "../storage-helper";
 
-export type TravelPresetId =
-  | "K_TREND_VIBES"
-  | "K_HERITAGE_SOUL"
-  | "K_NATURE_CHILL"
-  | "K_JEJU_ESCAPE"
-  | "K_FOODIE_GOURMET";
+export type TravelPresetId = string;
 
 export type TravelPresetPreferences = Omit<Partial<SavePlannerPreferencesInput>, "draft">;
 
@@ -33,6 +28,9 @@ export interface TravelPreset {
   highlightTagsEn: string[];
   draft: TripDraft;
   preferences: TravelPresetPreferences;
+  isActive?: boolean;
+  order?: number;
+  isCustom?: boolean;
 }
 
 export const TRAVEL_PRESETS: TravelPreset[] = [
@@ -361,6 +359,19 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
   },
 ];
 
+let dynamicPresetsCache: TravelPreset[] | null = null;
+
+export function setDynamicPresets(presets: TravelPreset[]) {
+  dynamicPresetsCache = presets;
+}
+
+export function getTravelPresets(includeInactive = false): TravelPreset[] {
+  const list = dynamicPresetsCache ?? TRAVEL_PRESETS;
+  if (includeInactive) return list;
+  return list.filter((p) => p.isActive !== false);
+}
+
 export function getTravelPresetById(id: string): TravelPreset | undefined {
-  return TRAVEL_PRESETS.find((p) => p.id === id);
+  const list = dynamicPresetsCache ?? TRAVEL_PRESETS;
+  return list.find((p) => p.id === id);
 }

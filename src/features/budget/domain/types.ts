@@ -323,6 +323,9 @@ export interface FoodItemDefinition {
   isMustEatTop3?: boolean;
   emoji?: string;
   imageUrl?: string;
+  targetScope?: "CITY_PLANNER" | "K_SPOT" | "BOTH";
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 export interface FoodBasketItemSelection {

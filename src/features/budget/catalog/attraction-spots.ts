@@ -31,6 +31,9 @@ export interface AttractionSpot {
   deepLink?: string;
   categoryType?: AttractionCategoryType;
   isLocal?: boolean;
+  targetScope?: "CITY_PLANNER" | "K_SPOT" | "BOTH";
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 export interface BilingualSpotDetail {

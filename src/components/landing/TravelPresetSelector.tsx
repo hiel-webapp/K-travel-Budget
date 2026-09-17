@@ -23,22 +23,39 @@ export default function TravelPresetSelector({
   onSelectPreset,
   onClearPreset,
 }: TravelPresetSelectorProps) {
-  const totalPresets = TRAVEL_PRESETS.length; // 5개
+  const [presets, setPresets] = useState<TravelPreset[]>(TRAVEL_PRESETS.filter((p) => p.isActive !== false));
 
-  // 15개 세트(총 75개 카드)로 구성된 연속 무한 트랙
-  const SET_COUNT = 15;
-  const CENTER_SET = Math.floor(SET_COUNT / 2); // 7번째 세트
-  const BASE_INDEX = CENTER_SET * totalPresets; // 35
+  useEffect(() => {
+    fetch("/api/admin/presets?includeInactive=false")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.presets) && data.presets.length > 0) {
+          setPresets(data.presets);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const totalPresets = presets.length || 1;
+
+  // 가변 프리셋 개수에 맞춘 무한 롤링 트랙
+  const SET_COUNT = Math.max(7, Math.ceil(40 / totalPresets));
+  const CENTER_SET = Math.floor(SET_COUNT / 2);
+  const BASE_INDEX = CENTER_SET * totalPresets;
 
   const extendedPresets = React.useMemo(() => {
     const list: TravelPreset[] = [];
     for (let i = 0; i < SET_COUNT; i++) {
-      list.push(...TRAVEL_PRESETS);
+      list.push(...presets);
     }
     return list;
-  }, [totalPresets]);
+  }, [presets, SET_COUNT]);
 
   const [currentIndex, setCurrentIndex] = useState(BASE_INDEX);
+
+  useEffect(() => {
+    setCurrentIndex(BASE_INDEX);
+  }, [BASE_INDEX]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
   const [isPaused, setIsPaused] = useState(false);

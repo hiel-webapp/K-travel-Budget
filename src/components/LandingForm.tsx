@@ -335,19 +335,6 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
               </div>
             )}
 
-            {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
-              <div className="flex justify-end mb-4 px-1">
-                <button
-                  type="button"
-                  onClick={handleResetDraft}
-                  className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 flex items-center gap-1 transition-all cursor-pointer bg-neutral-100 hover:bg-neutral-200/70 px-3.5 py-1.5 rounded-full border border-neutral-200/60 active:scale-95"
-                >
-                  <span>↺</span>
-                  <span>일정 초기화</span>
-                </button>
-              </div>
-            )}
-
             {/* PC 3-Step Bento Cards Grid with Active Focus & Dimming */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
               {/* Step 1 Bento Card */}
@@ -546,7 +533,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
             </div>
 
             {/* PC Bottom CTA Area */}
-            <div className="mt-8 pt-6 border-t border-neutral-200/60 flex flex-col items-center gap-4">
+            <div className="mt-8 pt-6 border-t border-neutral-200/60 relative flex flex-col items-center gap-4">
               <div className="text-center text-[14px] text-neutral-600 font-medium py-2 px-5 rounded-full bg-neutral-100/70 max-w-lg mx-auto border border-neutral-200/60 flex items-center justify-center shadow-2xs">
                 {getAllocationSummaryText()}
               </div>
@@ -571,6 +558,19 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
                   </span>
                 )}
               </div>
+
+              {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
+                <div className="md:absolute md:right-0 md:bottom-0 flex justify-end mt-2 md:mt-0">
+                  <button
+                    type="button"
+                    onClick={handleResetDraft}
+                    className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 flex items-center gap-1.5 transition-all cursor-pointer bg-neutral-100 hover:bg-neutral-200/70 px-3.5 py-2 rounded-full border border-neutral-200/60 active:scale-95 shadow-2xs"
+                  >
+                    <span>↺</span>
+                    <span>일정 초기화</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -71,16 +71,16 @@ export default function ChangePinModal({ isOpen, onClose }: ChangePinModalProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-700 pb-4">
           <div className="flex items-center gap-2">
             <span className="text-xl">🔐</span>
-            <h2 className="text-lg font-bold text-white">관리자 PIN 코드 변경</h2>
+            <h2 className="text-lg font-black text-white">관리자 PIN 코드 변경</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
+            className="rounded-lg p-1.5 text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-bold"
           >
             ✕
           </button>
@@ -88,7 +88,7 @@ export default function ChangePinModal({ isOpen, onClose }: ChangePinModalProps)
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-200">
               현재 PIN 코드
             </label>
             <input
@@ -97,12 +97,12 @@ export default function ChangePinModal({ isOpen, onClose }: ChangePinModalProps)
               onChange={(e) => setCurrentPin(e.target.value)}
               placeholder="현재 사용 중인 PIN 번호"
               required
-              className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 text-sm font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-200">
               새 PIN 코드
             </label>
             <input
@@ -111,12 +111,12 @@ export default function ChangePinModal({ isOpen, onClose }: ChangePinModalProps)
               onChange={(e) => setNewPin(e.target.value)}
               placeholder="새로운 PIN 번호 (4자리 이상)"
               required
-              className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 text-sm font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-200">
               새 PIN 코드 확인
             </label>
             <input
@@ -125,28 +125,28 @@ export default function ChangePinModal({ isOpen, onClose }: ChangePinModalProps)
               onChange={(e) => setConfirmPin(e.target.value)}
               placeholder="새로운 PIN 번호 다시 입력"
               required
-              className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 text-sm"
+              className="mt-1.5 w-full rounded-xl border border-slate-600 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/40 text-sm font-medium"
             />
           </div>
 
           {errorMsg && (
-            <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-3 text-center text-xs text-rose-400">
+            <div className="rounded-xl border border-rose-500/30 bg-rose-500/15 p-3 text-center text-xs font-semibold text-rose-300">
               {errorMsg}
             </div>
           )}
 
           {successMsg && (
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-3 text-center text-xs text-emerald-400 font-semibold">
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/20 p-3 text-center text-xs text-emerald-300 font-bold">
               {successMsg}
             </div>
           )}
 
-          <div className="mt-6 flex justify-end gap-2 pt-2 border-t border-slate-800">
+          <div className="mt-6 flex justify-end gap-2 pt-3 border-t border-slate-700">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-all disabled:opacity-50"
+              className="rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white transition-all disabled:opacity-50"
             >
               취소
             </button>

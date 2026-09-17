@@ -136,12 +136,12 @@ export default function TourCoursePanel() {
   return (
     <div className="space-y-6">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-lg">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm">
             <span>🗺️</span> 도시별 투어 코스 관리
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs font-semibold text-slate-200">
             총 {courses.length}개 코스 등록됨 · 각 코스에 포함될 명소(spotIds)를 클릭 매핑합니다.
           </p>
         </div>
@@ -159,8 +159,8 @@ export default function TourCoursePanel() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
         <button
           onClick={() => setSelectedCity("ALL")}
-          className={`rounded-lg px-3 py-1 font-semibold flex-shrink-0 ${
-            selectedCity === "ALL" ? "bg-slate-200 text-slate-900" : "bg-slate-800 text-slate-400 hover:text-white"
+          className={`rounded-lg px-3 py-1.5 font-bold flex-shrink-0 transition-all ${
+            selectedCity === "ALL" ? "bg-slate-100 text-slate-950 font-black shadow" : "border border-slate-600 bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700"
           }`}
         >
           전체 도시
@@ -169,8 +169,8 @@ export default function TourCoursePanel() {
           <button
             key={c}
             onClick={() => setSelectedCity(c)}
-            className={`rounded-lg px-3 py-1 font-semibold flex-shrink-0 ${
-              selectedCity === c ? "bg-slate-200 text-slate-900" : "bg-slate-800 text-slate-400 hover:text-white"
+            className={`rounded-lg px-3 py-1.5 font-bold flex-shrink-0 transition-all ${
+              selectedCity === c ? "bg-slate-100 text-slate-950 font-black shadow" : "border border-slate-600 bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700"
             }`}
           >
             {CITY_KOREAN_NAMES[c]}
@@ -193,44 +193,44 @@ export default function TourCoursePanel() {
             return (
               <div
                 key={course.id}
-                className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3"
+                className="rounded-2xl border border-slate-700 bg-slate-900 p-5 space-y-3 shadow-md hover:border-slate-600 transition-all"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="rounded bg-indigo-500/20 px-2 py-0.5 text-[10px] font-bold text-indigo-400">
+                    <span className="rounded-md border border-indigo-500/40 bg-indigo-950/70 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300">
                       {CITY_KOREAN_NAMES[course.cityCode] || course.cityCode} · {course.estimatedHours}시간
                     </span>
                     <h3 className="text-base font-bold text-white mt-1.5">{course.nameKo}</h3>
-                    <p className="text-xs text-slate-400">{course.nameEn}</p>
+                    <p className="text-xs font-medium text-slate-300">{course.nameEn}</p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={() => handleOpenEdit(course)}
-                      className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-300 hover:bg-slate-700"
+                      className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
                     >
                       수정
                     </button>
                     <button
                       onClick={() => handleDelete(course)}
-                      className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-xs text-rose-400 hover:bg-rose-500/20"
+                      className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-3 py-1 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                     >
                       삭제
                     </button>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-300 line-clamp-2">{course.descKo}</p>
+                <p className="text-xs font-medium text-slate-200 line-clamp-2">{course.descKo}</p>
 
                 {/* Spots Chips */}
-                <div className="border-t border-slate-800/80 pt-3">
-                  <div className="text-[11px] font-semibold text-slate-400 mb-1.5">
+                <div className="border-t border-slate-800 pt-3">
+                  <div className="text-[11px] font-bold text-slate-200 mb-1.5">
                     포함 명소 ({course.spotIds?.length || 0}개):
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {spotsInCourse.map((spot: any) => (
                       <span
                         key={spot.id}
-                        className="rounded-lg bg-slate-800 px-2 py-1 text-[10px] text-slate-300 flex items-center gap-1"
+                        className="rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1 text-[11px] font-medium text-slate-200 flex items-center gap-1"
                       >
                         <span>📍</span>
                         <span>{spot.nameKo}</span>
@@ -258,21 +258,21 @@ export default function TourCoursePanel() {
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">코스 고유 ID *</label>
+                  <label className="text-xs font-bold text-slate-200">코스 고유 ID *</label>
                   <input
                     type="text"
                     value={id}
                     disabled={!!editingCourse}
                     onChange={(e) => setId(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none disabled:opacity-50"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">소속 도시 *</label>
+                  <label className="text-xs font-bold text-slate-200">소속 도시 *</label>
                   <select
                     value={cityCode}
                     onChange={(e: any) => setCityCode(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   >
                     {ALL_SUPPORTED_CITIES.map((c) => (
                       <option key={c} value={c}>
@@ -282,49 +282,49 @@ export default function TourCoursePanel() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">코스명 (한국어) *</label>
+                  <label className="text-xs font-bold text-slate-200">코스명 (한국어) *</label>
                   <input
                     type="text"
                     value={nameKo}
                     onChange={(e) => setNameKo(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">코스명 (영어)</label>
+                  <label className="text-xs font-bold text-slate-200">코스명 (영어)</label>
                   <input
                     type="text"
                     value={nameEn}
                     onChange={(e) => setNameEn(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-slate-300">코스 설명 (한국어)</label>
+                  <label className="text-xs font-bold text-slate-200">코스 설명 (한국어)</label>
                   <textarea
                     rows={2}
                     value={descKo}
                     onChange={(e) => setDescKo(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Spots Mapping */}
-              <div className="border-t border-slate-800 pt-4">
-                <label className="text-xs font-semibold text-slate-300 block mb-2">
+              <div className="border-t border-slate-700 pt-4">
+                <label className="text-xs font-bold text-slate-200 block mb-2">
                   포함할 명소 선택 (해당 도시 등록 명소 {citySpotsForModal.length}개)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl bg-slate-800/40 border border-slate-800">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl bg-slate-800/80 border border-slate-700">
                   {citySpotsForModal.map((spot) => {
                     const isChecked = spotIds.includes(spot.id);
                     return (
                       <label
                         key={spot.id}
-                        className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer ${
+                        className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
                           isChecked
-                            ? "border-indigo-500 bg-indigo-500/20 text-white"
-                            : "border-slate-700 bg-slate-850 text-slate-400 hover:border-slate-600"
+                            ? "border-indigo-400 bg-indigo-500/25 text-white shadow-sm font-bold"
+                            : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600 font-medium"
                         }`}
                       >
                         <input
@@ -340,11 +340,11 @@ export default function TourCoursePanel() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700"
+                  className="rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
                 >
                   취소
                 </button>

@@ -170,12 +170,12 @@ export default function FoodCatalogPanel() {
   return (
     <div className="space-y-6">
       {/* Top Filter & Actions */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-md">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-lg">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm">
             <span>🍲</span> 음식 카탈로그 관리
           </h2>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs font-semibold text-slate-200">
             총 {foods.length}개 메뉴 등록됨 · 플래너 도시 탭 및 K-스팟에 지정된 대상과 정렬 규칙으로 노출됩니다.
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function FoodCatalogPanel() {
             placeholder="음식명 또는 ID 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 w-full md:w-60"
+            className="rounded-xl border border-slate-600 bg-slate-800 px-3.5 py-2 text-xs font-medium text-white placeholder-slate-400 w-full md:w-60 focus:border-indigo-400 focus:outline-none"
           />
           <button
             type="button"
@@ -202,7 +202,7 @@ export default function FoodCatalogPanel() {
       <div className="flex flex-col gap-3">
         {/* Placement Scope Selector */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-          <span className="font-semibold text-slate-400 flex-shrink-0">노출 대상:</span>
+          <span className="font-bold text-slate-200 flex-shrink-0">노출 대상:</span>
           {[
             { key: "ALL", label: "전체" },
             { key: "CITY_PLANNER", label: "🏙️ 도시 탭 전용" },
@@ -212,10 +212,10 @@ export default function FoodCatalogPanel() {
             <button
               key={item.key}
               onClick={() => setSelectedScope(item.key as any)}
-              className={`rounded-lg px-3 py-1.5 font-semibold transition-all flex-shrink-0 ${
+              className={`rounded-lg px-3 py-1.5 font-bold transition-all flex-shrink-0 ${
                 selectedScope === item.key
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                  : "bg-slate-800/80 text-slate-400 hover:bg-slate-700 hover:text-white"
+                  : "border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
               }`}
             >
               {item.label}
@@ -225,19 +225,19 @@ export default function FoodCatalogPanel() {
 
         {/* City Filter */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-          <span className="font-semibold text-slate-400 flex-shrink-0">지역 필터:</span>
+          <span className="font-bold text-slate-200 flex-shrink-0">지역 필터:</span>
           <button
             onClick={() => setSelectedCity("ALL")}
-            className={`rounded-lg px-3 py-1 font-semibold flex-shrink-0 ${
-              selectedCity === "ALL" ? "bg-slate-200 text-slate-900" : "bg-slate-800 text-slate-400 hover:text-white"
+            className={`rounded-lg px-3 py-1.5 font-bold flex-shrink-0 transition-all ${
+              selectedCity === "ALL" ? "bg-slate-100 text-slate-950 font-black shadow" : "border border-slate-600 bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700"
             }`}
           >
             전체 지역
           </button>
           <button
             onClick={() => setSelectedCity("NATIONAL")}
-            className={`rounded-lg px-3 py-1 font-semibold flex-shrink-0 ${
-              selectedCity === "NATIONAL" ? "bg-slate-200 text-slate-900" : "bg-slate-800 text-slate-400 hover:text-white"
+            className={`rounded-lg px-3 py-1.5 font-bold flex-shrink-0 transition-all ${
+              selectedCity === "NATIONAL" ? "bg-slate-100 text-slate-950 font-black shadow" : "border border-slate-600 bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700"
             }`}
           >
             전국 시그니처 (NATIONAL)
@@ -246,8 +246,8 @@ export default function FoodCatalogPanel() {
             <button
               key={c}
               onClick={() => setSelectedCity(c)}
-              className={`rounded-lg px-3 py-1 font-semibold flex-shrink-0 ${
-                selectedCity === c ? "bg-slate-200 text-slate-900" : "bg-slate-800 text-slate-400 hover:text-white"
+              className={`rounded-lg px-3 py-1.5 font-bold flex-shrink-0 transition-all ${
+                selectedCity === c ? "bg-slate-100 text-slate-950 font-black shadow" : "border border-slate-600 bg-slate-800 text-slate-200 hover:text-white hover:bg-slate-700"
               }`}
             >
               {CITY_KOREAN_NAMES[c]}
@@ -262,10 +262,10 @@ export default function FoodCatalogPanel() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl">
+        <div className="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-800 bg-slate-950/70 text-slate-400 uppercase tracking-wider">
+              <thead className="border-b border-slate-700 bg-slate-800/90 text-slate-100 font-bold uppercase tracking-wider">
                 <tr>
                   <th className="p-3.5">사진</th>
                   <th className="p-3.5">음식명 / ID</th>
@@ -276,20 +276,20 @@ export default function FoodCatalogPanel() {
                   <th className="p-3.5 text-right">관리</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-200">
+              <tbody className="divide-y divide-slate-800 text-slate-100 font-medium">
                 {filteredFoods.map((food) => {
                   const scopeType = food.targetScope || "BOTH";
                   return (
-                    <tr key={food.id} className="hover:bg-slate-800/40 transition-all">
+                    <tr key={food.id} className="hover:bg-slate-800/60 transition-all">
                       <td className="p-3.5">
                         {food.imageUrl ? (
                           <img
                             src={food.imageUrl}
                             alt={food.nameKo}
-                            className="h-10 w-10 rounded-lg object-cover border border-slate-700"
+                            className="h-10 w-10 rounded-lg object-cover border border-slate-600"
                           />
                         ) : (
-                          <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-base">
+                          <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-base border border-slate-700">
                             🍽️
                           </div>
                         )}
@@ -298,55 +298,55 @@ export default function FoodCatalogPanel() {
                         <div className="font-bold text-white text-sm flex items-center gap-1.5">
                           <span>{food.nameKo}</span>
                           {food.isMustEatTop3 && (
-                            <span className="rounded bg-rose-500/20 px-1.5 py-0.2 text-[10px] text-rose-400 font-bold">
+                            <span className="rounded bg-rose-500/20 px-1.5 py-0.2 text-[10px] text-rose-300 font-bold border border-rose-500/40">
                               Top3
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400">{food.nameEn}</div>
-                        <div className="font-mono text-[10px] text-indigo-400 mt-0.5">{food.id}</div>
+                        <div className="text-[11px] font-semibold text-slate-300">{food.nameEn}</div>
+                        <div className="font-mono text-[10px] text-indigo-300 mt-0.5">{food.id}</div>
                       </td>
                       <td className="p-3.5">
-                        <span className="rounded bg-slate-800 px-2 py-0.5 font-semibold text-slate-300">
+                        <span className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 font-bold text-slate-200">
                           {food.scope === "NATIONAL" ? "전국 대표" : CITY_KOREAN_NAMES[food.cityCode!] || food.cityCode}
                         </span>
-                        <div className="text-[10px] text-slate-400 mt-1">{food.categoryTag}</div>
+                        <div className="text-[11px] font-medium text-slate-300 mt-1">{food.categoryTag}</div>
                       </td>
-                      <td className="p-3.5 font-bold text-emerald-400">
+                      <td className="p-3.5 font-extrabold text-emerald-300 text-sm">
                         ₩{food.unitPriceKrw?.toLocaleString()}
                       </td>
                       <td className="p-3.5">
                         {scopeType === "CITY_PLANNER" && (
-                          <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold text-blue-400 border border-blue-500/30">
+                          <span className="rounded-full bg-blue-950/70 px-2.5 py-0.5 text-[11px] font-bold text-blue-300 border border-blue-500/40">
                             🏙️ 도시 탭
                           </span>
                         )}
                         {scopeType === "K_SPOT" && (
-                          <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-400 border border-purple-500/30">
+                          <span className="rounded-full bg-purple-950/70 px-2.5 py-0.5 text-[11px] font-bold text-purple-300 border border-purple-500/40">
                             🧭 K-스팟
                           </span>
                         )}
                         {scopeType === "BOTH" && (
-                          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                          <span className="rounded-full bg-emerald-950/70 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300 border border-emerald-500/40">
                             🌐 둘 다
                           </span>
                         )}
                       </td>
-                      <td className="p-3.5 font-mono text-slate-400">
+                      <td className="p-3.5 font-mono font-bold text-slate-300">
                         {food.sortOrder ?? 100}
                       </td>
                       <td className="p-3.5 text-right space-x-2">
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(food)}
-                          className="rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-slate-200 hover:bg-slate-700"
+                          className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
                         >
                           수정
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(food)}
-                          className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-[11px] font-semibold text-rose-400 hover:bg-rose-500/20"
+                          className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                         >
                           삭제
                         </button>
@@ -380,22 +380,22 @@ export default function FoodCatalogPanel() {
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">음식 고유 ID *</label>
+                  <label className="text-xs font-bold text-slate-200">음식 고유 ID *</label>
                   <input
                     type="text"
                     value={id}
                     disabled={!!editingFood}
                     onChange={(e) => setId(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none disabled:opacity-50"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">소속 범위 *</label>
+                  <label className="text-xs font-bold text-slate-200">소속 범위 *</label>
                   <select
                     value={scope}
                     onChange={(e: any) => setScope(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   >
                     <option value="CITY_LOCAL">도시 지역 음식 (CITY_LOCAL)</option>
                     <option value="NATIONAL">전국 대표 음식 (NATIONAL)</option>
@@ -404,11 +404,11 @@ export default function FoodCatalogPanel() {
 
                 {scope === "CITY_LOCAL" && (
                   <div>
-                    <label className="text-xs font-semibold text-slate-300">소속 도시 *</label>
+                    <label className="text-xs font-bold text-slate-200">소속 도시 *</label>
                     <select
                       value={cityCode}
                       onChange={(e: any) => setCityCode(e.target.value)}
-                      className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                      className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                     >
                       {ALL_SUPPORTED_CITIES.map((c) => (
                         <option key={c} value={c}>
@@ -420,11 +420,11 @@ export default function FoodCatalogPanel() {
                 )}
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">카테고리 태그</label>
+                  <label className="text-xs font-bold text-slate-200">카테고리 태그</label>
                   <select
                     value={categoryTag}
                     onChange={(e: any) => setCategoryTag(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   >
                     <option value="MEAL">식사 (MEAL)</option>
                     <option value="BBQ_FEAST">K-바베큐 / 구이 (BBQ_FEAST)</option>
@@ -435,37 +435,37 @@ export default function FoodCatalogPanel() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">음식명 (한국어) *</label>
+                  <label className="text-xs font-bold text-slate-200">음식명 (한국어) *</label>
                   <input
                     type="text"
                     value={nameKo}
                     onChange={(e) => setNameKo(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">음식명 (영어)</label>
+                  <label className="text-xs font-bold text-slate-200">음식명 (영어)</label>
                   <input
                     type="text"
                     value={nameEn}
                     onChange={(e) => setNameEn(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">기준 단가 (KRW) *</label>
+                  <label className="text-xs font-bold text-slate-200">기준 단가 (KRW) *</label>
                   <input
                     type="number"
                     value={unitPriceKrw}
                     onChange={(e) => setUnitPriceKrw(parseInt(e.target.value) || 0)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
                 </div>
 
                 {/* PLACEMENT SCOPE SELECTOR */}
-                <div className="rounded-xl border border-indigo-500/40 bg-indigo-950/20 p-3 sm:col-span-2">
+                <div className="rounded-xl border border-indigo-400/50 bg-indigo-950/40 p-3 sm:col-span-2">
                   <label className="text-xs font-bold text-indigo-300 block mb-1">
                     🎯 노출 대상 위치 (Placement Scope) *
                   </label>
@@ -477,10 +477,10 @@ export default function FoodCatalogPanel() {
                     ].map((opt) => (
                       <label
                         key={opt.val}
-                        className={`flex flex-col p-2 rounded-lg border cursor-pointer transition-all ${
+                        className={`flex flex-col p-2.5 rounded-lg border cursor-pointer transition-all ${
                           targetScope === opt.val
-                            ? "border-indigo-500 bg-indigo-500/20 text-white"
-                            : "border-slate-700 bg-slate-800/60 text-slate-400 hover:border-slate-600"
+                            ? "border-indigo-400 bg-indigo-500/25 text-white shadow-sm"
+                            : "border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-600"
                         }`}
                       >
                         <div className="flex items-center gap-1.5 font-bold text-xs">
@@ -493,19 +493,19 @@ export default function FoodCatalogPanel() {
                           />
                           <span>{opt.label}</span>
                         </div>
-                        <span className="text-[10px] text-slate-400 mt-1">{opt.desc}</span>
+                        <span className="text-[10px] font-medium text-slate-300 mt-1">{opt.desc}</span>
                       </label>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300">정렬 우선순위 (숫자 작을수록 상단)</label>
+                  <label className="text-xs font-bold text-slate-200">정렬 우선순위 (숫자 작을수록 상단)</label>
                   <input
                     type="number"
                     value={sortOrder}
                     onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
+                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
                 </div>
 

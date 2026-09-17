@@ -351,25 +351,25 @@ export default function PresetBuilderModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm overflow-y-auto">
       <div className="relative my-8 w-full max-w-4xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
           <div>
-            <span className="rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-xs font-semibold text-indigo-400">
+            <span className="rounded-full bg-indigo-500/25 border border-indigo-400/50 px-3 py-0.5 text-xs font-bold text-indigo-300">
               Preset Builder Wizard
             </span>
-            <h2 className="mt-1 text-xl font-bold text-white">
+            <h2 className="mt-1.5 text-xl font-black text-white drop-shadow-sm">
               {initialData ? "프리셋 상세 수정" : "카탈로그 기반 새 프리셋 조립 & 생성"}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
+            className="rounded-lg p-2 text-slate-300 hover:bg-slate-800 hover:text-white font-bold"
           >
             ✕
           </button>
         </div>
 
         {/* Step Tabs */}
-        <div className="flex border-b border-slate-800 bg-slate-950/60 px-6 py-2">
+        <div className="flex border-b border-slate-700 bg-slate-950/80 px-6 py-2">
           {[
             { s: 1, label: "1. 기본 & 동선" },
             { s: 2, label: "2. 숙소 티어" },
@@ -380,10 +380,10 @@ export default function PresetBuilderModal({
             <button
               key={item.s}
               onClick={() => setStep(item.s)}
-              className={`flex-1 py-2 text-center text-xs font-semibold border-b-2 transition-all ${
+              className={`flex-1 py-2 text-center text-xs font-bold border-b-2 transition-all ${
                 step === item.s
-                  ? "border-indigo-500 text-indigo-400"
-                  : "border-transparent text-slate-400 hover:text-slate-200"
+                  ? "border-indigo-400 text-white bg-indigo-500/20 shadow-sm"
+                  : "border-transparent text-slate-300 hover:text-white hover:bg-slate-800/60"
               }`}
             >
               {item.label}
@@ -404,44 +404,44 @@ export default function PresetBuilderModal({
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-xs font-semibold text-slate-300">프리셋 ID (영문 고유키)</label>
+                      <label className="text-xs font-bold text-slate-200">프리셋 ID (영문 고유키)</label>
                       <input
                         type="text"
                         value={id}
                         disabled={!!initialData}
                         onChange={(e) => setId(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ""))}
                         placeholder="예: K_KPOP_TOUR"
-                        className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                        className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-medium text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none disabled:opacity-50"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-300">대표 뱃지 (한국어)</label>
+                      <label className="text-xs font-bold text-slate-200">대표 뱃지 (한국어)</label>
                       <input
                         type="text"
                         value={badgeKo}
                         onChange={(e) => setBadgeKo(e.target.value)}
                         placeholder="예: 2026 MZ 성지 순례"
-                        className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                        className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-medium text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-300">테마 명칭 (한국어) *</label>
+                      <label className="text-xs font-bold text-slate-200">테마 명칭 (한국어) *</label>
                       <input
                         type="text"
                         value={titleKo}
                         onChange={(e) => setTitleKo(e.target.value)}
                         placeholder="예: K-컬처 & 핫플레이스 투어"
-                        className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                        className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-medium text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-300">테마 명칭 (영어)</label>
+                      <label className="text-xs font-bold text-slate-200">테마 명칭 (영어)</label>
                       <input
                         type="text"
                         value={titleEn}
                         onChange={(e) => setTitleEn(e.target.value)}
                         placeholder="e.g. K-Culture & Hotspot Tour"
-                        className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white"
+                        className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-sm font-medium text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none"
                       />
                     </div>
                     <div className="md:col-span-2">

@@ -43,17 +43,17 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* Top Header */}
-      <header className="border-b border-slate-800 bg-slate-900/90 backdrop-blur-xl sticky top-0 z-40">
+      <header className="border-b border-slate-700 bg-slate-900/95 backdrop-blur-xl sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-black tracking-tight text-white">HypeHeritage</span>
-              <span className="rounded-md bg-indigo-500/20 border border-indigo-500/30 px-2 py-0.5 text-[11px] font-bold text-indigo-400">
+              <span className="text-xl font-black tracking-tight text-white drop-shadow-sm">HypeHeritage</span>
+              <span className="rounded-md bg-indigo-500/25 border border-indigo-400/50 px-2 py-0.5 text-[11px] font-extrabold text-indigo-300">
                 ADMIN CONSOLE
               </span>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-[11px] font-bold text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full bg-emerald-950/70 border border-emerald-500/50 px-3 py-1 text-[11px] font-bold text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span>원격 클라우드 DB 실시간 동기화 (저장 즉시 실제 웹 반영)</span>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => setIsPinModalOpen(true)}
-              className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1.5"
+              className="rounded-xl border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-100 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1.5 shadow-sm"
             >
               <span>🔑</span> PIN 변경
             </button>
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => setIsSortingModalOpen(true)}
-              className="rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1.5"
+              className="rounded-xl border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-100 hover:bg-slate-700 hover:text-white transition-all flex items-center gap-1.5 shadow-sm"
             >
               <span>⚙️</span> 정렬 규칙 설정
             </button>
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
               type="button"
               disabled={isExporting}
               onClick={handleExportToCode}
-              className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/20 hover:from-emerald-500 hover:to-teal-500 transition-all flex items-center gap-1.5 disabled:opacity-50"
+              className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg shadow-emerald-600/30 hover:from-emerald-500 hover:to-teal-500 transition-all flex items-center gap-1.5 disabled:opacity-50"
             >
               <span>💾</span>
               <span>{isExporting ? "소스코드 반영 중..." : "소스코드 영구 반영 (Export)"}</span>
@@ -89,18 +89,18 @@ export default function AdminDashboard() {
             <Link
               href="/ko/planner"
               target="_blank"
-              className="rounded-xl border border-indigo-500/40 bg-indigo-600/20 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-indigo-600/30 transition-all flex items-center gap-1"
+              className="rounded-xl border border-indigo-400/50 bg-indigo-600/30 px-3 py-1.5 text-xs font-bold text-indigo-200 hover:bg-indigo-600/40 hover:text-white transition-all flex items-center gap-1 shadow-sm"
             >
               <span>플래너 미리보기</span>
               <span>↗</span>
             </Link>
 
-            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
+            <div className="h-4 w-px bg-slate-700 mx-1 hidden sm:block" />
 
             <button
               type="button"
               onClick={logout}
-              className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-all flex items-center gap-1"
+              className="rounded-xl border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25 hover:text-rose-200 transition-all flex items-center gap-1 shadow-sm"
             >
               <span>로그아웃</span>
             </button>
@@ -108,7 +108,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-700/80">
           {[
             { id: "PRESETS", label: "🗺️ 프리셋 관리 (Presets)", desc: "5대 프리셋 및 커스텀 조립" },
             { id: "FOODS", label: "🍲 음식 카탈로그 (Food)", desc: "도시별 단가 & 노출 대상" },
@@ -120,8 +120,8 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab(tab.id as AdminTab)}
               className={`py-3 px-4 text-xs font-bold border-b-2 transition-all flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "border-indigo-500 text-white bg-indigo-500/10"
-                  : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-850"
+                  ? "border-indigo-400 text-white bg-indigo-500/20 shadow-sm"
+                  : "border-transparent text-slate-300 hover:text-white hover:bg-slate-800/80"
               }`}
             >
               <span>{tab.label}</span>

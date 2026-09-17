@@ -64,30 +64,30 @@ export default function SortingConfigModal({ isOpen, onClose }: SortingConfigMod
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
       <div className="relative w-full max-w-xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl p-6">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+        <div className="flex items-center justify-between border-b border-slate-700 pb-4 mb-4">
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <h3 className="text-lg font-black text-white flex items-center gap-2 drop-shadow-sm">
               <span>⚙️</span> 도시별 카탈로그 정렬 규칙 설정
             </h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-200 font-medium mt-1">
               플래너 도시 탭 및 K-스팟에 표시되는 음식과 관광지의 기본 노출 순서 규칙을 정의합니다.
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">✕</button>
+          <button onClick={onClose} className="text-slate-300 hover:text-white font-bold p-1">✕</button>
         </div>
 
         {/* City Select */}
-        <div className="mb-4">
-          <label className="text-xs font-semibold text-slate-300 block mb-1">
+        <div className="mb-5">
+          <label className="text-xs font-bold text-slate-200 block mb-2">
             규칙을 적용할 도시 선택
           </label>
           <div className="flex flex-wrap gap-1.5">
             <button
               onClick={() => setSelectedCity("DEFAULT")}
-              className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
                 selectedCity === "DEFAULT"
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-800 text-slate-400 hover:text-white"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                  : "border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
               }`}
             >
               전체 기본값 (DEFAULT)
@@ -96,10 +96,10 @@ export default function SortingConfigModal({ isOpen, onClose }: SortingConfigMod
               <button
                 key={c}
                 onClick={() => setSelectedCity(c)}
-                className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
                   selectedCity === c
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-800 text-slate-400 hover:text-white"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "border border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
                 }`}
               >
                 {CITY_KOREAN_NAMES[c]}
@@ -109,21 +109,21 @@ export default function SortingConfigModal({ isOpen, onClose }: SortingConfigMod
         </div>
 
         {/* Rule Options */}
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {SORTING_OPTIONS.map((opt) => {
             const isSelected = currentRule === opt.val;
             return (
               <div
                 key={opt.val}
                 onClick={() => handleSetRule(opt.val)}
-                className={`cursor-pointer rounded-xl border p-3 transition-all ${
+                className={`cursor-pointer rounded-xl border p-3.5 transition-all ${
                   isSelected
-                    ? "border-indigo-500 bg-indigo-500/15 text-white"
-                    : "border-slate-800 bg-slate-850 text-slate-300 hover:border-slate-700"
+                    ? "border-indigo-400 bg-indigo-500/25 text-white shadow-md"
+                    : "border-slate-700 bg-slate-800/90 text-slate-200 hover:border-slate-600 hover:bg-slate-800"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs">{opt.label}</span>
+                  <span className="font-bold text-xs text-white">{opt.label}</span>
                   <input
                     type="radio"
                     name="sorting_rule"
@@ -132,16 +132,16 @@ export default function SortingConfigModal({ isOpen, onClose }: SortingConfigMod
                     className="accent-indigo-500"
                   />
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">{opt.desc}</p>
+                <p className="text-[11px] font-medium text-slate-300 mt-1">{opt.desc}</p>
               </div>
             );
           })}
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-end gap-2 pt-3 border-t border-slate-700">
           <button
             onClick={onClose}
-            className="rounded-xl bg-slate-800 px-5 py-2 text-xs font-bold text-white hover:bg-slate-700"
+            className="rounded-xl border border-slate-600 bg-slate-800 px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white transition-all"
           >
             닫기
           </button>

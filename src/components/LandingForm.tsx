@@ -29,6 +29,7 @@ import {
   TravelPresetId,
   getTravelPresetById,
 } from "src/lib/presets/travel-presets";
+import { scalePresetPreferences } from "src/lib/presets/preset-scaler";
 
 interface LandingFormProps {
   locale: Locale;
@@ -177,7 +178,6 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
   };
 
   const handleNightsChange = (newNights: number) => {
-    setActivePresetId(null);
     setActiveStep(1);
     const newAllocations = calculateDefaultNightAllocation(draft.selectedCities, newNights);
     const defaultBudget = getDefaultTargetBudgetByNights(newNights, draft.adultCount);
@@ -191,7 +191,6 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
   };
 
   const handleAdultsChange = (newAdults: number) => {
-    setActivePresetId(null);
     setActiveStep(2);
     const defaultBudget = getDefaultTargetBudgetByNights(draft.totalNights, newAdults);
     setDraft((prev) => ({
@@ -203,7 +202,6 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
   };
 
   const toggleCitySelection = (cityCode: SupportedCity) => {
-    setActivePresetId(null);
     setActiveStep(3);
     let nextCities: SupportedCity[];
     if (draft.selectedCities.includes(cityCode)) {
@@ -290,18 +288,20 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
       return;
     }
 
-    const activePreset = activePresetId ? getTravelPresetById(activePresetId) : null;
-    const initialPreferences = activePreset?.preferences;
+    // 활성 프리셋이 있으면 사용자가 수정한 기간/도시/인원에 맞춰 테마 설정을 지능적으로 스케일링하여 저장
+    const preferencesToSave = activePresetId
+      ? scalePresetPreferences(activePresetId, draftToSave)
+      : {
+          draft: draftToSave,
+          accommodationByCity: {},
+          foodOverrides: {},
+          foodAddOnOverrides: {},
+          foodBasketSelections: [],
+          attractionByCity: {},
+          attractionSelections: {},
+        };
 
-    savePlannerPreferences({
-      draft: draftToSave,
-      accommodationByCity: initialPreferences?.accommodationByCity || {},
-      foodOverrides: initialPreferences?.foodOverrides || {},
-      foodAddOnOverrides: initialPreferences?.foodAddOnOverrides || {},
-      foodBasketSelections: initialPreferences?.foodBasketSelections,
-      attractionByCity: initialPreferences?.attractionByCity || {},
-      attractionSelections: initialPreferences?.attractionSelections || {},
-    });
+    savePlannerPreferences(preferencesToSave);
 
     const firstCity = draftToSave.selectedCities[0] || "SEOUL";
     if (typeof window !== "undefined") {
@@ -312,6 +312,19 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
     router.push(`/${locale}/planner?tab=${firstCity}&cat=ACCOMMODATION`);
   };
 
+  // 프리셋 선택 후 사용자가 1~3단계에서 일정이나 도시를 커스텀 변경했는지 여부 감지
+  const isCustomized = (() => {
+    if (!activePresetId) return false;
+    const preset = getTravelPresetById(activePresetId);
+    if (!preset) return false;
+    const isNightsDiff = draft.totalNights !== preset.draft.totalNights;
+    const isAdultsDiff = draft.adultCount !== preset.draft.adultCount;
+    const isCitiesDiff =
+      draft.selectedCities.length !== preset.draft.selectedCities.length ||
+      draft.selectedCities.some((c) => !preset.draft.selectedCities.includes(c));
+    return isNightsDiff || isAdultsDiff || isCitiesDiff;
+  })();
+
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
       {/* 3가지 추천 여행 스타일 프리셋 */}
@@ -320,6 +333,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
           locale={locale}
           dict={dict}
           activePresetId={activePresetId}
+          isCustomized={isCustomized}
           onSelectPreset={handleSelectPreset}
           onClearPreset={handleClearPreset}
         />

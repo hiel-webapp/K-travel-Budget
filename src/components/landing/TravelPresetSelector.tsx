@@ -10,6 +10,7 @@ interface TravelPresetSelectorProps {
   locale: Locale;
   dict: Dictionary;
   activePresetId: TravelPresetId | null;
+  isCustomized?: boolean;
   onSelectPreset: (preset: TravelPreset) => void;
   onClearPreset?: () => void;
 }
@@ -18,6 +19,7 @@ export default function TravelPresetSelector({
   locale,
   dict,
   activePresetId,
+  isCustomized = false,
   onSelectPreset,
   onClearPreset,
 }: TravelPresetSelectorProps) {
@@ -198,6 +200,11 @@ export default function TravelPresetSelector({
             <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#b93829]/10 text-[#b93829]">
               QUICK PRESETS
             </span>
+            {activePresetId && isCustomized && (
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-700 animate-pulse">
+                {locale === "ko" ? "✨ 테마 프리셋 기반 커스텀 중" : "✨ Customizing Theme Preset"}
+              </span>
+            )}
           </div>
           <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight mt-1">
             {locale === "ko"
@@ -280,8 +287,9 @@ export default function TravelPresetSelector({
                     draggable={false}
                   />
 
-                  {/* 하단 집약형 딥 다크 그라데이션 오버레이 */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/75 via-45% to-black/20 pointer-events-none" />
+                  {/* 상단 옅은 비네팅(뱃지 가독성) + 하단 텍스트 집중형 부드러운 그라데이션 오버레이 (상단 65%는 청명한 사진 본연의 채도 유지) */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 via-35% to-transparent pointer-events-none" />
 
                   {/* 선택 시 테두리 광원 링 */}
                   {isSelected && (
@@ -290,7 +298,7 @@ export default function TravelPresetSelector({
 
                   {/* 1. 상단 영역: 뱃지 & 선택 인디케이터 */}
                   <div className="relative z-10 flex items-center justify-between gap-2">
-                    <span className="text-[10.5px] font-black px-2.5 py-0.5 rounded-full backdrop-blur-md bg-white/25 border border-white/40 text-white shadow-md tracking-tight">
+                    <span className="text-[10.5px] font-black px-2.5 py-0.5 rounded-full backdrop-blur-md bg-black/35 border border-white/40 text-white shadow-md tracking-tight">
                       {badge}
                     </span>
                     <div

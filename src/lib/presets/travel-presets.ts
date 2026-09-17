@@ -246,8 +246,8 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
     routeTextKo: "서울 2박 + 제주 3박 (5박 6일)",
     routeTextEn: "Seoul 2N + Jeju 3N (5N 6D)",
     estimatedBudgetKrw: 1550000,
-    highlightTagsKo: ["#성산일출봉", "#협재해변", "#제주흑돼지", "#오션뷰리조트"],
-    highlightTagsEn: ["#Seongsan", "#Hyeopjae", "#JejuPork", "#OceanResort"],
+    highlightTagsKo: ["#성산일출봉", "#비자림숲길", "#제주흑돼지", "#에메랄드해변"],
+    highlightTagsEn: ["#SeongsanPeak", "#BijarimForest", "#JejuBlackPork", "#EmeraldBeach"],
     draft: {
       totalNights: 5,
       adultCount: 2,
@@ -266,18 +266,27 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
         JEJU: "BUSINESS_HOTEL",
       },
       foodBasketSelections: [
-        { foodId: "nat_samgyeopsal", quantity: 2, cityCode: "SEOUL" },
-        { foodId: "jeju_black_pork", quantity: 2, cityCode: "JEJU" },
+        // 서울 (SEOUL): 2종
+        { foodId: "nat_samgyeopsal", quantity: 1, cityCode: "SEOUL" },
+        { foodId: "myeongdong_street_snack", quantity: 1, cityCode: "SEOUL" },
+        // 제주 (JEJU): 3종
+        { foodId: "jeju_black_pork", quantity: 1, cityCode: "JEJU" },
+        { foodId: "jeju_seafood_ramyeon", quantity: 1, cityCode: "JEJU" },
+        { foodId: "jeju_hallabong_dessert", quantity: 1, cityCode: "JEJU" },
       ],
       attractionSelections: {
         SEOUL: {
-          selectedCourseIds: ["seoul_course_trend"],
-          individualSpotIds: [],
+          selectedCourseIds: ["seoul_course_trend_myeongdong"],
+          individualSpotIds: ["seoul_seongsu_popup", "seoul_ddp_myeongdong"],
         },
         JEJU: {
           selectedCourseIds: ["jeju_course_east_unesco"],
-          individualSpotIds: [],
+          individualSpotIds: ["jeju_seongsan_ilchulbong", "jeju_bijarim_forest", "jeju_beaches_seopji"],
         },
+      },
+      emergencyFundKrw: 50000,
+      intercityTransportOverrides: {
+        "SEOUL-JEJU": "FLIGHT",
       },
     },
   },

@@ -124,7 +124,7 @@ function getDefaultCourseForThemeAndCity(presetId: TravelPresetId, city: Support
       GYEONGJU: "gyeongju_course_unesco_heritage",
     },
     K_JEJU_ESCAPE: {
-      SEOUL: "seoul_course_trend",
+      SEOUL: "seoul_course_trend_myeongdong",
       JEJU: "jeju_course_east_unesco",
       BUSAN: "busan_course_night_trend",
       GANGNEUNG: "gangneung_course_highlight",

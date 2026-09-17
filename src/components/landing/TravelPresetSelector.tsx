@@ -270,9 +270,12 @@ export default function TravelPresetSelector({
 
                   {/* 2. 하단 영역: 메인 타이틀, 서브타이틀, 동선 뱃지, 구분선, 태그 & 예산 집약 */}
                   <div className="relative z-10 w-full space-y-2.5">
-                    {/* 타이틀 & 슬로건 (선명한 순백색 + 강한 드롭섀도우로 가독성 극대화) */}
+                    {/* 타이틀 & 슬로건 (다른 글자와 동일한 순백색으로 가독성 극대화) */}
                     <div>
-                      <h3 className="text-[16px] sm:text-[17px] font-black text-white tracking-tight leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] group-hover:text-teal-200 transition-colors">
+                      <h3
+                        style={{ color: "#ffffff" }}
+                        className="text-[16px] sm:text-[17px] font-black !text-white tracking-tight leading-snug drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] transition-colors"
+                      >
                         {title}
                       </h3>
                       <p className="text-xs text-white/90 line-clamp-2 mt-1 leading-relaxed font-medium drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">

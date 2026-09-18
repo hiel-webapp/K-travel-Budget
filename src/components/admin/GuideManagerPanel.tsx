@@ -55,11 +55,11 @@ export default function GuideManagerPanel() {
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        const matchTitleKo = card.titleKo.toLowerCase().includes(q);
-        const matchTitleEn = card.titleEn.toLowerCase().includes(q);
+        const matchTitleKo = card.titleKo?.toLowerCase().includes(q);
+        const matchTitleEn = card.titleEn?.toLowerCase().includes(q);
         const matchSummaryKo = card.summaryKo?.toLowerCase().includes(q);
         const matchSummaryEn = card.summaryEn?.toLowerCase().includes(q);
-        const matchId = card.id.toLowerCase().includes(q);
+        const matchId = card.id?.toLowerCase().includes(q);
         if (!matchTitleKo && !matchTitleEn && !matchSummaryKo && !matchSummaryEn && !matchId) {
           return false;
         }
@@ -123,29 +123,29 @@ export default function GuideManagerPanel() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-100">
       {/* Top Banner & Tab Navigation */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-slate-900 rounded-3xl p-6 border border-slate-700 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fce8e6] border border-[#f8c9c4] text-[#b93829] text-xs font-extrabold mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-extrabold mb-2">
             <span>K-Guide Management</span>
           </div>
-          <h2 className="text-xl font-extrabold text-[#1d1d1f]">
-            K-가이드 실전 카드 덱 관리자
+          <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+            <span>📖</span> K-가이드 실전 카드 덱 관리자
           </h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             외국인 여행자가 겪는 현실적 문제를 해결하는 6대 카테고리 카드 뉴스 및 FAQ를 관리합니다.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl">
+        <div className="flex items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700">
           <button
             type="button"
             onClick={() => setSubTab("CARDS")}
             className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
               subTab === "CARDS"
-                ? "bg-white text-[#b93829] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-[#b93829] text-white shadow-sm"
+                : "text-slate-300 hover:text-white"
             }`}
           >
             실전 가이드 카드 ({guideCards.length})
@@ -155,8 +155,8 @@ export default function GuideManagerPanel() {
             onClick={() => setSubTab("FAQS")}
             className={`px-4 py-2 rounded-xl text-xs font-extrabold transition cursor-pointer ${
               subTab === "FAQS"
-                ? "bg-white text-[#b93829] shadow-xs"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-[#b93829] text-white shadow-sm"
+                : "text-slate-300 hover:text-white"
             }`}
           >
             자주 묻는 질문 FAQ ({faqs.length})
@@ -166,8 +166,8 @@ export default function GuideManagerPanel() {
 
       {subTab === "CARDS" ? (
         <div className="space-y-6">
-          {/* Controls Bar: Category Filter, Search, and Action Buttons */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
+          {/* Controls Bar */}
+          <div className="bg-slate-900 rounded-3xl p-5 border border-slate-700 shadow-md space-y-4">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               {/* Search Bar */}
               <div className="relative flex-1 max-w-md">
@@ -176,13 +176,13 @@ export default function GuideManagerPanel() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="ID, 카드 제목, 요약문 검색..."
-                  className="w-full text-xs px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:border-[#b93829]"
+                  className="w-full text-xs px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-[#b93829]"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white cursor-pointer"
                   >
                     ✕
                   </button>
@@ -194,8 +194,8 @@ export default function GuideManagerPanel() {
                 <button
                   type="button"
                   onClick={handleResetCards}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold transition cursor-pointer"
-                  title="기본 16개 카드로 재설정"
+                  className="px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-xs font-bold transition cursor-pointer"
+                  title="기본 16개 카드로 복원"
                 >
                   기본 카드 복원
                 </button>
@@ -205,7 +205,7 @@ export default function GuideManagerPanel() {
                     setEditingCard(null);
                     setIsGuideModalOpen(true);
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-[#b93829] hover:bg-[#a12f22] text-white text-xs font-extrabold shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2.5 rounded-xl bg-[#b93829] hover:bg-[#a12f22] text-white text-xs font-extrabold shadow-sm transition cursor-pointer flex items-center gap-1.5"
                 >
                   <span>+ 새 가이드 카드 추가</span>
                 </button>
@@ -213,7 +213,7 @@ export default function GuideManagerPanel() {
             </div>
 
             {/* Category Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-2 border-t border-slate-800">
               {GUIDE_CATEGORIES.map((cat) => {
                 const isSelected = selectedCategory === cat.key;
                 const count =
@@ -228,14 +228,14 @@ export default function GuideManagerPanel() {
                     className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                       isSelected
                         ? "bg-[#b93829] text-white shadow-xs"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700"
                     }`}
                   >
                     <span>{cat.icon}</span>
                     <span>{cat.labelKo}</span>
                     <span
                       className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                        isSelected ? "bg-white/25 text-white" : "bg-white text-slate-500"
+                        isSelected ? "bg-white/25 text-white" : "bg-slate-900 text-slate-400"
                       }`}
                     >
                       {count}
@@ -246,16 +246,16 @@ export default function GuideManagerPanel() {
             </div>
           </div>
 
-          {/* Cards Table / Grid */}
+          {/* Cards Grid */}
           {isLoading ? (
-            <div className="bg-white rounded-3xl p-16 border border-slate-200/80 text-center">
-              <div className="w-8 h-8 mx-auto border-3 border-slate-200 border-t-[#b93829] rounded-full animate-spin mb-3" />
-              <p className="text-xs text-slate-500 font-bold">가이드 카드 데이터를 불러오는 중...</p>
+            <div className="bg-slate-900 rounded-3xl p-16 border border-slate-700 text-center">
+              <div className="w-8 h-8 mx-auto border-3 border-slate-600 border-t-[#b93829] rounded-full animate-spin mb-3" />
+              <p className="text-xs text-slate-400 font-bold">가이드 카드 데이터를 불러오는 중...</p>
             </div>
           ) : filteredCards.length === 0 ? (
-            <div className="bg-white rounded-3xl p-16 border border-slate-200/80 text-center space-y-3">
-              <p className="text-sm font-bold text-slate-700">일치하는 가이드 카드가 없습니다.</p>
-              <p className="text-xs text-slate-400">카테고리 필터를 변경하거나 검색어를 비워보세요.</p>
+            <div className="bg-slate-900 rounded-3xl p-16 border border-slate-700 text-center space-y-3">
+              <p className="text-sm font-bold text-slate-300">일치하는 가이드 카드가 없습니다.</p>
+              <p className="text-xs text-slate-500">카테고리 필터를 변경하거나 검색어를 비워보세요.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -264,26 +264,26 @@ export default function GuideManagerPanel() {
                 return (
                   <div
                     key={card.id}
-                    className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition flex flex-col justify-between"
+                    className="bg-slate-900 rounded-2xl p-5 border border-slate-700 shadow-md hover:border-slate-600 transition flex flex-col justify-between"
                   >
                     <div>
                       {/* Meta badges */}
                       <div className="flex items-center justify-between gap-2 mb-2.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600">
                             {catInfo?.icon} {catInfo?.labelKo || card.category}
                           </span>
-                          <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-[#fce8e6] text-[#c5221f] border border-[#f8c9c4]">
+                          <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
                             {card.badge}
                           </span>
                         </div>
-                        <span className="text-[10px] font-mono text-slate-400 bg-slate-50 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
                           {card.id}
                         </span>
                       </div>
 
                       {/* Titles */}
-                      <h3 className="text-sm font-extrabold text-[#1d1d1f] leading-snug">
+                      <h3 className="text-sm font-extrabold text-white leading-snug">
                         {card.titleKo}
                       </h3>
                       <p className="text-xs text-slate-400 font-medium mt-0.5 mb-2">
@@ -291,19 +291,19 @@ export default function GuideManagerPanel() {
                       </p>
 
                       {/* Summary */}
-                      <p className="text-xs text-slate-600 bg-[#faf9f6] p-2.5 rounded-xl border border-slate-100 line-clamp-2 leading-relaxed mb-3">
+                      <p className="text-xs text-slate-300 bg-slate-800/80 p-2.5 rounded-xl border border-slate-700 line-clamp-2 leading-relaxed mb-3">
                         {card.summaryKo}
                       </p>
 
                       {/* Pro-Tip Preview */}
-                      <div className="text-[11px] text-[#7a2015] bg-[#fff8f6] px-3 py-1.5 rounded-lg border border-[#fce3de] flex items-center gap-1.5 mb-3">
-                        <span className="text-[#b93829] font-black shrink-0">PRO-TIP:</span>
+                      <div className="text-[11px] text-amber-200 bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-500/30 flex items-center gap-1.5 mb-3">
+                        <span className="text-amber-400 font-black shrink-0">PRO-TIP:</span>
                         <span className="truncate">{card.proTipKo}</span>
                       </div>
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
                       <span className="text-[11px] text-slate-400 font-medium">
                         포인트: 한글 {card.detailsKo?.length || 0}개 / 영문 {card.detailsEn?.length || 0}개
                       </span>
@@ -314,14 +314,14 @@ export default function GuideManagerPanel() {
                             setEditingCard(card);
                             setIsGuideModalOpen(true);
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold border border-slate-600 transition cursor-pointer"
                         >
                           수정
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeleteCard(card.id, card.titleKo)}
-                          className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold transition cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 font-bold border border-rose-800 transition cursor-pointer"
                         >
                           삭제
                         </button>
@@ -335,9 +335,9 @@ export default function GuideManagerPanel() {
         </div>
       ) : (
         /* FAQ SubTab */
-        <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div className="bg-slate-900 rounded-3xl p-6 border border-slate-700 shadow-md space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-extrabold text-[#1d1d1f]">자주 묻는 질문 (FAQ) 목록</h3>
+            <h3 className="text-sm font-extrabold text-white">자주 묻는 질문 (FAQ) 목록</h3>
             <button
               type="button"
               onClick={() => {
@@ -354,14 +354,14 @@ export default function GuideManagerPanel() {
             {faqs.map((faq) => (
               <div
                 key={faq.id}
-                className="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 flex items-start justify-between gap-4 transition"
+                className="p-4 rounded-2xl border border-slate-700 bg-slate-800/80 hover:bg-slate-800 flex items-start justify-between gap-4 transition"
               >
                 <div className="space-y-1">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
                     FAQ
                   </span>
-                  <h4 className="text-xs font-bold text-slate-800">{faq.question.ko}</h4>
-                  <p className="text-[11px] text-slate-500">{faq.question.en}</p>
+                  <h4 className="text-xs font-bold text-white">{faq.question.ko}</h4>
+                  <p className="text-[11px] text-slate-400">{faq.question.en}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
@@ -370,7 +370,7 @@ export default function GuideManagerPanel() {
                       setEditingFaq(faq);
                       setIsFaqModalOpen(true);
                     }}
-                    className="px-2.5 py-1 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition"
+                    className="px-2.5 py-1 text-xs font-bold text-slate-300 bg-slate-800 border border-slate-600 rounded-lg hover:bg-slate-700 transition"
                   >
                     수정
                   </button>

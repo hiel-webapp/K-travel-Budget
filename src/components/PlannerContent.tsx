@@ -558,6 +558,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const [saveError, setSaveError] = useState<boolean>(false);
 
+  // 사용자가 여행 조건(Step 1 / 여행 조건 수정)에서 최초로 설정한 기준 목적지 목록
+  // 기준 목적지는 '여행 조건 수정' 팝업에서만 변경할 수 있으며, 동선 트랙의 x버튼으로 삭제되지 않음.
+  const [baseCities, setBaseCities] = useState<SupportedCity[]>(() => {
+    if (state.status === "ready") {
+      return [...state.draft.selectedCities];
+    }
+    return [];
+  });
+
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
@@ -1197,6 +1206,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       };
     });
 
+    setBaseCities([...finalDraft.selectedCities]);
+
     setIsEditModalOpen(false);
     setToastMessage("여행 조건이 반영되어 예산이 실시간 재계산되었습니다.");
     setTimeout(() => setToastMessage(null), 3000);
@@ -1317,21 +1328,27 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
     const nextCities = [...currentDraft.selectedCities, cityToAdd];
     const maxTotalNights = currentDraft.totalNights || 5;
-    const currentAlloc = currentDraft.cityNightAllocations || {};
+    const currentAlloc = { ...(currentDraft.cityNightAllocations || {}) };
     const allocatedSum = currentDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
     const unallocated = Math.max(0, maxTotalNights - allocatedSum);
-    const nightsForNew = unallocated > 0 ? Math.min(2, unallocated) : 1;
+    // 여유 박수가 남아있으면 1박, 모두 소진된 상태면 0박(당일 경유)으로 안전하게 시작
+    const nightsForNew = unallocated > 0 ? 1 : 0;
 
     const nextAlloc = {
       ...currentAlloc,
       [cityToAdd]: (currentAlloc[cityToAdd] || 0) + nightsForNew,
     };
 
-    const nextDraft: TripDraft = {
+    let nextDraft: TripDraft = {
       ...currentDraft,
       selectedCities: nextCities,
       cityNightAllocations: nextAlloc,
     };
+
+    const validation = validateTripDraft(nextDraft);
+    if (!validation.success) {
+      nextDraft = sanitizeTripDraft(nextDraft);
+    }
 
     saveTripDraft(nextDraft);
     persistPreferences({}, nextDraft);
@@ -1350,6 +1367,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleRemoveStopCity = (indexToRemove: number) => {
     if (state.status !== "ready") return;
     const currentDraft = state.draft;
+
+    // 여행 목적지로 최초로 설정한 기준 도시는 삭제 불가 (여행 조건 수정에서만 변경 가능)
+    if (indexToRemove < baseCities.length) {
+      alert(
+        locale === "ko"
+          ? "여행 목적지로 설정된 기준 도시는 '여행 조건 수정'에서만 변경할 수 있습니다."
+          : "Base destination cities can only be changed via Edit Trip Conditions."
+      );
+      return;
+    }
+
     if (currentDraft.selectedCities.length <= 1) {
       alert(locale === "ko" ? "최소 1개 도시는 여정에 남아있어야 합니다." : "At least 1 city must remain.");
       return;
@@ -1358,10 +1386,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const cityToRemove = currentDraft.selectedCities[indexToRemove];
     const nextCities = currentDraft.selectedCities.filter((_, idx) => idx !== indexToRemove);
 
-    const nextDraft: TripDraft = {
+    const nextAlloc = { ...(currentDraft.cityNightAllocations || {}) };
+    // 삭제된 도시가 nextCities에 더 이상 존재하지 않는다면, unselected_city_allocated 검증 에러를 방지하기 위해 키 삭제
+    if (!nextCities.includes(cityToRemove)) {
+      delete nextAlloc[cityToRemove];
+    }
+
+    let nextDraft: TripDraft = {
       ...currentDraft,
       selectedCities: nextCities,
+      cityNightAllocations: nextAlloc,
     };
+
+    const validation = validateTripDraft(nextDraft);
+    if (!validation.success) {
+      nextDraft = sanitizeTripDraft(nextDraft);
+    }
 
     saveTripDraft(nextDraft);
     persistPreferences({}, nextDraft);
@@ -3162,8 +3202,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
                           }`}
                         >
-                          {/* 도시 삭제 (✕) 버튼 (2개 이상 도시일 때) */}
-                          {isMultiCity && (
+                          {/* 도시 삭제 (✕) 버튼: 사용자가 [+ 도시 추가]로 추가한 도시에만 표시 (최초 기준 목적지에는 x버튼 없음!) */}
+                          {idx >= baseCities.length && (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -3171,7 +3211,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 handleRemoveStopCity(idx);
                               }}
                               className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-200 hover:bg-rose-500 text-slate-500 hover:text-white flex items-center justify-center text-[9px] font-black shadow-xs transition-colors z-10 cursor-pointer"
-                              title={locale === "ko" ? "이 도시를 여정에서 삭제" : "Remove this city"}
+                              title={locale === "ko" ? "이 추가 도시를 여정에서 삭제" : "Remove this stop"}
                             >
                               ✕
                             </button>
@@ -3248,57 +3288,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   });
                 })()}
 
-                {/* [+ 도시 추가] 버튼 및 팝오버 (최대 5개 도시/경유지) */}
+                {/* [+ 도시 추가] 버튼 (최대 5개 도시/경유지) */}
                 {draft.selectedCities.length < 5 && (
-                  <div className="relative shrink-0 ml-1">
+                  <div className="shrink-0 ml-1">
                     <button
                       type="button"
-                      onClick={() => setIsAddCityOpen(!isAddCityOpen)}
+                      onClick={() => setIsAddCityOpen(true)}
                       className="flex items-center gap-1 px-3 py-2 sm:py-2.5 rounded-2xl border border-dashed border-[#e25c5c] bg-rose-50/70 hover:bg-rose-100 text-[#e25c5c] text-xs font-black transition-all cursor-pointer shadow-2xs"
                       title={locale === "ko" ? "경유 도시 또는 재방문 도시 추가" : "Add transit or return city"}
                     >
                       <span className="text-sm font-black leading-none">+</span>
                       <span>{locale === "ko" ? "도시 추가" : "Add City"}</span>
                     </button>
-
-                    {/* 도시 선택 팝오버 */}
-                    {isAddCityOpen && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setIsAddCityOpen(false)}
-                        />
-                        <div className="absolute right-0 top-full mt-2 z-50 w-64 p-3 bg-white rounded-2xl border border-slate-200 shadow-xl space-y-2">
-                          <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                            <span className="text-xs font-black text-slate-900">
-                              {locale === "ko" ? "여정에 추가할 도시 선택" : "Select City to Add"}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              {locale === "ko" ? "(재방문 가능)" : "(Return allowed)"}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto pr-1">
-                            {ALL_SUPPORTED_CITIES.map((c) => {
-                              const lastCity = draft.selectedCities[draft.selectedCities.length - 1];
-                              const isConsecutive = lastCity === c;
-                              const cityName = locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c;
-                              return (
-                                <button
-                                  key={c}
-                                  type="button"
-                                  disabled={isConsecutive}
-                                  onClick={() => handleAddStopCity(c)}
-                                  className="px-2.5 py-2 rounded-xl text-left border border-slate-100 bg-slate-50/80 hover:bg-rose-50 hover:border-rose-200 hover:text-[#e25c5c] text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-between"
-                                >
-                                  <span>{cityName}</span>
-                                  <span className="text-[10px] text-slate-400 font-normal">+</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </>
-                    )}
                   </div>
                 )}
               </div>
@@ -5762,6 +5763,92 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               >
                 {locale === "ko" ? "변경사항 적용하기" : "Apply Changes"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Stop City Modal (전역 모달: 컨테이너 overflow에 잘리지 않음) */}
+      {isAddCityOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div
+            className="fixed inset-0"
+            onClick={() => setIsAddCityOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-black text-slate-900 tracking-tight">
+                  {locale === "ko" ? "여정에 도시 추가" : "Add City to Itinerary"}
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                  {locale === "ko"
+                    ? "중간 경유지 또는 귀국 전 재방문 도시를 선택하세요."
+                    : "Select a transit stop or return city."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddCityOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+                title={locale === "ko" ? "닫기" : "Close"}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* City Grid (10개 도시 목록) */}
+            <div className="grid grid-cols-2 gap-2 max-h-[55vh] overflow-y-auto pr-1 py-1">
+              {ALL_SUPPORTED_CITIES.map((c) => {
+                const lastCity = draft.selectedCities[draft.selectedCities.length - 1];
+                const isConsecutive = lastCity === c;
+                const cityName = locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c;
+                const cityEngSub = locale === "ko" ? CITY_ENGLISH_NAMES[c] : "";
+                const isAlreadyIn = draft.selectedCities.includes(c);
+
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    disabled={isConsecutive}
+                    onClick={() => handleAddStopCity(c)}
+                    className={`p-3 rounded-2xl text-left border transition-all flex flex-col justify-between gap-1.5 cursor-pointer ${
+                      isConsecutive
+                        ? "bg-slate-50 border-slate-200 opacity-35 cursor-not-allowed"
+                        : "bg-white border-slate-200/90 hover:border-[#e25c5c] hover:bg-rose-50/50 hover:shadow-xs group"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-black text-slate-900 group-hover:text-[#e25c5c] transition-colors">
+                        {cityName}
+                      </span>
+                      {isAlreadyIn && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-rose-100 text-[#e25c5c] font-bold">
+                          {locale === "ko" ? "재방문" : "Return"}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                      {isConsecutive
+                        ? (locale === "ko" ? "현재 위치" : "Current stop")
+                        : cityEngSub || (locale === "ko" ? "추가하기 +" : "+ Add")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Info Footer */}
+            <div className="bg-slate-50 rounded-2xl p-3 text-[11px] text-slate-600 border border-slate-100 flex items-start gap-2">
+              <span className="px-1.5 py-0.5 rounded bg-rose-100 text-[#e25c5c] font-black text-[10px] shrink-0 mt-0.5">
+                안내
+              </span>
+              <span className="leading-relaxed">
+                {locale === "ko"
+                  ? "직전 도시와 동일한 도시는 연속으로 추가할 수 없으며(예: 서울 직후 서울), 다른 도시를 경유한 뒤 순환 재방문이 가능합니다."
+                  : "Consecutive duplicate stops are prevented. You can return to a city after visiting another stop."}
+              </span>
             </div>
           </div>
         </div>

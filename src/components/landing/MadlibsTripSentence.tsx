@@ -130,7 +130,7 @@ export default function MadlibsTripSentence({
             >
               {citiesLabel ? `(${citiesLabel})` : "(Destinations)"}
             </button>
-            <span>with</span>
+            <span>, Korea with</span>
             <button
               type="button"
               onClick={() => onStepClick(2)}
@@ -209,7 +209,7 @@ export default function MadlibsTripSentence({
           </>
         ) : (
           <>
-            {/* 1번째 줄: I am planning a (duration) trip to (Destinations) */}
+            {/* 1번째 줄: I am planning a (duration) trip to (Destinations), Korea */}
             <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span>I am planning a</span>
               <button
@@ -239,6 +239,7 @@ export default function MadlibsTripSentence({
               >
                 {citiesLabel ? `(${citiesLabel})` : "(Destinations)"}
               </button>
+              <span>, Korea</span>
             </div>
 
             {/* 2번째 줄: with (Travelers) ! */}

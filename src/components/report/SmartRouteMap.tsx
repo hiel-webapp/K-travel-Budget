@@ -62,7 +62,9 @@ export default function SmartRouteMap({
   const overlaysRef = useRef<any[]>([]);
   const polylineRef = useRef<any>(null);
 
-  const kakaoAppKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
+  // 환경변수가 빌드 환경에 누락되어도 정상 작동하도록 기본 공개 JavaScript 키 폴백 제공
+  const kakaoAppKey =
+    process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || "0fd19b94d6a6dffb2c23e0879fcab8ca";
 
   // 2. 현재 선택된 도시의 관광지 스팟 리스트 추출 및 좌표 매핑
   const citySpots = useMemo(() => {
@@ -146,13 +148,13 @@ export default function SmartRouteMap({
 
         const map = new window.kakao.maps.Map(mapContainerRef.current, options);
         mapInstanceRef.current = map;
+        setIsMapLoaded(true);
 
         // 줌 컨트롤러 추가
         const zoomControl = new window.kakao.maps.ZoomControl();
         map.addControl(zoomControl, window.kakao.maps.ControlPosition.RIGHT);
 
         if (citySpots.length === 0) {
-          setIsMapLoaded(true);
           return;
         }
 
@@ -212,9 +214,13 @@ export default function SmartRouteMap({
           polylineRef.current = polyline;
         }
 
-        // 모든 마커가 화면에 꼭 맞도록 영역 자동 조정
-        map.setBounds(bounds, 50, 50, 50, 50);
-        setIsMapLoaded(true);
+        // 영역 자동 조정
+        if (citySpots.length === 1) {
+          map.setCenter(new window.kakao.maps.LatLng(citySpots[0].lat, citySpots[0].lng));
+          map.setLevel(5);
+        } else {
+          map.setBounds(bounds);
+        }
       } catch (e) {
         console.error("Failed to render Kakao Map:", e);
         setMapLoadError(true);
@@ -224,10 +230,28 @@ export default function SmartRouteMap({
 
   // 도시 탭이 바뀌거나 카카오 스크립트가 준비되었을 때 맵 재초기화
   useEffect(() => {
+    // 1. 이미 kakao 객체가 로드되어 있는 경우 즉시 초기화
     if (typeof window !== "undefined" && window.kakao && window.kakao.maps) {
       initKakaoMap();
+      return;
     }
-  }, [activeCity, citySpots]);
+
+    // 2. 스크립트 태그가 아직 주입되지 않았을 경우를 위한 보장 로직
+    if (typeof window !== "undefined" && !document.getElementById("kakao-map-sdk")) {
+      const script = document.createElement("script");
+      script.id = "kakao-map-sdk";
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoAppKey}&autoload=false`;
+      script.async = true;
+      script.onload = () => {
+        initKakaoMap();
+      };
+      script.onerror = () => {
+        console.warn("Failed to load Kakao Map script directly.");
+        setMapLoadError(true);
+      };
+      document.head.appendChild(script);
+    }
+  }, [activeCity, citySpots, kakaoAppKey]);
 
   const activeCityName =
     locale === "ko"
@@ -246,20 +270,19 @@ export default function SmartRouteMap({
 
   return (
     <>
-      {/* Kakao Map Web SDK Script (비동기 로드) */}
-      {kakaoAppKey && (
-        <Script
-          src={`//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoAppKey}&autoload=false`}
-          strategy="lazyOnload"
-          onLoad={() => {
-            initKakaoMap();
-          }}
-          onError={() => {
-            console.warn("Kakao Map Script failed to load.");
-            setMapLoadError(true);
-          }}
-        />
-      )}
+      {/* Kakao Map Web SDK Script (afterInteractive 로드) */}
+      <Script
+        id="kakao-map-sdk-next"
+        src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoAppKey}&autoload=false`}
+        strategy="afterInteractive"
+        onLoad={() => {
+          initKakaoMap();
+        }}
+        onError={() => {
+          console.warn("Kakao Map Script failed to load.");
+          setMapLoadError(true);
+        }}
+      />
 
       <div className="w-full bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-5">
         {/* Header with City Switcher */}

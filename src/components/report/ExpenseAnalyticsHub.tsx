@@ -211,7 +211,7 @@ export default function ExpenseAnalyticsHub({
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200/60 text-neutral-700">
-                {/* 1) 도시별 행 (도시 고유 색상 점 및 텍스트 적용) */}
+                {/* 1) 도시별 행 (도시명 앞 점 제거, 텍스트 색상 적용) */}
                 {draft.selectedCities.map((city, idx) => {
                   const cInfo = calculations.cityBreakdown?.[city];
                   if (!cInfo) return null;
@@ -219,13 +219,10 @@ export default function ExpenseAnalyticsHub({
 
                   return (
                     <tr key={city} className="hover:bg-white/90 transition-colors">
-                      <td className="py-2.5 font-black text-neutral-900">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`w-2 h-2 rounded-full ${cColor.dot} shrink-0`} />
-                          <span className={cColor.textColor}>
-                            {isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
-                          </span>
-                        </div>
+                      <td className="py-2.5 font-black">
+                        <span className={cColor.textColor}>
+                          {isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
+                        </span>
                       </td>
                       <td className="py-2.5 text-center text-neutral-500 tabular-nums font-semibold">
                         {cInfo.nights === 0 ? (isKo ? "당일" : "Day") : `${cInfo.nights}N`}
@@ -240,14 +237,11 @@ export default function ExpenseAnalyticsHub({
                   );
                 })}
 
-                {/* 2) 공통/자율 경비 행 (쇼핑, 일일 용돈, 비상금, 도시 간 이동) */}
+                {/* 2) 공통/자율 경비 행 (점 제거) */}
                 {(etcTotal > 0 || (calculations.intercityTotal || 0) > 0) && (
                   <tr className="bg-neutral-100/40 text-neutral-600 font-medium">
-                    <td className="py-2.5 font-bold">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-slate-500 shrink-0" />
-                        <span className="text-slate-600">{isKo ? "공통 / 자율" : "Common / Flex"}</span>
-                      </div>
+                    <td className="py-2.5 font-black text-slate-600">
+                      {isKo ? "공통 / 자율" : "Common / Flex"}
                     </td>
                     <td className="py-2.5 text-center text-neutral-400">-</td>
                     <td className="py-2.5 text-right tabular-nums text-neutral-400">-</td>
@@ -266,16 +260,16 @@ export default function ExpenseAnalyticsHub({
                 )}
               </tbody>
 
-              {/* 3) 세로 소계 (도시별 소계와 동일한 font-black 스타일, 색상 동기화) */}
+              {/* 3) 세로 소계 (금액에 색상 제거, 도시별 소계와 동일한 font-black text-neutral-900 적용) */}
               <tfoot>
                 <tr className="border-t-2 border-neutral-300 bg-white/95">
                   <td className="py-3 font-black text-neutral-900">{isKo ? "소계" : "Subtotal"}</td>
                   <td className="py-3 text-center text-neutral-700 tabular-nums font-black">{totalNights}N</td>
-                  <td className="py-3 text-right tabular-nums font-black text-teal-600">{formatKrw(stayTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-rose-600">{formatKrw(foodTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-amber-600">{formatKrw(attractionTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-indigo-600">{formatKrw(transportTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-purple-600">{formatKrw(etcTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(stayTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(foodTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(attractionTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(transportTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(etcTotal)}</td>
                   <td className="py-3 text-right tabular-nums font-black text-neutral-950 text-sm">{formatKrw(grandTotalKrw)}</td>
                 </tr>
               </tfoot>
@@ -284,7 +278,7 @@ export default function ExpenseAnalyticsHub({
         </div>
 
         {/* ========================================================================= */}
-        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): 막대 길이 확장 및 % 인라인 표출 */}
+        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): 작은 %는 옆으로 빼서 표출 (- 5%) */}
         {/* ========================================================================= */}
         <div className="lg:col-span-4 grid grid-cols-2 gap-3.5 items-stretch">
           
@@ -297,19 +291,27 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 기둥 (범례 삭제로 높이를 시원하게 확장: h-60 ~ h-64) */}
-            <div className="flex-1 flex items-center justify-center py-2">
-              <div className="w-14 sm:w-16 h-56 sm:h-64 rounded-2xl overflow-hidden flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner">
+            {/* 세로 누적 막대 기둥 (작은 %는 우측으로 - X% 표출) */}
+            <div className="flex-1 flex items-center justify-center py-2 pr-6 sm:pr-8">
+              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner relative">
                 {categoryList.map((cat) => {
                   if (cat.pct <= 0) return null;
+                  const isSmall = cat.pct < 8;
                   return (
                     <div
                       key={cat.key}
                       style={{ height: `${cat.pct}%` }}
-                      className={`${cat.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center text-white text-[11px] font-black select-none overflow-hidden`}
+                      className={`${cat.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center relative select-none`}
                       title={`${cat.label}: ${cat.pct}% (${formatKrw(cat.amount)})`}
                     >
-                      {cat.pct >= 6 && <span>{cat.pct}%</span>}
+                      {!isSmall ? (
+                        <span className="text-white text-[11px] font-black">{cat.pct}%</span>
+                      ) : (
+                        <div className="absolute left-full ml-2 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
+                          <span className="text-neutral-400 mr-0.5">-</span>
+                          <span>{cat.pct}%</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -326,19 +328,27 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 기둥 (범례 삭제로 높이를 시원하게 확장: h-60 ~ h-64) */}
-            <div className="flex-1 flex items-center justify-center py-2">
-              <div className="w-14 sm:w-16 h-56 sm:h-64 rounded-2xl overflow-hidden flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner">
+            {/* 세로 누적 막대 기둥 (작은 %는 우측으로 - X% 표출) */}
+            <div className="flex-1 flex items-center justify-center py-2 pr-6 sm:pr-8">
+              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner relative">
                 {cityListWithCommon.map((c) => {
                   if (c.pct <= 0) return null;
+                  const isSmall = c.pct < 8;
                   return (
                     <div
                       key={c.city}
                       style={{ height: `${c.pct}%` }}
-                      className={`${c.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center text-white text-[11px] font-black select-none overflow-hidden`}
+                      className={`${c.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center relative select-none`}
                       title={`${c.cityName}: ${c.pct}% (${formatKrw(c.subtotal)})`}
                     >
-                      {c.pct >= 6 && <span>{c.pct}%</span>}
+                      {!isSmall ? (
+                        <span className="text-white text-[11px] font-black">{c.pct}%</span>
+                      ) : (
+                        <div className="absolute left-full ml-2 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
+                          <span className="text-neutral-400 mr-0.5">-</span>
+                          <span>{c.pct}%</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

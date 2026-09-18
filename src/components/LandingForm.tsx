@@ -235,7 +235,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
       parts.push(
         locale === "ko"
           ? `${draft.totalNights}박 ${draft.totalNights + 1}일`
-          : `${draft.totalNights} Nights (${draft.totalNights + 1} Days)`
+          : `${draft.totalNights} ${draft.totalNights === 1 ? "Night" : "Nights"}`
       );
     }
 

@@ -27,7 +27,7 @@ export default function MadlibsTripSentence({
     nights !== null && nights > 0
       ? isKo
         ? `${nights}박 ${nights + 1}일`
-        : `${nights} Nights (${nights + 1} Days)`
+        : `${nights} ${nights === 1 ? "Night" : "Nights"}`
       : null;
 
   // 2단계: 인원 슬롯

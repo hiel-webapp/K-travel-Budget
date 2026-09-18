@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   TripDraft,
@@ -160,10 +160,15 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
     }
   }, [draft, mobileStep, activePresetId]);
 
+  const formTopRef = useRef<HTMLDivElement>(null);
+
   const handleSelectPreset = (preset: TravelPreset) => {
     setActivePresetId(preset.id);
     setDraft(preset.draft);
     setValidationError(null);
+    if (formTopRef.current) {
+      formTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const handleClearPreset = () => {
@@ -329,20 +334,11 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
 
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
-      {/* 3가지 추천 여행 스타일 프리셋 */}
-      <div className="w-full max-w-5xl mx-auto mb-6">
-        <TravelPresetSelector
-          locale={locale}
-          dict={dict}
-          activePresetId={activePresetId}
-          isCustomized={isCustomized}
-          initialPresets={initialPresets}
-          onSelectPreset={handleSelectPreset}
-          onClearPreset={handleClearPreset}
-        />
-      </div>
-
-      <div className="w-full max-w-5xl mx-auto bg-white/90 backdrop-blur-md border border-neutral-200/70 rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+      {/* 1순위 HERO: 내 생각 즉시 반영 여행 폼 (Mad-libs + 1~3단계 벤토 카드) */}
+      <div
+        ref={formTopRef}
+        className="w-full max-w-5xl mx-auto bg-white/90 backdrop-blur-md border border-neutral-200/70 rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] scroll-mt-6"
+      >
         {/* ================= PC / TABLET VIEW (!isMobile) ================= */}
         {!isMobile && (
           <div>
@@ -760,6 +756,37 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
             )}
           </div>
         )}
+      </div>
+
+      {/* 2순위 SUB / INSPIRATION: 추천 여행 코스 가이드 프리셋 */}
+      <div className="w-full max-w-5xl mx-auto mt-10 pt-8 border-t border-neutral-200/70 mb-8">
+        <div className="mb-4 text-center sm:text-left flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+          <div>
+            <span className="text-[11px] sm:text-xs font-extrabold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200/60 uppercase tracking-wide">
+              {locale === "ko" ? "추천 코스 가이드" : "Curated Presets"}
+            </span>
+            <h2 className="text-[17px] sm:text-[20px] font-extrabold text-neutral-900 mt-2 tracking-tight">
+              {locale === "ko"
+                ? "어떤 여행을 꿈꾸고 계신가요? 인기 코스로 1초 만에 플랜 완성하기"
+                : "Looking for inspiration? Fill your plan with popular presets"}
+            </h2>
+            <p className="text-xs sm:text-[13px] text-neutral-500 mt-1">
+              {locale === "ko"
+                ? "추천 코스를 선택하시면 위의 여행 완성 문장과 1~3단계 설정이 자동으로 세팅됩니다."
+                : "Select any preset to automatically fill the statement and steps above."}
+            </p>
+          </div>
+        </div>
+
+        <TravelPresetSelector
+          locale={locale}
+          dict={dict}
+          activePresetId={activePresetId}
+          isCustomized={isCustomized}
+          initialPresets={initialPresets}
+          onSelectPreset={handleSelectPreset}
+          onClearPreset={handleClearPreset}
+        />
       </div>
 
       {/* Mobile Fixed Bottom Navigation Floating Bar */}

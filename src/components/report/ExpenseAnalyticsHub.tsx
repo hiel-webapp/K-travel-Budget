@@ -31,7 +31,7 @@ export default function ExpenseAnalyticsHub({
   const transportTotal =
     (calculations.sumTransportTotal || 0) + (calculations.intercityTotal || 0);
 
-  // 기타: 숙소, 음식, 관광, 교통을 제외한 모든 예산(쇼핑, 용돈, 비상금 등)
+  // 기타: 숙소, 음식, 관광, 교통을 제외한 모든 잔여 예산(쇼핑, 일일 용돈, 비상금 등)
   const etcTotal = Math.max(
     0,
     grandTotalKrw - (stayTotal + foodTotal + attractionTotal + transportTotal)
@@ -44,7 +44,7 @@ export default function ExpenseAnalyticsHub({
   const transPct = Math.round((transportTotal / safeTotal) * 100);
   const etcPct = Math.max(0, 100 - (stayPct + foodPct + attrPct + transPct));
 
-  // 5대 카테고리 메타데이터 (순서: 숙소, 음식, 관광, 교통, 기타)
+  // 5대 카테고리 메타데이터 & 시각 일치 고유 색상 (순서: 숙소, 음식, 관광, 교통, 기타)
   const categoryList = [
     {
       key: "stay",
@@ -52,7 +52,7 @@ export default function ExpenseAnalyticsHub({
       pct: stayPct,
       amount: stayTotal,
       barColor: "bg-teal-500",
-      textColor: "text-teal-700",
+      textColor: "text-teal-600",
       dotColor: "bg-teal-500",
     },
     {
@@ -61,16 +61,16 @@ export default function ExpenseAnalyticsHub({
       pct: foodPct,
       amount: foodTotal,
       barColor: "bg-rose-500",
-      textColor: "text-rose-700",
+      textColor: "text-rose-600",
       dotColor: "bg-rose-500",
     },
     {
       key: "attraction",
-      label: isKo ? "관광" : "Attractions",
+      label: isKo ? "관광" : "Attraction",
       pct: attrPct,
       amount: attractionTotal,
       barColor: "bg-amber-500",
-      textColor: "text-amber-700",
+      textColor: "text-amber-600",
       dotColor: "bg-amber-500",
     },
     {
@@ -79,7 +79,7 @@ export default function ExpenseAnalyticsHub({
       pct: transPct,
       amount: transportTotal,
       barColor: "bg-indigo-500",
-      textColor: "text-indigo-700",
+      textColor: "text-indigo-600",
       dotColor: "bg-indigo-500",
     },
     {
@@ -88,17 +88,19 @@ export default function ExpenseAnalyticsHub({
       pct: etcPct,
       amount: etcTotal,
       barColor: "bg-purple-500",
-      textColor: "text-purple-700",
+      textColor: "text-purple-600",
       dotColor: "bg-purple-500",
     },
   ];
 
-  // 2. 도시별 비중 계산
+  // 2. 도시별 고유 색상 팔레트 & 매핑
   const cityPalette = [
     { barColor: "bg-slate-900", dot: "bg-slate-900", textColor: "text-slate-900" },
     { barColor: "bg-blue-600", dot: "bg-blue-600", textColor: "text-blue-600" },
     { barColor: "bg-emerald-600", dot: "bg-emerald-600", textColor: "text-emerald-600" },
-    { barColor: "bg-amber-600", dot: "bg-amber-600", textColor: "text-amber-600" },
+    { barColor: "bg-orange-500", dot: "bg-orange-500", textColor: "text-orange-500" },
+    { barColor: "bg-sky-500", dot: "bg-sky-500", textColor: "text-sky-500" },
+    { barColor: "bg-violet-600", dot: "bg-violet-600", textColor: "text-violet-600" },
     { barColor: "bg-pink-600", dot: "bg-pink-600", textColor: "text-pink-600" },
   ];
 
@@ -118,7 +120,7 @@ export default function ExpenseAnalyticsHub({
     };
   });
 
-  // 공통/비귀속 비중(쇼핑·용돈·비상금·도시이동)
+  // 공통/자율(쇼핑·용돈·비상금·도시이동) 비중
   const commonSubtotal = Math.max(
     0,
     grandTotalKrw - (calculations.sumCitySubtotals || 0)
@@ -134,12 +136,12 @@ export default function ExpenseAnalyticsHub({
       ? [
           {
             city: "COMMON",
-            cityName: isKo ? "공통/자율" : "Common/Flex",
+            cityName: isKo ? "공통 / 자율" : "Common / Flex",
             subtotal: commonSubtotal,
             pct: commonPct,
-            barColor: "bg-neutral-400",
-            dot: "bg-neutral-400",
-            textColor: "text-neutral-600",
+            barColor: "bg-slate-500",
+            dot: "bg-slate-500",
+            textColor: "text-slate-600",
           },
         ]
       : []),
@@ -165,8 +167,8 @@ export default function ExpenseAnalyticsHub({
           </div>
           <p className="text-xs text-neutral-500 mt-1 font-medium">
             {isKo
-              ? "도시별 5대 부문(숙소, 음식, 관광, 교통, 기타) 집계표와 직관적인 세로 비중 그래프를 하나로 통합 대조합니다."
-              : "Cross-examine the 5-sector audit table alongside vertical proportion bars in a unified view."}
+              ? "도시별 5대 부문 집계표와 직관적으로 매칭된 세로 비중 그래프를 한눈에 대조합니다."
+              : "Cross-examine the 5-sector audit table alongside color-synchronized vertical proportion bars."}
           </p>
         </div>
         <span className="text-[11px] font-bold text-slate-400 self-start sm:self-auto tabular-nums">
@@ -180,46 +182,52 @@ export default function ExpenseAnalyticsHub({
         {/* ========================================================================= */}
         {/* 1. 도시별 5대 부문 집계표 (lg:col-span-8) */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-8 flex flex-col justify-between space-y-3.5 p-4 sm:p-5 rounded-2xl bg-neutral-50/60 border border-neutral-200/70">
-          <div className="flex items-center justify-between border-b border-neutral-200/60 pb-2.5">
+        <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-neutral-50/60 border border-neutral-200/70">
+          <div className="flex items-center justify-between border-b border-neutral-200/60 pb-2.5 mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-black text-neutral-900 tracking-tight">
                 {isKo ? "도시별 5대 부문 집계표" : "City Expense Audit Table"}
               </span>
               <span className="text-[10px] font-extrabold text-neutral-500 bg-white px-2 py-0.5 rounded border border-neutral-200/80">
-                {isKo ? "가로·세로 소계 및 합계" : "Cross-Totaled"}
+                {isKo ? "가로·세로 소계 완비" : "Cross-Totaled"}
               </span>
             </div>
             <span className="text-[10px] font-bold text-neutral-400 uppercase">AUDIT MATRIX</span>
           </div>
 
           {/* Table Area */}
-          <div className="overflow-x-auto flex-1 flex flex-col justify-start">
-            <table className="w-full text-left text-xs border-collapse font-medium min-w-[500px]">
+          <div className="overflow-x-auto flex-1 flex flex-col justify-between">
+            <table className="w-full text-left text-xs border-collapse font-medium min-w-[520px]">
               <thead>
-                <tr className="border-b border-neutral-200 text-neutral-400 uppercase text-[10px] tracking-wider">
-                  <th className="py-2 font-bold">{isKo ? "도시" : "City"}</th>
-                  <th className="py-2 text-center font-bold">{isKo ? "체류" : "Nights"}</th>
-                  <th className="py-2 text-right font-bold">{isKo ? "숙소" : "Stay"}</th>
-                  <th className="py-2 text-right font-bold">{isKo ? "음식" : "Food"}</th>
-                  <th className="py-2 text-right font-bold">{isKo ? "관광" : "Attr"}</th>
-                  <th className="py-2 text-right font-bold">{isKo ? "교통" : "Transit"}</th>
-                  <th className="py-2 text-right font-bold">{isKo ? "기타" : "Others"}</th>
-                  <th className="py-2 text-right font-black text-neutral-900">{isKo ? "소계" : "Subtotal"}</th>
+                <tr className="border-b border-neutral-200 uppercase text-[10px] tracking-wider">
+                  <th className="py-2.5 font-bold text-neutral-500">{isKo ? "도시" : "City"}</th>
+                  <th className="py-2.5 text-center font-bold text-neutral-500">{isKo ? "체류" : "Nights"}</th>
+                  <th className="py-2.5 text-right font-black text-teal-600">{isKo ? "숙소" : "Stay"}</th>
+                  <th className="py-2.5 text-right font-black text-rose-600">{isKo ? "음식" : "Food"}</th>
+                  <th className="py-2.5 text-right font-black text-amber-600">{isKo ? "관광" : "Attr"}</th>
+                  <th className="py-2.5 text-right font-black text-indigo-600">{isKo ? "교통" : "Transit"}</th>
+                  <th className="py-2.5 text-right font-black text-purple-600">{isKo ? "기타" : "Others"}</th>
+                  <th className="py-2.5 text-right font-black text-neutral-900">{isKo ? "소계" : "Subtotal"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200/60 text-neutral-700">
-                {/* 1) 도시별 행 */}
-                {draft.selectedCities.map((city) => {
+                {/* 1) 도시별 행 (도시 고유 색상 점 및 텍스트 적용) */}
+                {draft.selectedCities.map((city, idx) => {
                   const cInfo = calculations.cityBreakdown?.[city];
                   if (!cInfo) return null;
+                  const cColor = cityPalette[idx % cityPalette.length];
 
                   return (
                     <tr key={city} className="hover:bg-white/90 transition-colors">
-                      <td className="py-2.5 font-bold text-neutral-900">
-                        {isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
+                      <td className="py-2.5 font-black text-neutral-900">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-2 h-2 rounded-full ${cColor.dot} shrink-0`} />
+                          <span className={cColor.textColor}>
+                            {isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
+                          </span>
+                        </div>
                       </td>
-                      <td className="py-2.5 text-center text-neutral-500 tabular-nums">
+                      <td className="py-2.5 text-center text-neutral-500 tabular-nums font-semibold">
                         {cInfo.nights === 0 ? (isKo ? "당일" : "Day") : `${cInfo.nights}N`}
                       </td>
                       <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(cInfo.stayTotalKrw)}</td>
@@ -235,8 +243,11 @@ export default function ExpenseAnalyticsHub({
                 {/* 2) 공통/자율 경비 행 (쇼핑, 일일 용돈, 비상금, 도시 간 이동) */}
                 {(etcTotal > 0 || (calculations.intercityTotal || 0) > 0) && (
                   <tr className="bg-neutral-100/40 text-neutral-600 font-medium">
-                    <td className="py-2.5 font-bold text-neutral-800">
-                      {isKo ? "공통 / 자율" : "Common / Flex"}
+                    <td className="py-2.5 font-bold">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-slate-500 shrink-0" />
+                        <span className="text-slate-600">{isKo ? "공통 / 자율" : "Common / Flex"}</span>
+                      </div>
                     </td>
                     <td className="py-2.5 text-center text-neutral-400">-</td>
                     <td className="py-2.5 text-right tabular-nums text-neutral-400">-</td>
@@ -255,40 +266,30 @@ export default function ExpenseAnalyticsHub({
                 )}
               </tbody>
 
-              {/* 3) 세로 소계 (카테고리별 세로 합계) 행 */}
+              {/* 3) 세로 소계 (도시별 소계와 동일한 font-black 스타일, 색상 동기화) */}
               <tfoot>
-                <tr className="border-t-2 border-neutral-300 bg-white font-extrabold text-neutral-900">
-                  <td className="py-2.5 font-black text-teal-800">{isKo ? "소계" : "Subtotal"}</td>
-                  <td className="py-2.5 text-center text-neutral-600 tabular-nums">{totalNights}N</td>
-                  <td className="py-2.5 text-right tabular-nums text-teal-700">{formatKrw(stayTotal)}</td>
-                  <td className="py-2.5 text-right tabular-nums text-rose-700">{formatKrw(foodTotal)}</td>
-                  <td className="py-2.5 text-right tabular-nums text-amber-700">{formatKrw(attractionTotal)}</td>
-                  <td className="py-2.5 text-right tabular-nums text-indigo-700">{formatKrw(transportTotal)}</td>
-                  <td className="py-2.5 text-right tabular-nums text-purple-700">{formatKrw(etcTotal)}</td>
-                  <td className="py-2.5 text-right tabular-nums font-black text-neutral-900">{formatKrw(grandTotalKrw)}</td>
+                <tr className="border-t-2 border-neutral-300 bg-white/95">
+                  <td className="py-3 font-black text-neutral-900">{isKo ? "소계" : "Subtotal"}</td>
+                  <td className="py-3 text-center text-neutral-700 tabular-nums font-black">{totalNights}N</td>
+                  <td className="py-3 text-right tabular-nums font-black text-teal-600">{formatKrw(stayTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-rose-600">{formatKrw(foodTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-amber-600">{formatKrw(attractionTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-indigo-600">{formatKrw(transportTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-purple-600">{formatKrw(etcTotal)}</td>
+                  <td className="py-3 text-right tabular-nums font-black text-neutral-950 text-sm">{formatKrw(grandTotalKrw)}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
-
-          {/* 최종 '합계' 푸터 바 */}
-          <div className="pt-3 border-t border-neutral-200/80 flex items-center justify-between">
-            <span className="text-xs font-black text-neutral-900 tracking-tight">
-              {isKo ? "합계" : "Grand Total"}
-            </span>
-            <span className="font-black text-neutral-950 text-base sm:text-lg tabular-nums">
-              {formatKrw(grandTotalKrw)}
-            </span>
-          </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): 세로 막대 1 + 세로 막대 2 */}
+        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): 막대 길이 확장 및 % 인라인 표출 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-4 grid grid-cols-2 gap-3.5 items-stretch">
           
-          {/* [세로 막대그래프 1: 카테고리별 비중] */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-3">
+          {/* [세로 막대그래프 1: 카테고리 비중] */}
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
                 {isKo ? "카테고리 비중" : "By Sector"}
@@ -296,41 +297,28 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 기둥 (Vertical Stacked Pillar) */}
-            <div className="flex items-center justify-center py-1">
-              <div className="w-11 h-44 sm:h-48 rounded-2xl overflow-hidden flex flex-col-reverse bg-neutral-200/60 p-0.5 shadow-inner">
+            {/* 세로 누적 막대 기둥 (범례 삭제로 높이를 시원하게 확장: h-60 ~ h-64) */}
+            <div className="flex-1 flex items-center justify-center py-2">
+              <div className="w-14 sm:w-16 h-56 sm:h-64 rounded-2xl overflow-hidden flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner">
                 {categoryList.map((cat) => {
                   if (cat.pct <= 0) return null;
                   return (
                     <div
                       key={cat.key}
                       style={{ height: `${cat.pct}%` }}
-                      className={`${cat.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center text-white text-[10px] font-black select-none overflow-hidden`}
+                      className={`${cat.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center text-white text-[11px] font-black select-none overflow-hidden`}
                       title={`${cat.label}: ${cat.pct}% (${formatKrw(cat.amount)})`}
                     >
-                      {cat.pct >= 10 && <span>{cat.pct}%</span>}
+                      {cat.pct >= 6 && <span>{cat.pct}%</span>}
                     </div>
                   );
                 })}
               </div>
             </div>
-
-            {/* 범례 및 비중 지표 */}
-            <div className="space-y-1.5 pt-1 border-t border-neutral-200/60 text-[10px] font-bold">
-              {categoryList.map((cat) => (
-                <div key={cat.key} className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={`w-2 h-2 rounded-full ${cat.dotColor} shrink-0`} />
-                    <span className="text-neutral-700 truncate">{cat.label}</span>
-                  </div>
-                  <span className={`${cat.textColor} font-black tabular-nums`}>{cat.pct}%</span>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* [세로 막대그래프 2: 방문 도시별 비중] */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-3">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
                 {isKo ? "도시별 비중" : "By City"}
@@ -338,36 +326,23 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 기둥 (Vertical Stacked Pillar) */}
-            <div className="flex items-center justify-center py-1">
-              <div className="w-11 h-44 sm:h-48 rounded-2xl overflow-hidden flex flex-col-reverse bg-neutral-200/60 p-0.5 shadow-inner">
+            {/* 세로 누적 막대 기둥 (범례 삭제로 높이를 시원하게 확장: h-60 ~ h-64) */}
+            <div className="flex-1 flex items-center justify-center py-2">
+              <div className="w-14 sm:w-16 h-56 sm:h-64 rounded-2xl overflow-hidden flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner">
                 {cityListWithCommon.map((c) => {
                   if (c.pct <= 0) return null;
                   return (
                     <div
                       key={c.city}
                       style={{ height: `${c.pct}%` }}
-                      className={`${c.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center text-white text-[10px] font-black select-none overflow-hidden`}
+                      className={`${c.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center text-white text-[11px] font-black select-none overflow-hidden`}
                       title={`${c.cityName}: ${c.pct}% (${formatKrw(c.subtotal)})`}
                     >
-                      {c.pct >= 10 && <span>{c.pct}%</span>}
+                      {c.pct >= 6 && <span>{c.pct}%</span>}
                     </div>
                   );
                 })}
               </div>
-            </div>
-
-            {/* 범례 및 비중 지표 */}
-            <div className="space-y-1.5 pt-1 border-t border-neutral-200/60 text-[10px] font-bold">
-              {cityListWithCommon.map((c) => (
-                <div key={c.city} className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className={`w-2 h-2 rounded-full ${c.dot} shrink-0`} />
-                    <span className="text-neutral-700 truncate">{c.cityName}</span>
-                  </div>
-                  <span className={`${c.textColor} font-black tabular-nums`}>{c.pct}%</span>
-                </div>
-              ))}
             </div>
           </div>
 

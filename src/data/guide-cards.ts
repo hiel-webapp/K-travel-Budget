@@ -29,10 +29,10 @@ export const GUIDE_CATEGORIES: {
   { key: "all", labelEn: "All Topics", labelKo: "전체 가이드", icon: "✨" },
   { key: "navigation", labelEn: "Navigation", labelKo: "디지털 & 지도", icon: "🗺️" },
   { key: "money", labelEn: "Money & Cards", labelKo: "결제 & 환전", icon: "💳" },
-  { key: "transit", labelEn: "Transit", labelKo: "대중교통 마스터", icon: "🚇" },
-  { key: "dining", labelEn: "Dining Rules", labelKo: "식당 & 카페 로컬 룰", icon: "🥢" },
+  { key: "transit", labelEn: "Transit", labelKo: "대중교통", icon: "🚇" },
+  { key: "dining", labelEn: "Dining Rules", labelKo: "식당 & 카페", icon: "🥢" },
   { key: "emergency", labelEn: "Emergency", labelKo: "긴급 상황 & 안전", icon: "🚨" },
-  { key: "saving_hacks", labelEn: "Saving Hacks", labelKo: "경비 절약 꿀팁", icon: "💡" },
+  { key: "saving_hacks", labelEn: "Saving Hacks", labelKo: "경비 절약", icon: "💡" },
 ];
 
 export const GUIDE_CARDS: GuideCard[] = [

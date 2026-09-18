@@ -20,7 +20,6 @@ interface GuideContentProps {
 export default function GuideContent({ locale, dict }: GuideContentProps) {
   const [cards, setCards] = useState<GuideCard[]>(GUIDE_CARDS);
   const [selectedCategory, setSelectedCategory] = useState<"all" | GuideCategory>("all");
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const isKo = locale === "ko";
 
   // Load latest guide cards from admin store
@@ -37,35 +36,12 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
     loadDynamicCards();
   }, []);
 
-  // Filter cards by category and search query
+  // Filter cards by category
   const filteredCards = useMemo(() => {
     return cards.filter((card) => {
-      const matchCategory =
-        selectedCategory === "all" || card.category === selectedCategory;
-
-      if (!matchCategory) return false;
-
-      if (!searchQuery.trim()) return true;
-
-      const q = searchQuery.toLowerCase();
-      if (isKo) {
-        return (
-          card.titleKo.toLowerCase().includes(q) ||
-          card.summaryKo.toLowerCase().includes(q) ||
-          card.proTipKo.toLowerCase().includes(q) ||
-          card.detailsKo.some((d) => d.toLowerCase().includes(q)) ||
-          card.titleEn.toLowerCase().includes(q)
-        );
-      }
-
-      return (
-        card.titleEn.toLowerCase().includes(q) ||
-        card.summaryEn.toLowerCase().includes(q) ||
-        card.proTipEn.toLowerCase().includes(q) ||
-        card.detailsEn.some((d) => d.toLowerCase().includes(q))
-      );
+      return selectedCategory === "all" || card.category === selectedCategory;
     });
-  }, [selectedCategory, searchQuery, isKo]);
+  }, [cards, selectedCategory]);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-8">
@@ -84,44 +60,6 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             ? "입국 전 꼭 알아야 할 길찾기, 대중교통 이용법, 식당 문화 및 로컬 규칙을 한눈에 확인하세요."
             : "Everything you need to know before landing: transit hacks, dining etiquette, and unwritten local rules."}
         </p>
-
-        {/* Search Bar with Brand Accent */}
-        <div className="pt-2 max-w-xl mx-auto">
-          <div className="relative flex items-center">
-            <div className="absolute left-4 pointer-events-none text-slate-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                isKo
-                  ? "궁금한 내용을 검색해보세요 (예: 네이버 지도, 교통카드, 식당 호출벨, 즉시 면세, 1330)"
-                  : "Search tips (e.g. Naver Map, 010 SIM, T-money, Call bell, Tax refund)..."
-              }
-              className="w-full bg-white border border-slate-200/80 shadow-xs rounded-full pl-11 pr-24 py-3 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b93829]/20 focus:border-[#b93829] transition-all"
-            />
-            {searchQuery ? (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-3 text-xs font-bold text-slate-400 hover:text-slate-600 px-2 py-1 cursor-pointer"
-              >
-                {isKo ? "지우기" : "Clear"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="bg-[#b93829] hover:bg-[#a12f22] text-white text-xs font-bold px-4 py-1.5 rounded-full absolute right-1.5 shadow-xs transition-colors cursor-pointer"
-              >
-                {isKo ? "검색" : "Search"}
-              </button>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* 2. Category Filter Pill Tabs Bar */}
@@ -159,7 +97,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
         </div>
       </div>
 
-      {/* Result Counter & Active Filter Info */}
+      {/* Result Counter Info */}
       <div className="flex items-center justify-between text-xs text-slate-500 px-1 font-medium">
         <span>
           {isKo ? (
@@ -172,13 +110,13 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             </>
           )}
         </span>
-        {searchQuery && (
+        {selectedCategory !== "all" && (
           <button
             type="button"
-            onClick={() => setSearchQuery("")}
+            onClick={() => setSelectedCategory("all")}
             className="text-[#b93829] hover:underline font-bold cursor-pointer"
           >
-            {isKo ? "검색 초기화" : "Reset search"}
+            {isKo ? "전체 보기" : "View all"}
           </button>
         )}
       </div>
@@ -188,21 +126,15 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
         <div className="text-center py-16 bg-white rounded-2xl border border-slate-200/80 p-8 shadow-xs">
           <div className="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
           <h3 className="text-sm font-bold text-slate-800">
-            {isKo ? "일치하는 가이드 카드가 없습니다." : "No survival cards found matching your criteria."}
+            {isKo ? "해당 카테고리에 등록된 카드가 없습니다." : "No survival cards found in this category."}
           </h3>
-          <p className="text-xs text-slate-500 mt-1">
-            {isKo ? "다른 검색어를 입력하거나 상단 카테고리를 변경해 보세요." : "Try searching another term or switch categories."}
-          </p>
           <button
             type="button"
-            onClick={() => {
-              setSelectedCategory("all");
-              setSearchQuery("");
-            }}
+            onClick={() => setSelectedCategory("all")}
             className="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
           >
             {isKo ? "전체 카드 보기" : "View all cards"}

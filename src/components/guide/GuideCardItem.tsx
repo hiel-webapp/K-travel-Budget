@@ -29,12 +29,12 @@ const CATEGORY_LABELS: Record<
   },
   dining: {
     en: "Dining Rules",
-    ko: "식당·카페",
+    ko: "식당 & 카페",
     color: "text-amber-800 bg-amber-50 border-amber-200",
   },
   emergency: {
     en: "Emergency",
-    ko: "긴급·안전",
+    ko: "긴급 & 안전",
     color: "text-[#c5221f] bg-[#fce8e6] border-[#f8c9c4]",
   },
   saving_hacks: {

@@ -138,19 +138,7 @@ export default function MadlibsTripSentence({
   }
 
   return (
-    <div className="w-full bg-gradient-to-b from-teal-50/50 via-white to-white border border-teal-100/80 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 shadow-xs mb-7 transition-all">
-      <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 pb-2.5 border-b border-teal-100/60">
-        <div className="flex items-center gap-2">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse" />
-          <span className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-teal-800">
-            {isKo ? "나만의 여행 완성 문장" : "My Korea Travel Statement"}
-          </span>
-        </div>
-        <span className="text-[11px] sm:text-xs text-neutral-400 font-medium hidden sm:inline">
-          {isKo ? "각 괄호를 클릭하면 해당 단계를 바로 수정할 수 있어요" : "Click each tag to jump to the step"}
-        </span>
-      </div>
-
+    <div className="w-full bg-gradient-to-b from-teal-50/40 via-white to-white border border-teal-100/80 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 shadow-xs mb-7 transition-all">
       <div className="text-[18px] sm:text-[22px] md:text-[26px] leading-[1.6] sm:leading-[1.5] text-neutral-900 font-bold flex flex-wrap items-center gap-x-2.5 gap-y-2.5">
         {isKo ? (
           <>
@@ -254,12 +242,12 @@ export default function MadlibsTripSentence({
       </div>
 
       {!isAllFilled && (
-        <div className="mt-3 flex items-center gap-2 text-xs sm:text-[13px] text-amber-800 font-medium bg-amber-50/90 py-2 px-3.5 rounded-xl border border-amber-200/70">
+        <div className="mt-3.5 flex items-center gap-2 text-xs sm:text-[13px] text-amber-800 font-medium bg-amber-50/90 py-2 px-3.5 rounded-xl border border-amber-200/70">
           <span>💡</span>
           <span>
             {isKo
-              ? "아래 1~3단계를 선택하거나 주황색 빈칸을 눌러 나만의 여행 문장을 완성해 보세요!"
-              : "Select Steps 1~3 below or click the orange boxes to complete your statement!"}
+              ? "아래 1~3단계를 선택하여 나만의 여행 문장을 완성해 보세요!"
+              : "Select Steps 1~3 below to complete your travel statement!"}
           </span>
         </div>
       )}

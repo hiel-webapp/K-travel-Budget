@@ -28,8 +28,8 @@ export default async function LocalePage({ params }: PageProps) {
         </h1>
         <p className="text-[13px] sm:text-[14px] text-[#86868b] font-normal max-w-xl mx-auto">
           {locale === "ko"
-            ? "문장 속 빈칸을 채우거나 아래 단계를 선택해 나만의 맞춤 여행 예산을 완성해 보세요."
-            : "Fill in the sentence blanks or select the steps below to create your personalized trip budget."}
+            ? "나만의 맞춤 여행 예산을 완성해 보세요."
+            : "Create your personalized Korea travel budget."}
         </p>
       </div>
 

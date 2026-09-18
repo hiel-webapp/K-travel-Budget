@@ -555,16 +555,6 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
 
             {/* PC Bottom CTA Area */}
             <div className="mt-8 pt-6 border-t border-neutral-200/60 relative flex flex-col items-center gap-4">
-              <div className="text-center text-[14px] text-neutral-600 font-medium py-2.5 px-6 rounded-2xl bg-neutral-100/80 max-w-2xl mx-auto border border-neutral-200/70 flex items-center justify-center shadow-2xs">
-                <MadlibsTripSentence
-                  draft={draft}
-                  locale={locale}
-                  activeStep={activeStep}
-                  onStepClick={(step) => setActiveStep(step)}
-                  compact={true}
-                />
-              </div>
-
               <div className="flex flex-col items-center gap-3">
                 <button
                   type="submit"

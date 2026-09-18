@@ -177,6 +177,13 @@ export default function ExpenseAnalyticsHub({
     },
   ];
 
+  // 4개 행을 유지하기 위한 빈 행(placeholder rows) 계산
+  const minRows = 4;
+  const emptyRowsCount = Math.max(0, minRows - cityTableRows.length);
+  const emptyRows = Array.from({ length: emptyRowsCount }, (_, i) => ({
+    id: `empty-row-${i}`,
+  }));
+
   // 총 체류 박수 계산
   const totalNights = draft.selectedCities.reduce((acc, city) => {
     return acc + (calculations.cityBreakdown?.[city]?.nights || 0);
@@ -210,7 +217,7 @@ export default function ExpenseAnalyticsHub({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
         
         {/* ========================================================================= */}
-        {/* 1. 도시별 5대 부문 집계표 (lg:col-span-8) */}
+        {/* 1. 도시별 5대 부문 집계표 (lg:col-span-8) - 모든 열 가운데 정렬 & 4행 유지 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-neutral-50/60 border border-neutral-200/70">
           <div className="flex items-center justify-between border-b border-neutral-200/60 pb-2.5 mb-2">
@@ -225,51 +232,66 @@ export default function ExpenseAnalyticsHub({
             <span className="text-[10px] font-bold text-neutral-400 uppercase">AUDIT MATRIX</span>
           </div>
 
-          {/* Table Area (공통 행 제거, 모든 도시가 5개 부문 실질 예산 보유) */}
+          {/* Table Area (모든 열 text-center) */}
           <div className="overflow-x-auto flex-1 flex flex-col justify-between">
-            <table className="w-full text-left text-xs border-collapse font-medium min-w-[520px]">
+            <table className="w-full text-center text-xs border-collapse font-medium min-w-[540px]">
               <thead>
                 <tr className="border-b border-neutral-200 uppercase text-[10px] tracking-wider">
-                  <th className="py-2.5 font-bold text-neutral-500">{isKo ? "도시" : "City"}</th>
-                  <th className="py-2.5 text-center font-bold text-neutral-500">{isKo ? "체류" : "Nights"}</th>
-                  <th className="py-2.5 text-right font-black text-teal-600">{isKo ? "숙소" : "Stay"}</th>
-                  <th className="py-2.5 text-right font-black text-rose-600">{isKo ? "음식" : "Food"}</th>
-                  <th className="py-2.5 text-right font-black text-amber-600">{isKo ? "관광" : "Attr"}</th>
-                  <th className="py-2.5 text-right font-black text-indigo-600">{isKo ? "교통" : "Transit"}</th>
-                  <th className="py-2.5 text-right font-black text-purple-600">{isKo ? "기타" : "Others"}</th>
-                  <th className="py-2.5 text-right font-black text-neutral-900">{isKo ? "소계" : "Subtotal"}</th>
+                  <th className="py-2.5 font-bold text-neutral-500 text-center">{isKo ? "도시" : "City"}</th>
+                  <th className="py-2.5 font-bold text-neutral-500 text-center">{isKo ? "체류" : "Nights"}</th>
+                  <th className="py-2.5 font-black text-teal-600 text-center">{isKo ? "숙소" : "Stay"}</th>
+                  <th className="py-2.5 font-black text-rose-600 text-center">{isKo ? "음식" : "Food"}</th>
+                  <th className="py-2.5 font-black text-amber-600 text-center">{isKo ? "관광" : "Attr"}</th>
+                  <th className="py-2.5 font-black text-indigo-600 text-center">{isKo ? "교통" : "Transit"}</th>
+                  <th className="py-2.5 font-black text-purple-600 text-center">{isKo ? "기타" : "Others"}</th>
+                  <th className="py-2.5 font-black text-neutral-900 text-center">{isKo ? "소계" : "Subtotal"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200/60 text-neutral-700">
+                {/* 1) 실제 선택된 도시 행 */}
                 {cityTableRows.map((row) => (
                   <tr key={row.city} className="hover:bg-white/90 transition-colors">
-                    <td className="py-2.5 font-black">
+                    <td className="py-2.5 font-black text-center">
                       <span className={row.textColor}>{row.cityName}</span>
                     </td>
                     <td className="py-2.5 text-center text-neutral-500 tabular-nums font-semibold">
                       {row.nights === 0 ? (isKo ? "당일" : "Day") : `${row.nights}N`}
                     </td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.stay)}</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.food)}</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.attr)}</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.trans)}</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.etc)}</td>
-                    <td className="py-2.5 text-right tabular-nums font-black text-neutral-900">{formatKrw(row.subtotal)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.stay)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.food)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.attr)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.trans)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.etc)}</td>
+                    <td className="py-2.5 text-center tabular-nums font-black text-neutral-900">{formatKrw(row.subtotal)}</td>
+                  </tr>
+                ))}
+
+                {/* 2) 4행 유지를 위한 빈 행(Placeholder Rows) */}
+                {emptyRows.map((er) => (
+                  <tr key={er.id} className="text-neutral-300">
+                    <td className="py-2.5 text-center font-bold text-neutral-300">-</td>
+                    <td className="py-2.5 text-center text-neutral-300">-</td>
+                    <td className="py-2.5 text-center text-neutral-300">-</td>
+                    <td className="py-2.5 text-center text-neutral-300">-</td>
+                    <td className="py-2.5 text-center text-neutral-300">-</td>
+                    <td className="py-2.5 text-center text-neutral-300">-</td>
+                    <td className="py-2.5 text-center text-neutral-300">-</td>
+                    <td className="py-2.5 text-center text-neutral-300">-</td>
                   </tr>
                 ))}
               </tbody>
 
-              {/* 세로 소계 (도시별 소계와 동일한 font-black text-neutral-900 스타일) */}
+              {/* 세로 소계 (모든 열 text-center) */}
               <tfoot>
                 <tr className="border-t-2 border-neutral-300 bg-white/95">
-                  <td className="py-3 font-black text-neutral-900">{isKo ? "소계" : "Subtotal"}</td>
+                  <td className="py-3 font-black text-neutral-900 text-center">{isKo ? "소계" : "Subtotal"}</td>
                   <td className="py-3 text-center text-neutral-700 tabular-nums font-black">{totalNights}N</td>
-                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(stayTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(foodTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(attractionTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(transportTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-neutral-900">{formatKrw(etcTotal)}</td>
-                  <td className="py-3 text-right tabular-nums font-black text-neutral-950 text-sm">{formatKrw(grandTotalKrw)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(stayTotal)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(foodTotal)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(attractionTotal)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(transportTotal)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(etcTotal)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-950 text-sm">{formatKrw(grandTotalKrw)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -277,11 +299,11 @@ export default function ExpenseAnalyticsHub({
         </div>
 
         {/* ========================================================================= */}
-        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): Top-to-Bottom 순서 정렬 */}
+        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): 표와 동일한 높이로 정밀 조정 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-4 grid grid-cols-2 gap-3.5 items-stretch">
           
-          {/* [세로 막대그래프 1: 카테고리 비중] - 위에서 아래로: 숙소 -> 음식 -> 관광 -> 교통 -> 기타 */}
+          {/* [세로 막대그래프 1: 카테고리 비중] - 높이를 h-40 sm:h-44로 표와 완벽하게 동기화 */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
@@ -290,9 +312,9 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 (flex-col: 위에서 아래로 정렬) */}
-            <div className="flex-1 flex items-center justify-center py-2 pr-6 sm:pr-8">
-              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
+            {/* 세로 누적 막대 (표 높이에 맞춤) */}
+            <div className="flex-1 flex items-center justify-center py-1.5 pr-6 sm:pr-8">
+              <div className="w-12 sm:w-13 h-40 sm:h-44 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
                 {categoryList.map((cat) => {
                   if (cat.pct <= 0) return null;
                   const isSmall = cat.pct < 8;
@@ -304,9 +326,9 @@ export default function ExpenseAnalyticsHub({
                       title={`${cat.label}: ${cat.pct}% (${formatKrw(cat.amount)})`}
                     >
                       {!isSmall ? (
-                        <span className="text-white text-[11px] font-black">{cat.pct}%</span>
+                        <span className="text-white text-[10px] font-black">{cat.pct}%</span>
                       ) : (
-                        <div className="absolute left-full ml-2 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
+                        <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
                           <span className="text-neutral-400 mr-0.5">-</span>
                           <span>{cat.pct}%</span>
                         </div>
@@ -318,7 +340,7 @@ export default function ExpenseAnalyticsHub({
             </div>
           </div>
 
-          {/* [세로 막대그래프 2: 방문 도시별 비중] - 위에서 아래로: 1번 도시 -> 2번 도시 -> ... */}
+          {/* [세로 막대그래프 2: 방문 도시별 비중] - 높이를 h-40 sm:h-44로 표와 완벽하게 동기화 */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
@@ -327,9 +349,9 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 (flex-col: 위에서 아래로 정렬) */}
-            <div className="flex-1 flex items-center justify-center py-2 pr-6 sm:pr-8">
-              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
+            {/* 세로 누적 막대 (표 높이에 맞춤) */}
+            <div className="flex-1 flex items-center justify-center py-1.5 pr-6 sm:pr-8">
+              <div className="w-12 sm:w-13 h-40 sm:h-44 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
                 {cityBarItems.map((c) => {
                   if (c.pct <= 0) return null;
                   const isSmall = c.pct < 8;
@@ -341,9 +363,9 @@ export default function ExpenseAnalyticsHub({
                       title={`${c.cityName}: ${c.pct}% (${formatKrw(c.subtotal)})`}
                     >
                       {!isSmall ? (
-                        <span className="text-white text-[11px] font-black">{c.pct}%</span>
+                        <span className="text-white text-[10px] font-black">{c.pct}%</span>
                       ) : (
-                        <div className="absolute left-full ml-2 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
+                        <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
                           <span className="text-neutral-400 mr-0.5">-</span>
                           <span>{c.pct}%</span>
                         </div>

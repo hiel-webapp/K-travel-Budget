@@ -59,6 +59,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [activePresetId, setActivePresetId] = useState<TravelPresetId | null>(null);
+  const isKo = locale === "ko";
 
   // Reliable JS-based mobile detection to completely avoid CSS 'hidden' media-query bugs
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -369,11 +370,19 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-neutral-900">1단계: 여행 기간 설정</span>
+                    <span className="text-[15px] font-bold text-neutral-900">
+                      {isKo ? "1단계: 여행 기간 설정" : "Step 1: Stay Duration"}
+                    </span>
                     <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
                       activeStep === 1 ? "bg-teal-50 text-teal-700 border border-teal-200/60" : "text-neutral-500"
                     }`}>
-                      {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
+                      {totalNights !== null
+                        ? isKo
+                          ? `${totalNights}박 (${totalNights + 1}일)`
+                          : `${totalNights} ${totalNights === 1 ? "Night" : "Nights"}`
+                        : isKo
+                        ? "미선택"
+                        : "None"}
                     </span>
                   </div>
                   <div className="grid grid-cols-[36px_1fr_36px] items-center gap-1.5 bg-neutral-50/80 p-2 rounded-2xl border border-neutral-200/60 w-full">
@@ -391,7 +400,13 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                     </button>
                     <div className="text-center min-w-0 px-0.5 overflow-hidden">
                       <span className="font-extrabold text-neutral-900 text-sm lg:text-[15px] leading-tight block truncate">
-                        {totalNights !== null ? `${totalNights} Nights` : "기간 선택"}
+                        {totalNights !== null
+                          ? isKo
+                            ? `${totalNights}박`
+                            : `${totalNights} ${totalNights === 1 ? "Night" : "Nights"}`
+                          : isKo
+                          ? "기간 선택"
+                          : "Duration"}
                       </span>
                     </div>
                     <button
@@ -410,7 +425,9 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                 </div>
 
                 <div className="pt-3">
-                  <span className="text-xs font-semibold text-neutral-500 block mb-2">일정 빠른 선택:</span>
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">
+                    {isKo ? "일정 빠른 선택:" : "Quick Select:"}
+                  </span>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[3, 5, 7, 10].map((preset) => (
                       <button
@@ -426,7 +443,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
-                        {preset}박
+                        {isKo ? `${preset}박` : `${preset}N`}
                       </button>
                     ))}
                   </div>
@@ -444,11 +461,19 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-neutral-900">2단계: 여행 인원 선택</span>
+                    <span className="text-[15px] font-bold text-neutral-900">
+                      {isKo ? "2단계: 여행 인원 선택" : "Step 2: Travelers Count"}
+                    </span>
                     <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
                       activeStep === 2 ? "bg-teal-50 text-teal-700 border border-teal-200/60" : "text-neutral-500"
                     }`}>
-                      {adultCount !== null ? `${adultCount}명` : "미선택"}
+                      {adultCount !== null
+                        ? isKo
+                          ? `${adultCount}명`
+                          : `${adultCount} ${adultCount === 1 ? "Person" : "People"}`
+                        : isKo
+                        ? "미선택"
+                        : "None"}
                     </span>
                   </div>
                   <div className="grid grid-cols-[36px_1fr_36px] items-center gap-1.5 bg-neutral-50/80 p-2 rounded-2xl border border-neutral-200/60 w-full">
@@ -466,7 +491,13 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                     </button>
                     <div className="text-center min-w-0 px-0.5 overflow-hidden">
                       <span className="font-extrabold text-neutral-900 text-sm lg:text-[15px] leading-tight block truncate">
-                        {adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}
+                        {adultCount !== null
+                          ? isKo
+                            ? `${adultCount}명`
+                            : `${adultCount} ${adultCount === 1 ? "Person" : "People"}`
+                          : isKo
+                          ? "인원 선택"
+                          : "Travelers"}
                       </span>
                     </div>
                     <button
@@ -485,7 +516,9 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                 </div>
 
                 <div className="pt-3">
-                  <span className="text-xs font-semibold text-neutral-500 block mb-2">인원 빠른 선택:</span>
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">
+                    {isKo ? "인원 빠른 선택:" : "Quick Select:"}
+                  </span>
                   <div className="grid grid-cols-4 gap-1.5">
                     {[1, 2, 3, 4].map((countPreset) => (
                       <button
@@ -501,7 +534,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
-                        {countPreset}명
+                        {isKo ? `${countPreset}명` : `${countPreset}P`}
                       </button>
                     ))}
                   </div>
@@ -519,11 +552,13 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-[15px] font-bold text-neutral-900">3단계: 여행 목적지 선택</span>
+                    <span className="text-[15px] font-bold text-neutral-900">
+                      {isKo ? "3단계: 여행 목적지 선택" : "Step 3: Destinations"}
+                    </span>
                     <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
                       activeStep === 3 ? "bg-teal-50 text-teal-700 border border-teal-200/60" : "text-neutral-500"
                     }`}>
-                      다중 ({draft.selectedCities.length}/4)
+                      {isKo ? `다중 (${draft.selectedCities.length}/4)` : `Multi (${draft.selectedCities.length}/4)`}
                     </span>
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
@@ -544,7 +579,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                           }`}
                         >
                           {isSelected && <span className="text-teal-600 font-bold text-xs shrink-0">✓</span>}
-                          <span>{cityOpt.nameKo}</span>
+                          <span>{isKo ? cityOpt.nameKo : cityOpt.nameEn}</span>
                         </button>
                       );
                     })}
@@ -571,7 +606,9 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
 
                 {!isFormComplete && (
                   <span className="text-sm text-[#666b73] font-normal">
-                    3가지 필수 여행 항목(기간, 인원, 목적지)을 모두 선택해 주세요.
+                    {isKo
+                      ? "3가지 필수 여행 항목(기간, 인원, 목적지)을 모두 선택해 주세요."
+                      : "Please select all 3 required travel items (duration, travelers, destinations)."}
                   </span>
                 )}
               </div>
@@ -584,7 +621,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                     className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 flex items-center gap-1.5 transition-all cursor-pointer bg-neutral-100 hover:bg-neutral-200/70 px-3.5 py-2 rounded-full border border-neutral-200/60 active:scale-95 shadow-2xs"
                   >
                     <span>↺</span>
-                    <span>일정 초기화</span>
+                    <span>{isKo ? "일정 초기화" : "Reset Plan"}</span>
                   </button>
                 </div>
               )}
@@ -604,12 +641,14 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
             {/* Step Progress Header */}
             <div className="mb-5">
               <div className="flex items-center justify-between text-xs font-bold text-[#666b73] mb-2 px-1">
-                <span className="text-[#b93829] font-extrabold">{mobileStep}단계 / 3단계</span>
+                <span className="text-[#b93829] font-extrabold">
+                  {isKo ? `${mobileStep}단계 / 3단계` : `Step ${mobileStep} / 3`}
+                </span>
                 <div className="flex items-center gap-2">
                   <span>
-                    {mobileStep === 1 && "1. 여행 기간 설정"}
-                    {mobileStep === 2 && "2. 여행 인원 선택"}
-                    {mobileStep === 3 && "3. 여행 목적지 선택"}
+                    {mobileStep === 1 && (isKo ? "1. 여행 기간 설정" : "1. Stay Duration")}
+                    {mobileStep === 2 && (isKo ? "2. 여행 인원 선택" : "2. Travelers Count")}
+                    {mobileStep === 3 && (isKo ? "3. 여행 목적지 선택" : "3. Destinations")}
                   </span>
                   {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (
                     <button
@@ -617,7 +656,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                       onClick={handleResetDraft}
                       className="text-[11px] font-semibold text-slate-500 hover:text-[#b93829] bg-slate-100 hover:bg-red-50 px-2 py-0.5 rounded-full border border-slate-200 transition-colors cursor-pointer"
                     >
-                      ↺ 초기화
+                      {isKo ? "↺ 초기화" : "↺ Reset"}
                     </button>
                   )}
                 </div>
@@ -646,21 +685,39 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
             {mobileStep === 1 && (
               <div className="bg-[#faf9f7] p-5 rounded-[22px] border border-neutral-200/70 space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-neutral-900">1단계: 여행 기간 설정</span>
+                  <span className="text-[15px] font-bold text-neutral-900">
+                    {isKo ? "1단계: 여행 기간 설정" : "Step 1: Stay Duration"}
+                  </span>
                   <span className="text-[16px] font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
-                    {totalNights !== null ? `${totalNights}박 (${totalNights + 1}일)` : "미선택"}
+                    {totalNights !== null
+                      ? isKo
+                        ? `${totalNights}박 (${totalNights + 1}일)`
+                        : `${totalNights} ${totalNights === 1 ? "Night" : "Nights"}`
+                      : isKo
+                      ? "미선택"
+                      : "None"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-neutral-200/60">
                   <button type="button" onClick={() => handleNightsChange(Math.max(1, (totalNights || 5) - 1))} disabled={(totalNights || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">-</button>
                   <div className="text-center">
-                    <span className="font-extrabold text-neutral-900 text-[18px] block">{totalNights !== null ? `${totalNights} Nights` : "기간 선택"}</span>
+                    <span className="font-extrabold text-neutral-900 text-[18px] block">
+                      {totalNights !== null
+                        ? isKo
+                          ? `${totalNights}박`
+                          : `${totalNights} ${totalNights === 1 ? "Night" : "Nights"}`
+                        : isKo
+                        ? "기간 선택"
+                        : "Duration"}
+                    </span>
                   </div>
                   <button type="button" onClick={() => handleNightsChange(Math.min(14, (totalNights || 0) + 1))} disabled={(totalNights || 0) >= 14} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">+</button>
                 </div>
 
                 <div className="pt-1">
-                  <span className="text-xs font-semibold text-neutral-500 block mb-2">일정 빠른 선택:</span>
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">
+                    {isKo ? "일정 빠른 선택:" : "Quick Select:"}
+                  </span>
                   <div className="grid grid-cols-4 gap-2">
                     {[3, 5, 7, 10].map((preset) => (
                       <button
@@ -673,7 +730,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
-                        {preset}박
+                        {isKo ? `${preset}박` : `${preset}N`}
                       </button>
                     ))}
                   </div>
@@ -685,19 +742,39 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
             {mobileStep === 2 && (
               <div className="bg-[#faf9f7] p-5 rounded-[22px] border border-neutral-200/70 space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-neutral-900">2단계: 여행 인원 선택</span>
-                  <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">{adultCount !== null ? `${adultCount}명` : "미선택"}</span>
+                  <span className="text-[15px] font-bold text-neutral-900">
+                    {isKo ? "2단계: 여행 인원 선택" : "Step 2: Travelers Count"}
+                  </span>
+                  <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
+                    {adultCount !== null
+                      ? isKo
+                        ? `${adultCount}명`
+                        : `${adultCount} ${adultCount === 1 ? "Person" : "People"}`
+                      : isKo
+                      ? "미선택"
+                      : "None"}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-neutral-200/60">
                   <button type="button" onClick={() => handleAdultsChange(Math.max(1, (adultCount || 2) - 1))} disabled={(adultCount || 1) <= 1} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">-</button>
                   <div className="text-center">
-                    <span className="font-extrabold text-neutral-900 text-lg block">{adultCount !== null ? `${adultCount} ${adultCount === 1 ? "Person" : "People"}` : "인원 선택"}</span>
+                    <span className="font-extrabold text-neutral-900 text-lg block">
+                      {adultCount !== null
+                        ? isKo
+                          ? `${adultCount}명`
+                          : `${adultCount} ${adultCount === 1 ? "Person" : "People"}`
+                        : isKo
+                        ? "인원 선택"
+                        : "Travelers"}
+                    </span>
                   </div>
                   <button type="button" onClick={() => handleAdultsChange(Math.min(10, (adultCount || 0) + 1))} disabled={(adultCount || 0) >= 10} className="w-12 h-12 flex items-center justify-center rounded-xl bg-neutral-100 hover:bg-teal-50 hover:text-teal-700 disabled:opacity-30 text-neutral-800 font-bold text-xl transition-transform duration-150 ease-out cursor-pointer active:scale-[0.97]">+</button>
                 </div>
 
                 <div className="pt-1">
-                  <span className="text-xs font-semibold text-neutral-500 block mb-2">인원 빠른 선택:</span>
+                  <span className="text-xs font-semibold text-neutral-500 block mb-2">
+                    {isKo ? "인원 빠른 선택:" : "Quick Select:"}
+                  </span>
                   <div className="grid grid-cols-4 gap-2">
                     {[1, 2, 3, 4].map((countPreset) => (
                       <button
@@ -710,7 +787,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                             : "bg-white border-neutral-200/70 text-neutral-700 hover:border-neutral-300"
                         }`}
                       >
-                        {countPreset}명
+                        {isKo ? `${countPreset}명` : `${countPreset}P`}
                       </button>
                     ))}
                   </div>
@@ -722,8 +799,12 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
             {mobileStep === 3 && (
               <div className="bg-[#faf9f7] p-5 rounded-[22px] border border-neutral-200/70 space-y-4 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[15px] font-bold text-neutral-900">3단계: 여행 목적지 선택</span>
-                  <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">다중 ({draft.selectedCities.length}/4)</span>
+                  <span className="text-[15px] font-bold text-neutral-900">
+                    {isKo ? "3단계: 여행 목적지 선택" : "Step 3: Destinations"}
+                  </span>
+                  <span className="text-xs font-extrabold text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
+                    {isKo ? `다중 (${draft.selectedCities.length}/4)` : `Multi (${draft.selectedCities.length}/4)`}
+                  </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {ALL_CITY_OPTIONS.map((cityOpt) => (
@@ -738,7 +819,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                       }`}
                     >
                       {draft.selectedCities.includes(cityOpt.key) && <span className="text-teal-600 font-bold text-xs">✓</span>}
-                      {cityOpt.nameKo}
+                      {isKo ? cityOpt.nameKo : cityOpt.nameEn}
                     </button>
                   ))}
                 </div>
@@ -803,7 +884,13 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                   : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
               }`}
             >
-              {totalNights !== null ? "다음 단계 (2/3 인원 선택) →" : "여행 기간을 선택해 주세요"}
+              {totalNights !== null
+                ? isKo
+                  ? "다음 단계 (2/3 인원 선택) →"
+                  : "Next (2/3 Travelers) →"
+                : isKo
+                ? "여행 기간을 선택해 주세요"
+                : "Please select stay duration"}
             </button>
           )}
 
@@ -814,7 +901,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                 onClick={() => setMobileStep(1)}
                 className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97]"
               >
-                ← 이전
+                {isKo ? "← 이전" : "← Back"}
               </button>
               <button
                 type="button"
@@ -826,7 +913,13 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                     : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
                 }`}
               >
-                {adultCount !== null ? "다음 단계 (3/3 목적지) →" : "여행 인원을 선택해 주세요"}
+                {adultCount !== null
+                  ? isKo
+                    ? "다음 단계 (3/3 목적지) →"
+                    : "Next (3/3 Destinations) →"
+                  : isKo
+                  ? "여행 인원을 선택해 주세요"
+                  : "Please select travelers"}
               </button>
             </div>
           )}
@@ -838,7 +931,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                 onClick={() => setMobileStep(2)}
                 className="w-1/3 min-h-[50px] rounded-[14px] bg-slate-100 text-slate-700 text-sm font-bold hover:bg-slate-200 cursor-pointer transition-transform duration-150 ease-out active:scale-[0.97]"
               >
-                ← 이전
+                {isKo ? "← 이전" : "← Back"}
               </button>
               <button
                 type="submit"
@@ -849,7 +942,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                     : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-300"
                 }`}
               >
-                <span>{isFormComplete ? dict.landing.cta : "목적지 1개 이상 선택 필요"}</span>
+                <span>{isFormComplete ? dict.landing.cta : (isKo ? "목적지 1개 이상 선택 필요" : "Select at least 1 destination")}</span>
               </button>
             </div>
           )}

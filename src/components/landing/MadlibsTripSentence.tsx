@@ -226,39 +226,43 @@ export default function MadlibsTripSentence({
                 {nightsLabel ? `(${nightsLabel})` : "(Duration)"}
               </button>
               <span>trip to</span>
-              <button
-                type="button"
-                onClick={() => onStepClick(3)}
-                className={`transition-all duration-150 cursor-pointer ${
-                  activeStep === 3
-                    ? "text-teal-700 underline underline-offset-8 decoration-teal-600 decoration-3"
-                    : citiesLabel
-                    ? "text-neutral-900 hover:text-teal-700 hover:underline underline-offset-8"
-                    : "text-neutral-400 hover:text-neutral-600 hover:underline underline-offset-8"
-                }`}
-              >
-                {citiesLabel ? `(${citiesLabel})` : "(Destinations)"}
-              </button>
-              <span>, Korea</span>
+              <span className="inline-flex items-center">
+                <button
+                  type="button"
+                  onClick={() => onStepClick(3)}
+                  className={`transition-all duration-150 cursor-pointer ${
+                    activeStep === 3
+                      ? "text-teal-700 underline underline-offset-8 decoration-teal-600 decoration-3"
+                      : citiesLabel
+                      ? "text-neutral-900 hover:text-teal-700 hover:underline underline-offset-8"
+                      : "text-neutral-400 hover:text-neutral-600 hover:underline underline-offset-8"
+                  }`}
+                >
+                  {citiesLabel ? `(${citiesLabel})` : "(Destinations)"}
+                </button>
+                <span>, Korea</span>
+              </span>
             </div>
 
-            {/* 2번째 줄: with (Travelers) ! */}
+            {/* 2번째 줄: with (Travelers)! */}
             <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span>with</span>
-              <button
-                type="button"
-                onClick={() => onStepClick(2)}
-                className={`transition-all duration-150 cursor-pointer ${
-                  activeStep === 2
-                    ? "text-teal-700 underline underline-offset-8 decoration-teal-600 decoration-3"
-                    : adultsLabel
-                    ? "text-neutral-900 hover:text-teal-700 hover:underline underline-offset-8"
-                    : "text-neutral-400 hover:text-neutral-600 hover:underline underline-offset-8"
-                }`}
-              >
-                {adultsLabel ? `(${adultsLabel})` : "(Travelers)"}
-              </button>
-              <span>!</span>
+              <span className="inline-flex items-center">
+                <button
+                  type="button"
+                  onClick={() => onStepClick(2)}
+                  className={`transition-all duration-150 cursor-pointer ${
+                    activeStep === 2
+                      ? "text-teal-700 underline underline-offset-8 decoration-teal-600 decoration-3"
+                      : adultsLabel
+                      ? "text-neutral-900 hover:text-teal-700 hover:underline underline-offset-8"
+                      : "text-neutral-400 hover:text-neutral-600 hover:underline underline-offset-8"
+                  }`}
+                >
+                  {adultsLabel ? `(${adultsLabel})` : "(Travelers)"}
+                </button>
+                <span>!</span>
+              </span>
             </div>
           </>
         )}

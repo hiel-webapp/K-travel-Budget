@@ -44,18 +44,16 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
   }, [cards, selectedCategory]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-8">
-      {/* 1. Hero Section - Language-Isolated Clean Branding */}
-      <div className="text-center max-w-2xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fce8e6] border border-[#f8c9c4] text-[#b93829] text-xs font-extrabold tracking-wide shadow-2xs">
-          <span>{isKo ? "K-컬처 & 생존 실전 가이드" : "K-Travel Survival Handbook"}</span>
-        </div>
-
-        <h1 className="text-[26px] sm:text-[34px] md:text-[38px] font-extrabold leading-[1.25] tracking-[-0.02em] text-[#1d1d1f]">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-8 space-y-6">
+      {/* Header Banner Section (Matching Planner Standard) */}
+      <div className="text-center space-y-2 pt-2">
+        <span className="text-[#b93829] font-extrabold text-xs tracking-tight uppercase">
+          HypeHeritage Guide
+        </span>
+        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
           {isKo ? "한국 여행 실전 가이드 & 생존 사전" : "Korea Travel Survival & Culture Guide"}
         </h1>
-
-        <p className="text-[13px] sm:text-[14px] text-[#86868b] leading-relaxed max-w-xl mx-auto">
+        <p className="text-xs md:text-sm text-slate-500 max-w-2xl mx-auto leading-relaxed">
           {isKo
             ? "입국 전 꼭 알아야 할 길찾기, 대중교통 이용법, 식당 문화 및 로컬 규칙을 한눈에 확인하세요."
             : "Everything you need to know before landing: transit hacks, dining etiquette, and unwritten local rules."}

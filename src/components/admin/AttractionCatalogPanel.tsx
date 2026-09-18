@@ -572,14 +572,60 @@ export default function AttractionCatalogPanel() {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-semibold text-slate-300">대표 사진 URL</label>
-                  <input
-                    type="text"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-200">
+                      대표 사진 URL 및 실시간 미리보기
+                    </label>
+                    {imageUrl && (
+                      <a
+                        href={imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-semibold text-purple-400 hover:text-purple-300 hover:underline flex items-center gap-1"
+                      >
+                        원본 사진 새 탭 열기 ↗
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start gap-3 mt-1">
+                    <div className="w-full flex-1">
+                      <input
+                        type="text"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="https://..."
+                        className="w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-purple-400 focus:outline-none"
+                      />
+                      <p className="mt-1 text-[11px] text-slate-400">
+                        명소 사진 URL을 입력하면 우측에 실시간으로 이미지가 표시됩니다.
+                      </p>
+                    </div>
+                    {/* 실시간 이미지 미리보기 박스 */}
+                    <div className="h-20 w-28 sm:w-32 flex-shrink-0 overflow-hidden rounded-xl border border-slate-600 bg-slate-950 flex items-center justify-center shadow-inner relative group">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt="미리보기"
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = "none";
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector(".fallback-text")) {
+                              const fallback = document.createElement("div");
+                              fallback.className = "fallback-text p-1 text-center text-[10px] text-rose-400 font-bold";
+                              fallback.innerText = "URL 오류";
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="p-2 text-center text-[10px] font-semibold text-slate-500">
+                          사진 없음
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="sm:col-span-2">

@@ -2,6 +2,7 @@ import { PlaceItem } from "./types";
 import { ATTRACTION_SPOTS_CATALOG } from "../../features/budget/catalog/attraction-spots";
 import { PlaceCategory } from "../kto/types";
 import { SHOW_LOCAL_SPOTS } from "../config/spots-visibility";
+import { formatTransitInfo } from "./place-localization";
 
 // 플래너 10대 도시 관광지 카탈로그 (각 도시별 완벽 분리 및 공식 웹사이트 연동)
 // SHOW_LOCAL_SPOTS 플래그를 통해 로컬 명소 노출/숨김을 손쉽게 제어
@@ -43,7 +44,7 @@ export const ALL_CITY_CATALOG_PLACES: PlaceItem[] = ATTRACTION_SPOTS_CATALOG
         en: {
           title: spot.nameEn,
           description: spot.descEn,
-          address: spot.subwayInfo || `${spot.cityCode}, Republic of Korea`,
+          address: spot.subwayInfoEn || (spot.subwayInfo ? formatTransitInfo(spot.subwayInfo, "en") : `${spot.cityCode}, Republic of Korea`),
         },
       },
     };

@@ -11,6 +11,7 @@ import { PlaceCategory } from "../lib/kto/types";
 import { loadSavedPlaceIds, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, loadTripDraft, loadPlannerPreferencesEx } from "../lib/storage-helper";
 import { isSameSpot, normalizeSpotKey, TOUR_COURSE_PRESETS } from "../features/budget/catalog/attraction-spots";
 import { SHOW_LOCAL_SPOTS } from "../lib/config/spots-visibility";
+import { formatTransitInfo, formatClosedDays, formatOpeningHours, formatPlaceTags } from "../lib/places/place-localization";
 
 interface PlacesContentProps {
   locale: Locale;
@@ -621,7 +622,11 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                         {locale === "ko" ? "교통 / 위치" : "Transit / Location"}
                       </span>
                       <span className="text-slate-600">
-                        {previewPlace.subwayInfo || previewPlace.translations[locale]?.address || previewPlace.translations.ko.address}
+                        {formatTransitInfo(
+                          previewPlace.subwayInfo,
+                          locale,
+                          previewPlace.translations[locale]?.address || previewPlace.translations.ko.address
+                        )}
                       </span>
                     </div>
                   </div>
@@ -632,7 +637,9 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                       <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                         {locale === "ko" ? "휴무일" : "Closed Days"}
                       </span>
-                      <span className="text-slate-600">{previewPlace.closedDays}</span>
+                      <span className="text-slate-600">
+                        {formatClosedDays(previewPlace.closedDays, locale)}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -642,7 +649,9 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
                       <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                         {locale === "ko" ? "운영시간 / 이용정보" : "Opening Hours"}
                       </span>
-                      <span className="text-slate-600">{previewPlace.openingHours || previewPlace.useTime}</span>
+                      <span className="text-slate-600">
+                        {formatOpeningHours(previewPlace.openingHours || previewPlace.useTime, locale)}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -651,7 +660,7 @@ function PlacesContentInner({ locale, dict }: PlacesContentProps) {
               {/* Tags */}
               {previewPlace.tags && previewPlace.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 pt-1">
-                  {previewPlace.tags.map((t) => (
+                  {formatPlaceTags(previewPlace.tags, locale).map((t) => (
                     <span
                       key={t}
                       className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/60"
@@ -900,7 +909,7 @@ function PlaceCard({
           {/* 로컬 명소 뱃지 (추후 문구/디자인 손쉽게 변경 가능) */}
           {place.isLocal && (
             <span className="bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs flex items-center gap-0.5">
-              <span>로컬</span>
+              <span>{locale === "ko" ? "로컬" : "Local"}</span>
             </span>
           )}
         </div>
@@ -958,7 +967,7 @@ function PlaceCard({
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1">
-          {place.tags && place.tags.map((tag) => (
+          {place.tags && formatPlaceTags(place.tags, locale).map((tag) => (
             <span
               key={tag}
               className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded"
@@ -970,7 +979,9 @@ function PlaceCard({
 
         {/* Address / Subway */}
         <div className="text-[11px] text-slate-500 truncate border-t border-slate-100 pt-2">
-          {place.subwayInfo ? place.subwayInfo : (trans.address || dict.places.noAddress)}
+          {place.subwayInfo
+            ? formatTransitInfo(place.subwayInfo, locale, trans.address)
+            : (trans.address || dict.places.noAddress)}
         </div>
       </div>
     </div>

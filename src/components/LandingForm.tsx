@@ -236,7 +236,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
       parts.push(
         locale === "ko"
           ? `${draft.totalNights}박 ${draft.totalNights + 1}일`
-          : `${draft.totalNights} ${draft.totalNights === 1 ? "Night" : "Nights"}`
+          : `${draft.totalNights}N ${draft.totalNights + 1}D`
       );
     }
 
@@ -379,7 +379,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                       {totalNights !== null
                         ? isKo
                           ? `${totalNights}박 (${totalNights + 1}일)`
-                          : `${totalNights} ${totalNights === 1 ? "Night" : "Nights"}`
+                          : `${totalNights}N ${totalNights + 1}D`
                         : isKo
                         ? "미선택"
                         : "None"}
@@ -692,7 +692,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                     {totalNights !== null
                       ? isKo
                         ? `${totalNights}박 (${totalNights + 1}일)`
-                        : `${totalNights} ${totalNights === 1 ? "Night" : "Nights"}`
+                        : `${totalNights}N ${totalNights + 1}D`
                       : isKo
                       ? "미선택"
                       : "None"}

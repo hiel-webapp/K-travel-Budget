@@ -40,6 +40,7 @@ import ReportBentoDashboard from "./report/ReportBentoDashboard";
 import ExpenseAnalyticsHub from "./report/ExpenseAnalyticsHub";
 import SmartRouteMap from "./report/SmartRouteMap";
 import BookingActionHub from "./report/BookingActionHub";
+import TravelHelpline1330 from "./report/TravelHelpline1330";
 import ReportShareBar from "./report/ReportShareBar";
 
 interface ReportContentProps {
@@ -275,9 +276,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
       {/* 4. Balanced 2-Column Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ========================================================================= */}
-        {/* LEFT COLUMN: CURATED ITINERARY & AUDIT (6 COLS) */}
+        {/* LEFT COLUMN: ITINERARY, BOOKING & HELPLINE (8 COLS / ~68%) */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-6 space-y-6">
+        <div className="lg:col-span-8 space-y-6">
           {/* Section C: Interactive Smart Route & Kakao Map */}
           <SmartRouteMap
             selectedCities={draft.selectedCities}
@@ -394,12 +395,15 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               </div>
             </div>
           )}
+
+          {/* Section E: 1330 Korea Travel Helpline Banner */}
+          <TravelHelpline1330 locale={locale} />
         </div>
 
         {/* ========================================================================= */}
-        {/* RIGHT COLUMN: OFFICIAL SMART RECEIPT (사용자가 직접 담은 항목만 100% 일치) */}
+        {/* RIGHT COLUMN: STICKY OFFICIAL SMART RECEIPT (4 COLS / ~32%) */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className="lg:col-span-4 lg:sticky lg:top-6 space-y-4">
           <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
             {/* Receipt Header */}
             <div className="bg-neutral-50/80 border-b border-neutral-200/70 p-4 sm:p-5 flex items-center justify-between">

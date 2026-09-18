@@ -30,6 +30,7 @@ import {
   getTravelPresetById,
 } from "src/lib/presets/travel-presets";
 import { scalePresetPreferences } from "src/lib/presets/preset-scaler";
+import MadlibsTripSentence from "src/components/landing/MadlibsTripSentence";
 
 interface LandingFormProps {
   locale: Locale;
@@ -351,6 +352,14 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
               </div>
             )}
 
+            {/* Live Interactive Mad-libs Sentence Preview */}
+            <MadlibsTripSentence
+              draft={draft}
+              locale={locale}
+              activeStep={activeStep}
+              onStepClick={(step) => setActiveStep(step)}
+            />
+
             {/* PC 3-Step Bento Cards Grid with Active Focus & Dimming */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
               {/* Step 1 Bento Card */}
@@ -550,8 +559,14 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
 
             {/* PC Bottom CTA Area */}
             <div className="mt-8 pt-6 border-t border-neutral-200/60 relative flex flex-col items-center gap-4">
-              <div className="text-center text-[14px] text-neutral-600 font-medium py-2 px-5 rounded-full bg-neutral-100/70 max-w-lg mx-auto border border-neutral-200/60 flex items-center justify-center shadow-2xs">
-                {getAllocationSummaryText()}
+              <div className="text-center text-[14px] text-neutral-600 font-medium py-2.5 px-6 rounded-2xl bg-neutral-100/80 max-w-2xl mx-auto border border-neutral-200/70 flex items-center justify-center shadow-2xs">
+                <MadlibsTripSentence
+                  draft={draft}
+                  locale={locale}
+                  activeStep={activeStep}
+                  onStepClick={(step) => setActiveStep(step)}
+                  compact={true}
+                />
               </div>
 
               <div className="flex flex-col items-center gap-3">
@@ -628,6 +643,17 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                   style={{ width: `${mobileStep * 33.33}%` }}
                 />
               </div>
+            </div>
+
+            {/* Mobile Live Interactive Mad-libs Sentence */}
+            <div className="mb-5 bg-white p-3.5 rounded-2xl border border-teal-100/90 shadow-2xs">
+              <MadlibsTripSentence
+                draft={draft}
+                locale={locale}
+                activeStep={mobileStep}
+                onStepClick={(step) => setMobileStep(step)}
+                compact={true}
+              />
             </div>
 
             {/* Mobile Step 1: 여행 기간 */}
@@ -739,8 +765,14 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
       {/* Mobile Fixed Bottom Navigation Floating Bar */}
       {isMobile && (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#faf9f7]/95 backdrop-blur-md border-t border-[#dedede] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg flex flex-col gap-2">
-          <div className="text-center text-xs font-semibold text-slate-600 py-1.5 px-3 rounded-full bg-white border border-[#dedede] w-full truncate shadow-2xs">
-            {getAllocationSummaryText()}
+          <div className="text-center text-xs font-semibold text-slate-700 py-1.5 px-3 rounded-xl bg-white border border-[#dedede] w-full shadow-2xs">
+            <MadlibsTripSentence
+              draft={draft}
+              locale={locale}
+              activeStep={mobileStep}
+              onStepClick={(step) => setMobileStep(step)}
+              compact={true}
+            />
           </div>
 
           {mobileStep === 1 && (

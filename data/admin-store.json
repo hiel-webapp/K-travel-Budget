@@ -10,13 +10,13 @@
       "taglineEn": "From Seongsu pop-ups to Gwangalli night drones, experience modern Korea",
       "summaryKo": "성수동·홍대 감성 카페와 K-패션 쇼핑, 부산 마린시티와 광안리 오션 야경을 아우르는 MZ 워너비 코스",
       "summaryEn": "Trendy cafes in Seongsu & Hongdae, K-fashion shopping, and panoramic Marine City ocean nightscapes in Busan",
-      "imageUrl": "https://tong.visitkorea.or.kr/cms/resource/66/3092766_image2_1.jpg",
+      "imageUrl": "https://tong.visitkorea.or.kr/cms/resource/10/3518610_image2_1.jpg",
       "accentColor": "#e25c5c",
       "lightBg": "from-rose-50/70 via-white to-orange-50/40",
       "badgeBg": "bg-rose-100/80 border-rose-200/90",
       "badgeText": "text-rose-700",
       "routeTextKo": "서울 3박 + 부산 2박 (5박 6일)",
-      "routeTextEn": "Seoul 3N + Busan 2N (5N 6D)",
+      "routeTextEn": "SEOUL 3N + BUSAN 2N (5N 6D)",
       "estimatedBudgetKrw": 1380000,
       "highlightTagsKo": [
         "#성수팝업",
@@ -25,16 +25,14 @@
         "#비즈니스호텔"
       ],
       "highlightTagsEn": [
-        "#SeongsuPopup",
-        "#Hongdae",
-        "#GwangalliNight",
-        "#BusinessHotel"
+        "#K-성수팝업",
+        "#K-홍대감성",
+        "#K-광안리야경",
+        "#K-비즈니스호텔"
       ],
       "draft": {
         "totalNights": 5,
         "adultCount": 2,
-        "budgetTier": "STANDARD",
-        "targetBudgetKrw": 2760000,
         "selectedCities": [
           "SEOUL",
           "BUSAN"
@@ -43,6 +41,8 @@
           "SEOUL": 3,
           "BUSAN": 2
         },
+        "budgetTier": "STANDARD",
+        "targetBudgetKrw": 2760000,
         "schemaVersion": 1
       },
       "preferences": {
@@ -103,14 +103,11 @@
             ]
           }
         },
-        "emergencyFundKrw": 50000,
-        "intercityTransportOverrides": {
-          "SEOUL-BUSAN": "KTX"
-        }
+        "emergencyFundKrw": 50000
       },
       "isActive": true,
       "order": 1,
-      "isCustom": false
+      "isCustom": true
     },
     {
       "id": "K_HERITAGE_SOUL",
@@ -581,7 +578,7 @@
     {
       "id": "nat_samgyeopsal",
       "scope": "NATIONAL",
-      "nameKo": "성수 감성 숯불 삼겹살",
+      "nameKo": "삼겹살",
       "nameEn": "K-BBQ Pork Belly (Samgyeopsal) x 2",
       "descKo": "신선한 돼지 삼겹살을 노릇하게 구워 쌈채소, 쌈장, 마늘과 곁들여 먹는 한국의 대표 구이 요리",
       "descEn": "Thick slices of fresh pork belly grilled at the table, wrapped in lettuce leaves with savory ssamjang and garlic",
@@ -10105,5 +10102,5 @@
     "GANGNEUNG": "RECOMMENDED",
     "GYEONGJU": "RECOMMENDED"
   },
-  "lastUpdated": "2026-09-17T11:00:34.621Z"
+  "lastUpdated": "2026-09-18T01:30:46.411Z"
 }

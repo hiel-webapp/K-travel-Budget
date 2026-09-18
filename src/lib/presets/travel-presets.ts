@@ -44,7 +44,7 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
     "taglineEn": "From Seongsu pop-ups to Gwangalli night drones, experience modern Korea",
     "summaryKo": "성수동·홍대 감성 카페와 K-패션 쇼핑, 부산 마린시티와 광안리 오션 야경을 아우르는 MZ 워너비 코스",
     "summaryEn": "Trendy cafes in Seongsu & Hongdae, K-fashion shopping, and panoramic Marine City ocean nightscapes in Busan",
-    "imageUrl": "https://tong.visitkorea.or.kr/cms/resource/66/3092766_image2_1.jpg",
+    "imageUrl": "https://tong.visitkorea.or.kr/cms/resource/10/3518610_image2_1.jpg",
     "accentColor": "#e25c5c",
     "lightBg": "from-rose-50/70 via-white to-orange-50/40",
     "badgeBg": "bg-rose-100/80 border-rose-200/90",

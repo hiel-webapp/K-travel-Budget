@@ -34,6 +34,7 @@ import { scalePresetPreferences } from "src/lib/presets/preset-scaler";
 interface LandingFormProps {
   locale: Locale;
   dict: Dictionary;
+  initialPresets?: TravelPreset[];
 }
 
 const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[] = [
@@ -49,7 +50,7 @@ const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[]
   { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
 ];
 
-export default function LandingForm({ locale, dict }: LandingFormProps) {
+export default function LandingForm({ locale, dict, initialPresets }: LandingFormProps) {
   const router = useRouter();
 
   const [draft, setDraft] = useState<TripDraft>(DEFAULT_TRIP_DRAFT);
@@ -334,6 +335,7 @@ export default function LandingForm({ locale, dict }: LandingFormProps) {
           dict={dict}
           activePresetId={activePresetId}
           isCustomized={isCustomized}
+          initialPresets={initialPresets}
           onSelectPreset={handleSelectPreset}
           onClearPreset={handleClearPreset}
         />

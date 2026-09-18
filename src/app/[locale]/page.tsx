@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isLocale, Locale } from "src/lib/i18n/locales";
 import { getDictionary } from "src/lib/i18n/get-dictionary";
 import LandingForm from "src/components/LandingForm";
+import { getAdminPresets } from "src/lib/admin/admin-store";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
@@ -15,6 +16,8 @@ export default async function LocalePage({ params }: PageProps) {
   }
 
   const dict = await getDictionary(locale as Locale);
+  // 서버 사이드에서 최신 프리셋(Supabase/AdminStore)을 사전에 직접 조회하여 클라이언트 플리커링 원천 방지
+  const initialPresets = await getAdminPresets(false);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-start w-full max-w-[1140px] mx-auto px-4 py-6 md:py-10">
@@ -29,7 +32,7 @@ export default async function LocalePage({ params }: PageProps) {
       </div>
 
       {/* Interactive Travel Budget Calculator Form */}
-      <LandingForm locale={locale as Locale} dict={dict} />
+      <LandingForm locale={locale as Locale} dict={dict} initialPresets={initialPresets} />
     </div>
   );
 }

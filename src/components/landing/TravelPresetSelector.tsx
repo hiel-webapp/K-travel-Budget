@@ -11,6 +11,7 @@ interface TravelPresetSelectorProps {
   dict: Dictionary;
   activePresetId: TravelPresetId | null;
   isCustomized?: boolean;
+  initialPresets?: TravelPreset[];
   onSelectPreset: (preset: TravelPreset) => void;
   onClearPreset?: () => void;
 }
@@ -20,18 +21,56 @@ export default function TravelPresetSelector({
   dict,
   activePresetId,
   isCustomized = false,
+  initialPresets,
   onSelectPreset,
   onClearPreset,
 }: TravelPresetSelectorProps) {
-  const [presets, setPresets] = useState<TravelPreset[]>(TRAVEL_PRESETS.filter((p) => p.isActive !== false));
+  // 서버에서 전달된 최신 프리셋 -> 로컬스토리지 캐시 -> 정적 기본값 순서로 즉시 초기화하여 이전 사진 노출(깜빡임) 완전 차단
+  const [presets, setPresets] = useState<TravelPreset[]>(() => {
+    if (initialPresets && initialPresets.length > 0) {
+      return initialPresets;
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("hype_cached_presets");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch {}
+    }
+    return TRAVEL_PRESETS.filter((p) => p.isActive !== false);
+  });
 
+  // initialPresets가 전달되거나 갱신되면 즉시 상태 동기화
+  useEffect(() => {
+    if (initialPresets && initialPresets.length > 0) {
+      setPresets(initialPresets);
+      setDynamicPresets(initialPresets);
+      try {
+        localStorage.setItem("hype_cached_presets", JSON.stringify(initialPresets));
+      } catch {}
+    }
+  }, [initialPresets]);
+
+  // 백그라운드에서 최신 데이터 조회 및 캐싱 (데이터가 실제 변경되었을 때만 setPresets하여 불필요한 리렌더링 및 이미지 깜빡임 방지)
   useEffect(() => {
     fetch("/api/admin/presets?includeInactive=false")
       .then((res) => res.json())
       .then((data) => {
         if (data?.success && Array.isArray(data.presets) && data.presets.length > 0) {
           setDynamicPresets(data.presets);
-          setPresets(data.presets);
+          setPresets((prev) => {
+            const prevStr = JSON.stringify(prev);
+            const nextStr = JSON.stringify(data.presets);
+            if (prevStr === nextStr) return prev;
+            return data.presets;
+          });
+          try {
+            localStorage.setItem("hype_cached_presets", JSON.stringify(data.presets));
+          } catch {}
         }
       })
       .catch(() => {});

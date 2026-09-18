@@ -182,6 +182,70 @@ export async function saveAdminStore(data: AdminStoreData): Promise<void> {
     fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), "utf-8");
   } catch {}
 
+  // 정적 travel-presets.ts 파일도 최신 프리셋과 동기화하여 빌드 및 SSR 단계의 플리커링 영구 방지
+  try {
+    const presetsPath = path.join(process.cwd(), "src", "lib", "presets", "travel-presets.ts");
+    if (fs.existsSync(presetsPath)) {
+      const presetsTsCode = `import { SupportedCity, TripDraft } from "../trip-domain";
+import { BudgetBasketId, FoodBasketItemSelection } from "../../features/budget/domain/types";
+import type { SavePlannerPreferencesInput } from "../storage-helper";
+
+export type TravelPresetId = string;
+
+export type TravelPresetPreferences = Omit<Partial<SavePlannerPreferencesInput>, "draft">;
+
+export interface TravelPreset {
+  id: TravelPresetId;
+  badgeKo: string;
+  badgeEn: string;
+  titleKo: string;
+  titleEn: string;
+  taglineKo: string;
+  taglineEn: string;
+  summaryKo: string;
+  summaryEn: string;
+  imageUrl: string;
+  accentColor: string;
+  lightBg: string;
+  badgeBg: string;
+  badgeText: string;
+  routeTextKo: string;
+  routeTextEn: string;
+  estimatedBudgetKrw: number;
+  highlightTagsKo: string[];
+  highlightTagsEn: string[];
+  draft: TripDraft;
+  preferences: TravelPresetPreferences;
+  isActive?: boolean;
+  order?: number;
+  isCustom?: boolean;
+}
+
+export const TRAVEL_PRESETS: TravelPreset[] = ${JSON.stringify(data.presets, null, 2)};
+
+let dynamicPresetsCache: TravelPreset[] | null = null;
+
+export function setDynamicPresets(presets: TravelPreset[]) {
+  dynamicPresetsCache = presets;
+}
+
+export function getTravelPresets(includeInactive = false): TravelPreset[] {
+  const list = dynamicPresetsCache ?? TRAVEL_PRESETS;
+  if (includeInactive) return list;
+  return list.filter((p) => p.isActive !== false);
+}
+
+export function getTravelPresetById(id: TravelPresetId): TravelPreset | undefined {
+  const list = dynamicPresetsCache ?? TRAVEL_PRESETS;
+  return list.find((p) => p.id === id);
+}
+`;
+      fs.writeFileSync(presetsPath, presetsTsCode, "utf-8");
+    }
+  } catch (syncErr) {
+    console.warn("[AdminStore] travel-presets.ts sync skipped:", syncErr);
+  }
+
   // Supabase 원격 실시간 저장
   await uploadToSupabase(data);
 }

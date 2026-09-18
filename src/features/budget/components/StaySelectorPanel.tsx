@@ -13,6 +13,7 @@ import {
   generateStayOtaUrl,
   AGODA_CITY_IDS,
 } from "../catalog/stay-archetypes";
+import { SplitStaySegment, BudgetBasketId } from "../domain/types";
 
 export interface StaySelectorPanelProps {
   city: SupportedCity;
@@ -32,6 +33,9 @@ export interface StaySelectorPanelProps {
   customStayOverride?: { placeName: string; nightlyPriceKrw: number } | null;
   onSaveCustomStay?: (city: SupportedCity, placeName: string, nightlyPriceKrw: number) => void;
   onResetCustomStay?: (city: SupportedCity) => void;
+  splitStayOverride?: SplitStaySegment[] | null;
+  onSaveSplitStay?: (city: SupportedCity, segments: SplitStaySegment[]) => void;
+  onResetSplitStay?: (city: SupportedCity) => void;
   hideHeader?: boolean;
 }
 
@@ -48,8 +52,11 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   onResetToRecommended,
   hasCustomOverride = false,
   customStayOverride = null,
+  splitStayOverride = null,
   onSaveCustomStay,
   onResetCustomStay,
+  onSaveSplitStay,
+  onResetSplitStay,
   hideHeader = false,
 }) => {
   const [customNameInput, setCustomNameInput] = useState(() => customStayOverride?.placeName || "");
@@ -97,11 +104,94 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   const isPairSplit = !isSoloTraveler && occupancyMode === "SHARED_PAIR";
 
   // 여행 전체 숙박비 (총 결제액)
+  // 여행 전체 숙박비 (총 결제액)
   const sharedRoomCount = Math.ceil(adultCount / 2);
   const roomCount = isSoloTraveler ? 1 : isPairSplit ? sharedRoomCount : adultCount;
-  const totalStayCostKrw = nightlyRoomPrice * roomCount * cityNights;
-  const perPersonStayCostKrw = Math.round(totalStayCostKrw / adultCount);
 
+  // 분할 숙박(Split Stay) 상태 및 연산
+  const isSplitActive = !!(splitStayOverride && splitStayOverride.length >= 2);
+  const [activeSplitTab, setActiveSplitTab] = useState<0 | 1>(0);
+
+  const defaultSeg1Nights = Math.max(1, Math.floor(cityNights / 2));
+  const defaultSeg2Nights = Math.max(1, cityNights - defaultSeg1Nights);
+
+  const seg1BasketId: StayArchetypeId =
+    (splitStayOverride?.[0]?.basketId as StayArchetypeId) || selectedArchetypeId || "BUSINESS_HOTEL";
+  const seg1Nights = splitStayOverride?.[0]?.nights ?? defaultSeg1Nights;
+
+  const seg2BasketId: StayArchetypeId =
+    (splitStayOverride?.[1]?.basketId as StayArchetypeId) || "HANOK_BOUTIQUE";
+  const seg2Nights = splitStayOverride?.[1]?.nights ?? defaultSeg2Nights;
+
+  const seg1Price = getStayArchetypePrice(city, seg1BasketId);
+  const seg2Price = getStayArchetypePrice(city, seg2BasketId);
+
+  const splitTotalCostKrw = (seg1Price * seg1Nights + seg2Price * seg2Nights) * roomCount;
+  const splitPerPersonKrw = Math.round(splitTotalCostKrw / adultCount);
+
+  // 최종 표출 숙박비 (분할 숙박 중이면 splitTotalCostKrw 사용)
+  const effectiveTotalStayCostKrw = isSplitActive ? splitTotalCostKrw : (nightlyRoomPrice * roomCount * cityNights);
+  const effectivePerPersonStayCostKrw = isSplitActive ? splitPerPersonKrw : Math.round(effectiveTotalStayCostKrw / adultCount);
+
+  const handleToggleSplit = () => {
+    if (isSplitActive) {
+      onResetSplitStay?.(city);
+    } else {
+      const segs: SplitStaySegment[] = [
+        {
+          segmentId: "seg_1",
+          basketId: (selectedArchetypeId || "BUSINESS_HOTEL") as BudgetBasketId,
+          nights: defaultSeg1Nights,
+          nightlyPriceKrw: getStayArchetypePrice(city, selectedArchetypeId || "BUSINESS_HOTEL"),
+        },
+        {
+          segmentId: "seg_2",
+          basketId: "HANOK_BOUTIQUE" as BudgetBasketId,
+          nights: defaultSeg2Nights,
+          nightlyPriceKrw: getStayArchetypePrice(city, "HANOK_BOUTIQUE"),
+        },
+      ];
+      onSaveSplitStay?.(city, segs);
+    }
+  };
+
+  const handleAdjustSplitNights = (delta: number) => {
+    const newSeg1 = Math.max(1, Math.min(cityNights - 1, seg1Nights + delta));
+    const newSeg2 = cityNights - newSeg1;
+    const segs: SplitStaySegment[] = [
+      {
+        segmentId: "seg_1",
+        basketId: seg1BasketId as BudgetBasketId,
+        nights: newSeg1,
+        nightlyPriceKrw: seg1Price,
+      },
+      {
+        segmentId: "seg_2",
+        basketId: seg2BasketId as BudgetBasketId,
+        nights: newSeg2,
+        nightlyPriceKrw: seg2Price,
+      },
+    ];
+    onSaveSplitStay?.(city, segs);
+  };
+
+  const handleSelectSplitArchetype = (archId: StayArchetypeId) => {
+    const segs: SplitStaySegment[] = [
+      {
+        segmentId: "seg_1",
+        basketId: (activeSplitTab === 0 ? archId : seg1BasketId) as BudgetBasketId,
+        nights: seg1Nights,
+        nightlyPriceKrw: activeSplitTab === 0 ? getStayArchetypePrice(city, archId) : seg1Price,
+      },
+      {
+        segmentId: "seg_2",
+        basketId: (activeSplitTab === 1 ? archId : seg2BasketId) as BudgetBasketId,
+        nights: seg2Nights,
+        nightlyPriceKrw: activeSplitTab === 1 ? getStayArchetypePrice(city, archId) : seg2Price,
+      },
+    ];
+    onSaveSplitStay?.(city, segs);
+  };
 
   const handleApplyCustomStay = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -149,7 +239,11 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 </h3>
               </div>
               <p className="text-xs text-slate-500">
-                {!hasSelection
+                {isSplitActive
+                  ? (locale === "ko"
+                      ? `분할 숙박 중: 1차(${seg1Nights}박) + 2차(${seg2Nights}박) 혼합 구성`
+                      : `Split Stay: Leg 1 (${seg1Nights}N) + Leg 2 (${seg2Nights}N)`)
+                  : !hasSelection
                   ? (locale === "ko"
                       ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
                       : "Select a stay archetype or enter your custom booked stay.")
@@ -172,7 +266,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </span>
               <div className="flex items-baseline gap-2 justify-end">
                 <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
-                  {formatKrw(totalStayCostKrw)}
+                  {formatKrw(effectiveTotalStayCostKrw)}
                 </span>
               </div>
             </div>
@@ -184,7 +278,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <span className="text-slate-700 font-bold flex items-center gap-1.5">
                 <span>{locale === "ko" ? "1인당 실제 부담액:" : "Per Traveler:"}</span>
                 <strong className="text-slate-900 font-black">
-                  {formatKrw(perPersonStayCostKrw)}
+                  {formatKrw(effectivePerPersonStayCostKrw)}
                 </strong>
               </span>
             </div>
@@ -202,20 +296,116 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         </div>
       )}
 
-      {/* 2. Step 1: 4-Tier Stay Archetype Cards Grid */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
-            {dict.planner?.stayStep1Title || (locale === "ko" ? "Step 1. 당신이 원하는 숙소 스타일은?" : "Step 1. Choose your preferred stay style")}
-          </span>
+      {/* 2. Step 1: 4-Tier Stay Archetype Cards Grid & 숙소 분할(Split Stay) 컨트롤 */}
+      <div className="space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
+              {dict.planner?.stayStep1Title || (locale === "ko" ? "Step 1. 당신이 원하는 숙소 스타일은?" : "Step 1. Choose your preferred stay style")}
+            </span>
+            {cityNights >= 2 && (
+              <button
+                type="button"
+                onClick={handleToggleSplit}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-black transition-all cursor-pointer border ${
+                  isSplitActive
+                    ? "bg-rose-50 border-rose-300 text-[#e25c5c] ring-1 ring-rose-200"
+                    : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-[#e25c5c]"
+                }`}
+              >
+                {isSplitActive
+                  ? (locale === "ko" ? "✓ 숙소 분할 사용 중 (클릭 시 해제)" : "✓ Split Stay Active")
+                  : (locale === "ko" ? "+ 숙소 분할하기 (Split Stay)" : "+ Split Stay")}
+              </button>
+            )}
+          </div>
           <span className="text-[11px] text-slate-400 font-medium">
             {locale === "ko" ? "도시별 표준 실측 평균가 적용" : "Verified city average rates"}
           </span>
         </div>
 
+        {/* [분할 숙박 모드 UI] 2구간 박수 조절 및 탭 전환 */}
+        {isSplitActive && (
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-50/70 via-white to-amber-50/70 border border-rose-200/80 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-900">
+                  {locale === "ko" ? "체류 박수 나누기:" : "Divide Nights:"}
+                </span>
+                <span className="text-xs font-bold text-slate-600">
+                  {locale === "ko" ? `총 ${cityNights}박 중` : `Total ${cityNights}N`}
+                </span>
+                <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 text-xs font-black shadow-2xs">
+                  <span className="text-[#e25c5c]">1차 {seg1Nights}박</span>
+                  <span className="text-slate-300">/</span>
+                  <span className="text-amber-600">2차 {seg2Nights}박</span>
+                </div>
+                <div className="flex items-center gap-1 ml-1">
+                  <button
+                    type="button"
+                    onClick={() => handleAdjustSplitNights(-1)}
+                    disabled={seg1Nights <= 1}
+                    className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 disabled:opacity-30 hover:bg-slate-50 font-bold text-xs flex items-center justify-center cursor-pointer shadow-2xs"
+                    title="1차 박수 줄이기"
+                  >
+                    -
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAdjustSplitNights(1)}
+                    disabled={seg2Nights <= 1}
+                    className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 disabled:opacity-30 hover:bg-slate-50 font-bold text-xs flex items-center justify-center cursor-pointer shadow-2xs"
+                    title="1차 박수 늘리기"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              {/* 1차 / 2차 스타일 선택 탭 */}
+              <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setActiveSplitTab(0)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border ${
+                    activeSplitTab === 0
+                      ? "bg-[#e25c5c] text-white border-[#e25c5c] shadow-xs"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {locale === "ko" ? `1차 숙소 (${seg1Nights}박)` : `Leg 1 (${seg1Nights}N)`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSplitTab(1)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border ${
+                    activeSplitTab === 1
+                      ? "bg-amber-600 text-white border-amber-600 shadow-xs"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                  }`}
+                >
+                  {locale === "ko" ? `2차 숙소 (${seg2Nights}박)` : `Leg 2 (${seg2Nights}N)`}
+                </button>
+              </div>
+            </div>
+
+            <p className="text-[11.5px] text-slate-600 font-medium">
+              {activeSplitTab === 0
+                ? (locale === "ko"
+                    ? `아래 스타일 카드에서 [1차 숙소 (${seg1Nights}박)]로 이용할 스타일을 선택하세요. (현재: ${STAY_ARCHETYPES.find(a => a.id === seg1BasketId)?.titleKo})`
+                    : `Choose style for Leg 1 (${seg1Nights}N). Current: ${STAY_ARCHETYPES.find(a => a.id === seg1BasketId)?.titleEn}`)
+                : (locale === "ko"
+                    ? `아래 스타일 카드에서 [2차 숙소 (${seg2Nights}박)]로 이용할 스타일을 선택하세요. (현재: ${STAY_ARCHETYPES.find(a => a.id === seg2BasketId)?.titleKo})`
+                    : `Choose style for Leg 2 (${seg2Nights}N). Current: ${STAY_ARCHETYPES.find(a => a.id === seg2BasketId)?.titleEn}`)}
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {STAY_ARCHETYPES.map((archetype) => {
-            const isSelected = !isCustomActive && currentArchetype?.id === archetype.id;
+            const isSelected = isSplitActive
+              ? (activeSplitTab === 0 ? seg1BasketId === archetype.id : seg2BasketId === archetype.id)
+              : (!isCustomActive && currentArchetype?.id === archetype.id);
             const price = getStayArchetypePrice(city, archetype.id);
             const title = locale === "ko" ? archetype.titleKo : archetype.titleEn;
             const desc = locale === "ko" ? archetype.descKo : archetype.descEn;
@@ -224,7 +414,13 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <button
                 key={archetype.id}
                 type="button"
-                onClick={() => onSelectArchetype(city, archetype.id)}
+                onClick={() => {
+                  if (isSplitActive) {
+                    handleSelectSplitArchetype(archetype.id);
+                  } else {
+                    onSelectArchetype(city, archetype.id);
+                  }
+                }}
                 className={`p-3 rounded-2xl border text-left flex flex-row items-stretch gap-3.5 transition-all duration-155 cursor-pointer relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
                   isSelected
                     ? "bg-[#fff7f7] border border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"

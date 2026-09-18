@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights } from "../lib/trip-domain";
+import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights, ALL_SUPPORTED_CITIES, CITY_ORDER } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, saveSingleTrip, getSingleSavedTrip, deleteSingleSavedTrip, restoreSavedTrip, SavedTripItem, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces, generateTripFingerprint } from "../lib/storage-helper";
 import type { PlaceItem } from "../lib/places/types";
 
@@ -1296,6 +1296,85 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       locale === "ko"
         ? `${cityName} 체류 기간이 ${clampedNights === 0 ? "당일" : `${clampedNights}박`}으로 설정되었습니다.${unallocated > 0 ? ` (${unallocated}박 여유)` : ""}`
         : `${cityName} stay set to ${clampedNights} night(s).`
+    );
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const [isAddCityOpen, setIsAddCityOpen] = useState(false);
+
+  const handleAddStopCity = (cityToAdd: SupportedCity) => {
+    if (state.status !== "ready") return;
+    const currentDraft = state.draft;
+    if (currentDraft.selectedCities.length >= 5) {
+      alert(locale === "ko" ? "최대 5개 도시/경유지까지 추가할 수 있습니다." : "Maximum 5 stops allowed.");
+      return;
+    }
+    const lastCity = currentDraft.selectedCities[currentDraft.selectedCities.length - 1];
+    if (lastCity === cityToAdd) {
+      alert(locale === "ko" ? "동일한 도시는 연속으로 바로 추가할 수 없습니다. (다른 도시를 경유 후 재방문 가능)" : "Cannot add the same city consecutively.");
+      return;
+    }
+
+    const nextCities = [...currentDraft.selectedCities, cityToAdd];
+    const maxTotalNights = currentDraft.totalNights || 5;
+    const currentAlloc = currentDraft.cityNightAllocations || {};
+    const allocatedSum = currentDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
+    const unallocated = Math.max(0, maxTotalNights - allocatedSum);
+    const nightsForNew = unallocated > 0 ? Math.min(2, unallocated) : 1;
+
+    const nextAlloc = {
+      ...currentAlloc,
+      [cityToAdd]: (currentAlloc[cityToAdd] || 0) + nightsForNew,
+    };
+
+    const nextDraft: TripDraft = {
+      ...currentDraft,
+      selectedCities: nextCities,
+      cityNightAllocations: nextAlloc,
+    };
+
+    saveTripDraft(nextDraft);
+    persistPreferences({}, nextDraft);
+    setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
+    setSelectedCityTab(cityToAdd);
+    setIsAddCityOpen(false);
+
+    setToastMessage(
+      locale === "ko"
+        ? `여정에 "${CITY_KOREAN_NAMES[cityToAdd]}"(이)가 추가되었습니다.`
+        : `Added ${CITY_ENGLISH_NAMES[cityToAdd]} to your itinerary.`
+    );
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  const handleRemoveStopCity = (indexToRemove: number) => {
+    if (state.status !== "ready") return;
+    const currentDraft = state.draft;
+    if (currentDraft.selectedCities.length <= 1) {
+      alert(locale === "ko" ? "최소 1개 도시는 여정에 남아있어야 합니다." : "At least 1 city must remain.");
+      return;
+    }
+
+    const cityToRemove = currentDraft.selectedCities[indexToRemove];
+    const nextCities = currentDraft.selectedCities.filter((_, idx) => idx !== indexToRemove);
+
+    const nextDraft: TripDraft = {
+      ...currentDraft,
+      selectedCities: nextCities,
+    };
+
+    saveTripDraft(nextDraft);
+    persistPreferences({}, nextDraft);
+    setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
+
+    if (selectedCityTab === cityToRemove && !nextCities.includes(cityToRemove)) {
+      setSelectedCityTab(nextCities[0]);
+    }
+
+    setToastMessage(
+      locale === "ko"
+        ? `여정에서 "${CITY_KOREAN_NAMES[cityToRemove]}"(이)가 삭제되었습니다.`
+        : `Removed ${CITY_ENGLISH_NAMES[cityToRemove]} from your itinerary.`
     );
     setTimeout(() => setToastMessage(null), 2500);
   };
@@ -3050,11 +3129,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     const options = Array.from({ length: maxSelectable + 1 }, (_, i) => i);
 
                     return (
-                      <Fragment key={city}>
+                      <Fragment key={`${city}-${idx}`}>
                         <div
                           role="tab"
                           aria-selected={isActive}
-                          id={`city-tab-${city}`}
+                          id={`city-tab-${city}-${idx}`}
                           aria-controls={`city-panel-${city}`}
                           draggable={isMultiCity}
                           onDragStart={(e) => handleTabDragStart(e, city)}
@@ -3073,7 +3152,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
                               : label
                           }
-                          className={`flex-1 min-w-[76px] sm:min-w-[100px] py-1.5 px-2 sm:px-2.5 rounded-2xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none flex flex-col items-center justify-center gap-1 shrink-0 ${
+                          className={`relative flex-1 min-w-[80px] sm:min-w-[104px] py-1.5 px-2 sm:px-2.5 rounded-2xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none flex flex-col items-center justify-center gap-1 shrink-0 ${
                             isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
                           } ${
                             isDraggingThis
@@ -3083,7 +3162,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
                           }`}
                         >
-                          {/* 1단: 드래그 핸들 힌트 + 순서 번호 + 도시명 */}
+                          {/* 도시 삭제 (✕) 버튼 (2개 이상 도시일 때) */}
+                          {isMultiCity && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveStopCity(idx);
+                              }}
+                              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-200 hover:bg-rose-500 text-slate-500 hover:text-white flex items-center justify-center text-[9px] font-black shadow-xs transition-colors z-10 cursor-pointer"
+                              title={locale === "ko" ? "이 도시를 여정에서 삭제" : "Remove this city"}
+                            >
+                              ✕
+                            </button>
+                          )}
+
+                          {/* 1단: 드래그 핸들 힌트 + 순서 번호 + 도시명 (중복 방문 시 차수 표기) */}
                           <div className="flex items-center justify-center gap-1 min-w-0 pointer-events-none">
                             {isMultiCity && (
                               <span
@@ -3097,7 +3191,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               </span>
                             )}
                             <span className={`text-xs sm:text-[13px] font-black truncate max-w-[75px] sm:max-w-none ${isActive ? "text-[#e25c5c]" : "text-slate-800"}`}>
-                              {label}
+                              {(() => {
+                                const cityOccurrences = draft.selectedCities.filter((c) => c === city).length;
+                                if (cityOccurrences > 1) {
+                                  const visitCount = draft.selectedCities.slice(0, idx + 1).filter((c) => c === city).length;
+                                  return `${label} (${visitCount}차)`;
+                                }
+                                return label;
+                              })()}
                             </span>
                             {isMultiCity && (
                               <span className="text-[9px] text-slate-300 select-none font-bold" title="드래그 가능">⠿</span>
@@ -3146,6 +3247,60 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     );
                   });
                 })()}
+
+                {/* [+ 도시 추가] 버튼 및 팝오버 (최대 5개 도시/경유지) */}
+                {draft.selectedCities.length < 5 && (
+                  <div className="relative shrink-0 ml-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsAddCityOpen(!isAddCityOpen)}
+                      className="flex items-center gap-1 px-3 py-2 sm:py-2.5 rounded-2xl border border-dashed border-[#e25c5c] bg-rose-50/70 hover:bg-rose-100 text-[#e25c5c] text-xs font-black transition-all cursor-pointer shadow-2xs"
+                      title={locale === "ko" ? "경유 도시 또는 재방문 도시 추가" : "Add transit or return city"}
+                    >
+                      <span className="text-sm font-black leading-none">+</span>
+                      <span>{locale === "ko" ? "도시 추가" : "Add City"}</span>
+                    </button>
+
+                    {/* 도시 선택 팝오버 */}
+                    {isAddCityOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setIsAddCityOpen(false)}
+                        />
+                        <div className="absolute right-0 top-full mt-2 z-50 w-64 p-3 bg-white rounded-2xl border border-slate-200 shadow-xl space-y-2">
+                          <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                            <span className="text-xs font-black text-slate-900">
+                              {locale === "ko" ? "여정에 추가할 도시 선택" : "Select City to Add"}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              {locale === "ko" ? "(재방문 가능)" : "(Return allowed)"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto pr-1">
+                            {ALL_SUPPORTED_CITIES.map((c) => {
+                              const lastCity = draft.selectedCities[draft.selectedCities.length - 1];
+                              const isConsecutive = lastCity === c;
+                              const cityName = locale === "ko" ? CITY_KOREAN_NAMES[c] || c : CITY_ENGLISH_NAMES[c] || c;
+                              return (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  disabled={isConsecutive}
+                                  onClick={() => handleAddStopCity(c)}
+                                  className="px-2.5 py-2 rounded-xl text-left border border-slate-100 bg-slate-50/80 hover:bg-rose-50 hover:border-rose-200 hover:text-[#e25c5c] text-xs font-bold text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-between"
+                                >
+                                  <span>{cityName}</span>
+                                  <span className="text-[10px] text-slate-400 font-normal">+</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -3727,7 +3882,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 const sharedRoomCount = Math.ceil(adultCount / 2);
                 const roomCount = isSolo ? 1 : isPair ? sharedRoomCount : adultCount;
 
-                if (isCustomStay) {
+                const isSplitStay =
+                  typeof accSelection === "object" &&
+                  accSelection !== null &&
+                  "kind" in accSelection &&
+                  (accSelection as any).kind === "SPLIT";
+
+                if (isSplitStay) {
+                  const segments = (accSelection as any).segments || [];
+                  let sum = 0;
+                  segments.forEach((seg: any) => {
+                    const price = seg.nightlyPriceKrw || getStayArchetypePrice(currentCity, seg.basketId as StayArchetypeId);
+                    sum += price * (seg.nights || 1) * roomCount;
+                  });
+                  cityAccTotal = sum;
+                  cityAccStatus = locale === "ko" ? "분할 숙박" : "Split Stay";
+                  isAccSelected = true;
+                } else if (isCustomStay) {
                   const custom = accSelection as any;
                   const nightlyPrice = custom.nightlyPriceKrw || custom.customPriceKrw || 0;
                   cityAccTotal = nightlyPrice * roomCount * Math.max(1, cityNights);
@@ -3903,9 +4074,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           const isPair = !isSolo && occupancyMode === "SHARED_PAIR";
                           const sharedRoomCount = Math.ceil(adultCount / 2);
                           const roomCount = isSolo ? 1 : isPair ? sharedRoomCount : adultCount;
-                          const totalStayCostKrw = nightlyPrice * roomCount * cityNights;
+                          const isSplitStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
+                          const splitSegments = isSplitStay ? ((accOverride as any).segments || []) : [];
+                          let splitTotalCost = 0;
+                          if (isSplitStay && splitSegments.length > 0) {
+                            splitSegments.forEach((seg: any) => {
+                              const p = seg.nightlyPriceKrw || getStayArchetypePrice(currentCity, seg.basketId as StayArchetypeId);
+                              splitTotalCost += p * roomCount * (seg.nights || 1);
+                            });
+                          }
+                          const totalStayCostKrw = isSplitStay ? splitTotalCost : (nightlyPrice * roomCount * cityNights);
                           const perPersonStayCostKrw = Math.round(totalStayCostKrw / adultCount);
-                          const hasSelection = isCustomStay || !!currentArchetype;
+                          const hasSelection = isSplitStay || isCustomStay || !!currentArchetype;
 
                           return (
                             <div>
@@ -3919,6 +4099,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       ? (locale === "ko"
                                           ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
                                           : "Select a stay archetype or enter your custom booked stay.")
+                                      : isSplitStay
+                                      ? (locale === "ko"
+                                          ? `숙소 분할 적용: 1차 ${splitSegments[0]?.nights || 0}박 (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[0]?.basketId)?.titleKo || "1차"}) + 2차 ${splitSegments[1]?.nights || 0}박 (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[1]?.basketId)?.titleKo || "2차"})`
+                                          : `Split Stay: 1st ${splitSegments[0]?.nights || 0}N (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[0]?.basketId)?.titleEn || "1st"}) + 2nd ${splitSegments[1]?.nights || 0}N (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[1]?.basketId)?.titleEn || "2nd"})`)
                                       : isCustomStay
                                       ? (locale === "ko"
                                           ? `직접 입력 숙소: "${(accOverride as any).placeNameKo || (accOverride as any).placeNameEn}" (1박 ${formatKrw(nightlyPrice)})`
@@ -4133,6 +4317,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   }
 
                   const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
+                  const isSplitStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
+                  const splitStayOverride = isSplitStay ? (accOverride as any).segments : null;
+
                   const customStayOverride = isCustomStay
                     ? {
                         placeName: (accOverride as any).placeNameKo || (accOverride as any).placeNameEn || "직접 입력 숙소",
@@ -4161,6 +4348,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       onResetToRecommended={handleResetStay}
                       hasCustomOverride={hasOverride}
                       customStayOverride={customStayOverride}
+                      splitStayOverride={splitStayOverride}
+                      onSaveSplitStay={(c, segments) => {
+                        handleStayOverride(c, {
+                          kind: "SPLIT",
+                          segments,
+                        });
+                      }}
+                      onResetSplitStay={(c) => {
+                        handleResetStay(c);
+                      }}
                       onSaveCustomStay={(c, placeName, nightlyPriceKrw) => {
                         handleStayOverride(c, {
                           kind: "PLACE",

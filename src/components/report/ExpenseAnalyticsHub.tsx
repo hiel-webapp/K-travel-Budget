@@ -312,12 +312,12 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 (표 높이에 맞춤) */}
-            <div className="flex-1 flex items-center justify-center py-1.5 pr-6 sm:pr-8">
-              <div className="w-12 sm:w-13 h-40 sm:h-44 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
+            {/* 세로 누적 막대 (박스 중앙 정렬 & 시원하게 확장된 높이) */}
+            <div className="flex-1 flex items-center justify-center py-1 relative">
+              <div className="w-14 sm:w-16 h-[210px] sm:h-[220px] rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
                 {categoryList.map((cat) => {
                   if (cat.pct <= 0) return null;
-                  const isSmall = cat.pct < 8;
+                  const isSmall = cat.pct < 7;
                   return (
                     <div
                       key={cat.key}
@@ -326,7 +326,7 @@ export default function ExpenseAnalyticsHub({
                       title={`${cat.label}: ${cat.pct}% (${formatKrw(cat.amount)})`}
                     >
                       {!isSmall ? (
-                        <span className="text-white text-[10px] font-black">{cat.pct}%</span>
+                        <span className="text-white text-[11px] font-black">{cat.pct}%</span>
                       ) : (
                         <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
                           <span className="text-neutral-400 mr-0.5">-</span>
@@ -340,7 +340,7 @@ export default function ExpenseAnalyticsHub({
             </div>
           </div>
 
-          {/* [세로 막대그래프 2: 방문 도시별 비중] - 높이를 h-40 sm:h-44로 표와 완벽하게 동기화 */}
+          {/* [세로 막대그래프 2: 방문 도시별 비중] - 박스 중앙 정렬 & 시원하게 확장된 높이 */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
@@ -349,12 +349,12 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 (표 높이에 맞춤) */}
-            <div className="flex-1 flex items-center justify-center py-1.5 pr-6 sm:pr-8">
-              <div className="w-12 sm:w-13 h-40 sm:h-44 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
+            {/* 세로 누적 막대 (박스 중앙 정렬 & 시원하게 확장된 높이) */}
+            <div className="flex-1 flex items-center justify-center py-1 relative">
+              <div className="w-14 sm:w-16 h-[210px] sm:h-[220px] rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
                 {cityBarItems.map((c) => {
                   if (c.pct <= 0) return null;
-                  const isSmall = c.pct < 8;
+                  const isSmall = c.pct < 7;
                   return (
                     <div
                       key={c.city}
@@ -363,7 +363,7 @@ export default function ExpenseAnalyticsHub({
                       title={`${c.cityName}: ${c.pct}% (${formatKrw(c.subtotal)})`}
                     >
                       {!isSmall ? (
-                        <span className="text-white text-[10px] font-black">{c.pct}%</span>
+                        <span className="text-white text-[11px] font-black">{c.pct}%</span>
                       ) : (
                         <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
                           <span className="text-neutral-400 mr-0.5">-</span>

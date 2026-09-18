@@ -150,14 +150,14 @@ export default function MadlibsTripSentence({
     );
   }
 
-  // 메인 상단: 박스 디자인/이모티콘 없이 순수 텍스트 중심의 정갈한 2줄 배열
+  // 메인 상단: 박스 디자인/이모티콘 없이 순수 텍스트 중심의 정갈한 2줄 배열 (가운데 정렬)
   return (
-    <div className="w-full py-2 sm:py-3 mb-6 transition-all">
-      <div className="text-[20px] sm:text-[24px] md:text-[28px] leading-[1.6] sm:leading-[1.5] text-neutral-900 font-extrabold tracking-[-0.01em] space-y-1.5 sm:space-y-2">
+    <div className="w-full py-2 sm:py-3 mb-6 transition-all text-center">
+      <div className="text-[20px] sm:text-[24px] md:text-[28px] leading-[1.6] sm:leading-[1.5] text-neutral-900 font-extrabold tracking-[-0.01em] space-y-1.5 sm:space-y-2 text-center">
         {isKo ? (
           <>
             {/* 1번째 줄: 나는 (N명) 이서 (목적지) (으)로 */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span>나는</span>
               <button
                 type="button"
@@ -190,7 +190,7 @@ export default function MadlibsTripSentence({
             </div>
 
             {/* 2번째 줄: (기간) 동안 한국 여행을 떠날 거예요! */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <button
                 type="button"
                 onClick={() => onStepClick(1)}
@@ -210,7 +210,7 @@ export default function MadlibsTripSentence({
         ) : (
           <>
             {/* 1번째 줄: I am planning a (duration) trip to (Destinations) */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span>I am planning a</span>
               <button
                 type="button"
@@ -242,7 +242,7 @@ export default function MadlibsTripSentence({
             </div>
 
             {/* 2번째 줄: with (Travelers) ! */}
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span>with</span>
               <button
                 type="button"
@@ -264,7 +264,7 @@ export default function MadlibsTripSentence({
       </div>
 
       {!isAllFilled && (
-        <div className="mt-2 text-xs sm:text-[13px] text-neutral-500 font-normal">
+        <div className="mt-2.5 text-xs sm:text-[13px] text-neutral-500 font-normal text-center">
           {isKo
             ? "아래 1~3단계를 선택하여 나만의 여행 문장을 완성해 보세요!"
             : "Select Steps 1~3 below to complete your travel statement!"}

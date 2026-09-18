@@ -15,14 +15,26 @@ import type { Locale } from "../lib/i18n/locales";
 interface GuideContentProps {
   locale: Locale;
   dict: Dictionary;
+  initialCards?: GuideCard[];
 }
 
-export default function GuideContent({ locale, dict }: GuideContentProps) {
-  const [cards, setCards] = useState<GuideCard[]>(GUIDE_CARDS);
+export default function GuideContent({
+  locale,
+  dict,
+  initialCards = GUIDE_CARDS,
+}: GuideContentProps) {
+  const [cards, setCards] = useState<GuideCard[]>(initialCards);
   const [selectedCategory, setSelectedCategory] = useState<"all" | GuideCategory>("all");
   const isKo = locale === "ko";
 
-  // Load latest guide cards from admin store
+  // Sync with initialCards prop if updated from server
+  useEffect(() => {
+    if (initialCards && initialCards.length > 0) {
+      setCards(initialCards);
+    }
+  }, [initialCards]);
+
+  // Client-side fallback check for dynamic cards
   useEffect(() => {
     async function loadDynamicCards() {
       try {
@@ -60,39 +72,37 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
         </p>
       </div>
 
-      {/* 2. Category Filter Pill Tabs Bar */}
-      <div className="relative">
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory">
-          {GUIDE_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat.key;
-            return (
-              <button
-                key={cat.key}
-                type="button"
-                onClick={() => setSelectedCategory(cat.key)}
-                className={`whitespace-nowrap px-4 py-2 rounded-full text-xs sm:text-[13px] font-bold transition-all shrink-0 cursor-pointer snap-start flex items-center gap-1.5 ${
-                  isSelected
-                    ? "bg-[#b93829] text-white shadow-xs"
-                    : "bg-white text-slate-600 border border-slate-200/80 hover:border-slate-300 hover:text-slate-800 shadow-2xs"
-                }`}
-              >
-                <span>{cat.icon}</span>
-                <span>{isKo ? cat.labelKo : cat.labelEn}</span>
-                {cat.key !== "all" && (
-                  <span
-                    className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                      isSelected
-                        ? "bg-white/25 text-white"
-                        : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {cards.filter((c) => c.category === cat.key).length}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      {/* 2. Category Filter Pill Tabs Bar (Responsive Wrap) */}
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
+        {GUIDE_CATEGORIES.map((cat) => {
+          const isSelected = selectedCategory === cat.key;
+          return (
+            <button
+              key={cat.key}
+              type="button"
+              onClick={() => setSelectedCategory(cat.key)}
+              className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-[13px] font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                isSelected
+                  ? "bg-[#b93829] text-white shadow-xs"
+                  : "bg-white text-slate-600 border border-slate-200/80 hover:border-slate-300 hover:text-slate-800 shadow-2xs"
+              }`}
+            >
+              <span>{cat.icon}</span>
+              <span>{isKo ? cat.labelKo : cat.labelEn}</span>
+              {cat.key !== "all" && (
+                <span
+                  className={`ml-1 text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                    isSelected
+                      ? "bg-white/25 text-white"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  {cards.filter((c) => c.category === cat.key).length}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Result Counter Info */}

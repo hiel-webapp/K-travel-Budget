@@ -16,6 +16,30 @@ interface TravelPresetSelectorProps {
   onClearPreset?: () => void;
 }
 
+const DEFAULT_PRESET_TAGS_EN: Record<string, string[]> = {
+  K_TREND_VIBES: ["#SeongsuPopups", "#HongdaeVibes", "#GwangalliDrones"],
+  K_HERITAGE_CULTURE: ["#HanokStay", "#Gyeongbokgung", "#GyeongjuHeritage"],
+  EAST_COAST_HEALING: ["#AnmokCoffeeStreet", "#EastSeaView", "#GangneungHealing"],
+  JEJU_EMERALD_HEALING: ["#SeongsanPeak", "#BijarimForest", "#HyeopjaeBeach"],
+  K_GOURMET_FOODIE: ["#GwangjangFood", "#JeonjuBibimbap", "#JagalchiMarket"],
+};
+
+function getSafePresetTags(preset: TravelPreset, isKo: boolean): string[] {
+  if (isKo) {
+    return preset.highlightTagsKo && preset.highlightTagsKo.length > 0
+      ? preset.highlightTagsKo
+      : ["#추천코스", "#K-여행"];
+  }
+  const enTags = preset.highlightTagsEn || [];
+  const hasKorean = enTags.some((t) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(t));
+  if (hasKorean || enTags.length === 0) {
+    if (DEFAULT_PRESET_TAGS_EN[preset.id]) {
+      return DEFAULT_PRESET_TAGS_EN[preset.id];
+    }
+  }
+  return enTags.length > 0 ? enTags : ["#Recommended", "#KoreaTrip"];
+}
+
 export default function TravelPresetSelector({
   locale,
   dict,
@@ -250,35 +274,25 @@ export default function TravelPresetSelector({
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* 헤더 타이틀 */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5 px-1">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#b93829]/10 text-[#b93829]">
-              QUICK PRESETS
+      {/* 활성 프리셋 커스텀 상태 또는 전환 버튼 */}
+      {(activePresetId && isCustomized || (activePresetId && onClearPreset)) && (
+        <div className="flex items-center justify-between gap-2 px-1 mb-2">
+          {activePresetId && isCustomized ? (
+            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-700 animate-pulse">
+              {locale === "ko" ? "✨ 테마 프리셋 기반 커스텀 중" : "✨ Customizing Theme Preset"}
             </span>
-            {activePresetId && isCustomized && (
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-700 animate-pulse">
-                {locale === "ko" ? "✨ 테마 프리셋 기반 커스텀 중" : "✨ Customizing Theme Preset"}
-              </span>
-            )}
-          </div>
-          <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight mt-1">
-            {locale === "ko"
-              ? "어떤 여행을 꿈꾸고 계신가요? 1초 만에 플랜 완성하기"
-              : "Choose Your Travel Style — Ready in 1 Click"}
-          </h2>
+          ) : <div />}
+          {activePresetId && onClearPreset && (
+            <button
+              type="button"
+              onClick={onClearPreset}
+              className="text-xs font-semibold text-slate-400 hover:text-slate-600 hover:underline cursor-pointer transition-colors"
+            >
+              {locale === "ko" ? "↺ 직접 선택으로 전환" : "↺ Custom Planning"}
+            </button>
+          )}
         </div>
-        {activePresetId && onClearPreset && (
-          <button
-            type="button"
-            onClick={onClearPreset}
-            className="text-xs font-semibold text-slate-400 hover:text-slate-600 hover:underline self-start sm:self-auto cursor-pointer transition-colors"
-          >
-            {locale === "ko" ? "↺ 직접 선택으로 전환" : "↺ Custom Planning"}
-          </button>
-        )}
-      </div>
+      )}
 
       {/* 프리셋 캐러셀 뷰포트 */}
       <div
@@ -309,7 +323,7 @@ export default function TravelPresetSelector({
             const title = locale === "ko" ? preset.titleKo : preset.titleEn;
             const tagline = locale === "ko" ? preset.taglineKo : preset.taglineEn;
             const route = locale === "ko" ? preset.routeTextKo : preset.routeTextEn;
-            const tags = locale === "ko" ? preset.highlightTagsKo : preset.highlightTagsEn;
+            const tags = getSafePresetTags(preset, locale === "ko");
 
             return (
               <div
@@ -388,7 +402,9 @@ export default function TravelPresetSelector({
                     {/* 동선 요약 뱃지 */}
                     <div>
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-black/40 backdrop-blur-md border border-white/25 text-[11px] font-bold text-white shadow-xs">
-                        <span className="text-[10px] text-white/70 font-medium">동선:</span>
+                        <span className="text-[10px] text-white/70 font-medium">
+                          {locale === "ko" ? "동선:" : "Route:"}
+                        </span>
                         <span>{route}</span>
                       </span>
                     </div>
@@ -406,7 +422,9 @@ export default function TravelPresetSelector({
                         ))}
                       </div>
                       <div className="text-right shrink-0">
-                        <span className="text-[9.5px] text-white/70 block leading-none">1인 권장</span>
+                        <span className="text-[9.5px] text-white/70 block leading-none">
+                          {locale === "ko" ? "1인 권장" : "Per Person"}
+                        </span>
                         <span className="text-xs sm:text-[13px] font-black text-amber-300 tabular-nums drop-shadow-xs">
                           {formatKrw(preset.estimatedBudgetKrw)}~
                         </span>
@@ -422,16 +440,16 @@ export default function TravelPresetSelector({
 
       {/* 하단 컨트롤러 바 */}
       <div className="flex items-center justify-between px-2 pt-1">
-        {/* 좌측 정보 (자동 재생 토글) */}
+        {/* 좌측 정보 (자동 재생 토글 버튼만 유지, 텍스트 제거) */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setIsPlaying(!isPlaying)}
-            className="text-[11px] font-medium text-slate-400 hover:text-slate-700 flex items-center gap-1 transition-colors cursor-pointer"
-            aria-label={isPlaying ? "일시정지" : "자동재생"}
+            className="w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label={isPlaying ? (locale === "ko" ? "일시정지" : "Pause") : (locale === "ko" ? "자동재생" : "Play")}
+            title={isPlaying ? (locale === "ko" ? "일시정지" : "Pause") : (locale === "ko" ? "자동재생" : "Play")}
           >
-            <span>{isPlaying ? "⏸" : "▶"}</span>
-            <span className="hidden sm:inline">{isPlaying ? "자동 롤링 중 (4초)" : "정지됨"}</span>
+            <span className="text-xs">{isPlaying ? "⏸" : "▶"}</span>
           </button>
         </div>
 

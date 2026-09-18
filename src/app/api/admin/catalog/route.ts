@@ -11,6 +11,14 @@ import {
   deleteAdminTourCourse,
   getAdminSortingRules,
   saveAdminSortingRule,
+  getAdminGuides,
+  getAdminBilingualGuide,
+  saveAdminGuide,
+  setHeroGuide,
+  deleteAdminGuide,
+  getAdminFaqs,
+  saveAdminFaq,
+  deleteAdminFaq,
   PlacementScope,
   SortingRuleType,
 } from "../../../../lib/admin/admin-store";
@@ -48,6 +56,22 @@ export async function GET(req: NextRequest) {
       responseData.sortingRules = await getAdminSortingRules();
     }
 
+    if (type === "GUIDE" || type === "ALL") {
+      responseData.guidesKo = await getAdminGuides("ko");
+      responseData.guidesEn = await getAdminGuides("en");
+    }
+
+    if (type === "FAQ" || type === "ALL") {
+      responseData.faqs = await getAdminFaqs();
+    }
+
+    if (type === "GUIDE_BILINGUAL") {
+      const guideId = searchParams.get("id");
+      if (guideId) {
+        responseData.guide = await getAdminBilingualGuide(guideId);
+      }
+    }
+
     return NextResponse.json(responseData);
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -57,7 +81,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { type, data, city, rule } = body;
+    const { type, data, city, rule, id } = body;
 
     if (type === "SORTING_RULE") {
       if (!city || !rule) {
@@ -91,6 +115,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, item: saved });
     }
 
+    if (type === "GUIDE") {
+      if (!data || (!data.ko && !data.id)) {
+        return NextResponse.json({ success: false, error: "Invalid guide data" }, { status: 400 });
+      }
+      const guideKo = data.ko || data;
+      const guideEn = data.en;
+      await saveAdminGuide(guideKo, guideEn);
+      return NextResponse.json({ success: true, message: `Guide ${guideKo.id} saved` });
+    }
+
+    if (type === "GUIDE_HERO") {
+      if (!id) {
+        return NextResponse.json({ success: false, error: "Guide ID required for hero setting" }, { status: 400 });
+      }
+      await setHeroGuide(id);
+      return NextResponse.json({ success: true, message: `Hero guide set to ${id}` });
+    }
+
+    if (type === "FAQ") {
+      if (!data || !data.id) {
+        return NextResponse.json({ success: false, error: "Invalid FAQ data" }, { status: 400 });
+      }
+      await saveAdminFaq(data);
+      return NextResponse.json({ success: true, message: `FAQ ${data.id} saved` });
+    }
+
     return NextResponse.json({ success: false, error: `Unknown type: ${type}` }, { status: 400 });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -120,6 +170,16 @@ export async function DELETE(req: NextRequest) {
     if (type === "COURSE") {
       await deleteAdminTourCourse(id);
       return NextResponse.json({ success: true, message: `Course ${id} removed` });
+    }
+
+    if (type === "GUIDE") {
+      await deleteAdminGuide(id);
+      return NextResponse.json({ success: true, message: `Guide ${id} removed` });
+    }
+
+    if (type === "FAQ") {
+      await deleteAdminFaq(id);
+      return NextResponse.json({ success: true, message: `FAQ ${id} removed` });
     }
 
     return NextResponse.json({ success: false, error: `Unknown type: ${type}` }, { status: 400 });

@@ -66,10 +66,34 @@ export function getTravelPresetById(id: string): TravelPreset | undefined {
 
     fs.writeFileSync(presetsPath, presetsTsCode, "utf-8");
 
+    // Also export guides & FAQs to static-contents.ts if available in admin store
+    if (store.guideItemsKo && store.guideItemsEn && store.guideFaqs) {
+      const staticContentsPath = path.join(process.cwd(), "src", "lib", "static-contents.ts");
+      if (fs.existsSync(staticContentsPath)) {
+        let content = fs.readFileSync(staticContentsPath, "utf-8");
+
+        // Update K_GUIDE_FAQS
+        const faqsCode = `export const K_GUIDE_FAQS: GuideFAQ[] = ${JSON.stringify(store.guideFaqs, null, 2)};`;
+        content = content.replace(/export const K_GUIDE_FAQS: GuideFAQ\[\] = \[[\s\S]*?\];/m, faqsCode);
+
+        // Update K_GUIDE_CONTENTS
+        const guideContentsObj = {
+          ko: store.guideItemsKo,
+          en: store.guideItemsEn,
+        };
+        const guidesCode = `export const K_GUIDE_CONTENTS: Record<"ko" | "en", GuideItem[]> = ${JSON.stringify(guideContentsObj, null, 2)};`;
+        content = content.replace(/export const K_GUIDE_CONTENTS: Record<"ko" \| "en", GuideItem\[\]> = \{[\s\S]*?\n\};/m, guidesCode);
+
+        fs.writeFileSync(staticContentsPath, content, "utf-8");
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Successfully synchronized presets into src/lib/presets/travel-presets.ts",
+      message: "Successfully synchronized presets, guides, and FAQs into source code",
       totalPresets: store.presets.length,
+      totalGuides: store.guideItemsKo?.length || 0,
+      totalFaqs: store.guideFaqs?.length || 0,
       lastUpdated: new Date().toISOString(),
     });
   } catch (error: any) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { K_GUIDE_CONTENTS, K_GUIDE_FAQS, GuideItem, GuideFAQ } from "../lib/static-contents";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -22,7 +22,32 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const lang = locale === "en" ? "en" : "ko";
-  const items: GuideItem[] = K_GUIDE_CONTENTS[lang] || K_GUIDE_CONTENTS.ko;
+  const [guideItems, setGuideItems] = useState<GuideItem[]>(() => {
+    return K_GUIDE_CONTENTS[lang] || K_GUIDE_CONTENTS.ko;
+  });
+  const [faqs, setFaqs] = useState<GuideFAQ[]>(() => K_GUIDE_FAQS);
+
+  useEffect(() => {
+    async function loadDynamicGuides() {
+      try {
+        const res = await fetch("/api/admin/catalog?type=ALL");
+        const data = await res.json();
+        if (data.success) {
+          if (lang === "en" && Array.isArray(data.guidesEn) && data.guidesEn.length > 0) {
+            setGuideItems(data.guidesEn);
+          } else if (lang === "ko" && Array.isArray(data.guidesKo) && data.guidesKo.length > 0) {
+            setGuideItems(data.guidesKo);
+          }
+          if (Array.isArray(data.faqs) && data.faqs.length > 0) {
+            setFaqs(data.faqs);
+          }
+        }
+      } catch {}
+    }
+    loadDynamicGuides();
+  }, [lang]);
+
+  const items: GuideItem[] = guideItems;
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -529,7 +554,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             </h3>
 
             <div className="space-y-1">
-              {K_GUIDE_FAQS.map((faq) => {
+              {faqs.map((faq) => {
                 const isOpen = activeFaqId === faq.id;
                 return (
                   <div key={faq.id} className="border-b border-slate-100 last:border-0 pb-2 pt-1">

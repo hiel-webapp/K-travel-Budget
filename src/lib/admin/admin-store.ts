@@ -5,6 +5,7 @@ import { ALL_FOOD_ITEMS } from "../../features/budget/catalog/food-catalog";
 import { ATTRACTION_SPOTS_CATALOG, AttractionSpot, TOUR_COURSE_PRESETS, TourCoursePreset } from "../../features/budget/catalog/attraction-spots";
 import { FoodItemDefinition } from "../../features/budget/domain/types";
 import { SupportedCity } from "../trip-domain";
+import { K_GUIDE_CONTENTS, K_GUIDE_FAQS, GuideItem, GuideFAQ } from "../static-contents";
 
 export type PlacementScope = "CITY_PLANNER" | "K_SPOT" | "BOTH";
 
@@ -22,6 +23,9 @@ export interface AdminStoreData {
   attractionSpots: AttractionSpot[];
   tourCourses: TourCoursePreset[];
   sortingRulesByCity: Record<string, SortingRuleType>;
+  guideItemsKo?: GuideItem[];
+  guideItemsEn?: GuideItem[];
+  guideFaqs?: GuideFAQ[];
   adminPin?: string;
   lastUpdated: string;
 }
@@ -83,6 +87,9 @@ function getInitialStore(): AdminStoreData {
     attractionSpots: initialAttractions,
     tourCourses: initialCourses,
     sortingRulesByCity: defaultSorting,
+    guideItemsKo: [...K_GUIDE_CONTENTS.ko],
+    guideItemsEn: [...K_GUIDE_CONTENTS.en],
+    guideFaqs: [...K_GUIDE_FAQS],
     lastUpdated: new Date().toISOString(),
   };
 }
@@ -582,3 +589,113 @@ export async function updateAdminPin(newPin: string): Promise<boolean> {
   await saveAdminStore(store);
   return true;
 }
+
+// ==========================================
+// 7. K-Guide Articles & FAQs Management
+// ==========================================
+
+export async function getAdminGuides(locale: "ko" | "en" = "ko"): Promise<GuideItem[]> {
+  const store = await loadAdminStore();
+  if (locale === "en") {
+    return store.guideItemsEn || [...K_GUIDE_CONTENTS.en];
+  }
+  return store.guideItemsKo || [...K_GUIDE_CONTENTS.ko];
+}
+
+export async function getAdminBilingualGuide(id: string): Promise<{ ko?: GuideItem; en?: GuideItem } | null> {
+  const store = await loadAdminStore();
+  const koList = store.guideItemsKo || [...K_GUIDE_CONTENTS.ko];
+  const enList = store.guideItemsEn || [...K_GUIDE_CONTENTS.en];
+  const ko = koList.find((g) => g.id === id);
+  const en = enList.find((g) => g.id === id);
+  if (!ko && !en) return null;
+  return { ko, en };
+}
+
+export async function saveAdminGuide(guideKo: GuideItem, guideEn?: GuideItem): Promise<boolean> {
+  const store = await loadAdminStore();
+  if (!store.guideItemsKo) store.guideItemsKo = [...K_GUIDE_CONTENTS.ko];
+  if (!store.guideItemsEn) store.guideItemsEn = [...K_GUIDE_CONTENTS.en];
+
+  // 한국어 가이드 저장/업데이트
+  const koIdx = store.guideItemsKo.findIndex((g) => g.id === guideKo.id);
+  if (koIdx >= 0) {
+    store.guideItemsKo[koIdx] = { ...guideKo };
+  } else {
+    store.guideItemsKo.push({ ...guideKo });
+  }
+
+  // 영문 가이드 저장/업데이트
+  if (guideEn) {
+    const enIdx = store.guideItemsEn.findIndex((g) => g.id === guideEn.id);
+    if (enIdx >= 0) {
+      store.guideItemsEn[enIdx] = { ...guideEn };
+    } else {
+      store.guideItemsEn.push({ ...guideEn });
+    }
+  }
+
+  await saveAdminStore(store);
+  return true;
+}
+
+export async function setHeroGuide(id: string): Promise<boolean> {
+  const store = await loadAdminStore();
+  if (!store.guideItemsKo) store.guideItemsKo = [...K_GUIDE_CONTENTS.ko];
+  if (!store.guideItemsEn) store.guideItemsEn = [...K_GUIDE_CONTENTS.en];
+
+  store.guideItemsKo = store.guideItemsKo.map((g) => ({
+    ...g,
+    isHero: g.id === id,
+  }));
+
+  store.guideItemsEn = store.guideItemsEn.map((g) => ({
+    ...g,
+    isHero: g.id === id,
+  }));
+
+  await saveAdminStore(store);
+  return true;
+}
+
+export async function deleteAdminGuide(id: string): Promise<boolean> {
+  const store = await loadAdminStore();
+  if (!store.guideItemsKo) store.guideItemsKo = [...K_GUIDE_CONTENTS.ko];
+  if (!store.guideItemsEn) store.guideItemsEn = [...K_GUIDE_CONTENTS.en];
+
+  store.guideItemsKo = store.guideItemsKo.filter((g) => g.id !== id);
+  store.guideItemsEn = store.guideItemsEn.filter((g) => g.id !== id);
+
+  await saveAdminStore(store);
+  return true;
+}
+
+export async function getAdminFaqs(): Promise<GuideFAQ[]> {
+  const store = await loadAdminStore();
+  return store.guideFaqs || [...K_GUIDE_FAQS];
+}
+
+export async function saveAdminFaq(faq: GuideFAQ): Promise<boolean> {
+  const store = await loadAdminStore();
+  if (!store.guideFaqs) store.guideFaqs = [...K_GUIDE_FAQS];
+
+  const idx = store.guideFaqs.findIndex((f) => f.id === faq.id);
+  if (idx >= 0) {
+    store.guideFaqs[idx] = { ...faq };
+  } else {
+    store.guideFaqs.push({ ...faq });
+  }
+
+  await saveAdminStore(store);
+  return true;
+}
+
+export async function deleteAdminFaq(id: string): Promise<boolean> {
+  const store = await loadAdminStore();
+  if (!store.guideFaqs) store.guideFaqs = [...K_GUIDE_FAQS];
+
+  store.guideFaqs = store.guideFaqs.filter((f) => f.id !== id);
+  await saveAdminStore(store);
+  return true;
+}
+

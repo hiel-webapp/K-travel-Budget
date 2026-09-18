@@ -6,6 +6,7 @@ import { ATTRACTION_SPOTS_CATALOG, AttractionSpot, TOUR_COURSE_PRESETS, TourCour
 import { FoodItemDefinition } from "../../features/budget/domain/types";
 import { SupportedCity } from "../trip-domain";
 import { K_GUIDE_CONTENTS, K_GUIDE_FAQS, GuideItem, GuideFAQ } from "../static-contents";
+import { GUIDE_CARDS, GuideCard } from "../../data/guide-cards";
 
 export type PlacementScope = "CITY_PLANNER" | "K_SPOT" | "BOTH";
 
@@ -26,6 +27,7 @@ export interface AdminStoreData {
   guideItemsKo?: GuideItem[];
   guideItemsEn?: GuideItem[];
   guideFaqs?: GuideFAQ[];
+  guideCards?: GuideCard[];
   adminPin?: string;
   lastUpdated: string;
 }
@@ -90,6 +92,7 @@ function getInitialStore(): AdminStoreData {
     guideItemsKo: [...K_GUIDE_CONTENTS.ko],
     guideItemsEn: [...K_GUIDE_CONTENTS.en],
     guideFaqs: [...K_GUIDE_FAQS],
+    guideCards: [...GUIDE_CARDS],
     lastUpdated: new Date().toISOString(),
   };
 }
@@ -698,4 +701,52 @@ export async function deleteAdminFaq(id: string): Promise<boolean> {
   await saveAdminStore(store);
   return true;
 }
+
+// ==========================================
+// 8. 6-Category GuideCard Deck Management
+// ==========================================
+
+export async function getAdminGuideCards(): Promise<GuideCard[]> {
+  const store = await loadAdminStore();
+  if (store.guideCards && Array.isArray(store.guideCards) && store.guideCards.length > 0) {
+    return store.guideCards;
+  }
+  return [...GUIDE_CARDS];
+}
+
+export async function saveAdminGuideCard(card: GuideCard): Promise<boolean> {
+  const store = await loadAdminStore();
+  if (!store.guideCards || !Array.isArray(store.guideCards) || store.guideCards.length === 0) {
+    store.guideCards = [...GUIDE_CARDS];
+  }
+
+  const idx = store.guideCards.findIndex((c) => c.id === card.id);
+  if (idx >= 0) {
+    store.guideCards[idx] = { ...card };
+  } else {
+    store.guideCards.push({ ...card });
+  }
+
+  await saveAdminStore(store);
+  return true;
+}
+
+export async function deleteAdminGuideCard(id: string): Promise<boolean> {
+  const store = await loadAdminStore();
+  if (!store.guideCards || !Array.isArray(store.guideCards) || store.guideCards.length === 0) {
+    store.guideCards = [...GUIDE_CARDS];
+  }
+
+  store.guideCards = store.guideCards.filter((c) => c.id !== id);
+  await saveAdminStore(store);
+  return true;
+}
+
+export async function resetAdminGuideCards(): Promise<GuideCard[]> {
+  const store = await loadAdminStore();
+  store.guideCards = [...GUIDE_CARDS];
+  await saveAdminStore(store);
+  return store.guideCards;
+}
+
 

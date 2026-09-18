@@ -19,6 +19,10 @@ import {
   getAdminFaqs,
   saveAdminFaq,
   deleteAdminFaq,
+  getAdminGuideCards,
+  saveAdminGuideCard,
+  deleteAdminGuideCard,
+  resetAdminGuideCards,
   PlacementScope,
   SortingRuleType,
 } from "../../../../lib/admin/admin-store";
@@ -56,9 +60,10 @@ export async function GET(req: NextRequest) {
       responseData.sortingRules = await getAdminSortingRules();
     }
 
-    if (type === "GUIDE" || type === "ALL") {
+    if (type === "GUIDE" || type === "GUIDE_CARDS" || type === "ALL") {
       responseData.guidesKo = await getAdminGuides("ko");
       responseData.guidesEn = await getAdminGuides("en");
+      responseData.guideCards = await getAdminGuideCards();
     }
 
     if (type === "FAQ" || type === "ALL") {
@@ -125,6 +130,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: `Guide ${guideKo.id} saved` });
     }
 
+    if (type === "GUIDE_CARD") {
+      if (!data || !data.id || !data.titleEn || !data.titleKo) {
+        return NextResponse.json({ success: false, error: "Invalid guide card data" }, { status: 400 });
+      }
+      await saveAdminGuideCard(data);
+      return NextResponse.json({ success: true, message: `GuideCard ${data.id} saved` });
+    }
+
+    if (type === "RESET_GUIDE_CARDS") {
+      const resetList = await resetAdminGuideCards();
+      return NextResponse.json({ success: true, guideCards: resetList });
+    }
+
     if (type === "GUIDE_HERO") {
       if (!id) {
         return NextResponse.json({ success: false, error: "Guide ID required for hero setting" }, { status: 400 });
@@ -175,6 +193,11 @@ export async function DELETE(req: NextRequest) {
     if (type === "GUIDE") {
       await deleteAdminGuide(id);
       return NextResponse.json({ success: true, message: `Guide ${id} removed` });
+    }
+
+    if (type === "GUIDE_CARD") {
+      await deleteAdminGuideCard(id);
+      return NextResponse.json({ success: true, message: `GuideCard ${id} removed` });
     }
 
     if (type === "FAQ") {

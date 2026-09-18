@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   GUIDE_CARDS,
   GUIDE_CATEGORIES,
+  GuideCard,
   GuideCategory,
 } from "src/data/guide-cards";
 import { GuideCardItem } from "./guide/GuideCardItem";
@@ -17,13 +18,28 @@ interface GuideContentProps {
 }
 
 export default function GuideContent({ locale, dict }: GuideContentProps) {
+  const [cards, setCards] = useState<GuideCard[]>(GUIDE_CARDS);
   const [selectedCategory, setSelectedCategory] = useState<"all" | GuideCategory>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const isKo = locale === "ko";
 
+  // Load latest guide cards from admin store
+  useEffect(() => {
+    async function loadDynamicCards() {
+      try {
+        const res = await fetch("/api/admin/catalog?type=GUIDE_CARDS");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.guideCards) && data.guideCards.length > 0) {
+          setCards(data.guideCards);
+        }
+      } catch {}
+    }
+    loadDynamicCards();
+  }, []);
+
   // Filter cards by category and search query
   const filteredCards = useMemo(() => {
-    return GUIDE_CARDS.filter((card) => {
+    return cards.filter((card) => {
       const matchCategory =
         selectedCategory === "all" || card.category === selectedCategory;
 
@@ -134,7 +150,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
                         : "bg-slate-100 text-slate-500"
                     }`}
                   >
-                    {GUIDE_CARDS.filter((c) => c.category === cat.key).length}
+                    {cards.filter((c) => c.category === cat.key).length}
                   </span>
                 )}
               </button>

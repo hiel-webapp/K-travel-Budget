@@ -632,7 +632,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
             </div>
 
             {/* Mobile Live Interactive Mad-libs Sentence */}
-            <div className="mb-5 bg-white p-3.5 rounded-2xl border border-teal-100/90 shadow-2xs">
+            <div className="mb-4 px-1">
               <MadlibsTripSentence
                 draft={draft}
                 locale={locale}

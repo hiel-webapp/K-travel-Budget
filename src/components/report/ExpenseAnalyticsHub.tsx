@@ -38,47 +38,35 @@ export default function ExpenseAnalyticsHub({
     grandTotalKrw - (stayTotal + foodTotal + attractionTotal + transportTotal)
   );
 
-  // 2. 실제 도시간 이동 구간(Leg-by-Leg)별 실제 요금을 여정에 맞게 각 도시에 정확히 귀속
-  //    - ENTRY_... (공항 -> 1번 도시): 1번 도시에 귀속
-  //    - fromCity-toCity (도시 간 이동): 이동 도착 도시(toCity)에 귀속
-  //    - EXIT_... (마지막 도시 -> 공항): 마지막 도시에 귀속
+  // 2. 실제 도시간 이동 구간(Leg-by-Leg)별 실제 요금을 여정 정차지 순서(인덱스)에 맞게 정확히 귀속
+  //    - ENTRY_... (공항 -> 1번 정차지): 1번 정차지에 귀속
+  //    - 도시 간 이동: 이동 도착 정차지(targetStopIdx)에 귀속
+  //    - EXIT_... (마지막 정차지 -> 공항): 마지막 정차지에 귀속
   const intercityLineItems =
     calculations.basePlan?.intercitySection?.lineItems || [];
   const numCities = draft.selectedCities.length;
-  const firstCity = draft.selectedCities[0];
-  const lastCity = draft.selectedCities[draft.selectedCities.length - 1];
 
-  const allocatedIntercityMap: Record<string, number> = {};
-  draft.selectedCities.forEach((c) => {
-    allocatedIntercityMap[c] = 0;
-  });
+  const allocatedIntercityByIndex: number[] = new Array(numCities).fill(0);
 
   if (intercityLineItems.length > 0) {
-    intercityLineItems.forEach((item) => {
-      const route = item.route || "";
+    intercityLineItems.forEach((item, itemIdx) => {
       const cost = item.lineTotalKrw || 0;
+      const route = item.route || "";
 
-      if (route.startsWith("ENTRY_")) {
-        if (firstCity) allocatedIntercityMap[firstCity] += cost;
-      } else if (route.startsWith("EXIT_")) {
-        if (lastCity) allocatedIntercityMap[lastCity] += cost;
+      if (route.startsWith("ENTRY_") || itemIdx === 0) {
+        allocatedIntercityByIndex[0] += cost;
+      } else if (route.startsWith("EXIT_") || itemIdx === intercityLineItems.length - 1) {
+        allocatedIntercityByIndex[numCities - 1] += cost;
       } else {
-        const parts = route.split("-");
-        const toCity = parts[1];
-        if (toCity && allocatedIntercityMap[toCity] !== undefined) {
-          allocatedIntercityMap[toCity] += cost;
-        } else if (lastCity) {
-          allocatedIntercityMap[lastCity] += cost;
-        }
+        const targetStopIdx = Math.min(itemIdx, numCities - 1);
+        allocatedIntercityByIndex[targetStopIdx] += cost;
       }
     });
-  } else if (intercityTotal > 0 && draft.selectedCities.length > 0) {
-    // Fallback: lineItems가 없을 경우에만 비례 배분
-    const numCities = draft.selectedCities.length;
+  } else if (intercityTotal > 0 && numCities > 0) {
     const totalLegs = numCities <= 1 ? 1 : numCities + 1;
-    draft.selectedCities.forEach((c, idx) => {
+    draft.selectedCities.forEach((_, idx) => {
       const legs = idx === numCities - 1 ? 2 : 1;
-      allocatedIntercityMap[c] = Math.round((intercityTotal * legs) / totalLegs);
+      allocatedIntercityByIndex[idx] = Math.round((intercityTotal * legs) / totalLegs);
     });
   }
 
@@ -117,20 +105,25 @@ export default function ExpenseAnalyticsHub({
   const cityTableRows = draft.selectedCities.map((city, idx) => {
     const cInfo = calculations.cityBreakdown?.[city];
     const color = cityPalette[idx % cityPalette.length];
-    const cityName = isKo
-      ? CITY_KOREAN_NAMES[city] || city
-      : CITY_ENGLISH_NAMES[city] || city;
+    
+    // 순환 여정(동일 도시 중복 방문) 시 N차 표기 지원
+    const cityOccurrences = draft.selectedCities.filter((c) => c === city).length;
+    let cityName = isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
+    if (cityOccurrences > 1) {
+      const visitCount = draft.selectedCities.slice(0, idx + 1).filter((c) => c === city).length;
+      cityName = isKo ? `${cityName} (${visitCount}차)` : `${cityName} (#${visitCount})`;
+    }
 
     const stay = cInfo?.stayTotalKrw || 0;
     const food = cInfo?.foodTotalKrw || 0;
     const attr = cInfo?.attractionTotalKrw || 0;
-    const trans = (cInfo?.transportTotalKrw || 0) + (allocatedIntercityMap[city] || 0);
+    const trans = (cInfo?.transportTotalKrw || 0) + (allocatedIntercityByIndex[idx] || 0);
     const etc = allocatedEtcList[idx];
     const subtotal = stay + food + attr + trans + etc;
     const nights = cInfo?.nights || 0;
 
     return {
-      city,
+      city: `${city}_${idx}`,
       cityName,
       nights,
       stay,

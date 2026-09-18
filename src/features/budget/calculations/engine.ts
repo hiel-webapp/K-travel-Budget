@@ -182,6 +182,46 @@ export function generateInitialBudgetPlan(
                     sourceLabel: accSelection.placeNameKo,
                   };
                 }
+              } else if (accSelection.kind === "SPLIT") {
+                // 분할 숙박(Split Stay) 정밀 계산
+                const isSoloTraveler = adultCount <= 1;
+                const isPairSplit = !isSoloTraveler && cityOccupancyMode === "SHARED_PAIR";
+                const roomCount = isSoloTraveler ? 1 : isPairSplit ? Math.ceil(adultCount / 2) : adultCount;
+
+                let splitTotalKrw = 0;
+                const segmentLabels: string[] = [];
+
+                accSelection.segments.forEach((seg) => {
+                  const segNights = seg.nights || 0;
+                  const segBasket = findBasket(catalog, seg.basketId, category, city) || catalog.find((b) => b.category === "ACCOMMODATION");
+                  const segUnitPrice = seg.nightlyPriceKrw ?? segBasket?.representativePriceKrw ?? 95000;
+                  splitTotalKrw += segUnitPrice * roomCount * segNights;
+                  const segName = seg.placeNameKo || (seg.basketId === "BUDGET_STAY" ? "실속형" : seg.basketId === "PREMIUM_HERITAGE" ? "럭셔리/한옥" : "호텔");
+                  segmentLabels.push(`${segName} ${segNights}N`);
+                });
+
+                const avgNightly = nights > 0 ? Math.round(splitTotalKrw / (roomCount * nights)) : 0;
+                const fallbackBasket = catalog.find((b) => b.category === "ACCOMMODATION");
+
+                accPlaceOverrideItem = {
+                  id: `${city}_ACCOMMODATION_SPLIT`.toUpperCase(),
+                  basketId: (accSelection.segments[0]?.basketId || "STANDARD_HOTEL") as BudgetBasketId,
+                  category: "ACCOMMODATION",
+                  scope: "CITY",
+                  cityCode: city,
+                  route: null,
+                  unitPriceKrw: avgNightly,
+                  pricingUnit: "ROOM_NIGHT",
+                  quantity: roomCount,
+                  participantCount: adultCount,
+                  durationCount: nights,
+                  lineTotalKrw: splitTotalKrw,
+                  priceMinKrw: splitTotalKrw,
+                  priceMaxKrw: splitTotalKrw,
+                  confidence: "VERIFIED_AVERAGE",
+                  updatedAt: fallbackBasket?.updatedAt || "2026-09-01",
+                  sourceLabel: `[분할 숙박] ${segmentLabels.join(" + ")}`,
+                };
               } else {
                 basketId = accSelection.basketId;
               }

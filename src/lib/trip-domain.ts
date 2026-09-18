@@ -59,6 +59,30 @@ export type BudgetTier = "BUDGET" | "STANDARD" | "PREMIUM";
 
 export type CityNightAllocation = Partial<Record<SupportedCity, number>>;
 
+/**
+ * 동일 도시 내 복수 숙박(Split Stay)을 위한 세그먼트 모델
+ */
+export interface CityStaySegment {
+  segmentId: string;
+  basketId: string; // BudgetBasketId ("BUDGET_STAY" | "STANDARD_HOTEL" | "PREMIUM_HERITAGE" 등)
+  nights: number;
+  customSpotId?: string;
+  customSpotNameKo?: string;
+  customSpotNameEn?: string;
+  nightlyPriceKrw?: number;
+}
+
+/**
+ * 여정 정차 구간(Trip Stop) 모델: 순환 여정(동일 도시 재방문) 및 숙소 분할을 단일 아키텍처로 지원
+ */
+export interface TripStop {
+  id: string; // "stop_1", "stop_2", ...
+  city: SupportedCity;
+  nights: number;
+  label?: string; // "1차", "출국 전 마무리" 등
+  staySegments?: CityStaySegment[];
+}
+
 export interface TripDraft {
   totalNights: number | null;
   adultCount: number | null;
@@ -67,6 +91,47 @@ export interface TripDraft {
   budgetTier: BudgetTier | null;
   targetBudgetKrw: number;
   schemaVersion: number;
+  stops?: TripStop[]; // 정차지 순서 및 세부 정보
+}
+
+/**
+ * TripDraft에서 stops 목록을 안전하게 추출 (기존 draft와의 100% 하위 호환성 보장)
+ */
+export function ensureTripStops(draft: TripDraft): TripStop[] {
+  if (draft.stops && draft.stops.length > 0) {
+    return draft.stops;
+  }
+  const cityCounts: Record<string, number> = {};
+  return draft.selectedCities.map((city, idx) => {
+    cityCounts[city] = (cityCounts[city] || 0) + 1;
+    const isRepeated = draft.selectedCities.filter((c) => c === city).length > 1;
+    return {
+      id: `stop_${idx + 1}_${city.toLowerCase()}`,
+      city,
+      nights: draft.cityNightAllocations[city] || 0,
+      label: isRepeated ? `${cityCounts[city]}차` : undefined,
+    };
+  });
+}
+
+/**
+ * stops를 변경했을 때 draft의 selectedCities, cityNightAllocations, totalNights를 동기화
+ */
+export function syncDraftFromStops(draft: TripDraft, stops: TripStop[]): TripDraft {
+  const selectedCities = stops.map((s) => s.city);
+  const cityNightAllocations: CityNightAllocation = {};
+  stops.forEach((s) => {
+    cityNightAllocations[s.city] = (cityNightAllocations[s.city] || 0) + s.nights;
+  });
+  const totalNights = stops.reduce((sum, s) => sum + s.nights, 0);
+
+  return {
+    ...draft,
+    selectedCities,
+    cityNightAllocations,
+    totalNights,
+    stops,
+  };
 }
 
 export interface TripDraftStorageEnvelope {
@@ -189,7 +254,8 @@ export function calculateDefaultNightAllocation(
   let remainder = totalNights % cities.length;
 
   for (const city of cities) {
-    allocation[city] = baseNights + (remainder > 0 ? 1 : 0);
+    const nightsToAdd = baseNights + (remainder > 0 ? 1 : 0);
+    allocation[city] = (allocation[city] || 0) + nightsToAdd;
     if (remainder > 0) remainder--;
   }
 
@@ -225,26 +291,30 @@ export function validateTripDraft(draft: unknown): { success: boolean; errors: s
   if (
     adultCount === null ||
     typeof adultCount !== "number" ||
+    !Number.isInteger(adultCount) ||
     adultCount < 1 ||
     adultCount > 10
   ) {
     errors.push("invalid_adults");
   }
 
-  // 3. selectedCities 검증
+  // 3. selectedCities 검증 (1~5개 도시/정차지 허용, 유효한 지원 도시, 연속 즉시 중복 방지)
   const selectedCities = d.selectedCities as SupportedCity[];
   if (
     !Array.isArray(selectedCities) ||
     selectedCities.length === 0 ||
-    selectedCities.length > 4
+    selectedCities.length > 5
   ) {
     errors.push("invalid_cities_count");
   } else {
     const validCities = ALL_SUPPORTED_CITIES;
-    const uniqueCities = new Set(selectedCities);
-    
-    if (uniqueCities.size !== selectedCities.length) {
-      errors.push("duplicate_cities");
+
+    // 바로 연속된 즉시 중복(예: [SEOUL, SEOUL])만 제한하고, 경유 후 순환 재방문(예: [SEOUL, JEONJU, SEOUL])은 허용
+    for (let i = 0; i < selectedCities.length - 1; i++) {
+      if (selectedCities[i] === selectedCities[i + 1]) {
+        errors.push("duplicate_cities");
+        break;
+      }
     }
     
     for (const city of selectedCities) {

@@ -153,10 +153,20 @@ export interface BudgetPlan {
   generatedFromCatalogVersion: string;
 }
 
+export interface SplitStaySegment {
+  segmentId: string;
+  basketId: BudgetBasketId;
+  nights: number;
+  placeId?: string;
+  placeNameKo?: string;
+  placeNameEn?: string;
+  nightlyPriceKrw?: number;
+}
+
 export type AccommodationSelection =
   | { kind: "TIER"; basketId: BudgetBasketId }
   | {
-      kind: "PLACE";
+      kind: "PLACE" | "CUSTOM";
       placeId: string;
       basketId: BudgetBasketId;
       nightlyPriceKrw: number;
@@ -164,9 +174,13 @@ export type AccommodationSelection =
       placeNameKo: string;
       placeNameEn: string;
       snapshotAt: string;
+    }
+  | {
+      kind: "SPLIT";
+      segments: SplitStaySegment[];
     };
 
-export type AccommodationOverridesByCity = Partial<Record<SupportedCity, AccommodationSelection | BudgetBasketId>>;
+export type AccommodationOverridesByCity = Partial<Record<string, AccommodationSelection | BudgetBasketId>>;
 export type AttractionOverridesByCity = Partial<Record<SupportedCity, BudgetBasketId>>;
 
 export interface AttractionSelections {

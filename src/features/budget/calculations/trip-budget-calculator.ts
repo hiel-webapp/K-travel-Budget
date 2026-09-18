@@ -12,6 +12,7 @@ import {
   SEOUL_LANDMARK_BILINGUAL_MAP,
 } from "../catalog/attraction-spots";
 import { THEME_ACTIVITIES_CATALOG, themeActivityToAttractionSpot } from "../catalog/theme-activities";
+import { STAY_ARCHETYPES } from "../catalog/stay-archetypes";
 import type { PlaceItem } from "src/lib/places/types";
 import type { Locale } from "src/lib/i18n/locales";
 
@@ -149,19 +150,20 @@ export function calculateTripBudgetSummary(
     const nights = draft.cityNightAllocations[city] || 0;
     const section = basePlan.citySections[city];
 
-    // A. 숙박 (엔진에서 계산된 라인아이템의 실제 lineTotalKrw를 기준으로 100% 일치 보장)
     const stayItem = section?.lineItems?.find((i) => i.category === "ACCOMMODATION");
     const stayTotal = stayItem?.lineTotalKrw || 0;
     const stayNightly = stayItem?.unitPriceKrw || 0;
-    const stayLabel =
-      stayItem?.sourceLabel ||
-      (stayTotal > 0
-        ? locale === "ko"
-          ? "선택 숙소"
-          : "Selected Stay"
-        : locale === "ko"
-        ? "선택된 숙소 없음"
-        : "No stay selected");
+    let stayLabel = stayItem?.sourceLabel || (stayTotal > 0 ? (locale === "ko" ? "선택 숙소" : "Selected Stay") : (locale === "ko" ? "선택된 숙소 없음" : "No stay selected"));
+    if (locale === "en" && stayItem) {
+      if (stayItem.sourceLabelEn) {
+        stayLabel = stayItem.sourceLabelEn;
+      } else {
+        const arch = STAY_ARCHETYPES.find((a) => a.id === stayItem.basketId || a.titleKo === stayItem.sourceLabel);
+        if (arch) {
+          stayLabel = arch.titleEn;
+        }
+      }
+    }
     const hasStay = stayTotal > 0;
 
     // B. 음식 (바스켓 음식 + 해당 도시의 K-스팟 맛집/카페)

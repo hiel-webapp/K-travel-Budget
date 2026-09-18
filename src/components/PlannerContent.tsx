@@ -4439,8 +4439,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {Object.entries(draft.cityNightAllocations || {})
                         .filter(([_, n]) => (n || 0) > 0)
                         .map(([city, n]) => {
-                          const cityName = CITY_KOREAN_NAMES[city as SupportedCity] || city;
-                          return draft.selectedCities.length > 1 ? `${cityName}(${n}박)` : cityName;
+                          const cityName = locale === "ko"
+                            ? (CITY_KOREAN_NAMES[city as SupportedCity] || city)
+                            : (CITY_ENGLISH_NAMES[city as SupportedCity] || city);
+                          return draft.selectedCities.length > 1
+                            ? (locale === "ko" ? `${cityName}(${n}박)` : `${cityName} (${n}N)`)
+                            : cityName;
                         })
                         .join(" · ")}
                     </span>
@@ -4722,16 +4726,33 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       const validItems = accItems.filter((item) => item.basketId !== "NONE" && item.sourceLabel !== "숙소 미선택");
 
                                       if (hasAccSelection && validItems.length > 0) {
-                                        return validItems.map((item) => (
-                                          <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-600 pl-5">
-                                            <span className="truncate pr-2">
-                                              {(item.sourceLabel && !item.sourceLabel.includes("Archetype") && !item.sourceLabel.includes("Mock"))
-                                                ? item.sourceLabel
-                                                : getBasketLabel(item.basketId, dict, locale, city)}
-                                            </span>
-                                            <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
-                                          </div>
-                                        ));
+                                        return validItems.map((item) => {
+                                          let stayLabel = item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city);
+                                          if (locale === "en") {
+                                            if (item.sourceLabelEn) {
+                                              stayLabel = item.sourceLabelEn;
+                                            } else {
+                                              const accSel = preferences.accommodationByCity?.[city];
+                                              if (accSel && typeof accSel === "object" && "kind" in accSel && ((accSel as any).kind === "PLACE" || (accSel as any).kind === "CUSTOM")) {
+                                                const custom = accSel as any;
+                                                stayLabel = custom.placeNameEn || custom.placeName || custom.placeNameKo || "Custom Stay";
+                                              } else {
+                                                const arch = STAY_ARCHETYPES.find((a) => a.id === item.basketId || a.titleKo === item.sourceLabel);
+                                                if (arch) {
+                                                  stayLabel = arch.titleEn;
+                                                } else {
+                                                  stayLabel = getBasketLabel(item.basketId, dict, "en", city);
+                                                }
+                                              }
+                                            }
+                                          }
+                                          return (
+                                            <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-600 pl-5">
+                                              <span className="truncate pr-2">{stayLabel}</span>
+                                              <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                            </div>
+                                          );
+                                        });
                                       }
 
                                       return (

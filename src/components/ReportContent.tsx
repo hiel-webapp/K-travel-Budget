@@ -39,6 +39,7 @@ import { calculateTripBudgetSummary } from "../features/budget/calculations/trip
 import ReportBentoDashboard from "./report/ReportBentoDashboard";
 import ExpenseAnalyticsHub from "./report/ExpenseAnalyticsHub";
 import SmartRouteMap from "./report/SmartRouteMap";
+import BookingActionHub from "./report/BookingActionHub";
 import ReportShareBar from "./report/ReportShareBar";
 
 interface ReportContentProps {
@@ -281,6 +282,14 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           <SmartRouteMap
             selectedCities={draft.selectedCities}
             cityBreakdown={cityBreakdown}
+            locale={locale}
+            dict={dict}
+          />
+
+          {/* Section D: One-Stop Booking & Action Hub */}
+          <BookingActionHub
+            calculations={calculations}
+            draft={draft}
             locale={locale}
             dict={dict}
           />

@@ -311,13 +311,12 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
 
     savePlannerPreferences(preferencesToSave);
 
-    const firstCity = draftToSave.selectedCities[0] || "SEOUL";
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("hh_planner_selected_city_tab", firstCity);
+      sessionStorage.setItem("hh_planner_selected_city_tab", "ALL");
       sessionStorage.setItem("hh_planner_active_category", "ACCOMMODATION");
     }
 
-    router.push(`/${locale}/planner?tab=${firstCity}&cat=ACCOMMODATION`);
+    router.push(`/${locale}/planner?tab=ALL`);
   };
 
   // 프리셋 선택 후 사용자가 1~3단계에서 일정이나 도시를 커스텀 변경했는지 여부 감지

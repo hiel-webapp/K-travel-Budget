@@ -448,7 +448,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   });
 
-  // 탭 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: 1번 도시)
+  // 탭 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 기본값: '여행 개요'("ALL"))
   const [selectedCityTab, setSelectedCityTab] = useState<"ALL" | "TRANSPORT" | SupportedCity>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -461,15 +461,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         console.error("Failed to restore city tab:", e);
       }
     }
-    if (hasActiveDraft()) {
-      try {
-        const d = loadTripDraft();
-        if (d.selectedCities && d.selectedCities.length > 0) {
-          return d.selectedCities[0];
-        }
-      } catch {}
-    }
-    return "SEOUL";
+    return "ALL";
   });
 
   // 카테고리 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: "ACCOMMODATION")
@@ -504,8 +496,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         sessionStorage.setItem("hh_planner_selected_city_tab", selectedCityTab);
         const url = new URL(window.location.href);
         if (selectedCityTab === "ALL") {
-          url.searchParams.delete("tab");
-          url.searchParams.delete("cityTab");
+          url.searchParams.set("tab", "ALL");
         } else {
           url.searchParams.set("tab", selectedCityTab);
         }

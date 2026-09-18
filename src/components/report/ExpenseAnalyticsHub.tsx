@@ -28,23 +28,117 @@ export default function ExpenseAnalyticsHub({
   const stayTotal = calculations.sumAccTotal || 0;
   const foodTotal = calculations.sumFoodTotal || 0;
   const attractionTotal = calculations.sumAttractionTotal || 0;
+  const intercityTotal = calculations.intercityTotal || 0;
   const transportTotal =
-    (calculations.sumTransportTotal || 0) + (calculations.intercityTotal || 0);
+    (calculations.sumTransportTotal || 0) + intercityTotal;
 
-  // 기타: 숙소, 음식, 관광, 교통을 제외한 모든 잔여 예산(쇼핑, 일일 용돈, 비상금 등)
+  // 전체 기타 비용: 숙소, 음식, 관광, 교통을 제외한 모든 잔여 예산(쇼핑, 용돈, 비상금)
   const etcTotal = Math.max(
     0,
     grandTotalKrw - (stayTotal + foodTotal + attractionTotal + transportTotal)
   );
 
-  // 비중 (%) 계산 (합계 100% 보정)
+  // 2. 도시간 이동 교통비(intercityTotal)를 여정 순서에 따라 도시별로 귀속 배분
+  //    - 1번 도시: 인천공항 -> 1번 도시 (가중치 1)
+  //    - 2~N-1번 도시: 직전 도시 -> 해당 도시 (가중치 1)
+  //    - 마지막 도시: 직전 도시 -> 마지막 도시 + 마지막 도시 -> 인천공항 복귀 (가중치 2)
+  const numCities = draft.selectedCities.length;
+  const totalLegs = numCities <= 1 ? 1 : numCities + 1;
+  const allocatedIntercityList = draft.selectedCities.map((_, idx) => {
+    if (intercityTotal <= 0) return 0;
+    if (numCities === 1) return intercityTotal;
+    const legs = idx === numCities - 1 ? 2 : 1;
+    return Math.round((intercityTotal * legs) / totalLegs);
+  });
+  if (numCities > 1 && intercityTotal > 0) {
+    const sumAlloc = allocatedIntercityList
+      .slice(0, numCities - 1)
+      .reduce((a, b) => a + b, 0);
+    allocatedIntercityList[numCities - 1] = intercityTotal - sumAlloc;
+  }
+
+  // 3. 총 체류 박수 및 도시별 가중치 (당일치기 0박은 0.5가중치 보정)
+  const cityWeights = draft.selectedCities.map((city) => {
+    const nights = calculations.cityBreakdown?.[city]?.nights || 0;
+    return nights > 0 ? nights : 0.5;
+  });
+  const totalWeight = cityWeights.reduce((a, b) => a + b, 0);
+
+  // 기타 비용(쇼핑, 용돈, 비상금)을 도시별 체류 기간(박수) 비례로 배분
+  const allocatedEtcList = draft.selectedCities.map((_, idx) => {
+    if (etcTotal <= 0) return 0;
+    if (numCities === 1) return etcTotal;
+    const w = cityWeights[idx];
+    return Math.round((etcTotal * w) / totalWeight);
+  });
+  if (numCities > 1 && etcTotal > 0) {
+    const sumEtc = allocatedEtcList
+      .slice(0, numCities - 1)
+      .reduce((a, b) => a + b, 0);
+    allocatedEtcList[numCities - 1] = etcTotal - sumEtc;
+  }
+
+  // 4. 도시별 고유 색상 팔레트 및 실질 5대 부문 지출 데이터 매핑
+  const cityPalette = [
+    { barColor: "bg-slate-900", textColor: "text-slate-900" },
+    { barColor: "bg-blue-600", textColor: "text-blue-600" },
+    { barColor: "bg-emerald-600", textColor: "text-emerald-600" },
+    { barColor: "bg-orange-500", textColor: "text-orange-500" },
+    { barColor: "bg-sky-500", textColor: "text-sky-500" },
+    { barColor: "bg-violet-600", textColor: "text-violet-600" },
+    { barColor: "bg-pink-600", textColor: "text-pink-600" },
+  ];
+
+  const cityTableRows = draft.selectedCities.map((city, idx) => {
+    const cInfo = calculations.cityBreakdown?.[city];
+    const color = cityPalette[idx % cityPalette.length];
+    const cityName = isKo
+      ? CITY_KOREAN_NAMES[city] || city
+      : CITY_ENGLISH_NAMES[city] || city;
+
+    const stay = cInfo?.stayTotalKrw || 0;
+    const food = cInfo?.foodTotalKrw || 0;
+    const attr = cInfo?.attractionTotalKrw || 0;
+    const trans = (cInfo?.transportTotalKrw || 0) + allocatedIntercityList[idx];
+    const etc = allocatedEtcList[idx];
+    const subtotal = stay + food + attr + trans + etc;
+    const nights = cInfo?.nights || 0;
+
+    return {
+      city,
+      cityName,
+      nights,
+      stay,
+      food,
+      attr,
+      trans,
+      etc,
+      subtotal,
+      ...color,
+    };
+  });
+
+  // 도시별 비중 (%) 계산 (위에서 아래로 1번 도시부터 정렬, 합계 100% 보정)
+  const cityPercentList = cityTableRows.map((r) => {
+    return Math.round((r.subtotal / safeTotal) * 100);
+  });
+  if (cityPercentList.length > 0) {
+    const sumPcts = cityPercentList.slice(0, -1).reduce((a, b) => a + b, 0);
+    cityPercentList[cityPercentList.length - 1] = Math.max(0, 100 - sumPcts);
+  }
+
+  const cityBarItems = cityTableRows.map((r, idx) => ({
+    ...r,
+    pct: cityPercentList[idx],
+  }));
+
+  // 5. 카테고리별 비중 (%) 계산 (위에서 아래로: 숙소, 음식, 관광, 교통, 기타 순서)
   const stayPct = Math.round((stayTotal / safeTotal) * 100);
   const foodPct = Math.round((foodTotal / safeTotal) * 100);
   const attrPct = Math.round((attractionTotal / safeTotal) * 100);
   const transPct = Math.round((transportTotal / safeTotal) * 100);
   const etcPct = Math.max(0, 100 - (stayPct + foodPct + attrPct + transPct));
 
-  // 5대 카테고리 메타데이터 & 시각 일치 고유 색상 (순서: 숙소, 음식, 관광, 교통, 기타)
   const categoryList = [
     {
       key: "stay",
@@ -52,8 +146,6 @@ export default function ExpenseAnalyticsHub({
       pct: stayPct,
       amount: stayTotal,
       barColor: "bg-teal-500",
-      textColor: "text-teal-600",
-      dotColor: "bg-teal-500",
     },
     {
       key: "food",
@@ -61,8 +153,6 @@ export default function ExpenseAnalyticsHub({
       pct: foodPct,
       amount: foodTotal,
       barColor: "bg-rose-500",
-      textColor: "text-rose-600",
-      dotColor: "bg-rose-500",
     },
     {
       key: "attraction",
@@ -70,8 +160,6 @@ export default function ExpenseAnalyticsHub({
       pct: attrPct,
       amount: attractionTotal,
       barColor: "bg-amber-500",
-      textColor: "text-amber-600",
-      dotColor: "bg-amber-500",
     },
     {
       key: "transport",
@@ -79,8 +167,6 @@ export default function ExpenseAnalyticsHub({
       pct: transPct,
       amount: transportTotal,
       barColor: "bg-indigo-500",
-      textColor: "text-indigo-600",
-      dotColor: "bg-indigo-500",
     },
     {
       key: "etc",
@@ -88,63 +174,7 @@ export default function ExpenseAnalyticsHub({
       pct: etcPct,
       amount: etcTotal,
       barColor: "bg-purple-500",
-      textColor: "text-purple-600",
-      dotColor: "bg-purple-500",
     },
-  ];
-
-  // 2. 도시별 고유 색상 팔레트 & 매핑
-  const cityPalette = [
-    { barColor: "bg-slate-900", dot: "bg-slate-900", textColor: "text-slate-900" },
-    { barColor: "bg-blue-600", dot: "bg-blue-600", textColor: "text-blue-600" },
-    { barColor: "bg-emerald-600", dot: "bg-emerald-600", textColor: "text-emerald-600" },
-    { barColor: "bg-orange-500", dot: "bg-orange-500", textColor: "text-orange-500" },
-    { barColor: "bg-sky-500", dot: "bg-sky-500", textColor: "text-sky-500" },
-    { barColor: "bg-violet-600", dot: "bg-violet-600", textColor: "text-violet-600" },
-    { barColor: "bg-pink-600", dot: "bg-pink-600", textColor: "text-pink-600" },
-  ];
-
-  const cityItems = draft.selectedCities.map((city, idx) => {
-    const sub = calculations.cityBreakdown?.[city]?.subtotalKrw || 0;
-    const pct = Math.round((sub / safeTotal) * 100);
-    const color = cityPalette[idx % cityPalette.length];
-    const cityName = isKo
-      ? CITY_KOREAN_NAMES[city] || city
-      : CITY_ENGLISH_NAMES[city] || city;
-    return {
-      city,
-      cityName,
-      subtotal: sub,
-      pct,
-      ...color,
-    };
-  });
-
-  // 공통/자율(쇼핑·용돈·비상금·도시이동) 비중
-  const commonSubtotal = Math.max(
-    0,
-    grandTotalKrw - (calculations.sumCitySubtotals || 0)
-  );
-  const commonPct = Math.max(
-    0,
-    100 - cityItems.reduce((acc, c) => acc + c.pct, 0)
-  );
-
-  const cityListWithCommon = [
-    ...cityItems,
-    ...(commonSubtotal > 0
-      ? [
-          {
-            city: "COMMON",
-            cityName: isKo ? "공통 / 자율" : "Common / Flex",
-            subtotal: commonSubtotal,
-            pct: commonPct,
-            barColor: "bg-slate-500",
-            dot: "bg-slate-500",
-            textColor: "text-slate-600",
-          },
-        ]
-      : []),
   ];
 
   // 총 체류 박수 계산
@@ -167,8 +197,8 @@ export default function ExpenseAnalyticsHub({
           </div>
           <p className="text-xs text-neutral-500 mt-1 font-medium">
             {isKo
-              ? "도시별 5대 부문 집계표와 직관적으로 매칭된 세로 비중 그래프를 한눈에 대조합니다."
-              : "Cross-examine the 5-sector audit table alongside color-synchronized vertical proportion bars."}
+              ? "도시별 실질 이동비와 체류 기간 비례 기타 경비가 완벽히 산입된 종합 회계 집계표입니다."
+              : "Cross-examine itemized city expenditures with transit legs and duration-proportioned flex expenses."}
           </p>
         </div>
         <span className="text-[11px] font-bold text-slate-400 self-start sm:self-auto tabular-nums">
@@ -195,7 +225,7 @@ export default function ExpenseAnalyticsHub({
             <span className="text-[10px] font-bold text-neutral-400 uppercase">AUDIT MATRIX</span>
           </div>
 
-          {/* Table Area */}
+          {/* Table Area (공통 행 제거, 모든 도시가 5개 부문 실질 예산 보유) */}
           <div className="overflow-x-auto flex-1 flex flex-col justify-between">
             <table className="w-full text-left text-xs border-collapse font-medium min-w-[520px]">
               <thead>
@@ -211,56 +241,25 @@ export default function ExpenseAnalyticsHub({
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-200/60 text-neutral-700">
-                {/* 1) 도시별 행 (도시명 앞 점 제거, 텍스트 색상 적용) */}
-                {draft.selectedCities.map((city, idx) => {
-                  const cInfo = calculations.cityBreakdown?.[city];
-                  if (!cInfo) return null;
-                  const cColor = cityPalette[idx % cityPalette.length];
-
-                  return (
-                    <tr key={city} className="hover:bg-white/90 transition-colors">
-                      <td className="py-2.5 font-black">
-                        <span className={cColor.textColor}>
-                          {isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
-                        </span>
-                      </td>
-                      <td className="py-2.5 text-center text-neutral-500 tabular-nums font-semibold">
-                        {cInfo.nights === 0 ? (isKo ? "당일" : "Day") : `${cInfo.nights}N`}
-                      </td>
-                      <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(cInfo.stayTotalKrw)}</td>
-                      <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(cInfo.foodTotalKrw)}</td>
-                      <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(cInfo.attractionTotalKrw)}</td>
-                      <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(cInfo.transportTotalKrw)}</td>
-                      <td className="py-2.5 text-right tabular-nums text-neutral-400">₩0</td>
-                      <td className="py-2.5 text-right tabular-nums font-black text-neutral-900">{formatKrw(cInfo.subtotalKrw)}</td>
-                    </tr>
-                  );
-                })}
-
-                {/* 2) 공통/자율 경비 행 (점 제거) */}
-                {(etcTotal > 0 || (calculations.intercityTotal || 0) > 0) && (
-                  <tr className="bg-neutral-100/40 text-neutral-600 font-medium">
-                    <td className="py-2.5 font-black text-slate-600">
-                      {isKo ? "공통 / 자율" : "Common / Flex"}
+                {cityTableRows.map((row) => (
+                  <tr key={row.city} className="hover:bg-white/90 transition-colors">
+                    <td className="py-2.5 font-black">
+                      <span className={row.textColor}>{row.cityName}</span>
                     </td>
-                    <td className="py-2.5 text-center text-neutral-400">-</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-400">-</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-400">-</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-400">-</td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-600">
-                      {formatKrw(calculations.intercityTotal || 0)}
+                    <td className="py-2.5 text-center text-neutral-500 tabular-nums font-semibold">
+                      {row.nights === 0 ? (isKo ? "당일" : "Day") : `${row.nights}N`}
                     </td>
-                    <td className="py-2.5 text-right tabular-nums text-neutral-600">
-                      {formatKrw(etcTotal)}
-                    </td>
-                    <td className="py-2.5 text-right tabular-nums font-black text-neutral-800">
-                      {formatKrw((calculations.intercityTotal || 0) + etcTotal)}
-                    </td>
+                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.stay)}</td>
+                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.food)}</td>
+                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.attr)}</td>
+                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.trans)}</td>
+                    <td className="py-2.5 text-right tabular-nums text-neutral-600">{formatKrw(row.etc)}</td>
+                    <td className="py-2.5 text-right tabular-nums font-black text-neutral-900">{formatKrw(row.subtotal)}</td>
                   </tr>
-                )}
+                ))}
               </tbody>
 
-              {/* 3) 세로 소계 (금액에 색상 제거, 도시별 소계와 동일한 font-black text-neutral-900 적용) */}
+              {/* 세로 소계 (도시별 소계와 동일한 font-black text-neutral-900 스타일) */}
               <tfoot>
                 <tr className="border-t-2 border-neutral-300 bg-white/95">
                   <td className="py-3 font-black text-neutral-900">{isKo ? "소계" : "Subtotal"}</td>
@@ -278,11 +277,11 @@ export default function ExpenseAnalyticsHub({
         </div>
 
         {/* ========================================================================= */}
-        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): 작은 %는 옆으로 빼서 표출 (- 5%) */}
+        {/* 2. 우측 세로 막대그래프 영역 (lg:col-span-4): Top-to-Bottom 순서 정렬 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-4 grid grid-cols-2 gap-3.5 items-stretch">
           
-          {/* [세로 막대그래프 1: 카테고리 비중] */}
+          {/* [세로 막대그래프 1: 카테고리 비중] - 위에서 아래로: 숙소 -> 음식 -> 관광 -> 교통 -> 기타 */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
@@ -291,9 +290,9 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 기둥 (작은 %는 우측으로 - X% 표출) */}
+            {/* 세로 누적 막대 (flex-col: 위에서 아래로 정렬) */}
             <div className="flex-1 flex items-center justify-center py-2 pr-6 sm:pr-8">
-              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner relative">
+              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
                 {categoryList.map((cat) => {
                   if (cat.pct <= 0) return null;
                   const isSmall = cat.pct < 8;
@@ -301,7 +300,7 @@ export default function ExpenseAnalyticsHub({
                     <div
                       key={cat.key}
                       style={{ height: `${cat.pct}%` }}
-                      className={`${cat.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center relative select-none`}
+                      className={`${cat.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
                       title={`${cat.label}: ${cat.pct}% (${formatKrw(cat.amount)})`}
                     >
                       {!isSmall ? (
@@ -319,7 +318,7 @@ export default function ExpenseAnalyticsHub({
             </div>
           </div>
 
-          {/* [세로 막대그래프 2: 방문 도시별 비중] */}
+          {/* [세로 막대그래프 2: 방문 도시별 비중] - 위에서 아래로: 1번 도시 -> 2번 도시 -> ... */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
@@ -328,17 +327,17 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 기둥 (작은 %는 우측으로 - X% 표출) */}
+            {/* 세로 누적 막대 (flex-col: 위에서 아래로 정렬) */}
             <div className="flex-1 flex items-center justify-center py-2 pr-6 sm:pr-8">
-              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col-reverse bg-neutral-200/60 p-1 shadow-inner relative">
-                {cityListWithCommon.map((c) => {
+              <div className="w-12 sm:w-14 h-56 sm:h-64 rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
+                {cityBarItems.map((c) => {
                   if (c.pct <= 0) return null;
                   const isSmall = c.pct < 8;
                   return (
                     <div
                       key={c.city}
                       style={{ height: `${c.pct}%` }}
-                      className={`${c.barColor} w-full first:rounded-b-xl last:rounded-t-xl transition-all duration-500 flex items-center justify-center relative select-none`}
+                      className={`${c.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
                       title={`${c.cityName}: ${c.pct}% (${formatKrw(c.subtotal)})`}
                     >
                       {!isSmall ? (

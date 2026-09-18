@@ -38,23 +38,48 @@ export default function ExpenseAnalyticsHub({
     grandTotalKrw - (stayTotal + foodTotal + attractionTotal + transportTotal)
   );
 
-  // 2. 도시간 이동 교통비(intercityTotal)를 여정 순서에 따라 도시별로 귀속 배분
-  //    - 1번 도시: 인천공항 -> 1번 도시 (가중치 1)
-  //    - 2~N-1번 도시: 직전 도시 -> 해당 도시 (가중치 1)
-  //    - 마지막 도시: 직전 도시 -> 마지막 도시 + 마지막 도시 -> 인천공항 복귀 (가중치 2)
+  // 2. 실제 도시간 이동 구간(Leg-by-Leg)별 실제 요금을 여정에 맞게 각 도시에 정확히 귀속
+  //    - ENTRY_... (공항 -> 1번 도시): 1번 도시에 귀속
+  //    - fromCity-toCity (도시 간 이동): 이동 도착 도시(toCity)에 귀속
+  //    - EXIT_... (마지막 도시 -> 공항): 마지막 도시에 귀속
+  const intercityLineItems =
+    calculations.basePlan?.intercitySection?.lineItems || [];
   const numCities = draft.selectedCities.length;
-  const totalLegs = numCities <= 1 ? 1 : numCities + 1;
-  const allocatedIntercityList = draft.selectedCities.map((_, idx) => {
-    if (intercityTotal <= 0) return 0;
-    if (numCities === 1) return intercityTotal;
-    const legs = idx === numCities - 1 ? 2 : 1;
-    return Math.round((intercityTotal * legs) / totalLegs);
+  const firstCity = draft.selectedCities[0];
+  const lastCity = draft.selectedCities[draft.selectedCities.length - 1];
+
+  const allocatedIntercityMap: Record<string, number> = {};
+  draft.selectedCities.forEach((c) => {
+    allocatedIntercityMap[c] = 0;
   });
-  if (numCities > 1 && intercityTotal > 0) {
-    const sumAlloc = allocatedIntercityList
-      .slice(0, numCities - 1)
-      .reduce((a, b) => a + b, 0);
-    allocatedIntercityList[numCities - 1] = intercityTotal - sumAlloc;
+
+  if (intercityLineItems.length > 0) {
+    intercityLineItems.forEach((item) => {
+      const route = item.route || "";
+      const cost = item.lineTotalKrw || 0;
+
+      if (route.startsWith("ENTRY_")) {
+        if (firstCity) allocatedIntercityMap[firstCity] += cost;
+      } else if (route.startsWith("EXIT_")) {
+        if (lastCity) allocatedIntercityMap[lastCity] += cost;
+      } else {
+        const parts = route.split("-");
+        const toCity = parts[1];
+        if (toCity && allocatedIntercityMap[toCity] !== undefined) {
+          allocatedIntercityMap[toCity] += cost;
+        } else if (lastCity) {
+          allocatedIntercityMap[lastCity] += cost;
+        }
+      }
+    });
+  } else if (intercityTotal > 0 && draft.selectedCities.length > 0) {
+    // Fallback: lineItems가 없을 경우에만 비례 배분
+    const numCities = draft.selectedCities.length;
+    const totalLegs = numCities <= 1 ? 1 : numCities + 1;
+    draft.selectedCities.forEach((c, idx) => {
+      const legs = idx === numCities - 1 ? 2 : 1;
+      allocatedIntercityMap[c] = Math.round((intercityTotal * legs) / totalLegs);
+    });
   }
 
   // 3. 총 체류 박수 및 도시별 가중치 (당일치기 0박은 0.5가중치 보정)
@@ -99,7 +124,7 @@ export default function ExpenseAnalyticsHub({
     const stay = cInfo?.stayTotalKrw || 0;
     const food = cInfo?.foodTotalKrw || 0;
     const attr = cInfo?.attractionTotalKrw || 0;
-    const trans = (cInfo?.transportTotalKrw || 0) + allocatedIntercityList[idx];
+    const trans = (cInfo?.transportTotalKrw || 0) + (allocatedIntercityMap[city] || 0);
     const etc = allocatedEtcList[idx];
     const subtotal = stay + food + attr + trans + etc;
     const nights = cInfo?.nights || 0;

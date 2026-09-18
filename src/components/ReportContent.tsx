@@ -193,11 +193,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const diffAmount = Math.abs(grandTotalKrw - targetBudget);
   const targetUsagePercent = targetBudget > 0 ? (grandTotalKrw / targetBudget) * 100 : 0;
 
-  // 추천 코스 필터링 (최대 2개 엄선)
-  const recommendedCourses = TOUR_COURSE_PRESETS.filter((course) =>
-    draft.selectedCities.includes(course.cityCode as SupportedCity)
-  ).slice(0, 2);
-
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 py-6 space-y-6 text-slate-800 print:p-0 print:space-y-4">
       {/* 1. Header with Route & Metadata (Craft.do 감성의 단정한 글래스 카드) */}
@@ -294,69 +289,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             locale={locale}
             dict={dict}
           />
-
-          {/* Card: Recommended Tour Courses (Curated Route Guide) */}
-          {recommendedCourses.length > 0 && (
-            <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">
-              <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
-                <h2 className="text-sm font-black text-slate-900 tracking-tight">
-                  {locale === "ko" ? "선택 도시 추천 코스 & 최적 동선 가이드" : "Curated Route & Tour Presets"}
-                </h2>
-                <span className="text-[10px] font-bold text-slate-400 uppercase">RECOMMENDED</span>
-              </div>
-
-              <div className="space-y-3 pt-1">
-                {recommendedCourses.map((course) => {
-                  const cityName = locale === "ko"
-                    ? CITY_KOREAN_NAMES[course.cityCode as SupportedCity] || course.cityCode
-                    : CITY_ENGLISH_NAMES[course.cityCode as SupportedCity] || course.cityCode;
-
-                  return (
-                    <div
-                      key={course.id}
-                      className="p-3.5 rounded-2xl border border-neutral-200/70 bg-neutral-50/70 space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black bg-neutral-900 text-white px-2 py-0.5 rounded-full uppercase">
-                            {cityName}
-                          </span>
-                          <h3 className="text-xs font-bold text-slate-900">
-                            {locale === "ko" ? course.nameKo : course.nameEn}
-                          </h3>
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-500 tabular-nums">
-                          {locale === "ko" ? `약 ${course.estimatedHours}시간` : `~${course.estimatedHours}h`}
-                        </span>
-                      </div>
-
-                      <p className="text-[11px] text-slate-600 leading-relaxed">
-                        {locale === "ko" ? course.descKo : course.descEn}
-                      </p>
-
-                      {/* Route Spots Sequence */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                        {course.spotIds.map((sid, sIdx) => {
-                          const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
-                          const spotName = spot ? (locale === "ko" ? spot.nameKo : spot.nameEn) : sid;
-                          return (
-                            <React.Fragment key={sid}>
-                              <span className="text-[10px] font-medium bg-white text-slate-800 px-2.5 py-0.5 rounded-full border border-neutral-200/80 shadow-2xs">
-                                {spotName}
-                              </span>
-                              {sIdx < course.spotIds.length - 1 && (
-                                <span className="text-neutral-300 text-[10px] font-bold">➔</span>
-                              )}
-                            </React.Fragment>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* Card: Personalized K-Trend Tips */}
           {personalizedTrends.length > 0 && (

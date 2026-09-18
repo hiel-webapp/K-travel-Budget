@@ -6,7 +6,11 @@ import type { Locale } from "src/lib/i18n/locales";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { SupportedCity } from "src/lib/trip-domain";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
-import type { AttractionSpot } from "src/features/budget/catalog/attraction-spots";
+import {
+  TOUR_COURSE_PRESETS,
+  ATTRACTION_SPOTS_CATALOG,
+  type AttractionSpot,
+} from "src/features/budget/catalog/attraction-spots";
 import {
   getSpotCoordinates,
   optimizeSpotSequence,
@@ -116,6 +120,11 @@ export default function SmartRouteMap({
     }
     return Math.round(dist * 10) / 10;
   }, [citySpots]);
+
+  // 활성화된 도시에 매칭되는 공식 엄선 추천 코스 프리셋
+  const activeCityCourse = useMemo(() => {
+    return TOUR_COURSE_PRESETS.find((c) => c.cityCode === activeCity) || null;
+  }, [activeCity]);
 
   // 3. 카카오맵 렌더링 함수
   const initKakaoMap = () => {
@@ -333,6 +342,56 @@ export default function SmartRouteMap({
             </div>
           )}
         </div>
+
+        {/* Curated Tour Course Guide Banner (기존 추천 코스 가이드의 특징을 완벽 흡수) */}
+        {activeCityCourse && (
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 text-white space-y-2 shadow-xs">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[9px] font-black uppercase tracking-wider bg-rose-500 text-white px-2 py-0.5 rounded-full shrink-0">
+                  {locale === "ko" ? "엄선 추천 코스" : "Curated Preset"}
+                </span>
+                <h3 className="text-xs sm:text-sm font-extrabold text-white truncate">
+                  {locale === "ko" ? activeCityCourse.nameKo : activeCityCourse.nameEn}
+                </h3>
+              </div>
+              <span className="text-[11px] font-extrabold text-amber-300 shrink-0 bg-white/10 px-2.5 py-0.5 rounded-full border border-white/10 tabular-nums">
+                {locale === "ko"
+                  ? `⏱ 약 ${activeCityCourse.estimatedHours}시간 코스`
+                  : `⏱ ~${activeCityCourse.estimatedHours}h`}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-300 leading-relaxed font-normal">
+              {locale === "ko" ? activeCityCourse.descKo : activeCityCourse.descEn}
+            </p>
+
+            {/* Presets Recommended Sequence Badges (➔) */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-white/10">
+              <span className="text-[9px] font-bold text-slate-400 uppercase mr-1">
+                {locale === "ko" ? "대표 권장 동선:" : "Route Preset:"}
+              </span>
+              {activeCityCourse.spotIds.map((sid, sIdx) => {
+                const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
+                const spotName = spot
+                  ? locale === "ko"
+                    ? spot.nameKo
+                    : spot.nameEn
+                  : sid;
+                return (
+                  <React.Fragment key={sid}>
+                    <span className="text-[10px] font-bold bg-white/15 text-white px-2 py-0.5 rounded-md border border-white/10">
+                      {spotName}
+                    </span>
+                    {sIdx < activeCityCourse.spotIds.length - 1 && (
+                      <span className="text-rose-400 text-[10px] font-black">➔</span>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Route Overview Stat Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-neutral-50 border border-neutral-100 text-xs">

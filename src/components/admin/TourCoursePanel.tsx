@@ -23,11 +23,12 @@ export default function TourCoursePanel() {
   const [descEn, setDescEn] = useState<string>("");
   const [spotIds, setSpotIds] = useState<string[]>([]);
   const [estimatedHours, setEstimatedHours] = useState<number>(4);
+  const [isActive, setIsActive] = useState<boolean>(true);
 
   const fetchCoursesAndSpots = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/admin/catalog?type=ALL");
+      const res = await fetch("/api/admin/catalog?type=ALL&includeInactive=true");
       const data = await res.json();
       if (data.success) {
         setCourses(data.courses || []);
@@ -44,6 +45,28 @@ export default function TourCoursePanel() {
     fetchCoursesAndSpots();
   }, []);
 
+  const handleToggleActive = async (course: TourCoursePreset) => {
+    const nextStatus = course.isActive === false ? true : false;
+    try {
+      const res = await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "COURSE",
+          data: { ...course, isActive: nextStatus },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCourses(courses.map((c) => (c.id === course.id ? { ...c, isActive: nextStatus } : c)));
+      } else {
+        alert(`상태 변경 실패: ${data.error}`);
+      }
+    } catch (err: any) {
+      alert(`오류: ${err.message}`);
+    }
+  };
+
   const handleOpenAdd = () => {
     setEditingCourse(null);
     setId(`course_${Date.now().toString().slice(-6)}`);
@@ -54,6 +77,7 @@ export default function TourCoursePanel() {
     setDescEn("");
     setSpotIds([]);
     setEstimatedHours(4);
+    setIsActive(true);
     setIsModalOpen(true);
   };
 
@@ -67,6 +91,7 @@ export default function TourCoursePanel() {
     setDescEn(course.descEn);
     setSpotIds(course.spotIds || []);
     setEstimatedHours(course.estimatedHours);
+    setIsActive(course.isActive !== false);
     setIsModalOpen(true);
   };
 
@@ -95,6 +120,7 @@ export default function TourCoursePanel() {
       spotIds,
       estimatedHours,
       courseType: "CITY_HIGHLIGHT",
+      isActive,
     };
 
     try {
@@ -142,7 +168,7 @@ export default function TourCoursePanel() {
             <span>🗺️</span> 도시별 투어 코스 관리
           </h2>
           <p className="mt-1 text-xs font-semibold text-slate-200">
-            총 {courses.length}개 코스 등록됨 · 각 코스에 포함될 명소(spotIds)를 클릭 매핑합니다.
+            총 {courses.length}개 코스 등록됨 (활성: {courses.filter((c) => c.isActive !== false).length}개, 숨김: {courses.filter((c) => c.isActive === false).length}개) · 각 코스에 포함될 명소(spotIds)를 클릭 매핑합니다.
           </p>
         </div>
 
@@ -186,6 +212,7 @@ export default function TourCoursePanel() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredCourses.map((course) => {
+            const isCourseActive = course.isActive !== false;
             const spotsInCourse = (course.spotIds || [])
               .map((id) => allSpots.find((s) => s.id === id))
               .filter(Boolean);
@@ -193,26 +220,52 @@ export default function TourCoursePanel() {
             return (
               <div
                 key={course.id}
-                className="rounded-2xl border border-slate-700 bg-slate-900 p-5 space-y-3 shadow-md hover:border-slate-600 transition-all"
+                className={`rounded-2xl border p-5 space-y-3 shadow-md transition-all ${
+                  isCourseActive
+                    ? "border-slate-700 bg-slate-900 hover:border-slate-600"
+                    : "border-slate-800 bg-slate-950/70 opacity-60"
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className="rounded-md border border-indigo-500/40 bg-indigo-950/70 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300">
-                      {CITY_KOREAN_NAMES[course.cityCode] || course.cityCode} · {course.estimatedHours}시간
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="rounded-md border border-indigo-500/40 bg-indigo-950/70 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300">
+                        {CITY_KOREAN_NAMES[course.cityCode] || course.cityCode} · {course.estimatedHours}시간
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                          isCourseActive
+                            ? "bg-emerald-950/60 border-emerald-500/50 text-emerald-300"
+                            : "bg-slate-800 border-slate-700 text-slate-400"
+                        }`}
+                      >
+                        {isCourseActive ? "노출 중" : "숨김"}
+                      </span>
+                    </div>
                     <h3 className="text-base font-bold text-white mt-1.5" style={{ color: "#ffffff" }}>{course.nameKo}</h3>
                     <p className="text-xs font-medium text-slate-300">{course.nameEn}</p>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleActive(course)}
+                      className={`rounded-lg border px-2.5 py-1 text-xs font-bold transition-all ${
+                        isCourseActive
+                          ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
+                          : "border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
+                      }`}
+                    >
+                      {isCourseActive ? "숨기기" : "노출하기"}
+                    </button>
                     <button
                       onClick={() => handleOpenEdit(course)}
-                      className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
+                      className="rounded-lg border border-slate-600 bg-slate-800 px-2.5 py-1 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
                     >
                       수정
                     </button>
                     <button
                       onClick={() => handleDelete(course)}
-                      className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-3 py-1 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
+                      className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-2.5 py-1 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                     >
                       삭제
                     </button>
@@ -307,6 +360,19 @@ export default function TourCoursePanel() {
                     onChange={(e) => setDescKo(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
+                </div>
+
+                <div className="flex items-center gap-2 pt-1 sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    id="courseIsActive"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="h-4 w-4 rounded accent-emerald-500"
+                  />
+                  <label htmlFor="courseIsActive" className="text-xs font-bold text-emerald-400 cursor-pointer">
+                    서비스에 노출 (체크 해제 시 숨김 처리)
+                  </label>
                 </div>
               </div>
 

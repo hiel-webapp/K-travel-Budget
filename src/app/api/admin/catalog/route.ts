@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
     if (type === "COURSE" || type === "ALL") {
       const courseCity = city === "NATIONAL" ? "ALL" : (city as SupportedCity | "ALL");
-      responseData.courses = await getAdminTourCourses(courseCity);
+      responseData.courses = await getAdminTourCourses(courseCity, includeInactive);
     }
 
     if (type === "SORTING" || type === "ALL") {

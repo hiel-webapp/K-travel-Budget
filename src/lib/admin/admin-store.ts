@@ -391,24 +391,35 @@ export async function deleteAdminAttraction(id: string): Promise<void> {
 // 4. Tour Courses Management
 // ==========================================
 
-export async function getAdminTourCourses(city?: SupportedCity | "ALL"): Promise<TourCoursePreset[]> {
+export async function getAdminTourCourses(
+  city?: SupportedCity | "ALL",
+  includeInactive = true
+): Promise<TourCoursePreset[]> {
   const store = await loadAdminStore();
-  if (city && city !== "ALL") {
-    return store.tourCourses.filter((c) => c.cityCode === city);
+  let list = [...store.tourCourses];
+  if (!includeInactive) {
+    list = list.filter((c) => c.isActive !== false);
   }
-  return store.tourCourses;
+  if (city && city !== "ALL") {
+    return list.filter((c) => c.cityCode === city);
+  }
+  return list;
 }
 
 export async function saveAdminTourCourse(course: TourCoursePreset): Promise<TourCoursePreset> {
   const store = await loadAdminStore();
-  const idx = store.tourCourses.findIndex((c) => c.id === course.id);
+  const targetCourse: TourCoursePreset = {
+    ...course,
+    isActive: course.isActive ?? true,
+  };
+  const idx = store.tourCourses.findIndex((c) => c.id === targetCourse.id);
   if (idx >= 0) {
-    store.tourCourses[idx] = course;
+    store.tourCourses[idx] = targetCourse;
   } else {
-    store.tourCourses.push(course);
+    store.tourCourses.push(targetCourse);
   }
   await saveAdminStore(store);
-  return course;
+  return targetCourse;
 }
 
 export async function deleteAdminTourCourse(id: string): Promise<void> {

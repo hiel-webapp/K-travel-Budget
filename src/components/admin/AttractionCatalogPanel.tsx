@@ -31,12 +31,14 @@ export default function AttractionCatalogPanel() {
   const [subwayInfo, setSubwayInfo] = useState<string>("");
   const [openingHours, setOpeningHours] = useState<string>("");
   const [officialUrl, setOfficialUrl] = useState<string>("");
+  const [isActive, setIsActive] = useState<boolean>(true);
 
   const fetchAttractions = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("type", "ATTRACTION");
+      params.set("includeInactive", "true");
       if (selectedCity !== "ALL") params.set("city", selectedCity);
       if (selectedScope !== "ALL") params.set("scope", selectedScope);
 
@@ -56,6 +58,28 @@ export default function AttractionCatalogPanel() {
     fetchAttractions();
   }, [selectedCity, selectedScope]);
 
+  const handleToggleActive = async (spot: AttractionSpot) => {
+    const nextStatus = spot.isActive === false ? true : false;
+    try {
+      const res = await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "ATTRACTION",
+          data: { ...spot, isActive: nextStatus },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAttractions(attractions.map((s) => (s.id === spot.id ? { ...s, isActive: nextStatus } : s)));
+      } else {
+        alert(`상태 변경 실패: ${data.error}`);
+      }
+    } catch (err: any) {
+      alert(`오류 발생: ${err.message}`);
+    }
+  };
+
   const handleOpenAdd = () => {
     setEditingSpot(null);
     setId(`spot_${Date.now().toString().slice(-6)}`);
@@ -72,6 +96,7 @@ export default function AttractionCatalogPanel() {
     setSubwayInfo("");
     setOpeningHours("");
     setOfficialUrl("");
+    setIsActive(true);
     setIsModalOpen(true);
   };
 
@@ -91,6 +116,7 @@ export default function AttractionCatalogPanel() {
     setSubwayInfo(spot.subwayInfo || spot.subwayInfoKo || "");
     setOpeningHours(spot.openingHours || spot.openingHoursKo || "");
     setOfficialUrl(spot.officialUrl || "");
+    setIsActive(spot.isActive !== false);
     setIsModalOpen(true);
   };
 
@@ -123,7 +149,7 @@ export default function AttractionCatalogPanel() {
       emoji: "📍",
       gradientBg: "from-purple-500 to-indigo-600",
       isFeatured: false,
-      isActive: true,
+      isActive,
     };
 
     try {
@@ -179,7 +205,7 @@ export default function AttractionCatalogPanel() {
             <span>🏛️</span> 관광지 & 명소 카탈로그 관리
           </h2>
           <p className="mt-1 text-xs font-semibold text-slate-200">
-            총 {attractions.length}개 명소 등록됨 · 플래너 도시 탭 및 K-스팟에 지정된 대상과 정렬 규칙으로 노출됩니다.
+            총 {attractions.length}개 명소 등록됨 (활성: {attractions.filter((s) => s.isActive !== false).length}개, 숨김: {attractions.filter((s) => s.isActive === false).length}개) · 플래너 도시 탭 및 K-스팟에 지정된 대상과 정렬 규칙으로 노출됩니다.
           </p>
         </div>
 
@@ -264,6 +290,7 @@ export default function AttractionCatalogPanel() {
                 <tr>
                   <th className="p-3.5">사진</th>
                   <th className="p-3.5">명소명 / ID</th>
+                  <th className="p-3.5">상태</th>
                   <th className="p-3.5">도시 / 구분</th>
                   <th className="p-3.5">입장료</th>
                   <th className="p-3.5">노출 대상</th>
@@ -274,8 +301,16 @@ export default function AttractionCatalogPanel() {
               <tbody className="divide-y divide-slate-800 text-slate-100 font-medium">
                 {filteredSpots.map((spot) => {
                   const scopeType = spot.targetScope || "BOTH";
+                  const isItemActive = spot.isActive !== false;
                   return (
-                    <tr key={spot.id} className="hover:bg-slate-800/60 transition-all">
+                    <tr
+                      key={spot.id}
+                      className={`transition-all ${
+                        isItemActive
+                          ? "hover:bg-slate-800/60"
+                          : "hover:bg-slate-900/80 bg-slate-950/50 opacity-60"
+                      }`}
+                    >
                       <td className="p-3.5">
                         {spot.imageUrl ? (
                           <img
@@ -293,6 +328,17 @@ export default function AttractionCatalogPanel() {
                         <div className="font-bold text-white text-sm">{spot.nameKo}</div>
                         <div className="text-[11px] font-semibold text-slate-300">{spot.nameEn}</div>
                         <div className="font-mono text-[10px] text-purple-300 mt-0.5">{spot.id}</div>
+                      </td>
+                      <td className="p-3.5">
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                            isItemActive
+                              ? "bg-emerald-950/60 border-emerald-500/50 text-emerald-300"
+                              : "bg-slate-800 border-slate-700 text-slate-400"
+                          }`}
+                        >
+                          {isItemActive ? "노출 중" : "숨김"}
+                        </span>
                       </td>
                       <td className="p-3.5">
                         <span className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 font-bold text-slate-200">
@@ -334,15 +380,26 @@ export default function AttractionCatalogPanel() {
                       <td className="p-3.5 text-right space-x-2">
                         <button
                           type="button"
+                          onClick={() => handleToggleActive(spot)}
+                          className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-all ${
+                            isItemActive
+                              ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
+                              : "border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
+                          }`}
+                        >
+                          {isItemActive ? "숨기기" : "노출하기"}
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleOpenEdit(spot)}
-                          className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
+                          className="rounded-lg border border-slate-600 bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
                         >
                           수정
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(spot)}
-                          className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
+                          className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-2.5 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                         >
                           삭제
                         </button>
@@ -478,6 +535,19 @@ export default function AttractionCatalogPanel() {
                       </label>
                     ))}
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    id="spotIsActive"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="h-4 w-4 rounded accent-emerald-500"
+                  />
+                  <label htmlFor="spotIsActive" className="text-xs font-bold text-emerald-400 cursor-pointer">
+                    서비스에 노출 (체크 해제 시 숨김 처리)
+                  </label>
                 </div>
 
                 <div>

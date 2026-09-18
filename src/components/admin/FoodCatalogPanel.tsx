@@ -32,12 +32,14 @@ export default function FoodCatalogPanel() {
   const [sortOrder, setSortOrder] = useState<number>(100);
   const [isMustEatTop3, setIsMustEatTop3] = useState<boolean>(false);
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [isActive, setIsActive] = useState<boolean>(true);
 
   const fetchFoods = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("type", "FOOD");
+      params.set("includeInactive", "true");
       if (selectedCity !== "ALL") params.set("city", selectedCity);
       if (selectedScope !== "ALL") params.set("scope", selectedScope);
 
@@ -57,6 +59,28 @@ export default function FoodCatalogPanel() {
     fetchFoods();
   }, [selectedCity, selectedScope]);
 
+  const handleToggleActive = async (food: FoodItemDefinition) => {
+    const nextStatus = food.isActive === false ? true : false;
+    try {
+      const res = await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "FOOD",
+          data: { ...food, isActive: nextStatus },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFoods(foods.map((f) => (f.id === food.id ? { ...f, isActive: nextStatus } : f)));
+      } else {
+        alert(`상태 변경 실패: ${data.error}`);
+      }
+    } catch (err: any) {
+      alert(`오류 발생: ${err.message}`);
+    }
+  };
+
   const handleOpenAdd = () => {
     setEditingFood(null);
     setId(`food_${Date.now().toString().slice(-6)}`);
@@ -74,6 +98,7 @@ export default function FoodCatalogPanel() {
     setSortOrder(100);
     setIsMustEatTop3(false);
     setImageUrl("");
+    setIsActive(true);
     setIsModalOpen(true);
   };
 
@@ -94,6 +119,7 @@ export default function FoodCatalogPanel() {
     setSortOrder(food.sortOrder ?? 100);
     setIsMustEatTop3(!!food.isMustEatTop3);
     setImageUrl(food.imageUrl || "");
+    setIsActive(food.isActive !== false);
     setIsModalOpen(true);
   };
 
@@ -120,7 +146,7 @@ export default function FoodCatalogPanel() {
       sortOrder,
       isMustEatTop3,
       imageUrl,
-      isActive: true,
+      isActive,
     };
 
     try {
@@ -176,7 +202,7 @@ export default function FoodCatalogPanel() {
             <span>🍲</span> 음식 카탈로그 관리
           </h2>
           <p className="mt-1 text-xs font-semibold text-slate-200">
-            총 {foods.length}개 메뉴 등록됨 · 플래너 도시 탭 및 K-스팟에 지정된 대상과 정렬 규칙으로 노출됩니다.
+            총 {foods.length}개 메뉴 등록됨 (활성: {foods.filter((f) => f.isActive !== false).length}개, 숨김: {foods.filter((f) => f.isActive === false).length}개) · 플래너 도시 탭 및 K-스팟에 지정된 대상과 정렬 규칙으로 노출됩니다.
           </p>
         </div>
 
@@ -269,6 +295,7 @@ export default function FoodCatalogPanel() {
                 <tr>
                   <th className="p-3.5">사진</th>
                   <th className="p-3.5">음식명 / ID</th>
+                  <th className="p-3.5">상태</th>
                   <th className="p-3.5">지역 / 카테고리</th>
                   <th className="p-3.5">기준 단가</th>
                   <th className="p-3.5">노출 대상</th>
@@ -279,8 +306,16 @@ export default function FoodCatalogPanel() {
               <tbody className="divide-y divide-slate-800 text-slate-100 font-medium">
                 {filteredFoods.map((food) => {
                   const scopeType = food.targetScope || "BOTH";
+                  const isItemActive = food.isActive !== false;
                   return (
-                    <tr key={food.id} className="hover:bg-slate-800/60 transition-all">
+                    <tr
+                      key={food.id}
+                      className={`transition-all ${
+                        isItemActive
+                          ? "hover:bg-slate-800/60"
+                          : "hover:bg-slate-900/80 bg-slate-950/50 opacity-60"
+                      }`}
+                    >
                       <td className="p-3.5">
                         {food.imageUrl ? (
                           <img
@@ -305,6 +340,17 @@ export default function FoodCatalogPanel() {
                         </div>
                         <div className="text-[11px] font-semibold text-slate-300">{food.nameEn}</div>
                         <div className="font-mono text-[10px] text-indigo-300 mt-0.5">{food.id}</div>
+                      </td>
+                      <td className="p-3.5">
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                            isItemActive
+                              ? "bg-emerald-950/60 border-emerald-500/50 text-emerald-300"
+                              : "bg-slate-800 border-slate-700 text-slate-400"
+                          }`}
+                        >
+                          {isItemActive ? "노출 중" : "숨김"}
+                        </span>
                       </td>
                       <td className="p-3.5">
                         <span className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 font-bold text-slate-200">
@@ -338,15 +384,26 @@ export default function FoodCatalogPanel() {
                       <td className="p-3.5 text-right space-x-2">
                         <button
                           type="button"
+                          onClick={() => handleToggleActive(food)}
+                          className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold transition-all ${
+                            isItemActive
+                              ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/30"
+                              : "border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
+                          }`}
+                        >
+                          {isItemActive ? "숨기기" : "노출하기"}
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleOpenEdit(food)}
-                          className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
+                          className="rounded-lg border border-slate-600 bg-slate-800 px-2.5 py-1.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white"
                         >
                           수정
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(food)}
-                          className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-3 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
+                          className="rounded-lg border border-rose-500/40 bg-rose-500/15 px-2.5 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-500/25"
                         >
                           삭제
                         </button>
@@ -507,6 +564,19 @@ export default function FoodCatalogPanel() {
                     onChange={(e) => setSortOrder(parseInt(e.target.value) || 0)}
                     className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-indigo-400 focus:outline-none"
                   />
+                </div>
+
+                <div className="flex items-center gap-2 pt-5">
+                  <input
+                    type="checkbox"
+                    id="foodIsActive"
+                    checked={isActive}
+                    onChange={(e) => setIsActive(e.target.checked)}
+                    className="h-4 w-4 rounded accent-emerald-500"
+                  />
+                  <label htmlFor="foodIsActive" className="text-xs font-bold text-emerald-400 cursor-pointer">
+                    서비스에 노출 (체크 해제 시 숨김 처리)
+                  </label>
                 </div>
 
                 <div className="flex items-center gap-2 pt-5">

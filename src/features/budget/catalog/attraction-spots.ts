@@ -4590,6 +4590,7 @@ export interface TourCoursePreset {
   spotIds: string[];
   estimatedHours: number;
   courseType: "AREA_ROUTE" | "CITY_HIGHLIGHT";
+  isActive?: boolean;
 }
 
 export const ATTRACTION_SPOTS_CATALOG: AttractionSpot[] = [

@@ -44,6 +44,15 @@ const CATEGORY_LABELS: Record<
   },
 };
 
+const BADGE_TRANSLATIONS: Record<GuideCard["badge"], { en: string; ko: string }> = {
+  "Fatal Mistake": { en: "Fatal Mistake", ko: "주의 필수" },
+  "Money Saver": { en: "Money Saver", ko: "경비 절약" },
+  "Must-Know": { en: "Must-Know", ko: "필수 상식" },
+  "Local Rule": { en: "Local Rule", ko: "로컬 룰" },
+  "Essential": { en: "Essential", ko: "핵심 팁" },
+  "Pro Tip": { en: "Pro Tip", ko: "추천 팁" },
+};
+
 function getBadgeStyle(badge: GuideCard["badge"]) {
   switch (badge) {
     case "Fatal Mistake":
@@ -71,13 +80,19 @@ export const GuideCardItem: React.FC<GuideCardItemProps> = ({
     CATEGORY_LABELS[card.category] || CATEGORY_LABELS.navigation;
 
   const title = isKo ? card.titleKo : card.titleEn;
-  const subTitle = isKo ? card.titleEn : card.titleKo;
   const summary = isKo ? card.summaryKo : card.summaryEn;
   const details = isKo ? card.detailsKo : card.detailsEn;
   const proTip = isKo ? card.proTipKo : card.proTipEn;
 
+  const badgeText = isKo
+    ? BADGE_TRANSLATIONS[card.badge]?.ko || card.badge
+    : BADGE_TRANSLATIONS[card.badge]?.en || card.badge;
+
   const handleCopy = () => {
-    const textToCopy = `[HypeHeritage K-Guide] ${card.titleEn}\n\n${card.summaryEn}\n\nKey Points:\n${card.detailsEn.map((d) => `- ${d}`).join("\n")}\n\nPro-Tip: ${card.proTipEn}`;
+    const textToCopy = isKo
+      ? `[HypeHeritage K-가이드] ${card.titleKo}\n\n${card.summaryKo}\n\n핵심 내용:\n${card.detailsKo.map((d) => `- ${d}`).join("\n")}\n\n프로 팁: ${card.proTipKo}`
+      : `[HypeHeritage K-Guide] ${card.titleEn}\n\n${card.summaryEn}\n\nKey Points:\n${card.detailsEn.map((d) => `- ${d}`).join("\n")}\n\nPro-Tip: ${card.proTipEn}`;
+
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(textToCopy);
       setCopied(true);
@@ -102,32 +117,29 @@ export const GuideCardItem: React.FC<GuideCardItemProps> = ({
                 card.badge
               )}`}
             >
-              {card.badge}
+              {badgeText}
             </span>
           </div>
 
           <button
             type="button"
             onClick={handleCopy}
-            title={copied ? "Copied!" : "Copy tips"}
+            title={copied ? (isKo ? "복사되었습니다" : "Copied!") : (isKo ? "가이드 공유" : "Share guide")}
             className="text-[11px] font-bold text-slate-400 hover:text-[#b93829] hover:bg-[#fff0ed] transition px-2 py-1 rounded-lg cursor-pointer flex items-center gap-1"
           >
             {copied ? (
-              <span className="text-[#137333]">{isKo ? "복사완료" : "Copied"}</span>
+              <span className="text-[#137333] font-extrabold">{isKo ? "복사완료" : "Copied"}</span>
             ) : (
               <span>{isKo ? "공유" : "Share"}</span>
             )}
           </button>
         </div>
 
-        {/* Headlines */}
+        {/* Headline */}
         <div className="mb-3">
           <h3 className="text-base sm:text-lg font-extrabold text-[#1d1d1f] tracking-tight leading-snug group-hover:text-[#b93829] transition-colors">
             {title}
           </h3>
-          <p className="text-[11px] sm:text-xs text-[#86868b] font-medium mt-1">
-            {subTitle}
-          </p>
         </div>
 
         {/* Summary Callout Box */}
@@ -149,7 +161,7 @@ export const GuideCardItem: React.FC<GuideCardItemProps> = ({
       {/* Pro-Tip Highlight Footer Box */}
       <div className="px-5 py-3.5 sm:px-6 sm:py-4 bg-[#fff8f6] border-t border-[#fce3de] flex items-start gap-2.5">
         <span className="text-[#b93829] font-black text-[11px] uppercase tracking-wider shrink-0 mt-0.5 bg-[#fce8e6] px-1.5 py-0.5 rounded">
-          PRO-TIP
+          {isKo ? "핵심 팁" : "PRO-TIP"}
         </span>
         <p className="text-xs text-[#7a2015] leading-relaxed font-semibold">
           {proTip}

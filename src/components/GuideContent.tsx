@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   GUIDE_CARDS,
   GUIDE_CATEGORIES,
-  GuideCard,
   GuideCategory,
 } from "src/data/guide-cards";
 import { GuideCardItem } from "./guide/GuideCardItem";
@@ -33,43 +32,42 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
       if (!searchQuery.trim()) return true;
 
       const q = searchQuery.toLowerCase();
-      const matchEn =
+      if (isKo) {
+        return (
+          card.titleKo.toLowerCase().includes(q) ||
+          card.summaryKo.toLowerCase().includes(q) ||
+          card.proTipKo.toLowerCase().includes(q) ||
+          card.detailsKo.some((d) => d.toLowerCase().includes(q)) ||
+          card.titleEn.toLowerCase().includes(q)
+        );
+      }
+
+      return (
         card.titleEn.toLowerCase().includes(q) ||
         card.summaryEn.toLowerCase().includes(q) ||
         card.proTipEn.toLowerCase().includes(q) ||
-        card.detailsEn.some((d) => d.toLowerCase().includes(q));
-
-      const matchKo =
-        card.titleKo.toLowerCase().includes(q) ||
-        card.summaryKo.toLowerCase().includes(q) ||
-        card.proTipKo.toLowerCase().includes(q) ||
-        card.detailsKo.some((d) => d.toLowerCase().includes(q));
-
-      return matchEn || matchKo;
+        card.detailsEn.some((d) => d.toLowerCase().includes(q))
+      );
     });
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, isKo]);
 
   return (
     <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-8">
-      {/* 1. Hero Section - Brand Tone & Manner */}
+      {/* 1. Hero Section - Language-Isolated Clean Branding */}
       <div className="text-center max-w-2xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fce8e6] border border-[#f8c9c4] text-[#b93829] text-xs font-extrabold tracking-wide shadow-2xs">
           <span>{isKo ? "K-컬처 & 생존 실전 가이드" : "K-Travel Survival Handbook"}</span>
         </div>
 
         <h1 className="text-[26px] sm:text-[34px] md:text-[38px] font-extrabold leading-[1.25] tracking-[-0.02em] text-[#1d1d1f]">
-          Korea Travel Survival & Culture Guide
+          {isKo ? "한국 여행 실전 가이드 & 생존 사전" : "Korea Travel Survival & Culture Guide"}
         </h1>
 
         <p className="text-[13px] sm:text-[14px] text-[#86868b] leading-relaxed max-w-xl mx-auto">
-          Everything you need to know before landing: transit hacks, dining etiquette, and unwritten local rules.
+          {isKo
+            ? "입국 전 꼭 알아야 할 길찾기, 대중교통 이용법, 식당 문화 및 로컬 규칙을 한눈에 확인하세요."
+            : "Everything you need to know before landing: transit hacks, dining etiquette, and unwritten local rules."}
         </p>
-
-        {isKo && (
-          <p className="text-xs text-slate-500 font-medium">
-            한국 여행 시 외국인이 겪는 현실적 고민(지도 길찾기, 010 웨이팅, 대중교통 하차 태그, 식당 호출벨, 즉시 면세 등)을 해결하는 핵심 가이드
-          </p>
-        )}
 
         {/* Search Bar with Brand Accent */}
         <div className="pt-2 max-w-xl mx-auto">
@@ -85,7 +83,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={
                 isKo
-                  ? "궁금한 내용을 검색해보세요 (예: Naver Map, 010 번호, T-money, 호출벨, 택스리펀)"
+                  ? "궁금한 내용을 검색해보세요 (예: 네이버 지도, 교통카드, 식당 호출벨, 즉시 면세, 1330)"
                   : "Search tips (e.g. Naver Map, 010 SIM, T-money, Call bell, Tax refund)..."
               }
               className="w-full bg-white border border-slate-200/80 shadow-xs rounded-full pl-11 pr-24 py-3 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#b93829]/20 focus:border-[#b93829] transition-all"
@@ -96,14 +94,14 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
                 onClick={() => setSearchQuery("")}
                 className="absolute right-3 text-xs font-bold text-slate-400 hover:text-slate-600 px-2 py-1 cursor-pointer"
               >
-                Clear
+                {isKo ? "지우기" : "Clear"}
               </button>
             ) : (
               <button
                 type="button"
                 className="bg-[#b93829] hover:bg-[#a12f22] text-white text-xs font-bold px-4 py-1.5 rounded-full absolute right-1.5 shadow-xs transition-colors cursor-pointer"
               >
-                {dict.guideSection?.searchButton || (isKo ? "검색" : "Search")}
+                {isKo ? "검색" : "Search"}
               </button>
             )}
           </div>
@@ -148,9 +146,15 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
       {/* Result Counter & Active Filter Info */}
       <div className="flex items-center justify-between text-xs text-slate-500 px-1 font-medium">
         <span>
-          {isKo ? "가이드 카드" : "Showing"}{" "}
-          <strong className="text-slate-800 font-extrabold">{filteredCards.length}</strong>
-          {isKo ? "개 표시 중" : " survival cards"}
+          {isKo ? (
+            <>
+              총 <strong className="text-slate-800 font-extrabold">{filteredCards.length}</strong>개의 가이드 카드
+            </>
+          ) : (
+            <>
+              Showing <strong className="text-slate-800 font-extrabold">{filteredCards.length}</strong> survival cards
+            </>
+          )}
         </span>
         {searchQuery && (
           <button
@@ -185,7 +189,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             }}
             className="mt-4 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
           >
-            {isKo ? "모든 카드 보기" : "View all cards"}
+            {isKo ? "전체 카드 보기" : "View all cards"}
           </button>
         </div>
       ) : (
@@ -196,7 +200,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
         </div>
       )}
 
-      {/* 4. Quick Emergency Hotline Bar (Website Warm Tone) */}
+      {/* 4. Quick Emergency Hotline Bar */}
       <div className="bg-[#fff8f6] border border-[#fce3de] rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-xs">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-[#c5221f] text-white font-extrabold flex items-center justify-center shrink-0 text-sm shadow-xs">
@@ -204,42 +208,50 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
           </div>
           <div>
             <h4 className="text-sm font-extrabold text-[#c5221f]">
-              {dict.guideSection?.emergencyCardTitle || "24/7 한국 긴급 상황 직통 전화"}
+              {isKo ? "24시간 한국 긴급 상황 직통 전화" : "24/7 Emergency Hotlines in Korea"}
             </h4>
             <p className="text-xs text-slate-600 mt-0.5">
-              {dict.guideSection?.emergencyCardDesc || "언제 어디서나 언어 장벽 없이 24시간 무료 다국어 통역 및 긴급 출동 지원"}
+              {isKo
+                ? "언제 어디서나 언어 장벽 없이 24시간 무료 다국어 통역 및 긴급 출동 지원"
+                : "Free 24/7 multi-language interpretation & emergency dispatch available nationwide"}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap justify-center">
           <div className="bg-white px-3.5 py-2 rounded-xl border border-[#fce3de] text-center shadow-2xs">
-            <div className="text-[10px] text-slate-500 font-bold uppercase">{dict.guideSection?.tourInfoLabel || "관광통역 (Tour)"}</div>
+            <div className="text-[10px] text-slate-500 font-bold uppercase">
+              {isKo ? "관광통역안내" : "Tourist Help"}
+            </div>
             <div className="text-sm font-extrabold text-[#c5221f]">1330</div>
           </div>
           <div className="bg-white px-3.5 py-2 rounded-xl border border-[#fce3de] text-center shadow-2xs">
-            <div className="text-[10px] text-slate-500 font-bold uppercase">{dict.guideSection?.policeLabel || "경찰 (Police)"}</div>
+            <div className="text-[10px] text-slate-500 font-bold uppercase">
+              {isKo ? "경찰" : "Police"}
+            </div>
             <div className="text-sm font-extrabold text-[#c5221f]">112</div>
           </div>
           <div className="bg-white px-3.5 py-2 rounded-xl border border-[#fce3de] text-center shadow-2xs">
-            <div className="text-[10px] text-slate-500 font-bold uppercase">{dict.guideSection?.fireLabel || "화재·구급 (Ambulance)"}</div>
+            <div className="text-[10px] text-slate-500 font-bold uppercase">
+              {isKo ? "화재·구급" : "Medical / Fire"}
+            </div>
             <div className="text-sm font-extrabold text-[#c5221f]">119</div>
           </div>
         </div>
       </div>
 
-      {/* 5. Connected CTA Banner (Brand Coral-Red Gradient) */}
+      {/* 5. Connected CTA Banner */}
       <div className="bg-gradient-to-r from-[#b93829] via-[#ad3022] to-[#8d2317] text-white rounded-3xl p-7 sm:p-9 shadow-lg border border-[#a62c1e] flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
         <div className="space-y-2 max-w-xl">
           <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#ffebe8] bg-white/15 px-3 py-1 rounded-full border border-white/20">
-            HypeHeritage Travel Planner
+            {isKo ? "HypeHeritage 여행 플래너" : "HypeHeritage Travel Planner"}
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Now ready to plan your trip budget?
+            {isKo ? "이제 맞춤 한국 여행 예산을 세워볼까요?" : "Now ready to plan your trip budget?"}
           </h2>
           <p className="text-xs sm:text-sm text-[#fce8e6] leading-relaxed">
             {isKo
-              ? "방문할 도시, 식사 스타일, 대중교통 이용 패턴을 선택하고 나만의 한국 여행 맞춤 예산을 지금 완성해 보세요."
+              ? "방문할 도시, 식사 스타일, 대중교통 이용 패턴을 선택하고 나만의 한국 여행 예산을 몇 초 만에 완성해 보세요."
               : "Calculate your custom Korea travel budget in seconds. Pick cities, choose meal styles, simulate transit costs, and get tailored local tips."}
           </p>
         </div>
@@ -249,7 +261,7 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
             href={`/${locale}/planner`}
             className="inline-flex items-center gap-2 px-6 py-3.5 bg-white text-[#b93829] hover:bg-[#fff0ed] font-extrabold text-sm rounded-2xl shadow-md transition-all duration-200 cursor-pointer active:scale-95"
           >
-            <span>{dict.planner?.plannerShortcutLink || "Go to Budget Planner"}</span>
+            <span>{isKo ? "예산 플래너 바로가기" : "Go to Budget Planner"}</span>
             <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
@@ -261,21 +273,28 @@ export default function GuideContent({ locale, dict }: GuideContentProps) {
           href={`/${locale}/planner`}
           className="hover:text-[#b93829] transition-colors"
         >
-          {dict?.planner?.plannerShortcutLink || "Budget Planner"}
+          {isKo ? "예산 플래너" : "Budget Planner"}
         </Link>
         <span className="text-slate-300">&bull;</span>
         <Link
           href={`/${locale}/places`}
           className="hover:text-[#b93829] transition-colors"
         >
-          {dict?.navigation?.places || "K-Places"}
+          {isKo ? "K-장소 탐색" : "K-Places"}
         </Link>
         <span className="text-slate-300">&bull;</span>
         <Link
           href={`/${locale}/report`}
           className="hover:text-[#b93829] transition-colors"
         >
-          {dict?.planner?.reportShortcutLink || "Budget Report"}
+          {isKo ? "예산 리포트" : "Budget Report"}
+        </Link>
+        <span className="text-slate-300">&bull;</span>
+        <Link
+          href={`/${locale}`}
+          className="hover:text-[#b93829] transition-colors"
+        >
+          {isKo ? "홈으로" : "Home"}
         </Link>
       </div>
     </div>

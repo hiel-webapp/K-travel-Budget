@@ -38,6 +38,7 @@ import { STAY_ARCHETYPES, getStayArchetypePrice } from "../features/budget/catal
 import { calculateTripBudgetSummary } from "../features/budget/calculations/trip-budget-calculator";
 import ReportBentoDashboard from "./report/ReportBentoDashboard";
 import ExpenseAnalyticsHub from "./report/ExpenseAnalyticsHub";
+import SmartRouteMap from "./report/SmartRouteMap";
 import ReportShareBar from "./report/ReportShareBar";
 
 interface ReportContentProps {
@@ -276,6 +277,14 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         {/* LEFT COLUMN: CURATED ITINERARY & AUDIT (6 COLS) */}
         {/* ========================================================================= */}
         <div className="lg:col-span-6 space-y-6">
+          {/* Section C: Interactive Smart Route & Kakao Map */}
+          <SmartRouteMap
+            selectedCities={draft.selectedCities}
+            cityBreakdown={cityBreakdown}
+            locale={locale}
+            dict={dict}
+          />
+
           {/* Card: Recommended Tour Courses (Curated Route Guide) */}
           {recommendedCourses.length > 0 && (
             <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">

@@ -11,15 +11,6 @@ interface GuideEditorModalProps {
   onSave: (savedCard: GuideCard) => void;
 }
 
-const BADGES: { key: GuideCard["badge"]; labelKo: string; labelEn: string }[] = [
-  { key: "Fatal Mistake", labelKo: "주의 필수 (Fatal Mistake)", labelEn: "Fatal Mistake" },
-  { key: "Money Saver", labelKo: "경비 절약 (Money Saver)", labelEn: "Money Saver" },
-  { key: "Must-Know", labelKo: "필수 상식 (Must-Know)", labelEn: "Must-Know" },
-  { key: "Local Rule", labelKo: "로컬 룰 (Local Rule)", labelEn: "Local Rule" },
-  { key: "Essential", labelKo: "핵심 팁 (Essential)", labelEn: "Essential" },
-  { key: "Pro Tip", labelKo: "추천 팁 (Pro Tip)", labelEn: "Pro Tip" },
-];
-
 export default function GuideEditorModal({
   isOpen,
   card,
@@ -203,7 +194,7 @@ export default function GuideEditorModal({
         </div>
 
         {/* Top Fixed Meta Fields */}
-        <div className="px-6 py-4 bg-slate-800/60 border-b border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="px-6 py-4 bg-slate-800/60 border-b border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold text-slate-200 mb-1">카드 고유 식별자 (ID)</label>
             <input
@@ -226,21 +217,6 @@ export default function GuideEditorModal({
               {GUIDE_CATEGORIES.filter((c) => c.key !== "all").map((cat) => (
                 <option key={cat.key} value={cat.key} className="bg-slate-800 text-white">
                   {cat.icon} {cat.labelKo} ({cat.labelEn})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-200 mb-1">상태 배지 (Badge)</label>
-            <select
-              value={badge}
-              onChange={(e) => setBadge(e.target.value as GuideCard["badge"])}
-              className="w-full text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 bg-slate-800 text-white focus:outline-none focus:border-[#b93829]"
-            >
-              {BADGES.map((b) => (
-                <option key={b.key} value={b.key} className="bg-slate-800 text-white">
-                  {b.labelKo}
                 </option>
               ))}
             </select>

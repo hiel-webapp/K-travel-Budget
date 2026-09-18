@@ -269,14 +269,9 @@ export default function GuideManagerPanel() {
                     <div>
                       {/* Meta badges */}
                       <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600">
-                            {catInfo?.icon} {catInfo?.labelKo || card.category}
-                          </span>
-                          <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                            {card.badge}
-                          </span>
-                        </div>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600">
+                          {catInfo?.icon} {catInfo?.labelKo || card.category}
+                        </span>
                         <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
                           {card.id}
                         </span>

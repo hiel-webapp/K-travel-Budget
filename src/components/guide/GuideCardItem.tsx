@@ -44,33 +44,6 @@ const CATEGORY_LABELS: Record<
   },
 };
 
-const BADGE_TRANSLATIONS: Record<GuideCard["badge"], { en: string; ko: string }> = {
-  "Fatal Mistake": { en: "Fatal Mistake", ko: "주의 필수" },
-  "Money Saver": { en: "Money Saver", ko: "경비 절약" },
-  "Must-Know": { en: "Must-Know", ko: "필수 상식" },
-  "Local Rule": { en: "Local Rule", ko: "로컬 룰" },
-  "Essential": { en: "Essential", ko: "핵심 팁" },
-  "Pro Tip": { en: "Pro Tip", ko: "추천 팁" },
-};
-
-function getBadgeStyle(badge: GuideCard["badge"]) {
-  switch (badge) {
-    case "Fatal Mistake":
-      return "bg-[#fce8e6] text-[#c5221f] border-[#f8c9c4]";
-    case "Money Saver":
-      return "bg-[#e6f4ea] text-[#137333] border-[#ceead6]";
-    case "Must-Know":
-      return "bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]";
-    case "Local Rule":
-      return "bg-[#fef7e0] text-[#b06000] border-[#fde293]";
-    case "Essential":
-      return "bg-[#f3e8fd] text-[#7627bb] border-[#e1bee7]";
-    case "Pro Tip":
-    default:
-      return "bg-[#fff0ed] text-[#b93829] border-[#ffd5cc]";
-  }
-}
-
 export const GuideCardItem: React.FC<GuideCardItemProps> = ({
   card,
   isKo = false,
@@ -83,10 +56,6 @@ export const GuideCardItem: React.FC<GuideCardItemProps> = ({
   const summary = isKo ? card.summaryKo : card.summaryEn;
   const details = isKo ? card.detailsKo : card.detailsEn;
   const proTip = isKo ? card.proTipKo : card.proTipEn;
-
-  const badgeText = isKo
-    ? BADGE_TRANSLATIONS[card.badge]?.ko || card.badge
-    : BADGE_TRANSLATIONS[card.badge]?.en || card.badge;
 
   const handleCopy = () => {
     const textToCopy = isKo
@@ -104,22 +73,13 @@ export const GuideCardItem: React.FC<GuideCardItemProps> = ({
     <article className="flex flex-col justify-between h-full bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden group">
       {/* Card Header & Content */}
       <div className="p-5 sm:p-6 flex-1 flex flex-col">
-        {/* Badges row */}
+        {/* Category Pill row */}
         <div className="flex items-center justify-between gap-2 mb-3.5">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span
-              className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${categoryInfo.color}`}
-            >
-              {isKo ? categoryInfo.ko : categoryInfo.en}
-            </span>
-            <span
-              className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${getBadgeStyle(
-                card.badge
-              )}`}
-            >
-              {badgeText}
-            </span>
-          </div>
+          <span
+            className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${categoryInfo.color}`}
+          >
+            {isKo ? categoryInfo.ko : categoryInfo.en}
+          </span>
 
           <button
             type="button"

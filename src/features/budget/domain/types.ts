@@ -108,6 +108,7 @@ export interface BudgetLineItem {
   confidence: PriceConfidence;
   updatedAt: string;
   sourceLabel: string;
+  sourceLabelEn?: string;
   mealPlan?: BaseMealPlan | CalculatedMealPlan;
 }
 

@@ -4824,12 +4824,30 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       </span>
                                     </div>
                                     {transportItems.length > 0 ? (
-                                      transportItems.map((item) => (
-                                        <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
-                                          <span className="truncate pr-2">{item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city)}</span>
-                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
-                                        </div>
-                                      ))
+                                      transportItems.map((item) => {
+                                        let transportLabel = item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city);
+                                        if (locale === "en") {
+                                          if (item.sourceLabelEn) {
+                                            transportLabel = item.sourceLabelEn;
+                                          } else if (item.sourceLabel && item.sourceLabel.includes("[시내 교통]")) {
+                                            const daysMatch = item.sourceLabel.match(/(\d+)\s*일/);
+                                            const stayDays = daysMatch ? daysMatch[1] : `${item.durationCount || 1}`;
+                                            let optName = "Public Transit";
+                                            if (item.sourceLabel.includes("택시") && (item.sourceLabel.includes("대중교통") || item.sourceLabel.includes("지하철") || item.sourceLabel.includes("Metro"))) {
+                                              optName = "Public Transit + Taxi";
+                                            } else if (item.sourceLabel.includes("택시")) {
+                                              optName = "Taxi (Kakao T)";
+                                            }
+                                            transportLabel = `[Local Transit] ${optName} (${englishCityName} ${stayDays}d / 4 trips/day)`;
+                                          }
+                                        }
+                                        return (
+                                          <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-500 pl-5">
+                                            <span className="truncate pr-2">{transportLabel}</span>
+                                            <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                          </div>
+                                        );
+                                      })
                                     ) : (
                                       <div className="text-[11px] text-slate-400 pl-5">
                                         {locale === "ko" ? "미선택" : "Unselected"}

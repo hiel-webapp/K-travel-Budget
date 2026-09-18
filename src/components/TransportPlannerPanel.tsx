@@ -834,8 +834,8 @@ export default function TransportPlannerPanel({
                             </div>
                             <div className="pl-2 text-[10.5px] text-slate-200">
                               {selectedOpt.taxiTripsPerDay > 0
-                                ? (locale === "ko" ? `지하철/버스 ${selectedOpt.subwayTripsPerDay}회 + 택시 ${selectedOpt.taxiTripsPerDay}회` : `Metro/Bus ${selectedOpt.subwayTripsPerDay} trips + Taxi ${selectedOpt.taxiTripsPerDay} trip`)
-                                : (locale === "ko" ? `지하철/버스 ${selectedOpt.subwayTripsPerDay}회` : `Metro/Bus ${selectedOpt.subwayTripsPerDay} trips`)}
+                                ? (locale === "ko" ? `대중교통 ${selectedOpt.subwayTripsPerDay}회 + 택시 ${selectedOpt.taxiTripsPerDay}회` : `Public Transit ${selectedOpt.subwayTripsPerDay} trips + Taxi ${selectedOpt.taxiTripsPerDay} trip`)
+                                : (locale === "ko" ? `대중교통 ${selectedOpt.subwayTripsPerDay}회` : `Public Transit ${selectedOpt.subwayTripsPerDay} trips`)}
                             </div>
                           </div>
 

@@ -674,7 +674,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       <div key={item.id} className="flex justify-between items-start gap-3">
                         <div>
                           <span className="font-bold text-slate-800 block">
-                            {item.sourceLabel || getBasketLabel(item.basketId, dict, locale)}
+                            {(locale === "ko" ? item.sourceLabel : (item.sourceLabelEn || item.sourceLabel)) || getBasketLabel(item.basketId, dict, locale)}
                           </span>
                           <span className="text-[10px] text-slate-400 block tabular-nums">
                             {getCalculationExpression(item, dict, locale)}

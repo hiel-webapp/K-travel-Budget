@@ -1,4 +1,4 @@
-import { SupportedCity, TripDraft, validateTripDraft, BudgetTier, CITY_KOREAN_NAMES } from "../../../lib/trip-domain";
+import { SupportedCity, TripDraft, validateTripDraft, BudgetTier, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../../../lib/trip-domain";
 import {
   BudgetCategory,
   BudgetBasketDefinition,
@@ -342,6 +342,7 @@ export function generateInitialBudgetPlan(
           const lineTotalKrw = unitPrice * adultCount * stayDays;
           const basket = findBasket(catalog, basketId, category, city) || catalog.find((b) => b.category === "CITY_TRANSPORT");
           const cityName = CITY_KOREAN_NAMES[city] || city;
+          const cityNameEn = CITY_ENGLISH_NAMES[city] || city;
 
           item = {
             id: `${city}_CITY_TRANSPORT_CUSTOM`.toUpperCase(),
@@ -361,6 +362,7 @@ export function generateInitialBudgetPlan(
             confidence: "OFFICIAL",
             updatedAt: "2026-08-01",
             sourceLabel: `[시내 교통] ${transitOpt.nameKo} (${cityName} ${stayDays}일 / 1일 4회 기준)`,
+            sourceLabelEn: `[Local Transit] ${transitOpt.nameEn} (${cityNameEn} ${stayDays}d / 4 trips/day)`,
           };
         } else {
           const basket = findBasket(catalog, basketId, category, city);

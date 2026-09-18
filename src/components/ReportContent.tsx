@@ -37,6 +37,7 @@ import { THEME_ACTIVITIES_CATALOG, themeActivityToAttractionSpot } from "../feat
 import { STAY_ARCHETYPES, getStayArchetypePrice } from "../features/budget/catalog/stay-archetypes";
 import { calculateTripBudgetSummary } from "../features/budget/calculations/trip-budget-calculator";
 import ReportBentoDashboard from "./report/ReportBentoDashboard";
+import ExpenseAnalyticsHub from "./report/ExpenseAnalyticsHub";
 import ReportShareBar from "./report/ReportShareBar";
 
 interface ReportContentProps {
@@ -253,7 +254,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         </div>
       </div>
 
-      {/* 2. Executive Bento Grid Dashboard (Apple & Craft.do Asymmetric Grid) */}
+      {/* 2. Executive Total Budget & Pacing Summary Banner (Section A) */}
       <ReportBentoDashboard
         calculations={calculations}
         draft={draft}
@@ -261,59 +262,20 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         dict={dict}
       />
 
-      {/* 3. Balanced 2-Column Dashboard */}
+      {/* 3. Unified Expense Analytics Hub (Section B: Category Donut + City Donut + City Audit Table) */}
+      <ExpenseAnalyticsHub
+        calculations={calculations}
+        draft={draft}
+        locale={locale}
+        dict={dict}
+      />
+
+      {/* 4. Balanced 2-Column Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ========================================================================= */}
-        {/* LEFT COLUMN: BUDGET ARCHITECTURE & CITY AUDIT (6 COLS) */}
+        {/* LEFT COLUMN: CURATED ITINERARY & AUDIT (6 COLS) */}
         {/* ========================================================================= */}
         <div className="lg:col-span-6 space-y-6">
-          {/* Card: City Financial Audit Table */}
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">
-            <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
-              <h2 className="text-sm font-black text-slate-900 tracking-tight">
-                {locale === "ko" ? "도시별 4대 부문 지출 집계" : "City-by-City Expense Breakdown"}
-              </h2>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse font-medium">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] tracking-wider">
-                    <th className="py-2 font-bold">{locale === "ko" ? "도시" : "City"}</th>
-                    <th className="py-2 text-center font-bold">{locale === "ko" ? "체류" : "Nights"}</th>
-                    <th className="py-2 text-right font-bold">{locale === "ko" ? "숙소" : "Stay"}</th>
-                    <th className="py-2 text-right font-bold">{locale === "ko" ? "음식" : "Food"}</th>
-                    <th className="py-2 text-right font-bold">{locale === "ko" ? "교통" : "Transit"}</th>
-                    <th className="py-2 text-right font-bold">{locale === "ko" ? "관광" : "Attr"}</th>
-                    <th className="py-2 text-right font-black text-slate-900">{locale === "ko" ? "소계" : "Subtotal"}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {draft.selectedCities.map((city) => {
-                    const cInfo = cityBreakdown[city];
-                    if (!cInfo) return null;
-
-                    return (
-                      <tr key={city} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-2.5 font-bold text-slate-900">
-                          {locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city}
-                        </td>
-                        <td className="py-2.5 text-center text-slate-500 text-[11px] tabular-nums">
-                          {cInfo.nights === 0 ? (locale === "ko" ? "당일" : "Day") : `${cInfo.nights}N`}
-                        </td>
-                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.stayTotalKrw)}</td>
-                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.foodTotalKrw)}</td>
-                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.transportTotalKrw)}</td>
-                        <td className="py-2.5 text-right tabular-nums text-slate-600 font-medium">{formatKrw(cInfo.attractionTotalKrw)}</td>
-                        <td className="py-2.5 text-right tabular-nums font-black text-slate-900">{formatKrw(cInfo.subtotalKrw)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           {/* Card: Recommended Tour Courses (Curated Route Guide) */}
           {recommendedCourses.length > 0 && (
             <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">

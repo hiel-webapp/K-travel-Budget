@@ -40,10 +40,12 @@ const SUPABASE_PUBLIC_URL = "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDY5MzQzNSwiZXhwIjoyMTAwMjY5NDM1fQ.p6Dqme9d0QdKyg5ijvvmeEwT0BJ5fdi8vATCc_IkW7Q";
 
 let memoryCache: AdminStoreData | null = null;
+let lastCacheFetchTime = 0;
+const CACHE_TTL_MS = 30 * 1000; // 30초 캐시로 불필요한 중복 원격 fetch 방지
 
 function ensureDataDirectory() {
   try {
-    if (!fs.existsSync(DATA_DIR)) {
+    if (typeof fs !== "undefined" && fs.existsSync && !fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
   } catch {}
@@ -143,16 +145,24 @@ async function uploadToSupabase(data: AdminStoreData): Promise<void> {
 }
 
 /**
- * 비동기 로드: Supabase 원격 DB를 1순위로 조회하고, 실패 시 로컬 파일/메모리 캐시를 사용합니다.
+ * 비동기 로드: 메모리 캐시(30초 TTL)를 먼저 확인하고, 만료되었을 때 Supabase 원격 DB를 조회합니다.
  */
 export async function loadAdminStore(): Promise<AdminStoreData> {
+  const now = Date.now();
+  if (memoryCache && now - lastCacheFetchTime < CACHE_TTL_MS) {
+    return memoryCache;
+  }
+
   const remote = await fetchFromSupabase();
   if (remote) {
     memoryCache = remote;
+    lastCacheFetchTime = now;
     setDynamicPresets(remote.presets);
     ensureDataDirectory();
     try {
-      fs.writeFileSync(STORE_FILE, JSON.stringify(remote, null, 2), "utf-8");
+      if (typeof fs !== "undefined" && fs.writeFileSync) {
+        fs.writeFileSync(STORE_FILE, JSON.stringify(remote, null, 2), "utf-8");
+      }
     } catch {}
     return remote;
   }
@@ -163,11 +173,12 @@ export async function loadAdminStore(): Promise<AdminStoreData> {
 
   ensureDataDirectory();
 
-  if (fs.existsSync(STORE_FILE)) {
+  if (typeof fs !== "undefined" && fs.existsSync && fs.existsSync(STORE_FILE)) {
     try {
       const raw = fs.readFileSync(STORE_FILE, "utf-8");
       const parsed = JSON.parse(raw) as AdminStoreData;
       memoryCache = parsed;
+      lastCacheFetchTime = now;
       setDynamicPresets(parsed.presets);
       return parsed;
     } catch {}
@@ -175,6 +186,7 @@ export async function loadAdminStore(): Promise<AdminStoreData> {
 
   const initial = getInitialStore();
   memoryCache = initial;
+  lastCacheFetchTime = now;
   setDynamicPresets(initial.presets);
   return initial;
 }
@@ -185,11 +197,14 @@ export async function loadAdminStore(): Promise<AdminStoreData> {
 export async function saveAdminStore(data: AdminStoreData): Promise<void> {
   data.lastUpdated = new Date().toISOString();
   memoryCache = data;
+  lastCacheFetchTime = Date.now();
   setDynamicPresets(data.presets);
 
   ensureDataDirectory();
   try {
-    fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), "utf-8");
+    if (typeof fs !== "undefined" && fs.writeFileSync) {
+      fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), "utf-8");
+    }
   } catch {}
 
   // 정적 travel-presets.ts 파일도 최신 프리셋과 동기화하여 빌드 및 SSR 단계의 플리커링 영구 방지

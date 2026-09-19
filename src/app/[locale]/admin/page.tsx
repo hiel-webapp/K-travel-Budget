@@ -1,7 +1,5 @@
-import { getDictionary } from "../../../lib/i18n/get-dictionary";
+import AdminPageClient from "../../../components/admin/AdminPageClient";
 import { Locale } from "../../../lib/i18n/locales";
-import AdminDashboard from "../../../components/admin/AdminDashboard";
-import AdminAuthGuard from "../../../components/admin/AdminAuthGuard";
 
 interface AdminPageProps {
   params: Promise<{
@@ -19,10 +17,6 @@ export const metadata = {
 };
 
 export default async function AdminPage({ params }: AdminPageProps) {
-  const { locale } = await params;
-  return (
-    <AdminAuthGuard>
-      <AdminDashboard />
-    </AdminAuthGuard>
-  );
+  await params;
+  return <AdminPageClient />;
 }

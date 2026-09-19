@@ -7,11 +7,12 @@ import FoodCatalogPanel from "./FoodCatalogPanel";
 import AttractionCatalogPanel from "./AttractionCatalogPanel";
 import TourCoursePanel from "./TourCoursePanel";
 import GuideManagerPanel from "./GuideManagerPanel";
+import ThemeActivityCatalogPanel from "./ThemeActivityCatalogPanel";
 import SortingConfigModal from "./SortingConfigModal";
 import ChangePinModal from "./ChangePinModal";
 import { useAdminAuth } from "./AdminAuthGuard";
 
-type AdminTab = "PRESETS" | "FOODS" | "ATTRACTIONS" | "COURSES" | "GUIDES";
+type AdminTab = "PRESETS" | "FOODS" | "ATTRACTIONS" | "ACTIVITIES" | "COURSES" | "GUIDES";
 
 export default function AdminDashboard() {
   const { logout } = useAdminAuth();
@@ -114,6 +115,7 @@ export default function AdminDashboard() {
             { id: "PRESETS", label: "🗺️ 프리셋 관리 (Presets)", desc: "5대 프리셋 및 커스텀 조립" },
             { id: "FOODS", label: "🍲 음식 카탈로그 (Food)", desc: "도시별 단가 & 노출 대상" },
             { id: "ATTRACTIONS", label: "🏛️ 관광지 명소 (Attractions)", desc: "입장료 & K-스팟 매핑" },
+            { id: "ACTIVITIES", label: "🎭 연계 K-체험 (Activities)", desc: "명소 연계 체험 & 액티비티" },
             { id: "COURSES", label: "🧭 투어 코스 (Courses)", desc: "도시별 스팟 바인딩" },
             { id: "GUIDES", label: "📚 K-가이드 관리 (Guides)", desc: "실전 여행팁 & FAQ CMS" },
           ].map((tab) => (
@@ -151,6 +153,7 @@ export default function AdminDashboard() {
         {activeTab === "PRESETS" && <PresetManagerPanel />}
         {activeTab === "FOODS" && <FoodCatalogPanel />}
         {activeTab === "ATTRACTIONS" && <AttractionCatalogPanel />}
+        {activeTab === "ACTIVITIES" && <ThemeActivityCatalogPanel />}
         {activeTab === "COURSES" && <TourCoursePanel />}
         {activeTab === "GUIDES" && <GuideManagerPanel />}
       </main>

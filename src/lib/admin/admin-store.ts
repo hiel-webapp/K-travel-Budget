@@ -3,6 +3,7 @@ import path from "path";
 import { TRAVEL_PRESETS, TravelPreset, setDynamicPresets } from "../presets/travel-presets";
 import { ALL_FOOD_ITEMS } from "../../features/budget/catalog/food-catalog";
 import { ATTRACTION_SPOTS_CATALOG, AttractionSpot, TOUR_COURSE_PRESETS, TourCoursePreset } from "../../features/budget/catalog/attraction-spots";
+import { THEME_ACTIVITIES_CATALOG, ThemeActivityItem, registerCustomThemeActivities } from "../../features/budget/catalog/theme-activities";
 import { FoodItemDefinition } from "../../features/budget/domain/types";
 import { SupportedCity } from "../trip-domain";
 import { K_GUIDE_CONTENTS, K_GUIDE_FAQS, GuideItem, GuideFAQ } from "../static-contents";
@@ -24,6 +25,7 @@ export interface AdminStoreData {
   attractionSpots: AttractionSpot[];
   tourCourses: TourCoursePreset[];
   sortingRulesByCity: Record<string, SortingRuleType>;
+  themeActivities?: ThemeActivityItem[];
   guideItemsKo?: GuideItem[];
   guideItemsEn?: GuideItem[];
   guideFaqs?: GuideFAQ[];
@@ -91,6 +93,7 @@ function getInitialStore(): AdminStoreData {
     attractionSpots: initialAttractions,
     tourCourses: initialCourses,
     sortingRulesByCity: defaultSorting,
+    themeActivities: [...THEME_ACTIVITIES_CATALOG],
     guideItemsKo: [...K_GUIDE_CONTENTS.ko],
     guideItemsEn: [...K_GUIDE_CONTENTS.en],
     guideFaqs: [...K_GUIDE_FAQS],
@@ -155,9 +158,13 @@ export async function loadAdminStore(): Promise<AdminStoreData> {
 
   const remote = await fetchFromSupabase();
   if (remote) {
+    if (!remote.themeActivities || remote.themeActivities.length === 0) {
+      remote.themeActivities = [...THEME_ACTIVITIES_CATALOG];
+    }
     memoryCache = remote;
     lastCacheFetchTime = now;
     setDynamicPresets(remote.presets);
+    registerCustomThemeActivities(remote.themeActivities);
     ensureDataDirectory();
     try {
       if (typeof fs !== "undefined" && fs.writeFileSync) {
@@ -539,6 +546,87 @@ export async function reorderAdminAttractions(orderedIds: string[], setCustomOrd
   if (setCustomOrderRuleCity) {
     store.sortingRulesByCity[setCustomOrderRuleCity] = "CUSTOM_ORDER";
   }
+  await saveAdminStore(store);
+}
+
+// ==========================================
+// 3-1. Theme Activities API Methods
+// ==========================================
+
+export async function getAdminThemeActivities(filter?: {
+  city?: SupportedCity | "ALL";
+  includeInactive?: boolean;
+}): Promise<ThemeActivityItem[]> {
+  const store = await loadAdminStore();
+  let items = store.themeActivities && store.themeActivities.length > 0
+    ? [...store.themeActivities]
+    : [...THEME_ACTIVITIES_CATALOG];
+
+  if (!filter?.includeInactive) {
+    items = items.filter((a) => a.isActive !== false);
+  }
+
+  if (filter?.city && filter.city !== "ALL") {
+    items = items.filter((a) => a.cityCode === filter.city);
+  }
+
+  return items;
+}
+
+export async function saveAdminThemeActivity(item: ThemeActivityItem): Promise<ThemeActivityItem> {
+  const store = await loadAdminStore();
+  if (!store.themeActivities) {
+    store.themeActivities = [...THEME_ACTIVITIES_CATALOG];
+  }
+
+  const targetItem: ThemeActivityItem = {
+    ...item,
+    isActive: item.isActive ?? true,
+  };
+
+  const idx = store.themeActivities.findIndex((a) => a.id === targetItem.id);
+  if (idx >= 0) {
+    store.themeActivities[idx] = { ...store.themeActivities[idx], ...targetItem };
+  } else {
+    store.themeActivities.push(targetItem);
+  }
+
+  registerCustomThemeActivities(store.themeActivities);
+  await saveAdminStore(store);
+  return targetItem;
+}
+
+export async function saveAdminThemeActivitiesBatch(items: ThemeActivityItem[]): Promise<ThemeActivityItem[]> {
+  const store = await loadAdminStore();
+  if (!store.themeActivities) {
+    store.themeActivities = [...THEME_ACTIVITIES_CATALOG];
+  }
+
+  for (const item of items) {
+    const targetItem: ThemeActivityItem = {
+      ...item,
+      isActive: item.isActive ?? true,
+    };
+    const idx = store.themeActivities.findIndex((a) => a.id === targetItem.id);
+    if (idx >= 0) {
+      store.themeActivities[idx] = { ...store.themeActivities[idx], ...targetItem };
+    } else {
+      store.themeActivities.push(targetItem);
+    }
+  }
+
+  registerCustomThemeActivities(store.themeActivities);
+  await saveAdminStore(store);
+  return items;
+}
+
+export async function deleteAdminThemeActivity(id: string): Promise<void> {
+  const store = await loadAdminStore();
+  if (!store.themeActivities) {
+    store.themeActivities = [...THEME_ACTIVITIES_CATALOG];
+  }
+  store.themeActivities = store.themeActivities.filter((a) => a.id !== id);
+  registerCustomThemeActivities(store.themeActivities);
   await saveAdminStore(store);
 }
 

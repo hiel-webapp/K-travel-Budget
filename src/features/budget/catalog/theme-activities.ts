@@ -19,6 +19,7 @@ export interface ThemeActivityItem {
   durationTextEn?: string;
   bookingTipKo?: string;
   bookingTipEn?: string;
+  isActive?: boolean;
 }
 
 export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
@@ -273,20 +274,33 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
   },
 ];
 
+let dynamicActivitiesCache: ThemeActivityItem[] | null = null;
+
+export function registerCustomThemeActivities(items: ThemeActivityItem[]) {
+  dynamicActivitiesCache = items;
+}
+
+export function getAllThemeActivities(includeInactive = false): ThemeActivityItem[] {
+  const list = dynamicActivitiesCache || THEME_ACTIVITIES_CATALOG;
+  if (includeInactive) return list;
+  return list.filter((a) => a.isActive !== false);
+}
+
 /**
  * 주어진 spot ID 또는 명칭과 연계된 K-테마 액티비티를 검색합니다.
  */
 export function getRelatedThemeActivity(spotId: string, spotName?: string): ThemeActivityItem | undefined {
   const normalized = spotId.replace(/^seoul_rep_/, "").replace(/^kto_custom_/, "").replace(/^kto_/, "").trim();
+  const catalog = getAllThemeActivities();
   
   // 1. 정확한 key 매칭
-  const byKey = THEME_ACTIVITIES_CATALOG.find((act) => act.relatedSpotKey && act.relatedSpotKey === normalized);
+  const byKey = catalog.find((act) => act.relatedSpotKey && act.relatedSpotKey === normalized);
   if (byKey) return byKey;
 
   // 2. 명칭 유사도 매칭 (보조 매칭)
   if (spotName) {
     const cleanName = spotName.replace(/\s+/g, "");
-    return THEME_ACTIVITIES_CATALOG.find((act) => {
+    return catalog.find((act) => {
       if (!act.relatedSpotNameKo) return false;
       const actSpotName = act.relatedSpotNameKo.replace(/\s+/g, "");
       return cleanName.includes(actSpotName) || actSpotName.includes(cleanName);

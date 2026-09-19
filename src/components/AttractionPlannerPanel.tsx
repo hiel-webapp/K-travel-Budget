@@ -16,6 +16,8 @@ import {
   themeActivityToAttractionSpot,
   ThemeActivityItem,
   getRelatedThemeActivity,
+  getAllThemeActivities,
+  registerCustomThemeActivities,
 } from "../features/budget/catalog/theme-activities";
 import { formatKrw } from "../features/budget/presentation/formatters";
 import { useExchangeRate } from "../lib/hooks/useExchangeRate";
@@ -65,6 +67,21 @@ export default function AttractionPlannerPanel({
   const [isCustomOpen, setIsCustomOpen] = useState<boolean>(false);
   const [customName, setCustomName] = useState<string>("");
   const [customPrice, setCustomPrice] = useState<string>("");
+
+  const [dynamicActivities, setDynamicActivities] = useState<ThemeActivityItem[]>(() => getAllThemeActivities());
+
+  // 관리자 / Supabase 실시간 동적 K-체험 카탈로그 로드
+  useEffect(() => {
+    fetch("/api/admin/catalog?type=THEME_ACTIVITY")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.success && Array.isArray(data.activities) && data.activities.length > 0) {
+          registerCustomThemeActivities(data.activities);
+          setDynamicActivities(data.activities);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // 연계 K-체험 추천 플로팅 스낵바 상태 (대안 A)
   const [promptActivity, setPromptActivity] = useState<{
@@ -125,11 +142,13 @@ export default function AttractionPlannerPanel({
 
   // 2. 현재 도시의 K-테마 액티비티 목록
   const themeActivitiesForCity = useMemo(() => {
-    return THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === city).map((act) => ({
-      activity: act,
-      spot: themeActivityToAttractionSpot(act),
-    }));
-  }, [city]);
+    return dynamicActivities
+      .filter((act) => act.cityCode === city && act.isActive !== false)
+      .map((act) => ({
+        activity: act,
+        spot: themeActivityToAttractionSpot(act),
+      }));
+  }, [city, dynamicActivities]);
 
   // 3. 현재 도시에서 선택된 모든 스팟 목록 (바스켓 아이템)
   const selectedSpotsInCity = useMemo(() => {

@@ -8,6 +8,10 @@ import {
   saveAdminAttraction,
   saveAdminAttractionsBatch,
   deleteAdminAttraction,
+  getAdminThemeActivities,
+  saveAdminThemeActivity,
+  saveAdminThemeActivitiesBatch,
+  deleteAdminThemeActivity,
   getAdminTourCourses,
   saveAdminTourCourse,
   deleteAdminTourCourse,
@@ -61,6 +65,14 @@ export async function GET(req: NextRequest) {
     if (type === "COURSE" || type === "ALL") {
       const courseCity = city === "NATIONAL" ? "ALL" : (city as SupportedCity | "ALL");
       responseData.courses = await getAdminTourCourses(courseCity, includeInactive);
+    }
+
+    if (type === "THEME_ACTIVITY" || type === "ACTIVITY" || type === "ALL") {
+      const activityCity = city === "NATIONAL" ? "ALL" : (city as SupportedCity | "ALL");
+      responseData.activities = await getAdminThemeActivities({
+        city: activityCity,
+        includeInactive,
+      });
     }
 
     if (type === "SORTING" || type === "ALL") {
@@ -178,6 +190,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, count: saved.length });
     }
 
+    if (type === "THEME_ACTIVITY" || type === "ACTIVITY") {
+      if (!data || !data.id || !data.nameKo) {
+        return NextResponse.json({ success: false, error: "Invalid activity data" }, { status: 400 });
+      }
+      const saved = await saveAdminThemeActivity(data);
+      return NextResponse.json({ success: true, item: saved });
+    }
+
+    if (type === "BATCH_THEME_ACTIVITY") {
+      const items = body.items;
+      if (!Array.isArray(items) || items.length === 0) {
+        return NextResponse.json({ success: false, error: "items array is required" }, { status: 400 });
+      }
+      const saved = await saveAdminThemeActivitiesBatch(items);
+      return NextResponse.json({ success: true, count: saved.length });
+    }
+
     if (type === "COURSE") {
       if (!data || !data.id || !data.nameKo) {
         return NextResponse.json({ success: false, error: "Invalid course data" }, { status: 400 });
@@ -249,6 +278,11 @@ export async function DELETE(req: NextRequest) {
     if (type === "ATTRACTION") {
       await deleteAdminAttraction(id);
       return NextResponse.json({ success: true, message: `Attraction ${id} removed` });
+    }
+
+    if (type === "THEME_ACTIVITY" || type === "ACTIVITY") {
+      await deleteAdminThemeActivity(id);
+      return NextResponse.json({ success: true, message: `Theme Activity ${id} removed` });
     }
 
     if (type === "COURSE") {

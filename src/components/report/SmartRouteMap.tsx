@@ -19,6 +19,8 @@ import {
   LatLng,
 } from "src/lib/map/spot-coordinates";
 import { formatKrw } from "src/features/budget/presentation/formatters";
+import { formatPriceByLocale } from "src/lib/currency/currency-converter";
+import { formatTransitInfo } from "src/lib/places/place-localization";
 
 declare global {
   interface Window {
@@ -46,12 +48,14 @@ export interface SmartRouteMapProps {
   cityBreakdown: Record<string, { selectedSpots?: AttractionSpot[] }>;
   locale: Locale;
   dict: Dictionary;
+  usdRate?: number;
 }
 
 export default function SmartRouteMap({
   selectedCities,
   cityBreakdown,
   locale,
+  usdRate = 1387,
 }: SmartRouteMapProps) {
   // 1. 활성화된 도시 탭 (기본값: 첫 번째 도시)
   const [activeCity, setActiveCity] = useState<SupportedCity>(
@@ -511,14 +515,16 @@ export default function SmartRouteMap({
                           </h4>
                         </div>
                         <span className="text-[9px] font-extrabold px-2 py-0.5 rounded-md bg-white border border-neutral-200/70 text-neutral-600 shrink-0">
-                          {spot.categoryType}
+                          {locale === "ko"
+                            ? (spot.categoryType || "명소")
+                            : (spot.categoryType === "쇼핑" ? "Shopping" : spot.categoryType === "체험" ? "Activity" : spot.categoryType === "문화" ? "Culture" : "Attraction")}
                         </span>
                       </div>
 
                       {spot.subwayInfo && (
                         <p className="text-[11px] text-slate-600 flex items-center gap-1">
                           <span className="text-[10px]">🚇</span>
-                          <span className="truncate">{spot.subwayInfo}</span>
+                          <span className="truncate">{formatTransitInfo(spot.subwayInfo, locale)}</span>
                         </p>
                       )}
 
@@ -531,7 +537,7 @@ export default function SmartRouteMap({
                     <div className="pt-2 border-t border-neutral-200/50 flex items-center justify-between text-[11px]">
                       <span className="font-bold text-neutral-700 tabular-nums">
                         {spot.price > 0
-                          ? formatKrw(spot.price)
+                          ? formatPriceByLocale(spot.price, locale, usdRate)
                           : locale === "ko"
                           ? "무료 입장"
                           : "Free Entry"}

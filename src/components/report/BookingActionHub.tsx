@@ -7,6 +7,7 @@ import type { TripDraft, SupportedCity } from "src/lib/trip-domain";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import type { TripBudgetSummary } from "src/features/budget/calculations/trip-budget-calculator";
 import { formatKrw } from "src/features/budget/presentation/formatters";
+import { formatPriceByLocale } from "src/lib/currency/currency-converter";
 
 export interface BookingVoucherItem {
   id: string;
@@ -30,12 +31,14 @@ export interface BookingActionHubProps {
   draft: TripDraft;
   locale: Locale;
   dict: Dictionary;
+  usdRate?: number;
 }
 
 export default function BookingActionHub({
   calculations,
   draft,
   locale,
+  usdRate = 1387,
 }: BookingActionHubProps) {
   const isKo = locale === "ko";
 
@@ -60,7 +63,7 @@ export default function BookingActionHub({
         titleEn: "Incheon Airport ↔ Seoul AREX Express",
         subtitleKo: "소요시간 43분 논스톱 고속철도 · 모바일 QR 승차권",
         subtitleEn: "43-min non-stop express train · Mobile QR boarding",
-        priceText: isKo ? "₩11,000 / 편도" : "₩11,000 / one-way",
+        priceText: isKo ? "₩11,000 / 편도" : `${formatPriceByLocale(11000, locale, usdRate)} / one-way`,
         targetUrl: isKo
           ? "https://www.airportrailroad.com"
           : "https://www.arex.or.kr/main.do",
@@ -129,8 +132,8 @@ export default function BookingActionHub({
         titleKo: `${cityNameKo} 숙소 (${cInfo.stayItemLabel})`,
         titleEn: `${cityNameEn} Stays (${cInfo.stayItemLabel})`,
         subtitleKo: `1박 평균 ${formatKrw(cInfo.stayNightlyPrice)} 기준 · ${cInfo.nights}박 일정`,
-        subtitleEn: `Avg. ${formatKrw(cInfo.stayNightlyPrice)} / night · ${cInfo.nights} nights`,
-        priceText: formatKrw(cInfo.stayTotalKrw),
+        subtitleEn: `Avg. ${formatPriceByLocale(cInfo.stayNightlyPrice, locale, usdRate)} / night · ${cInfo.nights} nights`,
+        priceText: formatPriceByLocale(cInfo.stayTotalKrw, locale, usdRate),
         targetUrl: `https://www.trip.com/hotels/list?city=${encodeURIComponent(cityNameEn)}`,
         badgeKo: "예약 링크",
         badgeEn: "Check Rates",
@@ -167,7 +170,7 @@ export default function BookingActionHub({
           subtitleEn: spot.descEn || "Fast-track mobile voucher & admissions",
           priceText:
             spotPrice > 0
-              ? formatKrw(spotPrice)
+              ? formatPriceByLocale(spotPrice, locale, usdRate)
               : isKo
               ? "무료 입장"
               : "Free Entry",
@@ -192,7 +195,7 @@ export default function BookingActionHub({
       titleEn: "Korea Unlimited 4G/5G eSIM",
       subtitleKo: "인천/김포/김해공항 수령 또는 즉시 QR 개통",
       subtitleEn: "Airport pickup or instant QR activation with local number",
-      priceText: isKo ? "1일 ~₩3,000" : "From ~₩3,000/day",
+      priceText: isKo ? "1일 ~₩3,000" : `From ~${formatPriceByLocale(3000, locale, usdRate)}/day`,
       targetUrl: "https://www.klook.com/search/result/?query=korea+esim",
       badgeKo: "필수 준비물",
       badgeEn: "Must Have",

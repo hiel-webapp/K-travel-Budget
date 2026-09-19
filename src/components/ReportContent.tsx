@@ -269,6 +269,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         draft={draft}
         locale={locale}
         dict={dict}
+        usdRate={usdRate}
       />
 
       {/* 4. Balanced 2-Column Dashboard */}
@@ -283,6 +284,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             cityBreakdown={cityBreakdown}
             locale={locale}
             dict={dict}
+            usdRate={usdRate}
           />
 
           {/* Section D: One-Stop Booking & Action Hub */}
@@ -291,6 +293,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             draft={draft}
             locale={locale}
             dict={dict}
+            usdRate={usdRate}
           />
 
           {/* Card: Personalized K-Trend Tips */}

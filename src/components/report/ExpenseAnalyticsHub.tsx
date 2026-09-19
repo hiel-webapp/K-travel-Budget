@@ -6,6 +6,7 @@ import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { TripDraft } from "src/lib/trip-domain";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import { formatKrw } from "src/features/budget/presentation/formatters";
+import { formatPriceByLocale } from "src/lib/currency/currency-converter";
 import type { TripBudgetSummary } from "src/features/budget/calculations/trip-budget-calculator";
 
 export interface ExpenseAnalyticsHubProps {
@@ -13,12 +14,14 @@ export interface ExpenseAnalyticsHubProps {
   draft: TripDraft;
   locale: Locale;
   dict: Dictionary;
+  usdRate?: number;
 }
 
 export default function ExpenseAnalyticsHub({
   calculations,
   draft,
   locale,
+  usdRate = 1387,
 }: ExpenseAnalyticsHubProps) {
   const isKo = locale === "ko";
   const grandTotalKrw = calculations.grandTotalKrw || 0;
@@ -275,12 +278,12 @@ export default function ExpenseAnalyticsHub({
                     <td className="py-2.5 text-center text-neutral-500 tabular-nums font-semibold">
                       {row.nights === 0 ? (isKo ? "당일" : "Day") : `${row.nights}N`}
                     </td>
-                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.stay)}</td>
-                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.food)}</td>
-                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.attr)}</td>
-                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.trans)}</td>
-                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatKrw(row.etc)}</td>
-                    <td className="py-2.5 text-center tabular-nums font-black text-neutral-900">{formatKrw(row.subtotal)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatPriceByLocale(row.stay, locale, usdRate)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatPriceByLocale(row.food, locale, usdRate)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatPriceByLocale(row.attr, locale, usdRate)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatPriceByLocale(row.trans, locale, usdRate)}</td>
+                    <td className="py-2.5 text-center tabular-nums text-neutral-600">{formatPriceByLocale(row.etc, locale, usdRate)}</td>
+                    <td className="py-2.5 text-center tabular-nums font-black text-neutral-900">{formatPriceByLocale(row.subtotal, locale, usdRate)}</td>
                   </tr>
                 ))}
 
@@ -304,12 +307,12 @@ export default function ExpenseAnalyticsHub({
                 <tr className="border-t-2 border-neutral-300 bg-white/95">
                   <td className="py-3 font-black text-neutral-900 text-center">{isKo ? "소계" : "Subtotal"}</td>
                   <td className="py-3 text-center text-neutral-700 tabular-nums font-black">{totalNights}N</td>
-                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(stayTotal)}</td>
-                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(foodTotal)}</td>
-                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(attractionTotal)}</td>
-                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(transportTotal)}</td>
-                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatKrw(etcTotal)}</td>
-                  <td className="py-3 text-center tabular-nums font-black text-neutral-950 text-sm">{formatKrw(grandTotalKrw)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatPriceByLocale(stayTotal, locale, usdRate)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatPriceByLocale(foodTotal, locale, usdRate)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatPriceByLocale(attractionTotal, locale, usdRate)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatPriceByLocale(transportTotal, locale, usdRate)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-900">{formatPriceByLocale(etcTotal, locale, usdRate)}</td>
+                  <td className="py-3 text-center tabular-nums font-black text-neutral-950 text-sm">{formatPriceByLocale(grandTotalKrw, locale, usdRate)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -341,7 +344,7 @@ export default function ExpenseAnalyticsHub({
                       key={cat.key}
                       style={{ height: `${cat.pct}%` }}
                       className={`${cat.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
-                      title={`${cat.label}: ${cat.pct}% (${formatKrw(cat.amount)})`}
+                      title={`${cat.label}: ${cat.pct}% (${formatPriceByLocale(cat.amount, locale, usdRate)})`}
                     >
                       {!isSmall ? (
                         <span className="text-white text-[11px] font-black">{cat.pct}%</span>
@@ -378,7 +381,7 @@ export default function ExpenseAnalyticsHub({
                       key={c.city}
                       style={{ height: `${c.pct}%` }}
                       className={`${c.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
-                      title={`${c.cityName}: ${c.pct}% (${formatKrw(c.subtotal)})`}
+                      title={`${c.cityName}: ${c.pct}% (${formatPriceByLocale(c.subtotal, locale, usdRate)})`}
                     >
                       {!isSmall ? (
                         <span className="text-white text-[11px] font-black">{c.pct}%</span>

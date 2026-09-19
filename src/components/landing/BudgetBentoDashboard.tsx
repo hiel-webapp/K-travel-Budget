@@ -178,14 +178,14 @@ export default function BudgetBentoDashboard({ draft, locale }: BudgetBentoDashb
             </div>
 
             {/* Main Amount with Rolling Counter */}
-            <div className="mt-2 flex flex-wrap items-baseline gap-2 sm:gap-3">
-              <span className="text-2xl sm:text-4xl font-bold tracking-tight text-neutral-900 tabular-nums">
+            <div className="mt-2 flex items-baseline gap-2 sm:gap-3 flex-nowrap overflow-visible">
+              <span className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-neutral-900 tabular-nums shrink-0">
                 {animatedTotalBudget.toLocaleString()}
               </span>
-              <span className="text-base sm:text-xl font-bold text-neutral-500">
+              <span className="text-base sm:text-lg font-bold text-neutral-500 shrink-0">
                 KRW
               </span>
-              <span className="text-[11px] sm:text-xs font-semibold text-neutral-500 bg-neutral-100/80 px-2.5 py-0.5 rounded-full border border-neutral-200/60">
+              <span className="text-[11px] sm:text-xs font-semibold text-neutral-500 bg-neutral-100/80 px-2.5 py-0.5 rounded-full border border-neutral-200/60 whitespace-nowrap shrink-0">
                 {locale === "ko"
                   ? `1인당 ${animatedPerPersonTotal.toLocaleString()}원`
                   : `${animatedPerPersonTotal.toLocaleString()} KRW/person`}

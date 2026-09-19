@@ -137,18 +137,24 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
     if (isSplitActive) {
       onResetSplitStay?.(city);
     } else {
+      const arch1 = STAY_ARCHETYPES.find((a) => a.id === (selectedArchetypeId || "BUSINESS_HOTEL"));
+      const arch2 = STAY_ARCHETYPES.find((a) => a.id === "HANOK_BOUTIQUE");
       const segs: SplitStaySegment[] = [
         {
           segmentId: "seg_1",
           basketId: (selectedArchetypeId || "BUSINESS_HOTEL") as BudgetBasketId,
           nights: defaultSeg1Nights,
           nightlyPriceKrw: getStayArchetypePrice(city, selectedArchetypeId || "BUSINESS_HOTEL"),
+          placeNameKo: arch1?.titleKo || "도심 비즈니스 호텔",
+          placeNameEn: arch1?.titleEn || "Urban Business Hotel",
         },
         {
           segmentId: "seg_2",
           basketId: "HANOK_BOUTIQUE" as BudgetBasketId,
           nights: defaultSeg2Nights,
           nightlyPriceKrw: getStayArchetypePrice(city, "HANOK_BOUTIQUE"),
+          placeNameKo: arch2?.titleKo || "한옥 스테이",
+          placeNameEn: arch2?.titleEn || "Boutique Hanok Stay",
         },
       ];
       onSaveSplitStay?.(city, segs);
@@ -158,36 +164,50 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   const handleAdjustSplitNights = (delta: number) => {
     const newSeg1 = Math.max(1, Math.min(cityNights - 1, seg1Nights + delta));
     const newSeg2 = cityNights - newSeg1;
+    const arch1 = STAY_ARCHETYPES.find((a) => a.id === seg1BasketId);
+    const arch2 = STAY_ARCHETYPES.find((a) => a.id === seg2BasketId);
     const segs: SplitStaySegment[] = [
       {
         segmentId: "seg_1",
         basketId: seg1BasketId as BudgetBasketId,
         nights: newSeg1,
         nightlyPriceKrw: seg1Price,
+        placeNameKo: splitStayOverride?.[0]?.placeNameKo || arch1?.titleKo || "도심 비즈니스 호텔",
+        placeNameEn: splitStayOverride?.[0]?.placeNameEn || arch1?.titleEn || "Urban Business Hotel",
       },
       {
         segmentId: "seg_2",
         basketId: seg2BasketId as BudgetBasketId,
         nights: newSeg2,
         nightlyPriceKrw: seg2Price,
+        placeNameKo: splitStayOverride?.[1]?.placeNameKo || arch2?.titleKo || "한옥 스테이",
+        placeNameEn: splitStayOverride?.[1]?.placeNameEn || arch2?.titleEn || "Boutique Hanok Stay",
       },
     ];
     onSaveSplitStay?.(city, segs);
   };
 
   const handleSelectSplitArchetype = (archId: StayArchetypeId) => {
+    const chosen1 = activeSplitTab === 0 ? archId : seg1BasketId;
+    const chosen2 = activeSplitTab === 1 ? archId : seg2BasketId;
+    const arch1 = STAY_ARCHETYPES.find((a) => a.id === chosen1);
+    const arch2 = STAY_ARCHETYPES.find((a) => a.id === chosen2);
     const segs: SplitStaySegment[] = [
       {
         segmentId: "seg_1",
-        basketId: (activeSplitTab === 0 ? archId : seg1BasketId) as BudgetBasketId,
+        basketId: chosen1 as BudgetBasketId,
         nights: seg1Nights,
         nightlyPriceKrw: activeSplitTab === 0 ? getStayArchetypePrice(city, archId) : seg1Price,
+        placeNameKo: arch1?.titleKo || "도심 비즈니스 호텔",
+        placeNameEn: arch1?.titleEn || "Urban Business Hotel",
       },
       {
         segmentId: "seg_2",
-        basketId: (activeSplitTab === 1 ? archId : seg2BasketId) as BudgetBasketId,
+        basketId: chosen2 as BudgetBasketId,
         nights: seg2Nights,
         nightlyPriceKrw: activeSplitTab === 1 ? getStayArchetypePrice(city, archId) : seg2Price,
+        placeNameKo: arch2?.titleKo || "한옥 스테이",
+        placeNameEn: arch2?.titleEn || "Boutique Hanok Stay",
       },
     ];
     onSaveSplitStay?.(city, segs);

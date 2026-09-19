@@ -427,9 +427,7 @@ export function parsePlannerPreferences(
       }
 
       const currentFingerprint = generateTripFingerprint(draft);
-      if (prefs.tripFingerprint !== currentFingerprint) {
-        return { status: "fingerprint-mismatch", preferences: defaultPrefs };
-      }
+      const isMismatch = prefs.tripFingerprint !== currentFingerprint;
 
       // Sanitize accommodation: keep only valid city overrides instead of failing whole preferences
       const sanitizedAcc: AccommodationOverridesByCity = {};
@@ -468,19 +466,19 @@ export function parsePlannerPreferences(
       if (prefs.addOnSelections && typeof prefs.addOnSelections === "object") {
         for (const [key, list] of Object.entries(prefs.addOnSelections)) {
           if (typeof key === "string" && Array.isArray(list)) {
-            sanitizedAddOns[key] = list.filter(
-              (item) => item && typeof item === "object" && typeof item.addOnItemId === "string" && typeof item.quantity === "number"
-            );
+            sanitizedAddOns[key] = list;
           }
         }
       }
 
       const returnPrefs: PlannerPreferences = {
-        ...prefs,
+        schemaVersion: 5,
+        tripFingerprint: currentFingerprint,
         accommodationByCity: sanitizedAcc,
         attractionByCity: sanitizedAttr,
         foodOverrides: sanitizedFood,
         addOnSelections: sanitizedAddOns,
+        foodTier: prefs.foodTier,
         foodBasketSelections: Array.isArray(prefs.foodBasketSelections) ? prefs.foodBasketSelections : undefined,
         attractionSelections: prefs.attractionSelections || {},
         attractionCustomDailyKrw: isEmergencyValValid(prefs.attractionCustomDailyKrw) ? prefs.attractionCustomDailyKrw : undefined,
@@ -488,7 +486,19 @@ export function parsePlannerPreferences(
         emergencyFundPct: prefs.emergencyFundPct !== undefined
           ? prefs.emergencyFundPct
           : (prefs.emergencyFundKrw === undefined || prefs.emergencyFundKrw === 0 ? 0.10 : undefined),
+        intercityTransportOverrides: prefs.intercityTransportOverrides,
+        localTransitStyle: prefs.localTransitStyle,
+        cityTransitStyles: prefs.cityTransitStyles,
+        isKobusPassApplied: prefs.isKobusPassApplied,
+        shoppingOption: prefs.shoppingOption,
+        shoppingCustomInput: prefs.shoppingCustomInput,
+        shoppingAmountKrw: prefs.shoppingAmountKrw,
+        occupancyModeByCity: prefs.occupancyModeByCity,
       };
+
+      if (isMismatch) {
+        return { status: "fingerprint-mismatch", preferences: returnPrefs };
+      }
 
       return { status: "valid", preferences: returnPrefs };
     }

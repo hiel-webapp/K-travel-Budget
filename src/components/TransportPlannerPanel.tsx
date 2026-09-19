@@ -157,6 +157,8 @@ export default function TransportPlannerPanel({
     return locale === "ko" ? info.nameKo : `${info.nameEn} (${info.code})`;
   };
 
+  const isDropProcessedRef = React.useRef(false);
+
   // 최적 동선 자동 정렬
   const handleOptimizeRoute = () => {
     if (!onReorderCities) return;
@@ -166,6 +168,7 @@ export default function TransportPlannerPanel({
 
   // Drag & Drop Handlers with Clean Drag Image
   const handleDragStart = (e: React.DragEvent, city: SupportedCity) => {
+    isDropProcessedRef.current = false;
     setDragCity(city);
     setIsGhostCaptured(false);
     setActiveCities([...selectedCities]);
@@ -217,7 +220,8 @@ export default function TransportPlannerPanel({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (onReorderCities && activeCities.length > 0) {
+    if (!isDropProcessedRef.current && onReorderCities && activeCities.length > 0) {
+      isDropProcessedRef.current = true;
       onReorderCities(activeCities);
     }
     setDragCity(null);
@@ -225,7 +229,8 @@ export default function TransportPlannerPanel({
   };
 
   const handleDragEnd = () => {
-    if (onReorderCities && activeCities.length > 0) {
+    if (!isDropProcessedRef.current && onReorderCities && activeCities.length > 0) {
+      isDropProcessedRef.current = true;
       onReorderCities(activeCities);
     }
     setDragCity(null);
@@ -234,23 +239,43 @@ export default function TransportPlannerPanel({
 
   const displayCities = dragCity !== null ? activeCities : selectedCities;
 
-  // 1. Entry Airport Transit Options
+  // 1. Entry Airport Transit Options (안전 폴백 포함)
+  const fallbackEntryOption: IntercityFareInfo = {
+    mode: "KTX",
+    nameKo: `${getAirportDisplayName(entryAirport)} ➔ ${getCityName(firstCity)} (공항 연계 이동)`,
+    nameEn: `${entryAirport} ➔ ${firstCity} (Airport Link)`,
+    oneWayPriceKrw: 16000,
+    durationTextKo: "1시간",
+    durationTextEn: "1h",
+    isDefault: true,
+  };
   const entryRouteKey = `ENTRY_${entryAirport}-${firstCity}`;
-  const entryOptions = getAirportTransitOptions(entryAirport, firstCity, "ENTRY");
+  const entryOptions = getAirportTransitOptions(entryAirport, firstCity, "ENTRY") || [];
   const currentEntryOverride = intercityOverrides[entryRouteKey] || intercityOverrides[`ENTRY_AIRPORT-${firstCity}`] || intercityOverrides[`INCHEON-${firstCity}`];
   const activeEntryOption = (currentEntryOverride && entryOptions.find((o) => o.mode === currentEntryOverride))
     || entryOptions.find((o) => o.isDefault)
-    || entryOptions[0];
-  const entryTotalKrw = activeEntryOption.oneWayPriceKrw * adultCount;
+    || entryOptions[0]
+    || fallbackEntryOption;
+  const entryTotalKrw = (activeEntryOption?.oneWayPriceKrw || 0) * adultCount;
 
-  // 2. Exit Airport Transit Options
+  // 2. Exit Airport Transit Options (안전 폴백 포함)
+  const fallbackExitOption: IntercityFareInfo = {
+    mode: "KTX",
+    nameKo: `${getCityName(lastCity)} ➔ ${getAirportDisplayName(exitAirport)} (공항 연계 이동)`,
+    nameEn: `${lastCity} ➔ ${exitAirport} (Airport Link)`,
+    oneWayPriceKrw: 16000,
+    durationTextKo: "1시간",
+    durationTextEn: "1h",
+    isDefault: true,
+  };
   const exitRouteKey = `EXIT_${lastCity}-${exitAirport}`;
-  const exitOptions = getAirportTransitOptions(exitAirport, lastCity, "EXIT");
+  const exitOptions = getAirportTransitOptions(exitAirport, lastCity, "EXIT") || [];
   const currentExitOverride = intercityOverrides[exitRouteKey] || intercityOverrides[`EXIT_${lastCity}-AIRPORT`] || intercityOverrides[`${lastCity}-INCHEON`];
   const activeExitOption = (currentExitOverride && exitOptions.find((o) => o.mode === currentExitOverride))
     || exitOptions.find((o) => o.isDefault)
-    || exitOptions[0];
-  const exitTotalKrw = activeExitOption.oneWayPriceKrw * adultCount;
+    || exitOptions[0]
+    || fallbackExitOption;
+  const exitTotalKrw = (activeExitOption?.oneWayPriceKrw || 0) * adultCount;
 
   // 공항 선택 핸들러
   const handleSelectEntryAirport = (newAirport: "INCHEON" | "GIMPO" | "GIMHAE" | "JEJU_AIRPORT") => {
@@ -423,13 +448,23 @@ export default function TransportPlannerPanel({
                 const toCity = selectedCities[idx + 1];
                 const routeKey = `${fromCity}-${toCity}`;
                 const options = getIntercityFareOptions(fromCity, toCity);
-
                 const currentOverrideMode = (intercityOverrides[routeKey] || intercityOverrides[`${toCity}-${fromCity}`]) as string | undefined;
+
+                const fallbackIntercityOption: IntercityFareInfo = {
+                  mode: "KTX",
+                  nameKo: `${getCityName(fromCity)} ➔ ${getCityName(toCity)} (고속철도)`,
+                  nameEn: `${getCityName(fromCity)} ➔ ${getCityName(toCity)} (High-Speed Rail)`,
+                  oneWayPriceKrw: 38000,
+                  durationTextKo: "2시간",
+                  durationTextEn: "2h",
+                  isDefault: true,
+                };
                 const activeOption = (currentOverrideMode && options.find((o) => (o.mode as string) === currentOverrideMode || (o.optionType as string) === currentOverrideMode || o.nameKo === currentOverrideMode))
                   || options.find((o) => o.isDefault)
-                  || options[0];
+                  || options[0]
+                  || fallbackIntercityOption;
 
-                const totalSegmentKrw = activeOption.oneWayPriceKrw * adultCount;
+                const totalSegmentKrw = (activeOption?.oneWayPriceKrw || 0) * adultCount;
                 const hasFlight = activeOption.mode === "FLIGHT" || activeOption.nameKo.includes("항공") || activeOption.legs?.some((l) => l.mode === "FLIGHT");
                 const modeIcon = "";
                 const displayName = getSimplifiedTransportName(activeOption.nameKo, activeOption.mode, activeOption.nameEn);

@@ -204,24 +204,27 @@ export function generateInitialBudgetPlan(
 
                   let nameKo = seg.placeNameKo;
                   let nameEn = seg.placeNameEn || seg.placeNameKo;
-                  if (!nameKo) {
-                    const bId = seg.basketId;
-                    if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") {
-                      nameKo = "게스트하우스/호스텔";
-                      nameEn = "Hostel / Guesthouse";
+                  const bId = seg.basketId;
+                  const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
+                  if (!nameKo || nameKo === "호텔" || nameKo === "Hotel") {
+                    if (arch) {
+                      nameKo = arch.titleKo;
+                      nameEn = arch.titleEn;
+                    } else if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") {
+                      nameKo = "호스텔 & 게스트하우스";
+                      nameEn = "Hostel & Guesthouse";
                     } else if (bId === "HANOK_BOUTIQUE") {
                       nameKo = "한옥 스테이";
-                      nameEn = "Hanok Stay";
+                      nameEn = "Boutique Hanok Stay";
                     } else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") {
-                      nameKo = "5성급 럭셔리";
-                      nameEn = "5-Star Luxury";
+                      nameKo = "5성급 럭셔리 호텔";
+                      nameEn = "5-Star Luxury Skyline";
                     } else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") {
+                      nameKo = "도심 비즈니스 호텔";
+                      nameEn = "Urban Business Hotel";
+                    } else {
                       nameKo = "비즈니스 호텔";
                       nameEn = "Business Hotel";
-                    } else {
-                      const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
-                      nameKo = arch?.titleKo || "호텔";
-                      nameEn = arch?.titleEn || "Hotel";
                     }
                   }
                   segmentLabelsKo.push(`${nameKo} ${segNights}박`);

@@ -1083,13 +1083,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     saveTripDraft(nextDraft);
 
     // 4. 새 draft에 맞춰 preferences도 동기화 저장 (리포트 페이지 fingerprint-mismatch 방지)
-    if (state.preferences) {
-      savePlannerPreferences({
-        ...state.preferences,
-        accommodationByCity: state.preferences.accommodationByCity || {},
-        draft: nextDraft,
-      });
-    }
+    persistPreferences({}, nextDraft);
 
     setState({
       ...state,
@@ -1166,6 +1160,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     if (reorderCityTabs.length > 0) {
       handleReorderCities(reorderCityTabs);
     }
+    setReorderCityTabs([]);
     setDragCityIndex(null);
     dragIndexRef.current = null;
     setTimeout(() => {
@@ -1178,6 +1173,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       isDropHandledRef.current = true;
       handleReorderCities(reorderCityTabs);
     }
+    setReorderCityTabs([]);
     setDragCityIndex(null);
     dragIndexRef.current = null;
     setTimeout(() => {
@@ -4988,17 +4984,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                 </div>
                                                 <div className="space-y-0.5 border-l-2 border-rose-300 pl-2">
                                                   {segments.map((seg: any, sIdx: number) => {
-                                                    let segName = seg.placeNameKo;
-                                                    if (locale === "en") segName = seg.placeNameEn || seg.placeNameKo;
-                                                    if (!segName) {
-                                                      const bId = seg.basketId;
-                                                      if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") segName = locale === "ko" ? "게스트하우스/호스텔" : "Hostel / Guesthouse";
-                                                      else if (bId === "HANOK_BOUTIQUE") segName = locale === "ko" ? "한옥 스테이" : "Hanok Stay";
-                                                      else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") segName = locale === "ko" ? "5성급 럭셔리" : "5-Star Luxury";
-                                                      else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") segName = locale === "ko" ? "비즈니스 호텔" : "Business Hotel";
-                                                      else {
-                                                        const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
-                                                        segName = locale === "ko" ? (arch?.titleKo || "호텔") : (arch?.titleEn || "Hotel");
+                                                    const bId = seg.basketId;
+                                                    const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
+                                                    let segName = locale === "ko" ? seg.placeNameKo : (seg.placeNameEn || seg.placeNameKo);
+                                                    if (!segName || segName === "호텔" || segName === "Hotel") {
+                                                      if (arch) {
+                                                        segName = locale === "ko" ? arch.titleKo : arch.titleEn;
+                                                      } else if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") {
+                                                        segName = locale === "ko" ? "호스텔 & 게스트하우스" : "Hostel & Guesthouse";
+                                                      } else if (bId === "HANOK_BOUTIQUE") {
+                                                        segName = locale === "ko" ? "한옥 스테이" : "Boutique Hanok Stay";
+                                                      } else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") {
+                                                        segName = locale === "ko" ? "5성급 럭셔리 호텔" : "5-Star Luxury Skyline";
+                                                      } else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") {
+                                                        segName = locale === "ko" ? "도심 비즈니스 호텔" : "Urban Business Hotel";
+                                                      } else {
+                                                        segName = locale === "ko" ? "도심 비즈니스 호텔" : "Urban Business Hotel";
                                                       }
                                                     }
                                                     const segNightText = locale === "ko" ? `${seg.nights}박` : `${seg.nights}N`;

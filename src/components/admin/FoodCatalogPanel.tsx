@@ -118,7 +118,7 @@ export default function FoodCatalogPanel() {
   const handleOpenAdd = () => {
     setEditingFood(null);
     setId(`food_${Date.now().toString().slice(-6)}`);
-    setScope("CITY_LOCAL");
+    setScope(selectedCity === "NATIONAL" ? "NATIONAL" : "CITY_LOCAL");
     setCityCode(selectedCity !== "ALL" && selectedCity !== "NATIONAL" ? selectedCity : "SEOUL");
     setNameKo("");
     setNameEn("");
@@ -224,7 +224,7 @@ export default function FoodCatalogPanel() {
       body: JSON.stringify({
         type: "REORDER_FOOD",
         orderedIds,
-        city: selectedCity !== "ALL" && selectedCity !== "NATIONAL" ? selectedCity : undefined,
+        city: selectedCity !== "ALL" ? selectedCity : undefined,
         setCustomRule: true,
       }),
     });
@@ -265,7 +265,7 @@ export default function FoodCatalogPanel() {
         body: JSON.stringify({
           type: "REORDER_FOOD",
           orderedIds: currentList.map((f) => f.id),
-          city: selectedCity !== "ALL" && selectedCity !== "NATIONAL" ? selectedCity : undefined,
+          city: selectedCity !== "ALL" ? selectedCity : undefined,
           setCustomRule: true,
         }),
       });

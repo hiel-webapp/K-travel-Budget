@@ -378,7 +378,7 @@ export async function getAdminFoods(filter?: {
     if (filter.city === "NATIONAL") {
       items = items.filter((f) => f.scope === "NATIONAL");
     } else {
-      items = items.filter((f) => f.cityCode === filter.city || f.scope === "NATIONAL");
+      items = items.filter((f) => f.scope !== "NATIONAL" && f.cityCode === filter.city);
     }
   }
 
@@ -389,7 +389,7 @@ export async function getAdminFoods(filter?: {
     });
   }
 
-  const cityKey = (filter?.city && filter.city !== "ALL" && filter.city !== "NATIONAL") ? filter.city : "DEFAULT";
+  const cityKey = (filter?.city && filter.city !== "ALL") ? filter.city : "DEFAULT";
   const rule = store.sortingRulesByCity[cityKey] || "RECOMMENDED";
   return applyFoodSorting(items, rule);
 }

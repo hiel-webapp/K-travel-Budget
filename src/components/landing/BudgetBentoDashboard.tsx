@@ -303,7 +303,8 @@ export default function BudgetBentoDashboard({ draft, locale }: BudgetBentoDashb
             </p>
           </div>
 
-          {/* Bottom Action Link Button with active scale */}
+          {/* 당분간 숨김 처리: K-스팟 비공개 (추후 재활성화 가능하도록 보존) */}
+          {/*
           <div className="pt-3 mt-3 border-t border-neutral-100 flex items-center justify-between">
             <Link
               href={`/${locale}/places?city=${firstCity}`}
@@ -313,6 +314,7 @@ export default function BudgetBentoDashboard({ draft, locale }: BudgetBentoDashb
               <span className="text-sm transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
           </div>
+          */}
         </div>
 
         {/* ========================================================================= */}

@@ -231,6 +231,8 @@ export default function GuideContent({
         >
           {isKo ? "예산 플래너" : "Budget Planner"}
         </Link>
+        {/* 당분간 숨김 처리: K-스팟 비공개 (추후 재활성화 가능하도록 보존) */}
+        {/*
         <span className="text-slate-300">&bull;</span>
         <Link
           href={`/${locale}/places`}
@@ -238,6 +240,7 @@ export default function GuideContent({
         >
           {isKo ? "K-장소 탐색" : "K-Places"}
         </Link>
+        */}
         <span className="text-slate-300">&bull;</span>
         <Link
           href={`/${locale}/report`}

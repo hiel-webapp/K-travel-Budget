@@ -106,12 +106,15 @@ export default function SavedTripsContent({ locale, dict }: SavedTripsContentPro
             >
               {dict.navigation.planner || "Planner"}
             </button>
+            {/* 당분간 숨김 처리: K-스팟 비공개 (추후 재활성화 가능하도록 보존) */}
+            {/*
             <button
               onClick={() => router.push(`/${locale}/places`)}
               className="inline-flex h-9 px-5 items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
             >
               {dict.navigation.places || "장소 탐색"}
             </button>
+            */}
           </div>
         </div>
       ) : (

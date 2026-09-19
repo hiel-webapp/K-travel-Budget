@@ -5,6 +5,7 @@ import { TravelPreset, TravelPresetId } from "../../lib/presets/travel-presets";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_KOREAN_NAMES } from "../../lib/trip-domain";
 import { BudgetBasketId, FoodBasketItemSelection, FoodItemDefinition } from "../../features/budget/domain/types";
 import { AttractionSpot, TourCoursePreset } from "../../features/budget/catalog/attraction-spots";
+import { getStayArchetypePrice } from "../../features/budget/catalog/stay-archetypes";
 
 interface PresetBuilderModalProps {
   isOpen: boolean;
@@ -14,10 +15,10 @@ interface PresetBuilderModalProps {
 }
 
 const ACCOMMODATION_TIERS: { id: BudgetBasketId; labelKo: string; approxKrw: number }[] = [
-  { id: "BUSINESS_HOTEL", labelKo: "비즈니스 호텔 (스탠다드)", approxKrw: 100000 },
-  { id: "HANOK_BOUTIQUE", labelKo: "전통 한옥 스테이", approxKrw: 120000 },
-  { id: "LUXURY_SKYLINE", labelKo: "5성급 럭셔리 호텔", approxKrw: 240000 },
-  { id: "HOSTEL_GUESTHOUSE", labelKo: "가성비 게스트하우스", approxKrw: 45000 },
+  { id: "HOSTEL_GUESTHOUSE", labelKo: "호스텔 & 게스트하우스", approxKrw: 40000 },
+  { id: "BUSINESS_HOTEL", labelKo: "도심 비즈니스 호텔", approxKrw: 120000 },
+  { id: "HANOK_BOUTIQUE", labelKo: "전통 한옥 & 부티크", approxKrw: 240000 },
+  { id: "LUXURY_SKYLINE", labelKo: "럭셔리 5성급 호텔", approxKrw: 450000 },
 ];
 
 export default function PresetBuilderModal({
@@ -53,8 +54,8 @@ export default function PresetBuilderModal({
     BUSAN: "BUSINESS_HOTEL",
   });
 
-  // Food Selections: map of foodId -> { quantity, cityCode }
-  const [foodSelections, setFoodSelections] = useState<Record<string, { quantity: number; cityCode?: SupportedCity }>>({});
+  // Food Selections: map of `${city}:::${foodId}` -> { foodId, quantity, cityCode }
+  const [foodSelections, setFoodSelections] = useState<Record<string, { foodId: string; quantity: number; cityCode: SupportedCity }>>({});
 
   // Attraction Selections: per city courseIds and individualSpotIds
   const [courseByCity, setCourseByCity] = useState<Record<string, string[]>>({});
@@ -98,10 +99,13 @@ export default function PresetBuilderModal({
       const acc = (initialData.preferences?.accommodationByCity as any) || {};
       setAccByCity(acc);
 
-      // Food
-      const foodMap: Record<string, { quantity: number; cityCode?: SupportedCity }> = {};
+      // Food: 도시별 독립 키(`${city}:::${foodId}`)로 매핑
+      const foodMap: Record<string, { foodId: string; quantity: number; cityCode: SupportedCity }> = {};
+      const targetCities = initialData.draft?.selectedCities || ["SEOUL"];
       (initialData.preferences?.foodBasketSelections || []).forEach((item) => {
-        foodMap[item.foodId] = { quantity: item.quantity, cityCode: item.cityCode };
+        const city = (item.cityCode || targetCities[0] || "SEOUL") as SupportedCity;
+        const key = `${city}:::${item.foodId}`;
+        foodMap[key] = { foodId: item.foodId, quantity: item.quantity, cityCode: city };
       });
       setFoodSelections(foodMap);
 
@@ -159,13 +163,13 @@ export default function PresetBuilderModal({
       const nights = nightsByCity[city] || 1;
       const tierId = accByCity[city] || "BUSINESS_HOTEL";
       const tierInfo = ACCOMMODATION_TIERS.find((t) => t.id === tierId);
-      const nightly = tierInfo?.approxKrw || 100000;
+      const nightly = getStayArchetypePrice(city, tierId as any) || tierInfo?.approxKrw || 120000;
       accomTotal += nights * nightly;
     });
 
     let foodTotal = 0;
-    Object.entries(foodSelections).forEach(([foodId, item]) => {
-      const catalogItem = catalogFoods.find((f) => f.id === foodId);
+    Object.values(foodSelections).forEach((item) => {
+      const catalogItem = catalogFoods.find((f) => f.id === item.foodId);
       const price = catalogItem?.unitPriceKrw || 15000;
       foodTotal += price * item.quantity;
     });
@@ -210,15 +214,16 @@ export default function PresetBuilderModal({
   };
 
   const handleToggleFood = (food: FoodItemDefinition, city: SupportedCity) => {
-    const existing = foodSelections[food.id];
+    const key = `${city}:::${food.id}`;
+    const existing = foodSelections[key];
     if (existing) {
       const next = { ...foodSelections };
-      delete next[food.id];
+      delete next[key];
       setFoodSelections(next);
     } else {
       setFoodSelections({
         ...foodSelections,
-        [food.id]: { quantity: travelersCount, cityCode: city },
+        [key]: { foodId: food.id, quantity: travelersCount, cityCode: city },
       });
     }
   };
@@ -280,8 +285,8 @@ export default function PresetBuilderModal({
       };
     });
 
-    const foodBasketSelectionsPayload: FoodBasketItemSelection[] = Object.entries(foodSelections).map(([foodId, item]) => ({
-      foodId,
+    const foodBasketSelectionsPayload: FoodBasketItemSelection[] = Object.values(foodSelections).map((item) => ({
+      foodId: item.foodId,
       quantity: item.quantity,
       cityCode: item.cityCode,
     }));
@@ -543,6 +548,7 @@ export default function PresetBuilderModal({
                         <div className="space-y-2">
                           {ACCOMMODATION_TIERS.map((tier) => {
                             const isChecked = (accByCity[city] || "BUSINESS_HOTEL") === tier.id;
+                            const cityPrice = getStayArchetypePrice(city, tier.id as any) || tier.approxKrw;
                             return (
                               <label
                                 key={tier.id}
@@ -563,7 +569,7 @@ export default function PresetBuilderModal({
                                   <span className="text-xs font-semibold">{tier.labelKo}</span>
                                 </div>
                                 <span className="text-xs text-slate-400">
-                                  약 ₩{tier.approxKrw.toLocaleString()}/박
+                                  약 ₩{cityPrice.toLocaleString()}/박
                                 </span>
                               </label>
                             );
@@ -588,61 +594,137 @@ export default function PresetBuilderModal({
                   </div>
 
                   {selectedCities.map((city) => {
-                    const cityFoods = catalogFoods.filter(
-                      (f) => f.cityCode === city || f.scope === "NATIONAL"
+                    const cityLocalFoods = catalogFoods.filter(
+                      (f) => f.cityCode === city && f.scope !== "NATIONAL"
                     );
+                    const nationalFoods = catalogFoods.filter(
+                      (f) => f.scope === "NATIONAL"
+                    );
+                    const citySelectedCount = Object.values(foodSelections).filter(
+                      (item) => item.cityCode === city
+                    ).length;
+
                     return (
-                      <div key={city} className="rounded-xl border border-slate-800 bg-slate-800/30 p-4">
-                        <h3 className="font-bold text-white text-sm mb-3 flex items-center gap-2">
-                          <span>🏙️ {CITY_KOREAN_NAMES[city]} 추천 음식 목록</span>
-                          <span className="text-xs font-normal text-slate-400">({cityFoods.length}개 후보)</span>
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                          {cityFoods.map((food) => {
-                            const isSelected = !!foodSelections[food.id];
-                            return (
-                              <div
-                                key={food.id}
-                                onClick={() => handleToggleFood(food, city)}
-                                className={`cursor-pointer rounded-xl border p-2.5 transition-all flex items-center gap-3 ${
-                                  isSelected
-                                    ? "border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10"
-                                    : "border-slate-800 bg-slate-800/60 hover:border-slate-700"
-                                }`}
-                              >
-                                {food.imageUrl ? (
-                                  <img
-                                    src={food.imageUrl}
-                                    alt={food.nameKo}
-                                    className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                      <div key={city} className="rounded-xl border border-slate-800 bg-slate-800/30 p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                            <span>🏙️ {CITY_KOREAN_NAMES[city]} 추천 음식</span>
+                            <span className="text-xs font-normal text-slate-400">
+                              (선택: {citySelectedCount}개 · 로컬 {cityLocalFoods.length}개 + 한국 대표 {nationalFoods.length}개)
+                            </span>
+                          </h3>
+                        </div>
+
+                        {/* 1. 해당 도시 대표 로컬 음식 섹션 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 pb-1 border-b border-slate-700/60">
+                            <span className="text-xs font-bold text-indigo-300">
+                              🏙️ {CITY_KOREAN_NAMES[city]} 대표 로컬 음식 ({cityLocalFoods.length}선)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {cityLocalFoods.map((food) => {
+                              const isSelected = !!foodSelections[`${city}:::${food.id}`];
+                              return (
+                                <div
+                                  key={food.id}
+                                  onClick={() => handleToggleFood(food, city)}
+                                  className={`cursor-pointer rounded-xl border p-2.5 transition-all flex items-center gap-3 ${
+                                    isSelected
+                                      ? "border-emerald-500 bg-emerald-500/10 shadow-lg shadow-emerald-500/10"
+                                      : "border-slate-800 bg-slate-800/60 hover:border-slate-700"
+                                  }`}
+                                >
+                                  {food.imageUrl ? (
+                                    <img
+                                      src={food.imageUrl}
+                                      alt={food.nameKo}
+                                      className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="h-12 w-12 rounded-lg bg-slate-700 flex items-center justify-center text-lg flex-shrink-0">
+                                      🍽️
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-semibold text-xs text-white truncate">{food.nameKo}</span>
+                                      {food.isMustEatTop3 && (
+                                        <span className="rounded bg-rose-500/20 px-1 py-0.2 text-[10px] text-rose-400 font-bold">
+                                          Top3
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[11px] text-emerald-400 font-bold mt-0.5">
+                                      ₩{food.unitPriceKrw?.toLocaleString()}
+                                    </div>
+                                  </div>
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => {}}
+                                    className="h-4 w-4 rounded accent-emerald-500 flex-shrink-0"
                                   />
-                                ) : (
-                                  <div className="h-12 w-12 rounded-lg bg-slate-700 flex items-center justify-center text-lg flex-shrink-0">
-                                    🍽️
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1">
-                                    <span className="font-semibold text-xs text-white truncate">{food.nameKo}</span>
-                                    {food.isMustEatTop3 && (
-                                      <span className="rounded bg-rose-500/20 px-1 py-0.2 text-[10px] text-rose-400 font-bold">
-                                        Top3
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="text-[11px] text-emerald-400 font-bold mt-0.5">
-                                    ₩{food.unitPriceKrw?.toLocaleString()}
-                                  </div>
                                 </div>
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={() => {}}
-                                  className="h-4 w-4 rounded accent-emerald-500 flex-shrink-0"
-                                />
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* 2. 전국 공통 한국 대표 시그니처 음식 섹션 */}
+                        <div className="space-y-2 pt-2">
+                          <div className="flex items-center gap-2 pb-1 border-b border-slate-700/60">
+                            <span className="text-xs font-bold text-amber-300">
+                              🇰🇷 전국 공통 한국 대표 시그니처 ({nationalFoods.length}선)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {nationalFoods.map((food) => {
+                              const isSelected = !!foodSelections[`${city}:::${food.id}`];
+                              return (
+                                <div
+                                  key={food.id}
+                                  onClick={() => handleToggleFood(food, city)}
+                                  className={`cursor-pointer rounded-xl border p-2.5 transition-all flex items-center gap-3 ${
+                                    isSelected
+                                      ? "border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/10"
+                                      : "border-slate-800 bg-slate-800/60 hover:border-slate-700"
+                                  }`}
+                                >
+                                  {food.imageUrl ? (
+                                    <img
+                                      src={food.imageUrl}
+                                      alt={food.nameKo}
+                                      className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="h-12 w-12 rounded-lg bg-slate-700 flex items-center justify-center text-lg flex-shrink-0">
+                                      🍲
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-semibold text-xs text-white truncate">{food.nameKo}</span>
+                                      {food.isMustEatTop3 && (
+                                        <span className="rounded bg-rose-500/20 px-1 py-0.2 text-[10px] text-rose-400 font-bold">
+                                          Top3
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-[11px] text-amber-400 font-bold mt-0.5">
+                                      ₩{food.unitPriceKrw?.toLocaleString()}
+                                    </div>
+                                  </div>
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => {}}
+                                    className="h-4 w-4 rounded accent-amber-500 flex-shrink-0"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     );

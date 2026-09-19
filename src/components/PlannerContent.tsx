@@ -3709,17 +3709,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             {[
                               {
                                 id: "MOSTLY_FREE" as BudgetBasketId,
-                                label: locale === "ko" ? "10,000원" : "₩10,000",
+                                label: formatPriceByLocale(10000, locale, usdRate),
                                 dailyPrice: 10000,
                               },
                               {
                                 id: "BALANCED" as BudgetBasketId,
-                                label: locale === "ko" ? "30,000원" : "₩30,000",
+                                label: formatPriceByLocale(30000, locale, usdRate),
                                 dailyPrice: 30000,
                               },
                               {
                                 id: "EXPERIENCE_RICH" as BudgetBasketId,
-                                label: locale === "ko" ? "50,000원" : "₩50,000",
+                                label: formatPriceByLocale(50000, locale, usdRate),
                                 dailyPrice: 50000,
                               },
                             ].map((preset) => {

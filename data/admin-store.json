@@ -52,16 +52,6 @@
         },
         "foodBasketSelections": [
           {
-            "foodId": "nat_samgyeopsal",
-            "quantity": 1,
-            "cityCode": "SEOUL"
-          },
-          {
-            "foodId": "nat_chimaek",
-            "quantity": 1,
-            "cityCode": "SEOUL"
-          },
-          {
             "foodId": "seoul_cafe_latte",
             "quantity": 1,
             "cityCode": "SEOUL"
@@ -77,8 +67,53 @@
             "cityCode": "BUSAN"
           },
           {
+            "foodId": "food_724803",
+            "quantity": 2,
+            "cityCode": "SEOUL"
+          },
+          {
+            "foodId": "seoul_euljiro_golbaengi",
+            "quantity": 2,
+            "cityCode": "SEOUL"
+          },
+          {
+            "foodId": "seoul_gwangjang_pancake",
+            "quantity": 2,
+            "cityCode": "SEOUL"
+          },
+          {
+            "foodId": "seoul_sindang_tteokbokki",
+            "quantity": 2,
+            "cityCode": "SEOUL"
+          },
+          {
             "foodId": "busan_street_snack",
-            "quantity": 1,
+            "quantity": 2,
+            "cityCode": "BUSAN"
+          },
+          {
+            "foodId": "busan_nampo_street_snack",
+            "quantity": 2,
+            "cityCode": "BUSAN"
+          },
+          {
+            "foodId": "busan_milmyeon",
+            "quantity": 2,
+            "cityCode": "BUSAN"
+          },
+          {
+            "foodId": "nat_samgyeopsal",
+            "quantity": 2,
+            "cityCode": "SEOUL"
+          },
+          {
+            "foodId": "nat_chimaek",
+            "quantity": 2,
+            "cityCode": "SEOUL"
+          },
+          {
+            "foodId": "nat_bulgogi",
+            "quantity": 2,
             "cityCode": "BUSAN"
           }
         ],
@@ -1401,7 +1436,7 @@
       "priceMaxKrw": 75000,
       "isMustEatTop3": true,
       "emoji": "🥩",
-      "imageUrl": "https://postfiles.pstatic.net/MjAyNTA2MjdfMzQg/MDAxNzUxMDE3NjM0NjI1.K4vJs5wcvsq2aPBSjzPwUaCUlsUuwfrEhcp49qMDmzIg.3ocgAR3xC0SUXLqV_IWxcmZVFt8qlTH8FbUXGZUs1XMg.JPEG/%EC%A0%9C%EC%A3%BC%ED%9D%91%EB%8F%BC%EC%A7%802.jpg?type=w3840",
+      "imageUrl": "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/foods/jeju-black-pork.jpg",
       "targetScope": "BOTH",
       "sortOrder": 55,
       "isActive": true
@@ -1667,7 +1702,7 @@
       "priceMaxKrw": 16000,
       "isMustEatTop3": false,
       "emoji": "",
-      "imageUrl": "",
+      "imageUrl": "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/foods/jeonju-moju.png",
       "targetScope": "BOTH",
       "sortOrder": 75,
       "isActive": true
@@ -9360,7 +9395,7 @@
     "GANGNEUNG": "RECOMMENDED",
     "GYEONGJU": "RECOMMENDED"
   },
-  "lastUpdated": "2026-09-19T12:22:20.907Z",
+  "lastUpdated": "2026-09-19T14:47:21.322Z",
   "guideCards": [
     {
       "id": "nav_google_vs_naver",

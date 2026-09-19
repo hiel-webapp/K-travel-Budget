@@ -860,7 +860,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       "priceMaxKrw": 75000,
       "isMustEatTop3": true,
       "emoji": "🥩",
-      "imageUrl": "https://postfiles.pstatic.net/MjAyNTA2MjdfMzQg/MDAxNzUxMDE3NjM0NjI1.K4vJs5wcvsq2aPBSjzPwUaCUlsUuwfrEhcp49qMDmzIg.3ocgAR3xC0SUXLqV_IWxcmZVFt8qlTH8FbUXGZUs1XMg.JPEG/%EC%A0%9C%EC%A3%BC%ED%9D%91%EB%8F%BC%EC%A7%802.jpg?type=w3840",
+      "imageUrl": "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/foods/jeju-black-pork.jpg",
       "targetScope": "BOTH",
       "sortOrder": 55,
       "isActive": true
@@ -1128,7 +1128,7 @@ export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> =
       "priceMaxKrw": 16000,
       "isMustEatTop3": false,
       "emoji": "",
-      "imageUrl": "",
+      "imageUrl": "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/foods/jeonju-moju.png",
       "targetScope": "BOTH",
       "sortOrder": 75,
       "isActive": true

@@ -4,6 +4,9 @@ import React from "react";
 import { CalculatedMealPlan, EffectiveMealSlot } from "../features/budget/domain/types";
 import { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { formatKrw } from "../features/budget/presentation/formatters";
+import { useExchangeRate } from "../lib/hooks/useExchangeRate";
+import { formatPriceByLocale } from "../lib/currency/currency-converter";
+import { Locale } from "../lib/i18n/locales";
 import { MOCK_FOOD_ITEMS } from "../features/budget/catalog/mock-catalog";
 import { getFoodById } from "../features/budget/catalog/food-catalog";
 
@@ -18,6 +21,8 @@ export default function FoodReceiptDetails({
   locale,
   dict,
 }: FoodReceiptDetailsProps) {
+  const { usdRate } = useExchangeRate();
+  const currentLocale = (locale === "ko" ? "ko" : "en") as Locale;
   const basketPlan = mealPlan.foodBasketPlan;
 
   // 슬롯 이름 포맷터 (기존 fallback)
@@ -72,7 +77,7 @@ export default function FoodReceiptDetails({
                         <span className="text-[10px] text-slate-400">x{item.quantity}</span>
                       </div>
                       <span className="tabular-nums font-bold text-slate-800">
-                        {formatKrw(item.subtotalKrw)}
+                        {formatPriceByLocale(item.subtotalKrw, currentLocale, usdRate)}
                       </span>
                     </div>
                   );
@@ -98,7 +103,7 @@ export default function FoodReceiptDetails({
                   </span>
                 </div>
                 <span className="font-bold tabular-nums">
-                  +{formatKrw(basketPlan.baseAllowanceTotalKrw)}
+                  +{formatPriceByLocale(basketPlan.baseAllowanceTotalKrw, currentLocale, usdRate)}
                 </span>
               </div>
             )}
@@ -112,7 +117,7 @@ export default function FoodReceiptDetails({
                 <div className="flex items-center justify-between font-bold">
                   <span className="text-slate-800">{slotName}</span>
                   <span className="text-slate-500 tabular-nums">
-                    {formatKrw(slot.unitPriceKrw)}
+                    {formatPriceByLocale(slot.unitPriceKrw, currentLocale, usdRate)}
                   </span>
                 </div>
                 <div className="pl-2 border-l-2 border-slate-200 flex items-center justify-between text-slate-500 text-[10px]">
@@ -137,7 +142,7 @@ export default function FoodReceiptDetails({
         <div className="pt-3 flex justify-between items-baseline font-bold text-slate-700 text-xs">
           <span>{dict.planner?.cityFoodSubtotal || "식비 합계"}</span>
           <span className="tabular-nums text-slate-900">
-            {formatKrw(mealPlan.lineTotalKrw)}
+            {formatPriceByLocale(mealPlan.lineTotalKrw, currentLocale, usdRate)}
           </span>
         </div>
       </div>

@@ -34,7 +34,7 @@ import {
 import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import { calculateTripBudgetSummary } from "../features/budget/calculations/trip-budget-calculator";
 import { useExchangeRate } from "../lib/hooks/useExchangeRate";
-import { formatPriceByLocale } from "../lib/currency/currency-converter";
+import { formatPriceByLocale, getExchangeRateNotice } from "../lib/currency/currency-converter";
 import SaveTripModal from "./planner/SaveTripModal";
 import BudgetTierModal from "./planner/BudgetTierModal";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -3489,9 +3489,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <div className="space-y-3">
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                                 {[
-                                  { key: "BUDGET", amount: 1000000, label: formatKrw(1000000) },
-                                  { key: "STANDARD", amount: 2000000, label: formatKrw(2000000) },
-                                  { key: "PREMIUM", amount: 3000000, label: formatKrw(3000000) },
+                                  { key: "BUDGET", amount: 1000000, label: formatPriceByLocale(1000000, locale, usdRate) },
+                                  { key: "STANDARD", amount: 2000000, label: formatPriceByLocale(2000000, locale, usdRate) },
+                                  { key: "PREMIUM", amount: 3000000, label: formatPriceByLocale(3000000, locale, usdRate) },
                                 ].map((tierOpt) => {
                                   const isSelected = !isCustomActive && currentPerPerson === tierOpt.amount;
                                   return (
@@ -3554,13 +3554,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex items-center justify-between font-medium">
                                 <span>
                                   <strong className="text-slate-800 font-bold">
-                                    {`${formatKrw(currentPerPerson)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                    {`${formatPriceByLocale(currentPerPerson, locale, usdRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
                                   </strong>
                                 </span>
                                 <span>
                                   {locale === "ko" ? `${adultCount}명 기준 목표 예산:` : `Total for ${adultCount}:`}{" "}
                                   <strong className="text-[#e25c5c] font-extrabold">
-                                    {formatKrw(draft.targetBudgetKrw)}
+                                    {formatPriceByLocale(draft.targetBudgetKrw, locale, usdRate)}
                                   </strong>
                                 </span>
                               </div>
@@ -3632,7 +3632,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                     }`}
                                   >
-                                    <span className="text-xs font-bold">{formatKrw(opt.perPerson)}</span>
+                                    <span className="text-xs font-bold">{formatPriceByLocale(opt.perPerson, locale, usdRate)}</span>
                                   </button>
                                 );
                               })}
@@ -3669,14 +3669,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   {shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
                                     ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
                                     : shoppingAmountKrw === 0
-                                    ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                    : `${formatKrw(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                    ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
+                                    : `${formatPriceByLocale(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000, locale, usdRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
                                 </strong>
                               </span>
                               <span>
                                 {locale === "ko" ? `${adultCount}명 기준 쇼핑 예산:` : `Total for ${adultCount}:`}{" "}
                                 <strong className="text-[#e25c5c] font-extrabold">
-                                  {formatKrw(shoppingAmountKrw)}
+                                  {formatPriceByLocale(shoppingAmountKrw, locale, usdRate)}
                                 </strong>
                               </span>
                             </div>
@@ -3784,14 +3784,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 <span>
                                   <strong className="text-slate-800 font-bold">
                                     {currentDailyRate === 0
-                                      ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
-                                      : `${formatKrw(currentDailyRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
+                                      ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
+                                      : `${formatPriceByLocale(currentDailyRate, locale, usdRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"} × ${totalNights}${locale === "ko" ? "박" : " nights"}`}
                                   </strong>
                                 </span>
                                 <span>
                                   {locale === "ko" ? `${adultCount}명 기준 용돈:` : `Total for ${adultCount}:`}{" "}
                                   <strong className="text-[#e25c5c] font-extrabold">
-                                    {formatKrw(totalActivityFund)}
+                                    {formatPriceByLocale(totalActivityFund, locale, usdRate)}
                                   </strong>
                                 </span>
                               </div>
@@ -3846,7 +3846,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   }`}
                                 >
                                   <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
-                                  <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatKrw(calcValPerPerson)}</div>
+                                  <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatPriceByLocale(calcValPerPerson, locale, usdRate)}</div>
                                 </button>
                               );
                             })}
@@ -3875,13 +3875,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                             const formulaText = emergencyManualInput !== "" && emergencyManualInput !== "0"
                               ? (locale === "ko"
-                                  ? `직접 입력 ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} × ${adultCount}명`
-                                  : `Custom ${formatKrw(parseInt(emergencyManualInput, 10) || 0)} × ${adultCount} travelers`)
+                                  ? `직접 입력 ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount}명`
+                                  : `Custom ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount} travelers`)
                               : (activeEmergencyPct || 0) === 0
-                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection (₩0)")
+                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
                               : (locale === "ko"
-                                  ? `기본 예산 ${formatKrw(basePerPerson)} × ${pctPct}% × ${adultCount}명`
-                                  : `Base Budget ${formatKrw(basePerPerson)} × ${pctPct}% × ${adultCount} travelers`);
+                                  ? `기본 예산 ${formatPriceByLocale(basePerPerson, locale, usdRate)} × ${pctPct}% × ${adultCount}명`
+                                  : `Base Budget ${formatPriceByLocale(basePerPerson, locale, usdRate)} × ${pctPct}% × ${adultCount} travelers`);
 
                             return (
                               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 font-medium">
@@ -3893,7 +3893,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 <span className="shrink-0">
                                   {locale === "ko" ? `${adultCount}명 기준 비상금:` : `Total for ${adultCount}:`}{" "}
                                   <strong className="text-[#e25c5c] font-extrabold">
-                                    {formatKrw(computedEmergencyKrw)}
+                                    {formatPriceByLocale(computedEmergencyKrw, locale, usdRate)}
                                   </strong>
                                 </span>
                               </div>
@@ -4234,7 +4234,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     {locale === "ko" ? `${currentCityName} 예상 식비 (${adultCount}인)` : `Food Budget (${adultCount}p)`}
                                   </span>
                                   <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight leading-none mt-1 sm:mt-0">
-                                    {formatKrw(cityFoodBasket.grandTotalKrw)}
+                                    {formatPriceByLocale(cityFoodBasket.grandTotalKrw, locale, usdRate)}
                                   </span>
                                 </div>
                               </div>
@@ -4306,7 +4306,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     {locale === "ko" ? `${currentCityName} 예상 관광비 (${adultCount}인)` : `Attraction Budget (${adultCount}p)`}
                                   </span>
                                   <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight leading-none mt-1 sm:mt-0">
-                                    {formatKrw(cityAttrTotal)}
+                                    {formatPriceByLocale(cityAttrTotal, locale, usdRate)}
                                   </span>
                                 </div>
                               </div>
@@ -4320,7 +4320,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     </span>
                                     <span className="text-[11px] text-slate-400 font-normal">
                                       ({locale === "ko" ? "무료" : "Free"} {freeCount}{locale === "ko" ? "곳" : ""} · {locale === "ko" ? "유료" : "Paid"} {paidCount}{locale === "ko" ? "곳" : ""}
-                                      {adultCount > 1 && totalPerPersonKrw > 0 ? ` · 1인 ${formatKrw(totalPerPersonKrw)}` : ""})
+                                      {adultCount > 1 && totalPerPersonKrw > 0 ? (locale === "ko" ? ` · 1인 ${formatKrw(totalPerPersonKrw)}` : ` · 1p ${formatPriceByLocale(totalPerPersonKrw, locale, usdRate)}`) : ""})
                                     </span>
                                   </span>
 
@@ -4526,7 +4526,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           </div>
                                         </div>
                                         <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-800 border-amber-200">
-                                          {formatKrw(unitPrice)}/인
+                                          {locale === "ko" ? `${formatKrw(unitPrice)}/인` : `${formatPriceByLocale(unitPrice, locale, usdRate)}/p`}
                                         </span>
                                       </div>
 
@@ -4539,7 +4539,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                     <div className="mt-3 pt-2 border-t border-rose-100 flex items-center justify-between text-xs">
                                       <span className="text-[11px] font-bold text-[#e25c5c]">
-                                        {formatKrw(totalFoodItemPrice)} <span className="text-[10px] text-slate-400 font-normal">({draft.adultCount || 1}명 기준)</span>
+                                        {formatPriceByLocale(totalFoodItemPrice, locale, usdRate)} <span className="text-[10px] text-slate-400 font-normal">({draft.adultCount || 1}{locale === "ko" ? "명 기준" : " travelers"})</span>
                                       </span>
                                       <button
                                         type="button"

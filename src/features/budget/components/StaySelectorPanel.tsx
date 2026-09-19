@@ -5,6 +5,8 @@ import Image from "next/image";
 import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../../../lib/trip-domain";
 import type { Dictionary } from "../../../lib/i18n/dictionaries/ko";
 import { formatKrw } from "../presentation/formatters";
+import { useExchangeRate } from "../../../lib/hooks/useExchangeRate";
+import { formatPriceByLocale } from "../../../lib/currency/currency-converter";
 import {
   STAY_ARCHETYPES,
   StayArchetypeId,
@@ -59,6 +61,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   onResetSplitStay,
   hideHeader = false,
 }) => {
+  const { usdRate } = useExchangeRate();
   const [customNameInput, setCustomNameInput] = useState(() => customStayOverride?.placeName || "");
   const [customPriceInput, setCustomPriceInput] = useState(() =>
     customStayOverride ? customStayOverride.nightlyPriceKrw.toLocaleString() : ""
@@ -273,11 +276,11 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                       : "Select a stay archetype or enter your custom booked stay.")
                   : isCustomActive
                   ? (locale === "ko"
-                      ? `직접 입력 숙소: "${customStayOverride?.placeName}" (1박 ${formatKrw(nightlyRoomPrice)})`
-                      : `Custom stay: "${customStayOverride?.placeName}" (${formatKrw(nightlyRoomPrice)}/nt)`)
+                      ? `직접 입력 숙소: "${customStayOverride?.placeName}" (1박 ${formatPriceByLocale(nightlyRoomPrice, locale, usdRate)})`
+                      : `Custom stay: "${customStayOverride?.placeName}" (${formatPriceByLocale(nightlyRoomPrice, locale, usdRate)}/nt)`)
                   : (locale === "ko"
-                      ? `선택된 숙소: ${locale === "ko" ? currentArchetype?.titleKo : currentArchetype?.titleEn} (1박 평균 ${formatKrw(nightlyRoomPrice)})`
-                      : `Selected: ${currentArchetype?.titleEn} (${formatKrw(nightlyRoomPrice)}/nt)`)}
+                      ? `선택된 숙소: ${locale === "ko" ? currentArchetype?.titleKo : currentArchetype?.titleEn} (1박 평균 ${formatPriceByLocale(nightlyRoomPrice, locale, usdRate)})`
+                      : `Selected: ${currentArchetype?.titleEn} (${formatPriceByLocale(nightlyRoomPrice, locale, usdRate)}/nt)`)}
               </p>
             </div>
 
@@ -290,7 +293,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               </span>
               <div className="flex items-baseline gap-2 justify-end">
                 <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
-                  {formatKrw(effectiveTotalStayCostKrw)}
+                  {formatPriceByLocale(effectiveTotalStayCostKrw, locale, usdRate)}
                 </span>
               </div>
             </div>
@@ -302,7 +305,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <span className="text-slate-700 font-bold flex items-center gap-1.5">
                 <span>{locale === "ko" ? "1인당 실제 부담액:" : "Per Traveler:"}</span>
                 <strong className="text-slate-900 font-black">
-                  {formatKrw(effectivePerPersonStayCostKrw)}
+                  {formatPriceByLocale(effectivePerPersonStayCostKrw, locale, usdRate)}
                 </strong>
               </span>
             </div>
@@ -488,7 +491,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                       {locale === "ko" ? "1박 평균" : "Per Night"}
                     </span>
                     <strong className="text-xs sm:text-sm font-black text-[#e25c5c]">
-                      {formatKrw(price)}
+                      {formatPriceByLocale(price, locale, usdRate)}
                     </strong>
                   </div>
                 </div>

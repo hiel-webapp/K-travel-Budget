@@ -8,6 +8,7 @@ const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6시간 로컬 유효
 
 interface ExchangeRateState {
   rate: number;
+  usdRate: number;
   isLoading: boolean;
   isFallback: boolean;
   lastUpdated?: string;
@@ -18,6 +19,7 @@ export function useExchangeRate(): ExchangeRateState {
     if (typeof window === "undefined") {
       return {
         rate: DEFAULT_USD_KRW_RATE,
+        usdRate: DEFAULT_USD_KRW_RATE,
         isLoading: true,
         isFallback: false,
       };
@@ -31,6 +33,7 @@ export function useExchangeRate(): ExchangeRateState {
         if (parsed.rate && now - parsed.timestamp < CACHE_TTL_MS) {
           return {
             rate: parsed.rate,
+            usdRate: parsed.rate,
             isLoading: false,
             isFallback: Boolean(parsed.isFallback),
             lastUpdated: parsed.lastUpdated,
@@ -43,6 +46,7 @@ export function useExchangeRate(): ExchangeRateState {
 
     return {
       rate: DEFAULT_USD_KRW_RATE,
+      usdRate: DEFAULT_USD_KRW_RATE,
       isLoading: true,
       isFallback: false,
     };
@@ -60,6 +64,7 @@ export function useExchangeRate(): ExchangeRateState {
         if (isMounted && data.success && typeof data.rateKrw === "number") {
           const newState = {
             rate: data.rateKrw,
+            usdRate: data.rateKrw,
             isLoading: false,
             isFallback: Boolean(data.isFallback),
             lastUpdated: data.updatedAt,

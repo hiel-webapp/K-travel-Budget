@@ -60,3 +60,11 @@ export function formatPriceByLocale(
 
   return formattedUsd;
 }
+
+export function getExchangeRateNotice(rate: number = DEFAULT_USD_KRW_RATE, locale: Locale = "en"): string {
+  const roundedRate = Math.round(rate).toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
+  if (locale === "ko") {
+    return `기준 환율: $1 = ₩${roundedRate}`;
+  }
+  return `Exchange Rate: $1 ≈ ₩${roundedRate}`;
+}

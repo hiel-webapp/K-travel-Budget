@@ -18,6 +18,8 @@ import {
   getRelatedThemeActivity,
 } from "../features/budget/catalog/theme-activities";
 import { formatKrw } from "../features/budget/presentation/formatters";
+import { useExchangeRate } from "../lib/hooks/useExchangeRate";
+import { formatPriceByLocale } from "../lib/currency/currency-converter";
 
 export interface AttractionPlannerPanelProps {
   city: SupportedCity;
@@ -54,6 +56,7 @@ export default function AttractionPlannerPanel({
   onAddCustomSpot,
   hideHeader = false,
 }: AttractionPlannerPanelProps) {
+  const { usdRate } = useExchangeRate();
   const [activeSubTab, setActiveSubTab] = useState<"CITY" | "BASKET">("CITY");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [visibleCount, setVisibleCount] = useState<number>(8);
@@ -236,7 +239,7 @@ export default function AttractionPlannerPanel({
                 {locale === "ko" ? `${cityName} 예상 관광비 (${adultCount}인)` : `${cityName} Attraction Budget (${adultCount}p)`}
               </span>
               <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
-                {formatKrw(basketSummary.grandTotalKrw)}
+                {formatPriceByLocale(basketSummary.grandTotalKrw, locale, usdRate)}
               </span>
             </div>
           </div>
@@ -251,7 +254,7 @@ export default function AttractionPlannerPanel({
                 </span>
                 <span className="text-[11px] text-slate-400 font-normal">
                   ({locale === "ko" ? "무료" : "Free"} {basketSummary.freeCount}{locale === "ko" ? "곳" : ""} · {locale === "ko" ? "유료" : "Paid"} {basketSummary.paidCount}{locale === "ko" ? "곳" : ""}
-                  {adultCount > 1 && basketSummary.totalPerPersonKrw > 0 ? ` · 1인 ${formatKrw(basketSummary.totalPerPersonKrw)}` : ""})
+                  {adultCount > 1 && basketSummary.totalPerPersonKrw > 0 ? (locale === "ko" ? ` · 1인 ${formatKrw(basketSummary.totalPerPersonKrw)}` : ` · 1p ${formatPriceByLocale(basketSummary.totalPerPersonKrw, locale, usdRate)}`) : ""})
                 </span>
               </span>
 
@@ -494,7 +497,7 @@ export default function AttractionPlannerPanel({
                         >
                           {rawSpot.priceStatus === "FREE" || rawSpot.price === 0
                             ? (locale === "ko" ? "무료" : "Free")
-                            : formatKrw(rawSpot.price)}
+                            : formatPriceByLocale(rawSpot.price, locale, usdRate)}
                         </span>
                       </div>
 
@@ -502,7 +505,7 @@ export default function AttractionPlannerPanel({
                       <div className="flex items-center gap-1 shrink-0 flex-wrap">
                         {rawSpot.isLocal && (
                           <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-0.5">
-                            <span>로컬</span>
+                            <span>{locale === "ko" ? "로컬" : "Local"}</span>
                           </span>
                         )}
                         {(() => {
@@ -533,7 +536,7 @@ export default function AttractionPlannerPanel({
                             <span className="truncate">{locale === "ko" ? relatedAct.nameKo : relatedAct.nameEn}</span>
                           </span>
                           <span className="font-extrabold text-purple-700 shrink-0 tabular-nums">
-                            +{formatKrw(relatedAct.priceKrw)}
+                            +{formatPriceByLocale(relatedAct.priceKrw, locale, usdRate)}
                           </span>
                         </div>
                       )}
@@ -735,11 +738,11 @@ export default function AttractionPlannerPanel({
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="text-right">
                           <span className="text-xs sm:text-sm font-black text-[#0f172a] block">
-                            {isFree ? (locale === "ko" ? "0원" : "₩0") : formatKrw(totalItemPrice)}
+                            {isFree ? (locale === "ko" ? "0원" : "$0") : formatPriceByLocale(totalItemPrice, locale, usdRate)}
                           </span>
                           {!isFree && adultCount > 1 && (
                             <span className="text-[10px] text-slate-400 block">
-                              1인 {formatKrw(spot.price)}
+                              {locale === "ko" ? `1인 ${formatKrw(spot.price)}` : `1p ${formatPriceByLocale(spot.price, locale, usdRate)}`}
                             </span>
                           )}
                         </div>
@@ -763,13 +766,13 @@ export default function AttractionPlannerPanel({
               <div className="p-4 bg-slate-50 border-t border-slate-200/80 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-500 font-medium">
                   <span>{locale === "ko" ? "선택 명소 합계 (1인 기준)" : "Selected Spots Subtotal (Per Person)"}:</span>
-                  <span className="font-bold text-slate-800">{formatKrw(basketSummary.totalPerPersonKrw)}</span>
+                  <span className="font-bold text-slate-800">{formatPriceByLocale(basketSummary.totalPerPersonKrw, locale, usdRate)}</span>
                 </div>
 
                 <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline text-sm font-black text-[#0f172a]">
                   <span>{locale === "ko" ? `최종 관광비 합계 (${adultCount}인)` : `Total Attraction Budget (${adultCount}p)`}:</span>
                   <span className="text-base sm:text-lg text-[#e25c5c]">
-                    {formatKrw(basketSummary.grandTotalKrw)}
+                    {formatPriceByLocale(basketSummary.grandTotalKrw, locale, usdRate)}
                   </span>
                 </div>
               </div>
@@ -881,7 +884,7 @@ export default function AttractionPlannerPanel({
                 {locale === "ko" ? promptActivity.activity.nameKo : promptActivity.activity.nameEn}
               </p>
               <p className="text-[11px] font-black text-rose-400">
-                +{formatKrw(promptActivity.activity.priceKrw)}
+                +{formatPriceByLocale(promptActivity.activity.priceKrw, locale, usdRate)}
                 {promptActivity.activity.durationTextKo && (
                   <span className="text-slate-400 font-normal ml-1.5">
                     ({locale === "ko" ? promptActivity.activity.durationTextKo : promptActivity.activity.durationTextEn})

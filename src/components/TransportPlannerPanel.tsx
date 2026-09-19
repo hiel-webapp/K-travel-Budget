@@ -7,6 +7,8 @@ import { LOCAL_TRANSIT_OPTIONS, LocalTransitOptionDef, getCityTransitEvidence } 
 import { LocalTransitStyle } from "../features/budget/domain/types";
 import { getDefaultCityTransitStyle, METRO_CONNECTED_CITIES } from "../features/budget/calculations/engine";
 import { formatKrw } from "../features/budget/presentation/formatters";
+import { useExchangeRate } from "../lib/hooks/useExchangeRate";
+import { formatPriceByLocale } from "../lib/currency/currency-converter";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 
@@ -38,6 +40,7 @@ export default function TransportPlannerPanel({
   const selectedCities = draft.selectedCities || [];
   const adultCount = draft.adultCount || 1;
   const isMultiCity = selectedCities.length >= 2;
+  const { usdRate } = useExchangeRate();
 
   const firstCity = selectedCities[0] || "SEOUL";
   const lastCity = selectedCities[selectedCities.length - 1] || "SEOUL";
@@ -341,11 +344,11 @@ export default function TransportPlannerPanel({
                 {locale === "ko" ? "1인 편도:" : "1-Person Fare:"}
               </span>
               <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
-                {formatKrw(activeEntryOption.oneWayPriceKrw)}
+                {formatPriceByLocale(activeEntryOption.oneWayPriceKrw, locale, usdRate)}
               </strong>
               {adultCount > 1 && (
                 <span className="text-[11px] text-slate-400 font-medium ml-1">
-                  ({locale === "ko" ? `총 ${formatKrw(entryTotalKrw)} / ${adultCount}명` : `Total ${formatKrw(entryTotalKrw)} / ${adultCount}p`})
+                  ({locale === "ko" ? `총 ${formatKrw(entryTotalKrw)} / ${adultCount}명` : `Total ${formatPriceByLocale(entryTotalKrw, locale, usdRate)} / ${adultCount}p`})
                 </span>
               )}
             </div>
@@ -421,7 +424,7 @@ export default function TransportPlannerPanel({
                         {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
                       </span>
                       <span className={`text-xs sm:text-sm ${isSelected ? "font-black text-[#e25c5c]" : "font-medium text-slate-600"}`}>
-                        {formatKrw(opt.oneWayPriceKrw)}
+                        {formatPriceByLocale(opt.oneWayPriceKrw, locale, usdRate)}
                       </span>
                     </div>
                   </button>
@@ -551,12 +554,12 @@ export default function TransportPlannerPanel({
                             {locale === "ko" ? "1인 편도:" : "1-Person:"}
                           </span>
                           <strong className="text-[#e25c5c] font-black text-sm sm:text-base">
-                            {formatKrw(activeOption.oneWayPriceKrw)}
+                            {formatPriceByLocale(activeOption.oneWayPriceKrw, locale, usdRate)}
                           </strong>
                         </div>
                         {adultCount > 1 && (
                           <div className="text-[11px] text-slate-400 font-medium">
-                            {locale === "ko" ? "총" : "Total"} {formatKrw(totalSegmentKrw)} ({adultCount}{locale === "ko" ? "명" : "p"})
+                            {locale === "ko" ? "총" : "Total"} {formatPriceByLocale(totalSegmentKrw, locale, usdRate)} ({adultCount}{locale === "ko" ? "명" : "p"})
                           </div>
                         )}
                       </div>
@@ -589,7 +592,7 @@ export default function TransportPlannerPanel({
                               </div>
                               <div className="text-right shrink-0">
                                 <span className="font-extrabold text-slate-800 text-xs">
-                                  {formatKrw(leg.fareKrw)}
+                                  {formatPriceByLocale(leg.fareKrw, locale, usdRate)}
                                 </span>
                               </div>
                             </div>
@@ -619,7 +622,7 @@ export default function TransportPlannerPanel({
                                 {locale === "ko" ? "예상 운임 변동 범위" : "Estimated Fare Range"}
                               </div>
                               <div className="text-xs font-black text-slate-900">
-                                {formatKrw(activeOption.priceRange.min)} ~ {formatKrw(activeOption.priceRange.max)}
+                                {formatPriceByLocale(activeOption.priceRange.min, locale, usdRate)} ~ {formatPriceByLocale(activeOption.priceRange.max, locale, usdRate)}
                               </div>
                             </div>
                           )}
@@ -672,7 +675,7 @@ export default function TransportPlannerPanel({
                 {locale === "ko" ? "1인 편도:" : "1-Person:"}
               </span>
               <strong className="text-sm font-black text-[#e25c5c]">
-                {formatKrw(activeExitOption.oneWayPriceKrw)}
+                {formatPriceByLocale(activeExitOption.oneWayPriceKrw, locale, usdRate)}
               </strong>
             </div>
           </div>
@@ -744,7 +747,7 @@ export default function TransportPlannerPanel({
                         {locale === "ko" ? opt.durationTextKo : opt.durationTextEn}
                       </span>
                       <span className={`text-xs sm:text-sm ${isSelected ? "font-black text-[#e25c5c]" : "font-medium text-slate-600"}`}>
-                        {formatKrw(opt.oneWayPriceKrw)}
+                        {formatPriceByLocale(opt.oneWayPriceKrw, locale, usdRate)}
                       </span>
                     </div>
                   </button>
@@ -920,7 +923,7 @@ export default function TransportPlannerPanel({
 
                         <div className="text-right shrink-0">
                           <span className={`text-xs sm:text-sm ${isSelected ? "font-black text-[#e25c5c]" : "font-medium text-slate-600"}`}>
-                            {formatKrw(opt.pricePerDayKrw)}
+                            {formatPriceByLocale(opt.pricePerDayKrw, locale, usdRate)}
                           </span>
                         </div>
                       </button>
@@ -935,7 +938,7 @@ export default function TransportPlannerPanel({
                   </span>
                   <div className="text-right">
                     <strong className="text-slate-900 font-black text-sm">
-                      {formatKrw(totalCityTransit)}
+                      {formatPriceByLocale(totalCityTransit, locale, usdRate)}
                     </strong>
                   </div>
                 </div>

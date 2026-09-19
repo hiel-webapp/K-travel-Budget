@@ -17,8 +17,10 @@ import {
   FOOD_CATALOG_BY_ID,
   registerCustomFoodItems,
 } from "../features/budget/catalog/food-catalog";
-import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import { formatKrw } from "../features/budget/presentation/formatters";
+import { useExchangeRate } from "../lib/hooks/useExchangeRate";
+import { formatPriceByLocale } from "../lib/currency/currency-converter";
+import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 
 interface FoodPlannerPanelProps {
   locale: Locale;
@@ -58,6 +60,7 @@ export default function FoodPlannerPanel({
   onClearBasket,
   hideHeader = false,
 }: FoodPlannerPanelProps) {
+  const { usdRate } = useExchangeRate();
   const [activeTab, setActiveTab] = useState<"NATIONAL" | "CITY" | "BASKET">("CITY");
   const [activeCityTab, setActiveCityTab] = useState<SupportedCity>(currentCity);
   const [nationalCategoryFilter, setNationalCategoryFilter] = useState<"ALL" | FoodCategoryTag>("ALL");
@@ -204,7 +207,7 @@ export default function FoodPlannerPanel({
                 {locale === "ko" ? `${cityName} 예상 식비 (${adultCount}인)` : `${cityName} Food Budget (${adultCount}p)`}
               </span>
               <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
-                {formatKrw(basketPlan.grandTotalKrw)}
+                {formatPriceByLocale(basketPlan.grandTotalKrw, locale, usdRate)}
               </span>
             </div>
           </div>
@@ -461,7 +464,7 @@ export default function FoodPlannerPanel({
 
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="text-xs sm:text-sm font-black text-[#e25c5c]">
-                        {formatKrw(subtotalKrw)}
+                        {formatPriceByLocale(subtotalKrw, locale, usdRate)}
                       </span>
 
                       {/* Remove Button */}
@@ -482,13 +485,13 @@ export default function FoodPlannerPanel({
               <div className="p-4 bg-slate-50 border-t border-slate-200/80 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-500 font-medium">
                   <span>{locale === "ko" ? "선택한 음식 합계" : "Selected Food Subtotal"}:</span>
-                  <span className="font-bold text-slate-800">{formatKrw(basketPlan.selectedFoodTotalKrw)}</span>
+                  <span className="font-bold text-slate-800">{formatPriceByLocale(basketPlan.selectedFoodTotalKrw, locale, usdRate)}</span>
                 </div>
 
                 <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline text-sm font-black text-[#0f172a]">
                   <span>{locale === "ko" ? "최종 식비 합계" : "Total Food Budget"}:</span>
                   <span className="text-base sm:text-lg text-[#e25c5c]">
-                    {formatKrw(basketPlan.grandTotalKrw)}
+                    {formatPriceByLocale(basketPlan.grandTotalKrw, locale, usdRate)}
                   </span>
                 </div>
               </div>
@@ -583,7 +586,7 @@ export default function FoodPlannerPanel({
                     <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
                       {locale === "ko" ? "1인 기준 권장 예산" : "Price per Person"}
                     </span>
-                    <span className="text-[#e25c5c] font-black">{formatKrw(previewFood.unitPriceKrw)}</span>
+                    <span className="text-[#e25c5c] font-black">{formatPriceByLocale(previewFood.unitPriceKrw, locale, usdRate)}</span>
                   </div>
                 </div>
 
@@ -689,6 +692,7 @@ function FoodItemCard({
   onToggle: () => void;
   onPreview: () => void;
 }) {
+  const { usdRate } = useExchangeRate();
   const isSelected = count > 0;
 
   return (
@@ -765,7 +769,7 @@ function FoodItemCard({
           </div>
 
           <span className="text-xs sm:text-sm font-black text-[#e25c5c] shrink-0 whitespace-nowrap">
-            {formatKrw(food.unitPriceKrw)}
+            {formatPriceByLocale(food.unitPriceKrw, locale, usdRate)}
           </span>
         </div>
 

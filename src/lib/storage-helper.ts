@@ -522,7 +522,20 @@ function validateSingleAccommodation(
     if (obj.kind === "ARCHETYPE" && typeof obj.archetypeId === "string") {
       return STAY_ARCHETYPES.some((a) => a.id === obj.archetypeId);
     }
-    // D. 레거시 바스켓 티어 객체 형태
+    // D. 분할 숙박(SPLIT) 형태
+    if (obj.kind === "SPLIT") {
+      if (!Array.isArray(obj.segments) || obj.segments.length === 0) return false;
+      return obj.segments.every((seg: any) => {
+        return (
+          seg &&
+          typeof seg === "object" &&
+          typeof seg.nights === "number" &&
+          seg.nights > 0 &&
+          (typeof seg.basketId === "string" || typeof seg.placeNameKo === "string" || typeof seg.nightlyPriceKrw === "number")
+        );
+      });
+    }
+    // E. 레거시 바스켓 티어 객체 형태
     if (obj.basketId && typeof obj.basketId === "string") {
       if (STAY_ARCHETYPES.some((a) => a.id === obj.basketId)) return true;
       return MOCK_PRICE_CATALOG.some(

@@ -1,4 +1,4 @@
-import { TripDraft, SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
+import { TripDraft, SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT } from "src/lib/trip-domain";
 import { PlannerPreferences, BudgetCategory, BudgetBasketId, ShoppingOption, BudgetPlan } from "../domain/types";
 import { generateInitialBudgetPlan } from "./engine";
 import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
@@ -107,20 +107,30 @@ export function calculateTripBudgetSummary(
   budgetPlaces: PlaceItem[] = [],
   locale: Locale = "ko",
   dbAttractionsByCity: Record<string, AttractionSpot[]> = {}
-): TripBudgetSummary {
-  const adultCount = draft.adultCount || 1;
-  const totalNights = draft.totalNights || 1;
+) {
+  let safeDraft = draft;
+  const validation = validateTripDraft(draft);
+  if (!validation.success) {
+    safeDraft = sanitizeTripDraft(draft);
+    const reValidation = validateTripDraft(safeDraft);
+    if (!reValidation.success) {
+      safeDraft = DEFAULT_TRIP_DRAFT;
+    }
+  }
+
+  const adultCount = safeDraft.adultCount || 1;
+  const totalNights = safeDraft.totalNights || 1;
   const travelDays = totalNights + 1;
   const occupancyModeByCity = preferences.occupancyModeByCity || {};
 
   // 1. 기본 플랜 (도시별 숙박, 시내교통, 도시 간/공항 교통, 푸드 바스켓 반영)
-  const basePlan = generateInitialBudgetPlan(draft, MOCK_PRICE_CATALOG, {
+  const basePlan = generateInitialBudgetPlan(safeDraft, MOCK_PRICE_CATALOG, {
     accommodation: preferences.accommodationByCity,
     foodTier: preferences.foodTier,
     food: preferences.foodOverrides,
     foodAddOns: preferences.addOnSelections,
     foodBasketSelections: preferences.foodBasketSelections,
-    attraction: draft.selectedCities.reduce((acc, c) => ({ ...acc, [c]: "NONE" as BudgetBasketId }), {}),
+    attraction: safeDraft.selectedCities.reduce((acc, c) => ({ ...acc, [c]: "NONE" as BudgetBasketId }), {}),
     attractionSelections: undefined,
     attractionCustomDailyKrw: undefined,
     emergencyFundKrw: 0,
@@ -146,7 +156,8 @@ export function calculateTripBudgetSummary(
   let sumAttractionTotal = 0;
   let sumCitySubtotals = 0;
 
-  draft.selectedCities.forEach((city) => {
+  const uniqueCities = Array.from(new Set(draft.selectedCities));
+  uniqueCities.forEach((city) => {
     const nights = draft.cityNightAllocations[city] || 0;
     const section = basePlan.citySections[city];
 

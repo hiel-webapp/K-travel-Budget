@@ -64,7 +64,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         setDraft(loadedDraft);
         if (loadedDraft) {
           const res = loadPlannerPreferencesEx(loadedDraft);
-          if (res.status === "valid") {
+          if (res.preferences) {
             setPreferences(res.preferences);
           }
 
@@ -442,8 +442,8 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       {/* 1. 숙박 */}
                       <div className="space-y-1">
                         <div className="flex justify-between items-start gap-3">
-                          <div>
-                            <div className="flex items-center gap-1.5">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
                                 {locale === "ko" ? "숙소" : "Stay"}
                               </span>
@@ -453,9 +453,38 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             </div>
                             {cInfo.hasStay && (
                               <span className="text-[10px] text-slate-400 block mt-0.5 tabular-nums">
-                                1박 {formatKrw(cInfo.stayNightlyPrice)} × {cInfo.nights}박
+                                {locale === "ko"
+                                  ? `1박 ${formatKrw(cInfo.stayNightlyPrice)} × ${cInfo.nights}박`
+                                  : `${formatKrw(cInfo.stayNightlyPrice)}/night × ${cInfo.nights}N`}
                               </span>
                             )}
+                            {(() => {
+                              const accSel = preferences.accommodationByCity?.[city];
+                              if (accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT" && Array.isArray((accSel as any).segments)) {
+                                return (
+                                  <div className="mt-1.5 space-y-0.5 border-l-2 border-rose-300 pl-2 text-[10.5px] text-slate-600">
+                                    {(accSel as any).segments.map((seg: any, sIdx: number) => {
+                                      let segName = seg.placeNameKo;
+                                      if (locale === "en") segName = seg.placeNameEn || seg.placeNameKo;
+                                      if (!segName) {
+                                        const bId = seg.basketId;
+                                        if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") segName = locale === "ko" ? "게스트하우스/호스텔" : "Hostel / Guesthouse";
+                                        else if (bId === "HANOK_BOUTIQUE") segName = locale === "ko" ? "한옥 스테이" : "Hanok Stay";
+                                        else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") segName = locale === "ko" ? "5성급 럭셔리" : "5-Star Luxury";
+                                        else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") segName = locale === "ko" ? "비즈니스 호텔" : "Business Hotel";
+                                        else segName = locale === "ko" ? "호텔" : "Hotel";
+                                      }
+                                      return (
+                                        <div key={sIdx} className="flex justify-between">
+                                          <span>• {segName} ({seg.nights}{locale === "ko" ? "박" : "N"})</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                           <strong className="font-bold text-slate-900 tabular-nums shrink-0">
                             {formatKrw(cInfo.stayTotalKrw)}

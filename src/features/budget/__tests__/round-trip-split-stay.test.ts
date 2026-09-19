@@ -150,7 +150,7 @@ describe("TripStop Architecture: Split Stay & Round-Trip Itinerary Unit Tests", 
 
     expect(seoulAcc).toBeDefined();
     expect(seoulAcc?.lineTotalKrw).toBe(580000);
-    expect(seoulAcc?.sourceLabel).toContain("실속 게스트하우스 3N");
-    expect(seoulAcc?.sourceLabel).toContain("북촌 프리미엄 한옥 2N");
+    expect(seoulAcc?.sourceLabel).toContain("실속 게스트하우스 3박");
+    expect(seoulAcc?.sourceLabel).toContain("북촌 프리미엄 한옥 2박");
   });
 });

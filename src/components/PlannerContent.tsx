@@ -483,8 +483,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   // 방안 3: 목록 순서는 기본 추천순 고정, 필요 시 '담은 항목만 보기' 필터 제공
   const [showSavedOnlyAccByCity, setShowSavedOnlyAccByCity] = useState<Record<string, boolean>>({});
 
-  // 상단 도시 탭 좌우 드래그 앤 드롭 동선 정렬 상태
-  const [dragCityTab, setDragCityTab] = useState<SupportedCity | null>(null);
+  // 상단 도시 탭 좌우 드래그 앤 드롭 동선 정렬 상태 (인덱스 기반)
+  const [dragCityIndex, setDragCityIndex] = useState<number | null>(null);
+  const dragIndexRef = useRef<number | null>(null);
+  const isDropHandledRef = useRef(false);
   const [reorderCityTabs, setReorderCityTabs] = useState<SupportedCity[]>([]);
   const [showTabRouteInfo, setShowTabRouteInfo] = useState(false);
   const isDraggingTabRef = useRef(false);
@@ -1052,25 +1054,59 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleReorderCities = (newCities: SupportedCity[]) => {
     if (state.status !== "ready") return;
+
+    // 1. 연속 중복 방지 (예: [SEOUL, SEOUL])
+    let hasConsecutiveDuplicate = false;
+    for (let i = 0; i < newCities.length - 1; i++) {
+      if (newCities[i] === newCities[i + 1]) {
+        hasConsecutiveDuplicate = true;
+        break;
+      }
+    }
+    if (hasConsecutiveDuplicate || newCities.length === 0) {
+      setReorderCityTabs([...state.draft.selectedCities]);
+      return;
+    }
+
+    // 2. Draft 검증 및 유효화
     const nextDraft: TripDraft = {
       ...state.draft,
       selectedCities: newCities,
     };
+    const validation = validateTripDraft(nextDraft);
+    if (!validation.success) {
+      setReorderCityTabs([...state.draft.selectedCities]);
+      return;
+    }
+
+    // 3. Draft 저장
     saveTripDraft(nextDraft);
+
+    // 4. 새 draft에 맞춰 preferences도 동기화 저장 (리포트 페이지 fingerprint-mismatch 방지)
+    if (state.preferences) {
+      savePlannerPreferences({
+        ...state.preferences,
+        accommodationByCity: state.preferences.accommodationByCity || {},
+        draft: nextDraft,
+      });
+    }
+
     setState({
       ...state,
       draft: nextDraft,
     });
   };
 
-  // 상단 도시 탭 Drag & Drop 및 동선 순서 제어 핸들러
-  const handleTabDragStart = (e: React.DragEvent, city: SupportedCity) => {
+  // 상단 도시 탭 Drag & Drop 및 동선 순서 제어 핸들러 (인덱스 기반)
+  const handleTabDragStart = (e: React.DragEvent, index: number, city: SupportedCity) => {
     if (state.status !== "ready") return;
     isDraggingTabRef.current = true;
-    setDragCityTab(city);
+    isDropHandledRef.current = false;
+    dragIndexRef.current = index;
+    setDragCityIndex(index);
     setReorderCityTabs([...state.draft.selectedCities]);
     e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", city);
+    e.dataTransfer.setData("text/plain", `${index}`);
 
     // 반투명 커스텀 고스트 엘리먼트 생성
     const ghostEl = document.createElement("div");
@@ -1101,39 +1137,49 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }, 0);
   };
 
-  const handleTabDragOver = (e: React.DragEvent, targetCity: SupportedCity) => {
+  const handleTabDragOver = (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
+    if (state.status !== "ready") return;
 
-    if (!dragCityTab || dragCityTab === targetCity) return;
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex === null || fromIndex === targetIndex) return;
 
-    const currentList = [...reorderCityTabs];
-    const fromIndex = currentList.indexOf(dragCityTab);
-    const toIndex = currentList.indexOf(targetCity);
-
-    if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
-      currentList.splice(fromIndex, 1);
-      currentList.splice(toIndex, 0, dragCityTab);
-      setReorderCityTabs(currentList);
-    }
+    setReorderCityTabs((prev) => {
+      const currentList = prev.length > 0 ? [...prev] : [...state.draft.selectedCities];
+      if (fromIndex < 0 || fromIndex >= currentList.length || targetIndex < 0 || targetIndex >= currentList.length) {
+        return currentList;
+      }
+      const [movedItem] = currentList.splice(fromIndex, 1);
+      currentList.splice(targetIndex, 0, movedItem);
+      dragIndexRef.current = targetIndex;
+      setDragCityIndex(targetIndex);
+      return currentList;
+    });
   };
 
   const handleTabDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    if (isDropHandledRef.current) return;
+    isDropHandledRef.current = true;
+
     if (reorderCityTabs.length > 0) {
       handleReorderCities(reorderCityTabs);
     }
-    setDragCityTab(null);
+    setDragCityIndex(null);
+    dragIndexRef.current = null;
     setTimeout(() => {
       isDraggingTabRef.current = false;
     }, 50);
   };
 
   const handleTabDragEnd = () => {
-    if (reorderCityTabs.length > 0) {
+    if (!isDropHandledRef.current && reorderCityTabs.length > 0) {
+      isDropHandledRef.current = true;
       handleReorderCities(reorderCityTabs);
     }
-    setDragCityTab(null);
+    setDragCityIndex(null);
+    dragIndexRef.current = null;
     setTimeout(() => {
       isDraggingTabRef.current = false;
     }, 50);
@@ -3151,7 +3197,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 aria-label="City route tabs"
               >
                 {(() => {
-                  const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
+                  const displayCityTabs = dragCityIndex !== null ? reorderCityTabs : draft.selectedCities;
                   const isMultiCity = draft.selectedCities.length > 1;
                   const currentAllocatedSum = Object.values(draft.cityNightAllocations || {}).reduce((sum, n) => sum + (n || 0), 0);
                   const maxNights = draft.totalNights || 5;
@@ -3159,7 +3205,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   return displayCityTabs.map((city, idx) => {
                     const isActive = selectedCityTab === city;
-                    const isDraggingThis = dragCityTab === city;
+                    const isDraggingThis = dragCityIndex === idx;
                     const label = locale === "ko"
                       ? CITY_KOREAN_NAMES[city] || city
                       : CITY_ENGLISH_NAMES[city] || city;
@@ -3175,8 +3221,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           id={`city-tab-${city}-${idx}`}
                           aria-controls={`city-panel-${city}`}
                           draggable={isMultiCity}
-                          onDragStart={(e) => handleTabDragStart(e, city)}
-                          onDragOver={(e) => handleTabDragOver(e, city)}
+                          onDragStart={(e) => handleTabDragStart(e, idx, city)}
+                          onDragOver={(e) => handleTabDragOver(e, idx)}
                           onDrop={handleTabDrop}
                           onDragEnd={handleTabDragEnd}
                           onClick={() => {
@@ -4930,12 +4976,53 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                       if (hasAccSelection && validItems.length > 0) {
                                         return validItems.map((item) => {
+                                          const accSel = preferences.accommodationByCity?.[city];
+                                          const isSplit = accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT";
+                                          if (isSplit && Array.isArray((accSel as any).segments)) {
+                                            const segments = (accSel as any).segments;
+                                            return (
+                                              <div key={item.id} className="space-y-1 pl-5">
+                                                <div className="flex justify-between items-start text-[11px] font-bold text-slate-700">
+                                                  <span>{locale === "ko" ? "[분할 숙박]" : "[Split Stay]"}</span>
+                                                  <span className="tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
+                                                </div>
+                                                <div className="space-y-0.5 border-l-2 border-rose-300 pl-2">
+                                                  {segments.map((seg: any, sIdx: number) => {
+                                                    let segName = seg.placeNameKo;
+                                                    if (locale === "en") segName = seg.placeNameEn || seg.placeNameKo;
+                                                    if (!segName) {
+                                                      const bId = seg.basketId;
+                                                      if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") segName = locale === "ko" ? "게스트하우스/호스텔" : "Hostel / Guesthouse";
+                                                      else if (bId === "HANOK_BOUTIQUE") segName = locale === "ko" ? "한옥 스테이" : "Hanok Stay";
+                                                      else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") segName = locale === "ko" ? "5성급 럭셔리" : "5-Star Luxury";
+                                                      else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") segName = locale === "ko" ? "비즈니스 호텔" : "Business Hotel";
+                                                      else {
+                                                        const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
+                                                        segName = locale === "ko" ? (arch?.titleKo || "호텔") : (arch?.titleEn || "Hotel");
+                                                      }
+                                                    }
+                                                    const segNightText = locale === "ko" ? `${seg.nights}박` : `${seg.nights}N`;
+                                                    const pairFactor = occupancyModeByCity[city] === "SHARED_PAIR" ? Math.ceil((draft.adultCount || 1) / 2) : (draft.adultCount || 1);
+                                                    const segTotal = (seg.nightlyPriceKrw || 0) * pairFactor * (seg.nights || 1);
+                                                    return (
+                                                      <div key={sIdx} className="flex justify-between text-[10.5px] text-slate-600">
+                                                        <span className="truncate pr-1">• {segName} ({segNightText})</span>
+                                                        <span className="tabular-nums text-slate-500 shrink-0">
+                                                          {segTotal > 0 ? formatKrw(segTotal) : ""}
+                                                        </span>
+                                                      </div>
+                                                    );
+                                                  })}
+                                                </div>
+                                              </div>
+                                            );
+                                          }
+
                                           let stayLabel = item.sourceLabel || getBasketLabel(item.basketId, dict, locale, city);
                                           if (locale === "en") {
                                             if (item.sourceLabelEn) {
                                               stayLabel = item.sourceLabelEn;
                                             } else {
-                                              const accSel = preferences.accommodationByCity?.[city];
                                               if (accSel && typeof accSel === "object" && "kind" in accSel && ((accSel as any).kind === "PLACE" || (accSel as any).kind === "CUSTOM")) {
                                                 const custom = accSel as any;
                                                 stayLabel = custom.placeNameEn || custom.placeName || custom.placeNameKo || "Custom Stay";

@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getAdminFoods,
   saveAdminFood,
+  saveAdminFoodsBatch,
   deleteAdminFood,
   getAdminAttractions,
   saveAdminAttraction,
+  saveAdminAttractionsBatch,
   deleteAdminAttraction,
   getAdminTourCourses,
   saveAdminTourCourse,
@@ -150,12 +152,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, item: saved });
     }
 
+    if (type === "BATCH_FOOD") {
+      const items = body.items;
+      if (!Array.isArray(items) || items.length === 0) {
+        return NextResponse.json({ success: false, error: "items array is required" }, { status: 400 });
+      }
+      const saved = await saveAdminFoodsBatch(items);
+      return NextResponse.json({ success: true, count: saved.length });
+    }
+
     if (type === "ATTRACTION") {
       if (!data || !data.id || !data.nameKo) {
         return NextResponse.json({ success: false, error: "Invalid attraction data" }, { status: 400 });
       }
       const saved = await saveAdminAttraction(data);
       return NextResponse.json({ success: true, item: saved });
+    }
+
+    if (type === "BATCH_ATTRACTION") {
+      const items = body.items;
+      if (!Array.isArray(items) || items.length === 0) {
+        return NextResponse.json({ success: false, error: "items array is required" }, { status: 400 });
+      }
+      const saved = await saveAdminAttractionsBatch(items);
+      return NextResponse.json({ success: true, count: saved.length });
     }
 
     if (type === "COURSE") {

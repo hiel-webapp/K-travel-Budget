@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AttractionSpot } from "../../features/budget/catalog/attraction-spots";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_KOREAN_NAMES } from "../../lib/trip-domain";
 import { PlacementScope } from "../../lib/admin/admin-store";
@@ -13,6 +13,9 @@ export default function AttractionCatalogPanel() {
   const [selectedScope, setSelectedScope] = useState<PlacementScope | "ALL">("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isReorderModalOpen, setIsReorderModalOpen] = useState<boolean>(false);
+  const pendingUpdatesRef = useRef<Map<string, AttractionSpot>>(new Map());
+  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   // Edit/Add modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -82,36 +85,70 @@ export default function AttractionCatalogPanel() {
     }
   };
 
-  const handleToggleFeatured = async (spot: AttractionSpot) => {
-    const nextFeatured = !spot.isFeatured;
-    // 낙관적 UI 업데이트 (지연 없이 즉시 반영)
-    setAttractions((prev) =>
-      prev.map((s) => (s.id === spot.id ? { ...s, isFeatured: nextFeatured } : s))
-    );
+  const flushBatchUpdates = async () => {
+    if (pendingUpdatesRef.current.size === 0) return;
+    const itemsToSave = Array.from(pendingUpdatesRef.current.values());
+    pendingUpdatesRef.current.clear();
+    setIsSyncing(true);
 
     try {
       const res = await fetch("/api/admin/catalog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "ATTRACTION",
-          data: { ...spot, isFeatured: nextFeatured },
+          type: "BATCH_ATTRACTION",
+          items: itemsToSave,
         }),
       });
       const data = await res.json();
       if (!data.success) {
-        // 실패 시 롤백
-        setAttractions((prev) =>
-          prev.map((s) => (s.id === spot.id ? { ...s, isFeatured: spot.isFeatured } : s))
-        );
-        alert(`추천 상태 변경 실패: ${data.error}`);
+        console.error("Batch attraction update failed:", data.error);
+        fetchAttractions();
       }
-    } catch (err: any) {
-      setAttractions((prev) =>
-        prev.map((s) => (s.id === spot.id ? { ...s, isFeatured: spot.isFeatured } : s))
-      );
-      alert(`오류 발생: ${err.message}`);
+    } catch (err) {
+      console.error("Batch attraction update error:", err);
+      fetchAttractions();
+    } finally {
+      setIsSyncing(false);
+      if (pendingUpdatesRef.current.size > 0) {
+        syncTimerRef.current = setTimeout(flushBatchUpdates, 200);
+      }
     }
+  };
+
+  const handleToggleFeatured = (spot: AttractionSpot) => {
+    const nextFeatured = !spot.isFeatured;
+    const updatedSpot = { ...spot, isFeatured: nextFeatured };
+
+    setAttractions((prev) =>
+      prev.map((s) => (s.id === spot.id ? updatedSpot : s))
+    );
+
+    pendingUpdatesRef.current.set(spot.id, updatedSpot);
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(flushBatchUpdates, 300);
+  };
+
+  const handleClearAllFeatured = () => {
+    const targetSpots = filteredSpots.filter((s) => s.isFeatured);
+    if (targetSpots.length === 0) return;
+
+    const cityLabel = selectedCity !== "ALL" ? `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity}` : "전체";
+    if (!confirm(`${cityLabel} 지역의 Must-Visit 추천 ${targetSpots.length}개를 모두 일괄 해제하시겠습니까?`)) {
+      return;
+    }
+
+    const updatedSpots = targetSpots.map((s) => ({ ...s, isFeatured: false }));
+    const targetIds = new Set(targetSpots.map((s) => s.id));
+
+    setAttractions((prev) =>
+      prev.map((s) => (targetIds.has(s.id) ? { ...s, isFeatured: false } : s))
+    );
+
+    updatedSpots.forEach((s) => pendingUpdatesRef.current.set(s.id, s));
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    flushBatchUpdates();
   };
 
   const handleOpenAdd = () => {
@@ -320,6 +357,22 @@ export default function AttractionCatalogPanel() {
                 : "순서 정렬 (드래그)"}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={handleClearAllFeatured}
+            disabled={isSyncing || filteredSpots.filter((s) => s.isFeatured).length === 0}
+            className="rounded-xl border border-rose-500/50 bg-rose-600/20 px-3.5 py-2 text-xs font-bold text-rose-200 hover:bg-rose-600/40 hover:text-white transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            title="현재 목록의 모든 Must-Visit 추천 일괄 해제"
+          >
+            <span>⭐</span>
+            <span>추천 전체 해제 ({filteredSpots.filter((s) => s.isFeatured).length})</span>
+          </button>
+          {isSyncing && (
+            <span className="text-[11px] text-amber-300 font-bold flex items-center gap-1 animate-pulse flex-shrink-0 bg-amber-950/60 border border-amber-500/40 px-2.5 py-1.5 rounded-xl">
+              <span>⏳</span>
+              <span>동기화 중...</span>
+            </span>
+          )}
           <button
             type="button"
             onClick={handleOpenAdd}

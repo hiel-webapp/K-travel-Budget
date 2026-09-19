@@ -413,6 +413,25 @@ export async function saveAdminFood(item: FoodItemDefinition): Promise<FoodItemD
   return targetItem;
 }
 
+export async function saveAdminFoodsBatch(items: FoodItemDefinition[]): Promise<FoodItemDefinition[]> {
+  const store = await loadAdminStore();
+  for (const item of items) {
+    const targetItem: FoodItemDefinition = {
+      ...item,
+      targetScope: item.targetScope || "BOTH",
+      isActive: item.isActive ?? true,
+    };
+    const idx = store.foodItems.findIndex((f) => f.id === targetItem.id);
+    if (idx >= 0) {
+      store.foodItems[idx] = { ...store.foodItems[idx], ...targetItem };
+    } else {
+      store.foodItems.push(targetItem);
+    }
+  }
+  await saveAdminStore(store);
+  return items;
+}
+
 export async function deleteAdminFood(id: string): Promise<void> {
   const store = await loadAdminStore();
   store.foodItems = store.foodItems.filter((f) => f.id !== id);
@@ -482,6 +501,25 @@ export async function saveAdminAttraction(spot: AttractionSpot): Promise<Attract
 
   await saveAdminStore(store);
   return targetSpot;
+}
+
+export async function saveAdminAttractionsBatch(spots: AttractionSpot[]): Promise<AttractionSpot[]> {
+  const store = await loadAdminStore();
+  for (const spot of spots) {
+    const targetSpot: AttractionSpot = {
+      ...spot,
+      targetScope: spot.targetScope || "BOTH",
+      isActive: spot.isActive ?? true,
+    };
+    const idx = store.attractionSpots.findIndex((s) => s.id === targetSpot.id);
+    if (idx >= 0) {
+      store.attractionSpots[idx] = { ...store.attractionSpots[idx], ...targetSpot };
+    } else {
+      store.attractionSpots.push(targetSpot);
+    }
+  }
+  await saveAdminStore(store);
+  return spots;
 }
 
 export async function deleteAdminAttraction(id: string): Promise<void> {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FoodItemDefinition } from "../../features/budget/domain/types";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_KOREAN_NAMES } from "../../lib/trip-domain";
 import { PlacementScope } from "../../lib/admin/admin-store";
@@ -13,6 +13,9 @@ export default function FoodCatalogPanel() {
   const [selectedScope, setSelectedScope] = useState<PlacementScope | "ALL">("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isReorderModalOpen, setIsReorderModalOpen] = useState<boolean>(false);
+  const pendingUpdatesRef = useRef<Map<string, FoodItemDefinition>>(new Map());
+  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   // Edit/Add modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -83,36 +86,75 @@ export default function FoodCatalogPanel() {
     }
   };
 
-  const handleToggleMustEat = async (food: FoodItemDefinition) => {
-    const nextMustEat = !food.isMustEatTop3;
-    // 낙관적 UI 업데이트 (지연 없이 즉시 반영)
-    setFoods((prev) =>
-      prev.map((f) => (f.id === food.id ? { ...f, isMustEatTop3: nextMustEat } : f))
-    );
+  const flushBatchUpdates = async () => {
+    if (pendingUpdatesRef.current.size === 0) return;
+    const itemsToSave = Array.from(pendingUpdatesRef.current.values());
+    pendingUpdatesRef.current.clear();
+    setIsSyncing(true);
 
     try {
       const res = await fetch("/api/admin/catalog", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "FOOD",
-          data: { ...food, isMustEatTop3: nextMustEat },
+          type: "BATCH_FOOD",
+          items: itemsToSave,
         }),
       });
       const data = await res.json();
       if (!data.success) {
-        // 실패 시 롤백
-        setFoods((prev) =>
-          prev.map((f) => (f.id === food.id ? { ...f, isMustEatTop3: food.isMustEatTop3 } : f))
-        );
-        alert(`Must-Eat 상태 변경 실패: ${data.error}`);
+        console.error("Batch food update failed:", data.error);
+        fetchFoods();
       }
-    } catch (err: any) {
-      setFoods((prev) =>
-        prev.map((f) => (f.id === food.id ? { ...f, isMustEatTop3: food.isMustEatTop3 } : f))
-      );
-      alert(`오류 발생: ${err.message}`);
+    } catch (err) {
+      console.error("Batch food update error:", err);
+      fetchFoods();
+    } finally {
+      setIsSyncing(false);
+      if (pendingUpdatesRef.current.size > 0) {
+        syncTimerRef.current = setTimeout(flushBatchUpdates, 200);
+      }
     }
+  };
+
+  const handleToggleMustEat = (food: FoodItemDefinition) => {
+    const nextMustEat = !food.isMustEatTop3;
+    const updatedFood = { ...food, isMustEatTop3: nextMustEat };
+
+    setFoods((prev) =>
+      prev.map((f) => (f.id === food.id ? updatedFood : f))
+    );
+
+    pendingUpdatesRef.current.set(food.id, updatedFood);
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(flushBatchUpdates, 300);
+  };
+
+  const handleClearAllMustEat = () => {
+    const targetFoods = filteredFoods.filter((f) => f.isMustEatTop3);
+    if (targetFoods.length === 0) return;
+
+    const cityLabel =
+      selectedCity !== "ALL"
+        ? selectedCity === "NATIONAL"
+          ? "전국 대표"
+          : `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity}`
+        : "전체";
+    if (!confirm(`${cityLabel} 지역의 Must-Eat 추천 ${targetFoods.length}개를 모두 일괄 해제하시겠습니까?`)) {
+      return;
+    }
+
+    const updatedFoods = targetFoods.map((f) => ({ ...f, isMustEatTop3: false }));
+    const targetIds = new Set(targetFoods.map((f) => f.id));
+
+    setFoods((prev) =>
+      prev.map((f) => (targetIds.has(f.id) ? { ...f, isMustEatTop3: false } : f))
+    );
+
+    updatedFoods.forEach((f) => pendingUpdatesRef.current.set(f.id, f));
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    flushBatchUpdates();
   };
 
   const handleOpenAdd = () => {
@@ -317,6 +359,22 @@ export default function FoodCatalogPanel() {
                 : "순서 정렬 (드래그)"}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={handleClearAllMustEat}
+            disabled={isSyncing || filteredFoods.filter((f) => f.isMustEatTop3).length === 0}
+            className="rounded-xl border border-rose-500/50 bg-rose-600/20 px-3.5 py-2 text-xs font-bold text-rose-200 hover:bg-rose-600/40 hover:text-white transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            title="현재 목록의 모든 Must-Eat 추천 일괄 해제"
+          >
+            <span>🔥</span>
+            <span>추천 전체 해제 ({filteredFoods.filter((f) => f.isMustEatTop3).length})</span>
+          </button>
+          {isSyncing && (
+            <span className="text-[11px] text-amber-300 font-bold flex items-center gap-1 animate-pulse flex-shrink-0 bg-amber-950/60 border border-amber-500/40 px-2.5 py-1.5 rounded-xl">
+              <span>⏳</span>
+              <span>동기화 중...</span>
+            </span>
+          )}
           <button
             type="button"
             onClick={handleOpenAdd}

@@ -1329,7 +1329,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const nextCities = [...currentDraft.selectedCities, cityToAdd];
     const maxTotalNights = currentDraft.totalNights || 5;
     const currentAlloc = { ...(currentDraft.cityNightAllocations || {}) };
-    const allocatedSum = currentDraft.selectedCities.reduce((sum, c) => sum + (currentAlloc[c] || 0), 0);
+    const allocatedSum = Object.values(currentAlloc).reduce((sum, n) => sum + (n || 0), 0);
     const unallocated = Math.max(0, maxTotalNights - allocatedSum);
     // 여유 박수가 남아있으면 1박, 모두 소진된 상태면 0박(당일 경유)으로 안전하게 시작
     const nightsForNew = unallocated > 0 ? 1 : 0;
@@ -3063,8 +3063,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <div className="space-y-2 pt-1 border-t border-slate-100">
               {/* 체류 기간 배분 상태 요약 & 초기화 헤더 */}
               {(() => {
-                const selectedCities = draft.selectedCities;
-                const currentAllocatedSum = selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
+                const currentAllocatedSum = Object.values(draft.cityNightAllocations || {}).reduce((sum, n) => sum + (n || 0), 0);
                 const maxNights = draft.totalNights || 5;
                 const unallocatedNights = maxNights - currentAllocatedSum;
                 const isFull = unallocatedNights === 0;
@@ -3154,7 +3153,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 {(() => {
                   const displayCityTabs = dragCityTab !== null ? reorderCityTabs : draft.selectedCities;
                   const isMultiCity = draft.selectedCities.length > 1;
-                  const currentAllocatedSum = draft.selectedCities.reduce((sum, c) => sum + (draft.cityNightAllocations[c] || 0), 0);
+                  const currentAllocatedSum = Object.values(draft.cityNightAllocations || {}).reduce((sum, n) => sum + (n || 0), 0);
                   const maxNights = draft.totalNights || 5;
                   const unallocatedNights = maxNights - currentAllocatedSum;
 
@@ -4297,8 +4296,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const city = selectedCityTab as SupportedCity;
                   const cityNights = draft.cityNightAllocations[city] ?? 0;
                   const totalNights = draft.totalNights || 5;
-                  const totalAllocatedNights = draft.selectedCities.reduce(
-                    (sum, c) => sum + (draft.cityNightAllocations[c] || 0),
+                  const totalAllocatedNights = Object.values(draft.cityNightAllocations || {}).reduce(
+                    (sum, n) => sum + (n || 0),
                     0
                   );
 
@@ -4814,6 +4813,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                         const label = CITY_KOREAN_NAMES[city] || city;
                         const englishCityName = CITY_ENGLISH_NAMES[city] || city;
+                        const visitOccurrences = draft.selectedCities.filter((c) => c === city).length;
+                        const visitOrder = draft.selectedCities.slice(0, cityIdx + 1).filter((c) => c === city).length;
+                        const displayCityLabel = visitOccurrences > 1
+                          ? `${locale === "ko" ? label : englishCityName} (${locale === "ko" ? `${visitOrder}차` : `Leg ${visitOrder}`})`
+                          : (locale === "ko" ? label : englishCityName);
                         const cityNights = section.nights;
                         const cityLineItems = section.lineItems || [];
 
@@ -4869,7 +4873,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const cityTotal = accTotal + foodTotal + transportTotal + cityAttractionTotal;
 
                         // 아코디언 열림 여부 (기본: 접힘, 클릭 시 토글)
-                        const isExpanded = !!expandedReceiptCities[city];
+                        const accordionKey = `${city}-${cityIdx}`;
+                        const isExpanded = !!expandedReceiptCities[accordionKey] || !!expandedReceiptCities[city];
 
                         // 다음 도시로 이동하는 교통 아이템
                         const nextCity = draft.selectedCities[cityIdx + 1];
@@ -4878,19 +4883,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         ) : null;
 
                         return (
-                          <div key={city} className="space-y-1.5">
+                          <div key={`${city}-${cityIdx}`} className="space-y-1.5">
                             {/* 도시 접이식 아코디언 카드 */}
                             <div className="rounded-lg border border-slate-200/90 bg-white shadow-2xs overflow-hidden transition-all">
                               {/* 도시 헤더 (토글 버튼) */}
                               <button
                                 type="button"
-                                onClick={() => toggleReceiptCity(city)}
+                                onClick={() => toggleReceiptCity(accordionKey)}
                                 className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-slate-50/80 transition-colors cursor-pointer"
                               >
                                 <div className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-[#e25c5c]"></span>
                                   <span className="text-[13px] font-extrabold text-[#0f172a]">
-                                    {locale === "ko" ? label : englishCityName}
+                                    {displayCityLabel}
                                   </span>
                                   <span className="text-[10.5px] font-bold text-slate-400">
                                     ({cityNights === 0 ? (locale === "ko" ? "당일" : "Day trip") : `${cityNights}${locale === "ko" ? "박" : "N"}`})

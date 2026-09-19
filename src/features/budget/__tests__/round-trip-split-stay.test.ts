@@ -29,6 +29,10 @@ describe("TripStop Architecture: Split Stay & Round-Trip Itinerary Unit Tests", 
     const validation = validateTripDraft(roundTripDraft);
     expect(validation.success).toBe(true);
     expect(validation.errors.length).toBe(0);
+
+    const plan = generateInitialBudgetPlan(roundTripDraft, BUDGET_CATALOG);
+    expect(plan).toBeDefined();
+    expect(plan.grandTotalKrw).toBeGreaterThan(0);
   });
 
   it("연속 즉시 중복(서울 ➔ 서울)은 duplicate_cities 에러 반환 검증", () => {

@@ -72,8 +72,11 @@ export function generateInitialBudgetPlan(
 
   const lineItems: BudgetLineItem[] = [];
 
-  // 각 도시 순회하며 라인 아이템 생성
-  for (const city of selectedCities) {
+  // 중복 재방문 도시가 있더라도, 각 도시의 기본 체류 예산(숙박/식비/시내교통/관광)은 고유 도시별 총 박수에 따라 1회씩 연산
+  const uniqueCities = Array.from(new Set(selectedCities));
+
+  // 각 고유 도시 순회하며 라인 아이템 생성
+  for (const city of uniqueCities) {
     const nights = cityNightAllocations[city] || 0;
     const cityLineItems: BudgetLineItem[] = [];
 

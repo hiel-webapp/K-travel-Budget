@@ -1676,11 +1676,31 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     shoppingOption,
     shoppingCustomInput,
     occupancyModeByCity,
+    shoppingAmountKrw: (() => {
+      if (shoppingOption === "NONE") return 0;
+      if (shoppingOption === "BEAUTY") return 200000 * adultCount;
+      if (shoppingOption === "FASHION") return 300000 * adultCount;
+      if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
+      if (shoppingOption === "CUSTOM") {
+        const val = parseFloat(shoppingCustomInput) || 0;
+        const perPerson = locale === "ko" ? val : Math.round(val * usdRate);
+        return perPerson * adultCount;
+      }
+      return preferences.shoppingAmountKrw;
+    })(),
+    attractionCustomDailyKrw:
+      activityManualInput !== "" && activityManualInput !== "0"
+        ? (locale === "ko"
+            ? (parseInt(activityManualInput, 10) || 0)
+            : Math.round((parseFloat(activityManualInput) || 0) * usdRate))
+        : preferences.attractionCustomDailyKrw,
     emergencyFundKrw:
       emergencyManualInput !== "" && emergencyManualInput !== "0"
-        ? parseInt(emergencyManualInput, 10) || 0
+        ? (locale === "ko"
+            ? (parseInt(emergencyManualInput, 10) || 0)
+            : Math.round((parseFloat(emergencyManualInput) || 0) * usdRate))
         : preferences.emergencyFundKrw,
-  }), [preferences, shoppingOption, shoppingCustomInput, occupancyModeByCity, emergencyManualInput]);
+  }), [preferences, shoppingOption, shoppingCustomInput, occupancyModeByCity, emergencyManualInput, activityManualInput, locale, usdRate, adultCount]);
 
   const summary = useMemo(() => {
     return calculateTripBudgetSummary(draft, mergedPreferences, budgetPlaces, locale, dbAttractionsByCity);

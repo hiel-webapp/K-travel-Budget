@@ -166,22 +166,26 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
     const newSeg2 = cityNights - newSeg1;
     const arch1 = STAY_ARCHETYPES.find((a) => a.id === seg1BasketId);
     const arch2 = STAY_ARCHETYPES.find((a) => a.id === seg2BasketId);
+    const nameKo1 = (splitStayOverride?.[0]?.placeNameKo && splitStayOverride[0].placeNameKo !== "호텔") ? splitStayOverride[0].placeNameKo : (arch1?.titleKo || "도심 비즈니스 호텔");
+    const nameEn1 = (splitStayOverride?.[0]?.placeNameEn && splitStayOverride[0].placeNameEn !== "Hotel") ? splitStayOverride[0].placeNameEn : (arch1?.titleEn || "Urban Business Hotel");
+    const nameKo2 = (splitStayOverride?.[1]?.placeNameKo && splitStayOverride[1].placeNameKo !== "호텔") ? splitStayOverride[1].placeNameKo : (arch2?.titleKo || "한옥 스테이");
+    const nameEn2 = (splitStayOverride?.[1]?.placeNameEn && splitStayOverride[1].placeNameEn !== "Hotel") ? splitStayOverride[1].placeNameEn : (arch2?.titleEn || "Boutique Hanok Stay");
     const segs: SplitStaySegment[] = [
       {
         segmentId: "seg_1",
         basketId: seg1BasketId as BudgetBasketId,
         nights: newSeg1,
         nightlyPriceKrw: seg1Price,
-        placeNameKo: splitStayOverride?.[0]?.placeNameKo || arch1?.titleKo || "도심 비즈니스 호텔",
-        placeNameEn: splitStayOverride?.[0]?.placeNameEn || arch1?.titleEn || "Urban Business Hotel",
+        placeNameKo: nameKo1,
+        placeNameEn: nameEn1,
       },
       {
         segmentId: "seg_2",
         basketId: seg2BasketId as BudgetBasketId,
         nights: newSeg2,
         nightlyPriceKrw: seg2Price,
-        placeNameKo: splitStayOverride?.[1]?.placeNameKo || arch2?.titleKo || "한옥 스테이",
-        placeNameEn: splitStayOverride?.[1]?.placeNameEn || arch2?.titleEn || "Boutique Hanok Stay",
+        placeNameKo: nameKo2,
+        placeNameEn: nameEn2,
       },
     ];
     onSaveSplitStay?.(city, segs);

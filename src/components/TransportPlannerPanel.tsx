@@ -77,6 +77,9 @@ export default function TransportPlannerPanel({
   };
 
   const getSimplifiedTransportName = (nameKo: string, mode?: string, nameEn?: string) => {
+    if (!nameKo) {
+      return locale === "ko" ? (mode === "FLIGHT" ? "국내선 항공" : "교통편") : (nameEn || mode || "Transit");
+    }
     // 1. 항공 복합 환승 경로 우선 판별 (비행기가 포함된 노선은 반드시 항공 표시)
     if (nameKo.includes("항공") && (nameKo.includes("공항철도") || nameKo.includes("AREX"))) {
       return locale === "ko" ? "국내선 항공 + 공항철도" : "Domestic Flight + AREX";
@@ -465,13 +468,13 @@ export default function TransportPlannerPanel({
                   || fallbackIntercityOption;
 
                 const totalSegmentKrw = (activeOption?.oneWayPriceKrw || 0) * adultCount;
-                const hasFlight = activeOption.mode === "FLIGHT" || activeOption.nameKo.includes("항공") || activeOption.legs?.some((l) => l.mode === "FLIGHT");
+                const hasFlight = activeOption?.mode === "FLIGHT" || (activeOption?.nameKo && activeOption.nameKo.includes("항공")) || (activeOption?.legs?.some((l) => l.mode === "FLIGHT") ?? false);
                 const modeIcon = "";
-                const displayName = getSimplifiedTransportName(activeOption.nameKo, activeOption.mode, activeOption.nameEn);
+                const displayName = getSimplifiedTransportName(activeOption?.nameKo || "", activeOption?.mode, activeOption?.nameEn);
                 const hasMultipleOptions = options.length > 1;
                 const isExpanded = !!expandedSegments[routeKey];
-                const hasLegs = activeOption.legs && activeOption.legs.length > 0;
-                const hasTiers = (activeOption.tierDescriptionsKo && activeOption.tierDescriptionsKo.length > 0) || !!activeOption.priceRange;
+                const hasLegs = !!(activeOption?.legs && activeOption.legs.length > 0);
+                const hasTiers = !!((activeOption?.tierDescriptionsKo && activeOption.tierDescriptionsKo.length > 0) || activeOption?.priceRange);
                 const canExpand = hasLegs || hasTiers;
 
                 return (

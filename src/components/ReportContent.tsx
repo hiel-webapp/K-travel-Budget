@@ -124,7 +124,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   }
 
   // 예산이 전혀 편성되지 않았거나 계산 데이터가 없을 때
-  if (!hasValidPlan || !calculations || calculations.grandTotalKrw === 0) {
+  if (!hasValidPlan || !calculations) {
     return (
       <div className="flex min-h-[calc(100vh-14rem)] w-full items-center justify-center px-4 py-8">
         <div className="w-full max-w-md rounded-2xl border border-slate-200/90 bg-white p-8 sm:p-10 text-center shadow-xl shadow-slate-100 flex flex-col items-center">
@@ -448,7 +448,14 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                 {locale === "ko" ? "숙소" : "Stay"}
                               </span>
                               <span className="font-bold text-slate-800">
-                                {cInfo.stayItemLabel}
+                                {(() => {
+                                  const accSel = preferences.accommodationByCity?.[city];
+                                  const isSplit = accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT";
+                                  if (isSplit) {
+                                    return locale === "ko" ? "분할 숙박 (Split Stay)" : "Split Stay";
+                                  }
+                                  return cInfo.stayItemLabel;
+                                })()}
                               </span>
                             </div>
                             {cInfo.hasStay && (
@@ -466,13 +473,22 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                     {(accSel as any).segments.map((seg: any, sIdx: number) => {
                                       let segName = seg.placeNameKo;
                                       if (locale === "en") segName = seg.placeNameEn || seg.placeNameKo;
-                                      if (!segName) {
-                                        const bId = seg.basketId;
-                                        if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") segName = locale === "ko" ? "게스트하우스/호스텔" : "Hostel / Guesthouse";
-                                        else if (bId === "HANOK_BOUTIQUE") segName = locale === "ko" ? "한옥 스테이" : "Hanok Stay";
-                                        else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") segName = locale === "ko" ? "5성급 럭셔리" : "5-Star Luxury";
-                                        else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") segName = locale === "ko" ? "비즈니스 호텔" : "Business Hotel";
-                                        else segName = locale === "ko" ? "호텔" : "Hotel";
+                                      const bId = seg.basketId;
+                                      const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
+                                      if (!segName || segName === "호텔" || segName === "Hotel") {
+                                        if (arch) {
+                                          segName = locale === "ko" ? arch.titleKo : arch.titleEn;
+                                        } else if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") {
+                                          segName = locale === "ko" ? "호스텔 & 게스트하우스" : "Hostel & Guesthouse";
+                                        } else if (bId === "HANOK_BOUTIQUE") {
+                                          segName = locale === "ko" ? "한옥 스테이" : "Hanok Stay";
+                                        } else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") {
+                                          segName = locale === "ko" ? "5성급 럭셔리 호텔" : "5-Star Luxury";
+                                        } else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") {
+                                          segName = locale === "ko" ? "도심 비즈니스 호텔" : "Business Hotel";
+                                        } else {
+                                          segName = locale === "ko" ? "도심 비즈니스 호텔" : "Business Hotel";
+                                        }
                                       }
                                       return (
                                         <div key={sIdx} className="flex justify-between">

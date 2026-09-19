@@ -419,9 +419,31 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       const res = loadPlannerPreferencesEx(draft);
       let preferences = res.preferences;
 
-      // 만약 preferences가 invalid이거나 mismatch이거나 missing 등 온전하지 않은 경우,
-      // 화면을 invalid 에러로 막지 않고, 안전하게 기본 preferences로 즉시 초기화하여 정상 플래너로 직행
-      if (res.status !== "valid") {
+      // 만약 preferences가 fingerprint-mismatch인 경우, 사용자가 설정한 기존 숙소/음식/교통/관광 설정을 그대로 보존하고 핑거프린트만 최신 draft로 동기화
+      if (res.status === "fingerprint-mismatch") {
+        preferences = {
+          ...res.preferences,
+          tripFingerprint: generateTripFingerprint(draft),
+        };
+        savePlannerPreferences({
+          draft,
+          accommodationByCity: preferences.accommodationByCity,
+          foodOverrides: preferences.foodOverrides,
+          foodAddOnOverrides: preferences.addOnSelections,
+          foodBasketSelections: preferences.foodBasketSelections,
+          attractionByCity: preferences.attractionByCity,
+          attractionSelections: preferences.attractionSelections,
+          emergencyFundKrw: preferences.emergencyFundKrw,
+          emergencyFundPct: preferences.emergencyFundPct,
+          intercityTransportOverrides: preferences.intercityTransportOverrides,
+          localTransitStyle: preferences.localTransitStyle,
+          cityTransitStyles: preferences.cityTransitStyles,
+          shoppingOption: preferences.shoppingOption,
+          shoppingCustomInput: preferences.shoppingCustomInput,
+          shoppingAmountKrw: preferences.shoppingAmountKrw,
+          occupancyModeByCity: preferences.occupancyModeByCity,
+        });
+      } else if (res.status !== "valid") {
         preferences = {
           schemaVersion: 5,
           tripFingerprint: generateTripFingerprint(draft),
@@ -1139,6 +1161,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const fromIndex = dragIndexRef.current;
     if (fromIndex === null || fromIndex === targetIndex) return;
 
+    dragIndexRef.current = targetIndex;
+    setDragCityIndex(targetIndex);
     setReorderCityTabs((prev) => {
       const currentList = prev.length > 0 ? [...prev] : [...state.draft.selectedCities];
       if (fromIndex < 0 || fromIndex >= currentList.length || targetIndex < 0 || targetIndex >= currentList.length) {
@@ -1146,8 +1170,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
       const [movedItem] = currentList.splice(fromIndex, 1);
       currentList.splice(targetIndex, 0, movedItem);
-      dragIndexRef.current = targetIndex;
-      setDragCityIndex(targetIndex);
       return currentList;
     });
   };
@@ -3193,8 +3215,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 aria-label="City route tabs"
               >
                 {(() => {
-                  const displayCityTabs = dragCityIndex !== null ? reorderCityTabs : draft.selectedCities;
-                  const isMultiCity = draft.selectedCities.length > 1;
+                  const displayCityTabs = (dragCityIndex !== null && reorderCityTabs.length > 0) ? reorderCityTabs : (draft.selectedCities || []);
+                  const isMultiCity = (draft.selectedCities || []).length > 1;
                   const currentAllocatedSum = Object.values(draft.cityNightAllocations || {}).reduce((sum, n) => sum + (n || 0), 0);
                   const maxNights = draft.totalNights || 5;
                   const unallocatedNights = maxNights - currentAllocatedSum;
@@ -4095,7 +4117,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="flex-1 p-4 sm:p-5 flex flex-col justify-center">
                         {/* 1. 숙소 바스켓 요약 */}
                         {((activeCategory === "ACCOMMODATION" || activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND")) && (() => {
-                          const accOverride = preferences.accommodationByCity[currentCity];
+                          const accOverride = preferences.accommodationByCity?.[currentCity];
                           const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
                           let selectedArch: StayArchetypeId | null = null;
                           if (accOverride) {
@@ -4343,7 +4365,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     0
                   );
 
-                  const accOverride = preferences.accommodationByCity[city];
+                  const accOverride = preferences.accommodationByCity?.[city];
                   const hasOverride = !!accOverride;
                   let selectedArchetypeId: StayArchetypeId | null = null;
                   if (accOverride) {
@@ -5344,11 +5366,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => {
+                      saveTripDraft(state.draft);
                       persistPreferences({
                         shoppingOption,
                         shoppingCustomInput,
                         occupancyModeByCity,
-                      });
+                      }, state.draft);
                       router.push(`/${locale}/report`);
                     }}
                     className="flex-1 h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"

@@ -690,8 +690,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   }, [state, budgetPlaces, showSavedOnlyAccByCity]);
 
-  // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태 & 로딩 상태
-  const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]>>({});
+  // Supabase DB (Hype_Catalog_Items) 동적 관광지 목록 상태 & 로딩 상태 (초기 마운트 시 최신 카탈로그로 플리커링 방지)
+  const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]>>(() => {
+    const initialMap: Record<string, (AttractionSpot & { imageUrl?: string; deepLink?: string })[]> = {};
+    ATTRACTION_SPOTS_CATALOG.forEach((s) => {
+      if (!initialMap[s.cityCode]) initialMap[s.cityCode] = [];
+      initialMap[s.cityCode].push(s);
+    });
+    return initialMap;
+  });
   const [isFetchingCityAttractions, setIsFetchingCityAttractions] = useState<Record<string, boolean>>({});
   const fetchedCitiesRef = useRef<Set<string>>(new Set());
 

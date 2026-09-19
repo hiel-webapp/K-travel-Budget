@@ -65,7 +65,7 @@ export default function FoodPlannerPanel({
   const [activeCityTab, setActiveCityTab] = useState<SupportedCity>(currentCity);
   const [nationalCategoryFilter, setNationalCategoryFilter] = useState<"ALL" | FoodCategoryTag>("ALL");
   const [previewFood, setPreviewFood] = useState<FoodItemDefinition | null>(null);
-  const [dynamicFoods, setDynamicFoods] = useState<FoodItemDefinition[]>([]);
+  const [dynamicFoods, setDynamicFoods] = useState<FoodItemDefinition[]>(() => ALL_FOOD_ITEMS);
 
   // 관리자 / Supabase 실시간 동적 카탈로그 로드
   useEffect(() => {

@@ -82,6 +82,38 @@ export default function AttractionCatalogPanel() {
     }
   };
 
+  const handleToggleFeatured = async (spot: AttractionSpot) => {
+    const nextFeatured = !spot.isFeatured;
+    // 낙관적 UI 업데이트 (지연 없이 즉시 반영)
+    setAttractions((prev) =>
+      prev.map((s) => (s.id === spot.id ? { ...s, isFeatured: nextFeatured } : s))
+    );
+
+    try {
+      const res = await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "ATTRACTION",
+          data: { ...spot, isFeatured: nextFeatured },
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        // 실패 시 롤백
+        setAttractions((prev) =>
+          prev.map((s) => (s.id === spot.id ? { ...s, isFeatured: spot.isFeatured } : s))
+        );
+        alert(`추천 상태 변경 실패: ${data.error}`);
+      }
+    } catch (err: any) {
+      setAttractions((prev) =>
+        prev.map((s) => (s.id === spot.id ? { ...s, isFeatured: spot.isFeatured } : s))
+      );
+      alert(`오류 발생: ${err.message}`);
+    }
+  };
+
   const handleOpenAdd = () => {
     setEditingSpot(null);
     setId(`spot_${Date.now().toString().slice(-6)}`);
@@ -362,6 +394,7 @@ export default function AttractionCatalogPanel() {
                   <th className="p-3.5">사진</th>
                   <th className="p-3.5">명소명 / ID</th>
                   <th className="p-3.5">상태</th>
+                  <th className="p-3.5 text-center">Must-Visit 추천</th>
                   <th className="p-3.5">도시 / 구분</th>
                   <th className="p-3.5">입장료</th>
                   <th className="p-3.5">노출 대상</th>
@@ -396,7 +429,18 @@ export default function AttractionCatalogPanel() {
                         )}
                       </td>
                       <td className="p-3.5">
-                        <div className="font-bold text-white text-sm">{spot.nameKo}</div>
+                        <div className="font-bold text-white text-sm flex items-center gap-1.5">
+                          <span>{spot.nameKo}</span>
+                          {spot.isFeatured && (
+                            <span
+                              onClick={() => handleToggleFeatured(spot)}
+                              className="rounded bg-amber-500/20 px-1.5 py-0.2 text-[10px] text-amber-300 font-bold border border-amber-500/40 cursor-pointer hover:bg-amber-500/30"
+                              title="클릭하여 추천 해제"
+                            >
+                              ⭐ 추천
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[11px] font-semibold text-slate-300">{spot.nameEn}</div>
                         <div className="font-mono text-[10px] text-purple-300 mt-0.5">{spot.id}</div>
                       </td>
@@ -410,6 +454,23 @@ export default function AttractionCatalogPanel() {
                         >
                           {isItemActive ? "노출 중" : "숨김"}
                         </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleFeatured(spot)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-black transition-all cursor-pointer shadow-sm ${
+                            spot.isFeatured
+                              ? "bg-amber-500/25 border border-amber-400 text-amber-200 hover:bg-amber-500/40 hover:scale-105 shadow-amber-500/20"
+                              : "bg-slate-800/80 border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 hover:bg-slate-700/60"
+                          }`}
+                          title={spot.isFeatured ? "클릭하여 Must-Visit 추천 해제" : "클릭하여 외국인 필수 추천(Must-Visit) 명소 지정"}
+                        >
+                          <span className={spot.isFeatured ? "text-amber-400 animate-pulse" : "text-slate-500"}>
+                            {spot.isFeatured ? "⭐" : "☆"}
+                          </span>
+                          <span>{spot.isFeatured ? "Must-Visit" : "추천"}</span>
+                        </button>
                       </td>
                       <td className="p-3.5">
                         <span className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 font-bold text-slate-200">

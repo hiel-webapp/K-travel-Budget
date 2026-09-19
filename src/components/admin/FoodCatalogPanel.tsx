@@ -83,6 +83,38 @@ export default function FoodCatalogPanel() {
     }
   };
 
+  const handleToggleMustEat = async (food: FoodItemDefinition) => {
+    const nextMustEat = !food.isMustEatTop3;
+    // 낙관적 UI 업데이트 (지연 없이 즉시 반영)
+    setFoods((prev) =>
+      prev.map((f) => (f.id === food.id ? { ...f, isMustEatTop3: nextMustEat } : f))
+    );
+
+    try {
+      const res = await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "FOOD",
+          data: { ...food, isMustEatTop3: nextMustEat },
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        // 실패 시 롤백
+        setFoods((prev) =>
+          prev.map((f) => (f.id === food.id ? { ...f, isMustEatTop3: food.isMustEatTop3 } : f))
+        );
+        alert(`Must-Eat 상태 변경 실패: ${data.error}`);
+      }
+    } catch (err: any) {
+      setFoods((prev) =>
+        prev.map((f) => (f.id === food.id ? { ...f, isMustEatTop3: food.isMustEatTop3 } : f))
+      );
+      alert(`오류 발생: ${err.message}`);
+    }
+  };
+
   const handleOpenAdd = () => {
     setEditingFood(null);
     setId(`food_${Date.now().toString().slice(-6)}`);
@@ -367,6 +399,7 @@ export default function FoodCatalogPanel() {
                   <th className="p-3.5">사진</th>
                   <th className="p-3.5">음식명 / ID</th>
                   <th className="p-3.5">상태</th>
+                  <th className="p-3.5 text-center">Must-Eat 추천</th>
                   <th className="p-3.5">지역 / 카테고리</th>
                   <th className="p-3.5">기준 단가</th>
                   <th className="p-3.5">노출 대상</th>
@@ -404,8 +437,12 @@ export default function FoodCatalogPanel() {
                         <div className="font-bold text-white text-sm flex items-center gap-1.5">
                           <span>{food.nameKo}</span>
                           {food.isMustEatTop3 && (
-                            <span className="rounded bg-rose-500/20 px-1.5 py-0.2 text-[10px] text-rose-300 font-bold border border-rose-500/40">
-                              Top3
+                            <span
+                              onClick={() => handleToggleMustEat(food)}
+                              className="rounded bg-rose-500/20 px-1.5 py-0.2 text-[10px] text-rose-300 font-bold border border-rose-500/40 cursor-pointer hover:bg-rose-500/30"
+                              title="클릭하여 추천 해제"
+                            >
+                              🔥 Top3
                             </span>
                           )}
                         </div>
@@ -422,6 +459,23 @@ export default function FoodCatalogPanel() {
                         >
                           {isItemActive ? "노출 중" : "숨김"}
                         </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleMustEat(food)}
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-black transition-all cursor-pointer shadow-sm ${
+                            food.isMustEatTop3
+                              ? "bg-rose-500/25 border border-rose-400 text-rose-200 hover:bg-rose-500/40 hover:scale-105 shadow-rose-500/20"
+                              : "bg-slate-800/80 border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 hover:bg-slate-700/60"
+                          }`}
+                          title={food.isMustEatTop3 ? "클릭하여 Must-Eat 추천 해제" : "클릭하여 외국인 필수 추천(Must-Eat) 지정"}
+                        >
+                          <span className={food.isMustEatTop3 ? "text-rose-400 animate-pulse" : "text-slate-500"}>
+                            {food.isMustEatTop3 ? "🔥" : "☆"}
+                          </span>
+                          <span>{food.isMustEatTop3 ? "Must-Eat" : "추천"}</span>
+                        </button>
                       </td>
                       <td className="p-3.5">
                         <span className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 font-bold text-slate-200">

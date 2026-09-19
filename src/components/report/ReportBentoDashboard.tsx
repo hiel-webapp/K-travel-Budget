@@ -76,11 +76,11 @@ export default function ReportBentoDashboard({
               </span>
             </div>
 
-            <div className="flex items-center gap-2.5 sm:gap-3 pt-1 flex-nowrap overflow-visible">
-              <span className="text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-black tracking-tight text-neutral-900 tabular-nums shrink-0">
+            <div className="flex items-baseline gap-2.5 sm:gap-3.5 pt-1 flex-nowrap overflow-visible">
+              <span className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-neutral-900 tabular-nums shrink-0">
                 {formatKrw(animatedGrandTotal)}
               </span>
-              <span className="text-[11px] sm:text-xs font-semibold text-neutral-600 bg-neutral-100 px-2.5 sm:px-3 py-1 rounded-full border border-neutral-200/60 whitespace-nowrap shrink-0">
+              <span className="text-xs sm:text-sm font-semibold text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200/60 whitespace-nowrap shrink-0">
                 {locale === "ko"
                   ? `1인당 ${formatKrw(animatedPerTraveler)} (≈ $${usdPerTraveler.toLocaleString()})`
                   : `${formatKrw(animatedPerTraveler)} / person (≈ $${usdPerTraveler.toLocaleString()})`}
@@ -111,8 +111,8 @@ export default function ReportBentoDashboard({
             {/* Price & Target Status */}
             <div className="flex items-baseline justify-between gap-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-neutral-900 tabular-nums">
-                  ~{formatKrw(animatedDailyAverage)}
+                <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-neutral-900 tabular-nums">
+                  {formatKrw(animatedDailyAverage)}
                 </span>
                 <span className="text-xs text-neutral-500 font-medium">
                   {locale === "ko" ? `/ 1일 예상 지출` : `/ day total estimate`}

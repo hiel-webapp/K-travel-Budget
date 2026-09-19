@@ -419,6 +419,20 @@ export async function deleteAdminFood(id: string): Promise<void> {
   await saveAdminStore(store);
 }
 
+export async function reorderAdminFoods(orderedIds: string[], setCustomOrderRuleCity?: string): Promise<void> {
+  const store = await loadAdminStore();
+  orderedIds.forEach((id, idx) => {
+    const item = store.foodItems.find((f) => f.id === id);
+    if (item) {
+      item.sortOrder = idx + 1;
+    }
+  });
+  if (setCustomOrderRuleCity) {
+    store.sortingRulesByCity[setCustomOrderRuleCity] = "CUSTOM_ORDER";
+  }
+  await saveAdminStore(store);
+}
+
 // ==========================================
 // 3. Attraction Management API Methods
 // ==========================================
@@ -476,6 +490,20 @@ export async function deleteAdminAttraction(id: string): Promise<void> {
   await saveAdminStore(store);
 }
 
+export async function reorderAdminAttractions(orderedIds: string[], setCustomOrderRuleCity?: string): Promise<void> {
+  const store = await loadAdminStore();
+  orderedIds.forEach((id, idx) => {
+    const spot = store.attractionSpots.find((s) => s.id === id);
+    if (spot) {
+      spot.sortOrder = idx + 1;
+    }
+  });
+  if (setCustomOrderRuleCity) {
+    store.sortingRulesByCity[setCustomOrderRuleCity] = "CUSTOM_ORDER";
+  }
+  await saveAdminStore(store);
+}
+
 // ==========================================
 // 4. Tour Courses Management
 // ==========================================
@@ -514,6 +542,17 @@ export async function saveAdminTourCourse(course: TourCoursePreset): Promise<Tou
 export async function deleteAdminTourCourse(id: string): Promise<void> {
   const store = await loadAdminStore();
   store.tourCourses = store.tourCourses.filter((c) => c.id !== id);
+  await saveAdminStore(store);
+}
+
+export async function reorderAdminTourCourses(orderedIds: string[]): Promise<void> {
+  const store = await loadAdminStore();
+  const idMap = new Map(orderedIds.map((id, idx) => [id, idx]));
+  store.tourCourses.sort((a, b) => {
+    const idxA = idMap.has(a.id) ? idMap.get(a.id)! : 9999;
+    const idxB = idMap.has(b.id) ? idMap.get(b.id)! : 9999;
+    return idxA - idxB;
+  });
   await saveAdminStore(store);
 }
 
@@ -688,6 +727,26 @@ export async function deleteAdminGuide(id: string): Promise<boolean> {
   return true;
 }
 
+export async function reorderAdminGuides(orderedIds: string[]): Promise<void> {
+  const store = await loadAdminStore();
+  const idMap = new Map(orderedIds.map((id, idx) => [id, idx]));
+  if (store.guideItemsKo) {
+    store.guideItemsKo.sort((a, b) => {
+      const idxA = idMap.has(a.id) ? idMap.get(a.id)! : 9999;
+      const idxB = idMap.has(b.id) ? idMap.get(b.id)! : 9999;
+      return idxA - idxB;
+    });
+  }
+  if (store.guideItemsEn) {
+    store.guideItemsEn.sort((a, b) => {
+      const idxA = idMap.has(a.id) ? idMap.get(a.id)! : 9999;
+      const idxB = idMap.has(b.id) ? idMap.get(b.id)! : 9999;
+      return idxA - idxB;
+    });
+  }
+  await saveAdminStore(store);
+}
+
 export async function getAdminFaqs(): Promise<GuideFAQ[]> {
   const store = await loadAdminStore();
   return store.guideFaqs || [...K_GUIDE_FAQS];
@@ -762,6 +821,20 @@ export async function resetAdminGuideCards(): Promise<GuideCard[]> {
   store.guideCards = [...GUIDE_CARDS];
   await saveAdminStore(store);
   return store.guideCards;
+}
+
+export async function reorderAdminGuideCards(orderedIds: string[]): Promise<void> {
+  const store = await loadAdminStore();
+  if (!store.guideCards || !Array.isArray(store.guideCards) || store.guideCards.length === 0) {
+    store.guideCards = [...GUIDE_CARDS];
+  }
+  const idMap = new Map(orderedIds.map((id, idx) => [id, idx]));
+  store.guideCards.sort((a, b) => {
+    const idxA = idMap.has(a.id) ? idMap.get(a.id)! : 9999;
+    const idxB = idMap.has(b.id) ? idMap.get(b.id)! : 9999;
+    return idxA - idxB;
+  });
+  await saveAdminStore(store);
 }
 
 

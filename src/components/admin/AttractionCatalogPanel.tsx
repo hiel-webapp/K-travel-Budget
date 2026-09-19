@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { AttractionSpot } from "../../features/budget/catalog/attraction-spots";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_KOREAN_NAMES } from "../../lib/trip-domain";
 import { PlacementScope } from "../../lib/admin/admin-store";
+import CompactReorderModal, { ReorderItem } from "./CompactReorderModal";
 
 export default function AttractionCatalogPanel() {
   const [attractions, setAttractions] = useState<AttractionSpot[]>([]);
@@ -11,6 +12,7 @@ export default function AttractionCatalogPanel() {
   const [selectedCity, setSelectedCity] = useState<SupportedCity | "ALL">("ALL");
   const [selectedScope, setSelectedScope] = useState<PlacementScope | "ALL">("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState<boolean>(false);
 
   // Edit/Add modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -186,6 +188,63 @@ export default function AttractionCatalogPanel() {
     }
   };
 
+  const handleSaveAttractionReorder = async (orderedIds: string[]) => {
+    const res = await fetch("/api/admin/catalog", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "REORDER_ATTRACTION",
+        orderedIds,
+        city: selectedCity !== "ALL" ? selectedCity : undefined,
+        setCustomRule: true,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchAttractions();
+    } else {
+      throw new Error(data.error || "순서 저장 실패");
+    }
+  };
+
+  const handleMoveAttraction = async (spotId: string, direction: "top" | "up" | "down") => {
+    const currentList = [...attractions];
+    const index = currentList.findIndex((s) => s.id === spotId);
+    if (index === -1) return;
+
+    if (direction === "top") {
+      if (index === 0) return;
+      const [moved] = currentList.splice(index, 1);
+      currentList.unshift(moved);
+    } else if (direction === "up") {
+      if (index === 0) return;
+      const temp = currentList[index];
+      currentList[index] = currentList[index - 1];
+      currentList[index - 1] = temp;
+    } else if (direction === "down") {
+      if (index === currentList.length - 1) return;
+      const temp = currentList[index];
+      currentList[index] = currentList[index + 1];
+      currentList[index + 1] = temp;
+    }
+
+    setAttractions(currentList);
+    try {
+      await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "REORDER_ATTRACTION",
+          orderedIds: currentList.map((s) => s.id),
+          city: selectedCity !== "ALL" ? selectedCity : undefined,
+          setCustomRule: true,
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const filteredSpots = attractions.filter((s) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
@@ -209,14 +268,26 @@ export default function AttractionCatalogPanel() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
+        <div className="flex items-center gap-2.5 w-full md:w-auto flex-wrap">
           <input
             type="text"
             placeholder="명소명 또는 ID 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-xl border border-slate-600 bg-slate-800 px-3.5 py-2 text-xs font-medium text-white placeholder-slate-400 w-full md:w-60 focus:border-purple-400 focus:outline-none"
+            className="rounded-xl border border-slate-600 bg-slate-800 px-3.5 py-2 text-xs font-medium text-white placeholder-slate-400 w-full md:w-48 focus:border-purple-400 focus:outline-none"
           />
+          <button
+            type="button"
+            onClick={() => setIsReorderModalOpen(true)}
+            className="rounded-xl border border-purple-500/50 bg-purple-600/25 px-3.5 py-2 text-xs font-bold text-purple-200 hover:bg-purple-600/40 hover:text-white transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0"
+          >
+            <span>⠿</span>
+            <span>
+              {selectedCity !== "ALL"
+                ? `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity} 순서 정렬`
+                : "순서 정렬 (드래그)"}
+            </span>
+          </button>
           <button
             type="button"
             onClick={handleOpenAdd}
@@ -374,8 +445,38 @@ export default function AttractionCatalogPanel() {
                           </span>
                         )}
                       </td>
-                      <td className="p-3.5 font-mono font-bold text-slate-300">
-                        {spot.sortOrder ?? 100}
+                      <td className="p-3.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-black text-slate-200 text-xs min-w-[20px]">
+                            {spot.sortOrder ?? 100}
+                          </span>
+                          <div className="flex items-center gap-0.5">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveAttraction(spot.id, "top")}
+                              className="rounded px-1 py-0.5 text-[10px] font-black text-purple-300 hover:bg-purple-900/50 hover:text-white"
+                              title="맨 위로 (1위) 이동"
+                            >
+                              Top
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveAttraction(spot.id, "up")}
+                              className="rounded px-1 py-0.5 text-[11px] font-bold text-slate-300 hover:bg-slate-700 hover:text-white"
+                              title="한 칸 위로"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveAttraction(spot.id, "down")}
+                              className="rounded px-1 py-0.5 text-[11px] font-bold text-slate-300 hover:bg-slate-700 hover:text-white"
+                              title="한 칸 아래로"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
                       </td>
                       <td className="p-3.5 text-right space-x-2">
                         <button
@@ -669,6 +770,28 @@ export default function AttractionCatalogPanel() {
           </div>
         </div>
       )}
+
+      {/* Compact Reorder Modal */}
+      <CompactReorderModal
+        isOpen={isReorderModalOpen}
+        onClose={() => setIsReorderModalOpen(false)}
+        title={
+          selectedCity !== "ALL"
+            ? `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity} 관광 명소 노출 순서 정렬`
+            : "관광 명소 카탈로그 노출 순서 정렬"
+        }
+        categoryIcon="🏛️"
+        items={attractions.map((s) => ({
+          id: s.id,
+          titleKo: s.nameKo,
+          titleEn: s.nameEn,
+          subtitle: `${CITY_KOREAN_NAMES[s.cityCode] || s.cityCode} · ${s.price === 0 ? "무료" : `₩${s.price.toLocaleString()}`} · ${s.categoryType || "명소"}`,
+          imageUrl: s.imageUrl,
+          badge: s.isFeatured ? "추천" : undefined,
+        }))}
+        onSave={handleSaveAttractionReorder}
+        noticeText="저장 시 선택된 지역의 정렬 규칙이 커스텀 순서(CUSTOM_ORDER)로 자동 적용됩니다."
+      />
     </div>
   );
 }

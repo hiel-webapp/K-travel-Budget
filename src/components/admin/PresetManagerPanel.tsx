@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { TravelPreset } from "../../lib/presets/travel-presets";
 import PresetBuilderModal from "./PresetBuilderModal";
+import CompactReorderModal, { ReorderItem } from "./CompactReorderModal";
 
 export default function PresetManagerPanel() {
   const [presets, setPresets] = useState<TravelPreset[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedPresetForEdit, setSelectedPresetForEdit] = useState<TravelPreset | null>(null);
   const [isBuilderOpen, setIsBuilderOpen] = useState<boolean>(false);
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState<boolean>(false);
 
   const fetchPresets = async () => {
     setIsLoading(true);
@@ -46,6 +48,27 @@ export default function PresetManagerPanel() {
     }
   };
 
+  const handleMoveToTop = async (index: number) => {
+    if (index === 0) return;
+    const newList = [...presets];
+    const [moved] = newList.splice(index, 1);
+    newList.unshift(moved);
+    setPresets(newList);
+
+    try {
+      await fetch("/api/admin/presets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "REORDER",
+          orderedIds: newList.map((p) => p.id),
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleMove = async (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= presets.length) return;
@@ -68,6 +91,29 @@ export default function PresetManagerPanel() {
       });
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleSaveReorder = async (orderedIds: string[]) => {
+    const res = await fetch("/api/admin/presets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "REORDER",
+        orderedIds,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      const idMap = new Map(orderedIds.map((id, idx) => [id, idx]));
+      const sorted = [...presets].sort((a, b) => {
+        const idxA = idMap.has(a.id) ? idMap.get(a.id)! : 999;
+        const idxB = idMap.has(b.id) ? idMap.get(b.id)! : 999;
+        return idxA - idxB;
+      });
+      setPresets(sorted);
+    } else {
+      throw new Error(data.error || "순서 저장 실패");
     }
   };
 
@@ -127,6 +173,15 @@ export default function PresetManagerPanel() {
     }
   };
 
+  const reorderItems: ReorderItem[] = presets.map((p) => ({
+    id: p.id,
+    titleKo: p.titleKo,
+    titleEn: p.titleEn,
+    subtitle: `${p.routeTextKo} · ₩${p.estimatedBudgetKrw?.toLocaleString()}`,
+    imageUrl: p.imageUrl,
+    badge: p.badgeKo,
+  }));
+
   return (
     <div className="space-y-6">
       {/* Top Action Bar */}
@@ -140,7 +195,15 @@ export default function PresetManagerPanel() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsReorderModalOpen(true)}
+            className="rounded-xl border border-indigo-500/50 bg-indigo-600/25 px-3.5 py-2 text-xs font-bold text-indigo-200 hover:bg-indigo-600/40 hover:text-white transition-all shadow-sm flex items-center gap-1.5"
+          >
+            <span>⠿</span>
+            <span>순서 정렬 (드래그)</span>
+          </button>
           <button
             type="button"
             onClick={handleReset}
@@ -183,6 +246,15 @@ export default function PresetManagerPanel() {
                 <div className="flex items-start gap-4 flex-1">
                   {/* Order control */}
                   <div className="flex flex-col items-center justify-center gap-1 pt-1">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => handleMoveToTop(index)}
+                      className="rounded px-1.5 py-0.5 text-[10px] font-black text-indigo-300 hover:bg-indigo-900/50 hover:text-white disabled:opacity-20"
+                      title="맨 위로 (1위) 이동"
+                    >
+                      Top
+                    </button>
                     <button
                       type="button"
                       disabled={index === 0}
@@ -303,6 +375,17 @@ export default function PresetManagerPanel() {
         onSaved={() => {
           fetchPresets();
         }}
+      />
+
+      {/* Compact Reorder Modal */}
+      <CompactReorderModal
+        isOpen={isReorderModalOpen}
+        onClose={() => setIsReorderModalOpen(false)}
+        title="프리셋 노출 순서 정렬"
+        categoryIcon="🗺️"
+        items={reorderItems}
+        onSave={handleSaveReorder}
+        noticeText="순서 변경 즉시 메인 페이지 및 플래너에 반영됩니다."
       />
     </div>
   );

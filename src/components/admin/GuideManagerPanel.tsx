@@ -5,6 +5,7 @@ import { GuideCard, GuideCategory, GUIDE_CATEGORIES } from "src/data/guide-cards
 import { GuideFAQ } from "../../lib/static-contents";
 import GuideEditorModal from "./GuideEditorModal";
 import FaqEditorModal from "./FaqEditorModal";
+import CompactReorderModal, { ReorderItem } from "./CompactReorderModal";
 
 type GuideSubTab = "CARDS" | "FAQS";
 
@@ -15,6 +16,7 @@ export default function GuideManagerPanel() {
   const [guideCards, setGuideCards] = useState<GuideCard[]>([]);
   const [faqs, setFaqs] = useState<GuideFAQ[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
 
   // Filter & Search
   const [selectedCategory, setSelectedCategory] = useState<"all" | GuideCategory>("all");
@@ -122,6 +124,59 @@ export default function GuideManagerPanel() {
     });
   };
 
+  const handleSaveGuideReorder = async (orderedIds: string[]) => {
+    const res = await fetch("/api/admin/catalog", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "REORDER_GUIDE_CARD",
+        orderedIds,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchGuideData();
+    } else {
+      throw new Error(data.error || "가이드 순서 저장 실패");
+    }
+  };
+
+  const handleMoveGuideCard = async (cardId: string, direction: "top" | "up" | "down") => {
+    const currentList = [...guideCards];
+    const index = currentList.findIndex((c) => c.id === cardId);
+    if (index === -1) return;
+
+    if (direction === "top") {
+      if (index === 0) return;
+      const [moved] = currentList.splice(index, 1);
+      currentList.unshift(moved);
+    } else if (direction === "up") {
+      if (index === 0) return;
+      const temp = currentList[index];
+      currentList[index] = currentList[index - 1];
+      currentList[index - 1] = temp;
+    } else if (direction === "down") {
+      if (index === currentList.length - 1) return;
+      const temp = currentList[index];
+      currentList[index] = currentList[index + 1];
+      currentList[index + 1] = temp;
+    }
+
+    setGuideCards(currentList);
+    try {
+      await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "REORDER_GUIDE_CARD",
+          orderedIds: currentList.map((c) => c.id),
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="space-y-6 text-slate-100">
       {/* Top Banner & Tab Navigation */}
@@ -190,7 +245,15 @@ export default function GuideManagerPanel() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setIsReorderModalOpen(true)}
+                  className="px-3.5 py-2.5 rounded-xl border border-rose-500/50 bg-rose-600/25 text-rose-200 hover:bg-rose-600/40 hover:text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>⠿</span>
+                  <span>가이드 순서 정렬 (드래그)</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleResetCards}
@@ -267,11 +330,42 @@ export default function GuideManagerPanel() {
                     className="bg-slate-900 rounded-2xl p-5 border border-slate-700 shadow-md hover:border-slate-600 transition flex flex-col justify-between"
                   >
                     <div>
-                      {/* Meta badges */}
+                      {/* Meta badges & Reorder */}
                       <div className="flex items-center justify-between gap-2 mb-2.5">
-                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600">
-                          {catInfo?.icon} {catInfo?.labelKo || card.category}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-white">
+                            #{guideCards.findIndex((c) => c.id === card.id) + 1}
+                          </span>
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-600">
+                            {catInfo?.icon} {catInfo?.labelKo || card.category}
+                          </span>
+                          <div className="flex items-center gap-0.5 ml-1">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveGuideCard(card.id, "top")}
+                              className="rounded px-1.5 py-0.5 text-[10px] font-black text-rose-300 hover:bg-rose-900/50 hover:text-white"
+                              title="맨 위로 (1위) 이동"
+                            >
+                              Top
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveGuideCard(card.id, "up")}
+                              className="rounded px-1.5 py-0.5 text-[11px] font-bold text-slate-300 hover:bg-slate-700 hover:text-white"
+                              title="한 칸 위로"
+                            >
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveGuideCard(card.id, "down")}
+                              className="rounded px-1.5 py-0.5 text-[11px] font-bold text-slate-300 hover:bg-slate-700 hover:text-white"
+                              title="한 칸 아래로"
+                            >
+                              ▼
+                            </button>
+                          </div>
+                        </div>
                         <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
                           {card.id}
                         </span>
@@ -390,6 +484,26 @@ export default function GuideManagerPanel() {
         faq={editingFaq}
         onClose={() => setIsFaqModalOpen(false)}
         onSave={() => fetchGuideData()}
+      />
+
+      {/* Compact Reorder Modal */}
+      <CompactReorderModal
+        isOpen={isReorderModalOpen}
+        onClose={() => setIsReorderModalOpen(false)}
+        title="K-가이드 실전 카드 덱 순서 정렬"
+        categoryIcon="📖"
+        items={guideCards.map((c) => {
+          const cat = GUIDE_CATEGORIES.find((cat) => cat.key === c.category);
+          return {
+            id: c.id,
+            titleKo: c.titleKo,
+            titleEn: c.titleEn,
+            subtitle: `${cat?.icon || "📌"} ${cat?.labelKo || c.category} · ${c.summaryKo?.slice(0, 30)}...`,
+            badge: cat?.labelKo,
+          };
+        })}
+        onSave={handleSaveGuideReorder}
+        noticeText="순서 변경 즉시 가이드 페이지 및 메인 화면 카드 노출 순서에 실시간 반영됩니다."
       />
     </div>
   );

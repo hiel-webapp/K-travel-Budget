@@ -23,6 +23,11 @@ import {
   saveAdminGuideCard,
   deleteAdminGuideCard,
   resetAdminGuideCards,
+  reorderAdminFoods,
+  reorderAdminAttractions,
+  reorderAdminTourCourses,
+  reorderAdminGuides,
+  reorderAdminGuideCards,
   PlacementScope,
   SortingRuleType,
 } from "../../../../lib/admin/admin-store";
@@ -86,7 +91,48 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { type, data, city, rule, id } = body;
+    const { type, data, city, rule, id, orderedIds, setCustomRule } = body;
+
+    // 일괄 순서 재배열 (Reorder)
+    if (type === "REORDER_FOOD") {
+      if (!Array.isArray(orderedIds)) {
+        return NextResponse.json({ success: false, error: "orderedIds array is required" }, { status: 400 });
+      }
+      await reorderAdminFoods(orderedIds, setCustomRule ? city : undefined);
+      return NextResponse.json({ success: true, message: "Food order updated" });
+    }
+
+    if (type === "REORDER_ATTRACTION") {
+      if (!Array.isArray(orderedIds)) {
+        return NextResponse.json({ success: false, error: "orderedIds array is required" }, { status: 400 });
+      }
+      await reorderAdminAttractions(orderedIds, setCustomRule ? city : undefined);
+      return NextResponse.json({ success: true, message: "Attraction order updated" });
+    }
+
+    if (type === "REORDER_COURSE") {
+      if (!Array.isArray(orderedIds)) {
+        return NextResponse.json({ success: false, error: "orderedIds array is required" }, { status: 400 });
+      }
+      await reorderAdminTourCourses(orderedIds);
+      return NextResponse.json({ success: true, message: "Tour course order updated" });
+    }
+
+    if (type === "REORDER_GUIDE") {
+      if (!Array.isArray(orderedIds)) {
+        return NextResponse.json({ success: false, error: "orderedIds array is required" }, { status: 400 });
+      }
+      await reorderAdminGuides(orderedIds);
+      return NextResponse.json({ success: true, message: "Guide order updated" });
+    }
+
+    if (type === "REORDER_GUIDE_CARD") {
+      if (!Array.isArray(orderedIds)) {
+        return NextResponse.json({ success: false, error: "orderedIds array is required" }, { status: 400 });
+      }
+      await reorderAdminGuideCards(orderedIds);
+      return NextResponse.json({ success: true, message: "GuideCard order updated" });
+    }
 
     if (type === "SORTING_RULE") {
       if (!city || !rule) {

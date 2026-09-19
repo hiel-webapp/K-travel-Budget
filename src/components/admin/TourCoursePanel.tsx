@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { TourCoursePreset, AttractionSpot } from "../../features/budget/catalog/attraction-spots";
 import { SupportedCity, ALL_SUPPORTED_CITIES, CITY_KOREAN_NAMES } from "../../lib/trip-domain";
+import CompactReorderModal, { ReorderItem } from "./CompactReorderModal";
 
 export default function TourCoursePanel() {
   const [courses, setCourses] = useState<TourCoursePreset[]>([]);
   const [allSpots, setAllSpots] = useState<AttractionSpot[]>([]);
   const [selectedCity, setSelectedCity] = useState<SupportedCity | "ALL">("ALL");
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState<boolean>(false);
 
   // Edit/Add modal
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -156,6 +158,59 @@ export default function TourCoursePanel() {
     }
   };
 
+  const handleSaveCourseReorder = async (orderedIds: string[]) => {
+    const res = await fetch("/api/admin/catalog", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "REORDER_COURSE",
+        orderedIds,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      fetchCoursesAndSpots();
+    } else {
+      throw new Error(data.error || "순서 저장 실패");
+    }
+  };
+
+  const handleMoveCourse = async (courseId: string, direction: "top" | "up" | "down") => {
+    const currentList = [...courses];
+    const index = currentList.findIndex((c) => c.id === courseId);
+    if (index === -1) return;
+
+    if (direction === "top") {
+      if (index === 0) return;
+      const [moved] = currentList.splice(index, 1);
+      currentList.unshift(moved);
+    } else if (direction === "up") {
+      if (index === 0) return;
+      const temp = currentList[index];
+      currentList[index] = currentList[index - 1];
+      currentList[index - 1] = temp;
+    } else if (direction === "down") {
+      if (index === currentList.length - 1) return;
+      const temp = currentList[index];
+      currentList[index] = currentList[index + 1];
+      currentList[index + 1] = temp;
+    }
+
+    setCourses(currentList);
+    try {
+      await fetch("/api/admin/catalog", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "REORDER_COURSE",
+          orderedIds: currentList.map((c) => c.id),
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const filteredCourses = selectedCity === "ALL" ? courses : courses.filter((c) => c.cityCode === selectedCity);
   const citySpotsForModal = allSpots.filter((s) => s.cityCode === cityCode);
 
@@ -165,20 +220,34 @@ export default function TourCoursePanel() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl border border-slate-700 bg-slate-900 p-5 shadow-lg">
         <div>
           <h2 className="text-xl font-black text-white flex items-center gap-2 drop-shadow-sm" style={{ color: "#ffffff" }}>
-            <span>🗺️</span> 도시별 투어 코스 관리
+            <span>🧭</span> 도시별 투어 코스 관리
           </h2>
           <p className="mt-1 text-xs font-semibold text-slate-200">
             총 {courses.length}개 코스 등록됨 (활성: {courses.filter((c) => c.isActive !== false).length}개, 숨김: {courses.filter((c) => c.isActive === false).length}개) · 각 코스에 포함될 명소(spotIds)를 클릭 매핑합니다.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-all flex-shrink-0"
-        >
-          + 새 코스 추가
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsReorderModalOpen(true)}
+            className="rounded-xl border border-indigo-500/50 bg-indigo-600/25 px-3.5 py-2 text-xs font-bold text-indigo-200 hover:bg-indigo-600/40 hover:text-white transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0"
+          >
+            <span>⠿</span>
+            <span>
+              {selectedCity !== "ALL"
+                ? `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity} 코스 순서 정렬`
+                : "순서 정렬 (드래그)"}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition-all flex-shrink-0"
+          >
+            + 새 코스 추가
+          </button>
+        </div>
       </div>
 
       {/* City Filter */}
@@ -229,6 +298,9 @@ export default function TourCoursePanel() {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="rounded-md bg-slate-800 border border-slate-700 px-2 py-0.5 text-xs font-black text-white">
+                        #{courses.findIndex((c) => c.id === course.id) + 1}
+                      </span>
                       <span className="rounded-md border border-indigo-500/40 bg-indigo-950/70 px-2.5 py-0.5 text-[11px] font-bold text-indigo-300">
                         {CITY_KOREAN_NAMES[course.cityCode] || course.cityCode} · {course.estimatedHours}시간
                       </span>
@@ -241,6 +313,32 @@ export default function TourCoursePanel() {
                       >
                         {isCourseActive ? "노출 중" : "숨김"}
                       </span>
+                      <div className="flex items-center gap-0.5 ml-1">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCourse(course.id, "top")}
+                          className="rounded px-1.5 py-0.5 text-[10px] font-black text-indigo-300 hover:bg-indigo-900/50 hover:text-white"
+                          title="맨 위로 (1위) 이동"
+                        >
+                          Top
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCourse(course.id, "up")}
+                          className="rounded px-1.5 py-0.5 text-[11px] font-bold text-slate-300 hover:bg-slate-700 hover:text-white"
+                          title="한 칸 위로"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveCourse(course.id, "down")}
+                          className="rounded px-1.5 py-0.5 text-[11px] font-bold text-slate-300 hover:bg-slate-700 hover:text-white"
+                          title="한 칸 아래로"
+                        >
+                          ▼
+                        </button>
+                      </div>
                     </div>
                     <h3 className="text-base font-bold text-white mt-1.5" style={{ color: "#ffffff" }}>{course.nameKo}</h3>
                     <p className="text-xs font-medium text-slate-300">{course.nameEn}</p>
@@ -425,6 +523,26 @@ export default function TourCoursePanel() {
           </div>
         </div>
       )}
+
+      {/* Compact Reorder Modal */}
+      <CompactReorderModal
+        isOpen={isReorderModalOpen}
+        onClose={() => setIsReorderModalOpen(false)}
+        title={
+          selectedCity !== "ALL"
+            ? `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity} 투어 코스 순서 정렬`
+            : "투어 코스 전체 순서 정렬"
+        }
+        categoryIcon="🧭"
+        items={courses.map((c) => ({
+          id: c.id,
+          titleKo: c.nameKo,
+          titleEn: c.nameEn,
+          subtitle: `${CITY_KOREAN_NAMES[c.cityCode] || c.cityCode} · ${c.estimatedHours}시간 · 명소 ${c.spotIds?.length || 0}곳`,
+        }))}
+        onSave={handleSaveCourseReorder}
+        noticeText="순서 변경 즉시 저장되며 웹사이트에 실시간 반영됩니다."
+      />
     </div>
   );
 }

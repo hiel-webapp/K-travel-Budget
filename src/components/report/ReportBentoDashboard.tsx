@@ -6,6 +6,8 @@ import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { TripDraft } from "src/lib/trip-domain";
 import { useCountUp } from "src/lib/hooks/useCountUp";
 import { formatKrw, formatPercentage } from "src/features/budget/presentation/formatters";
+import { useExchangeRate } from "src/lib/hooks/useExchangeRate";
+import { formatUsd } from "src/lib/currency/currency-converter";
 
 export interface ReportBentoDashboardProps {
   calculations: {
@@ -43,20 +45,26 @@ export default function ReportBentoDashboard({
   const grandTotalKrw = calculations.grandTotalKrw || 0;
   const dailyAverageKrw = calculations.dailyAverageKrw || 0;
 
-  // Rolling counter animations
-  const animatedGrandTotal = useCountUp(grandTotalKrw, 1100);
-  const animatedDailyAverage = useCountUp(dailyAverageKrw, 1100);
-  const animatedPerTraveler = Math.round(animatedGrandTotal / adults);
-
-  // Approximate USD Conversion (Standard Ref Rate ~1,350 KRW / USD)
-  const usdRate = 1350;
+  // Real-time Exchange Rate (USD/KRW)
+  const { rate: usdRate } = useExchangeRate();
   const usdGrandTotal = Math.round(grandTotalKrw / usdRate);
+  const usdDailyAverage = Math.round(dailyAverageKrw / usdRate);
   const usdPerTraveler = Math.round(usdGrandTotal / adults);
+
+  // Rolling counter animations
+  const animatedGrandTotalKrw = useCountUp(grandTotalKrw, 1100);
+  const animatedGrandTotalUsd = useCountUp(usdGrandTotal, 1100);
+  const animatedDailyAverageKrw = useCountUp(dailyAverageKrw, 1100);
+  const animatedDailyAverageUsd = useCountUp(usdDailyAverage, 1100);
+
+  const animatedPerTravelerKrw = Math.round(animatedGrandTotalKrw / adults);
+  const animatedPerTravelerUsd = Math.round(animatedGrandTotalUsd / adults);
 
   // Target Budget Metrics
   const targetBudget = calculations.basePlan?.targetBudgetKrw || 0;
   const isOverBudget = targetBudget > 0 && grandTotalKrw > targetBudget;
   const diffAmount = Math.abs(grandTotalKrw - targetBudget);
+  const diffAmountUsd = Math.round(diffAmount / usdRate);
   const targetUsagePercent = targetBudget > 0 ? (grandTotalKrw / targetBudget) * 100 : 0;
 
   return (
@@ -72,18 +80,20 @@ export default function ReportBentoDashboard({
               </span>
               <span className="text-[10px] font-bold text-neutral-400">·</span>
               <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">
-                ≈ ${usdGrandTotal.toLocaleString()} USD
+                {locale === "ko"
+                  ? `≈ $${usdGrandTotal.toLocaleString()} USD`
+                  : `≈ ₩${grandTotalKrw.toLocaleString()} KRW`}
               </span>
             </div>
 
             <div className="flex items-baseline gap-2.5 sm:gap-3.5 pt-1 flex-nowrap overflow-visible">
               <span className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-neutral-900 tabular-nums shrink-0">
-                {formatKrw(animatedGrandTotal)}
+                {locale === "ko" ? formatKrw(animatedGrandTotalKrw) : formatUsd(animatedGrandTotalUsd)}
               </span>
               <span className="text-xs sm:text-sm font-semibold text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200/60 whitespace-nowrap shrink-0">
                 {locale === "ko"
-                  ? `1인당 ${formatKrw(animatedPerTraveler)} (≈ $${usdPerTraveler.toLocaleString()})`
-                  : `${formatKrw(animatedPerTraveler)} / person (≈ $${usdPerTraveler.toLocaleString()})`}
+                  ? `1인당 ${formatKrw(animatedPerTravelerKrw)} (≈ $${usdPerTraveler.toLocaleString()})`
+                  : `${formatUsd(animatedPerTravelerUsd)} / person (₩${(Math.round(grandTotalKrw / adults)).toLocaleString()})`}
               </span>
             </div>
           </div>
@@ -112,7 +122,7 @@ export default function ReportBentoDashboard({
             <div className="flex items-baseline justify-between gap-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-neutral-900 tabular-nums">
-                  {formatKrw(animatedDailyAverage)}
+                  {locale === "ko" ? formatKrw(animatedDailyAverageKrw) : formatUsd(animatedDailyAverageUsd)}
                 </span>
                 <span className="text-xs text-neutral-500 font-medium">
                   {locale === "ko" ? `/ 1일 예상 지출` : `/ day total estimate`}
@@ -142,7 +152,9 @@ export default function ReportBentoDashboard({
                 <div className="flex items-center justify-between text-xs font-bold tabular-nums">
                   <span className="text-neutral-500">{formatPercentage(targetUsagePercent)}</span>
                   <span className={isOverBudget ? "text-rose-600" : "text-teal-700"}>
-                    {isOverBudget ? `+ ${formatKrw(diffAmount)}` : `- ${formatKrw(diffAmount)}`}
+                    {isOverBudget
+                      ? (locale === "ko" ? `+ ${formatKrw(diffAmount)}` : `+ ${formatUsd(diffAmountUsd)}`)
+                      : (locale === "ko" ? `- ${formatKrw(diffAmount)}` : `- ${formatUsd(diffAmountUsd)}`)}
                   </span>
                 </div>
                 <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
@@ -160,7 +172,7 @@ export default function ReportBentoDashboard({
           <p className="text-xs text-neutral-400 leading-relaxed font-medium">
             {locale === "ko"
               ? `1인당 1일 약 ${formatKrw(Math.round(dailyAverageKrw / adults))} (≈ $${Math.round(dailyAverageKrw / adults / usdRate)})으로 계획된 균형 잡힌 일정입니다.`
-              : `Comfortable daily pacing of approx. ${formatKrw(Math.round(dailyAverageKrw / adults))} (≈ $${Math.round(dailyAverageKrw / adults / usdRate)}) per traveler.`}
+              : `Comfortable daily pacing of approx. ${formatUsd(Math.round(dailyAverageKrw / adults / usdRate))} (₩${Math.round(dailyAverageKrw / adults).toLocaleString()}) per traveler.`}
           </p>
         </div>
 

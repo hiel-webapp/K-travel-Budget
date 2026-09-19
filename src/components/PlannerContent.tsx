@@ -33,6 +33,8 @@ import {
 } from "../features/budget/catalog/stay-archetypes";
 import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import { calculateTripBudgetSummary } from "../features/budget/calculations/trip-budget-calculator";
+import { useExchangeRate } from "../lib/hooks/useExchangeRate";
+import { formatPriceByLocale } from "../lib/currency/currency-converter";
 import SaveTripModal from "./planner/SaveTripModal";
 import BudgetTierModal from "./planner/BudgetTierModal";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
@@ -394,6 +396,7 @@ function AccSpotHeaderVisual({
 
 function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const router = useRouter();
+  const { rate: usdRate } = useExchangeRate();
   const [state, setState] = useState<PlannerState>(() => {
     if (!hasActiveDraft()) {
       return { status: "missing" };
@@ -5292,7 +5295,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {locale === "ko" ? "기본 여행 경비" : "Base Trip Expenses"}
                       </span>
                       <span className="font-extrabold text-slate-900 tabular-nums">
-                        {formatKrw(baseTripExpensesKrw)}
+                        {formatPriceByLocale(baseTripExpensesKrw, locale, usdRate)}
                       </span>
                     </div>
 
@@ -5302,7 +5305,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
                       </span>
                       <span className="font-extrabold text-slate-900 tabular-nums">
-                        {formatKrw(shoppingAmountKrw)}
+                        {formatPriceByLocale(shoppingAmountKrw, locale, usdRate)}
                       </span>
                     </div>
 
@@ -5317,7 +5320,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         )}
                       </span>
                       <span className="font-extrabold text-slate-900 tabular-nums">
-                        {formatKrw(totalDailyAllowanceKrw)}
+                        {formatPriceByLocale(totalDailyAllowanceKrw, locale, usdRate)}
                       </span>
                     </div>
 
@@ -5332,7 +5335,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         )}
                       </span>
                       <span className="font-extrabold text-slate-900 tabular-nums">
-                        {formatKrw(computedEmergencyKrw)}
+                        {formatPriceByLocale(computedEmergencyKrw, locale, usdRate)}
                       </span>
                     </div>
                   </div>
@@ -5343,11 +5346,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div>
                         <span className="text-sm font-extrabold text-[#0f172a] block">{dict.planner.estimatedTotal}</span>
                         <span className="text-[11px] font-medium text-slate-400">
-                          ({locale === "ko" ? `1인당 ${formatKrw(finalPerTravelerTotalKrw)}` : `${formatKrw(finalPerTravelerTotalKrw)} / person`})
+                          ({locale === "ko"
+                            ? `1인당 ${formatKrw(finalPerTravelerTotalKrw)}`
+                            : `${formatPriceByLocale(finalPerTravelerTotalKrw, "en", usdRate)} / person`})
                         </span>
                       </div>
                       <span className="text-2xl font-extrabold tracking-tight text-[#0f172a]">
-                        {formatKrw(finalGrandTotalKrw)}
+                        {formatPriceByLocale(finalGrandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
                       </span>
                     </div>
                   </div>

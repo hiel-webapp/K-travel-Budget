@@ -20,6 +20,8 @@ import {
   getCalculationExpression,
   getCombinedTransportSubtotal,
 } from "../features/budget/presentation/formatters";
+import { useExchangeRate } from "../lib/hooks/useExchangeRate";
+import { formatPriceByLocale } from "../lib/currency/currency-converter";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 import type { TripDraft, SupportedCity } from "../lib/trip-domain";
@@ -56,6 +58,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const [savedPlaceIds, setSavedPlaceIds] = useState<string[]>([]);
   const [budgetPlaces, setBudgetPlaces] = useState<any[]>([]);
   const [dbAttractionsByCity, setDbAttractionsByCity] = useState<Record<string, AttractionSpot[]>>({});
+  const { rate: usdRate } = useExchangeRate();
 
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
@@ -350,7 +353,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               <div className="text-right">
                 <span className="text-[10px] text-slate-400 block font-bold">GRAND TOTAL</span>
                 <span className="text-base sm:text-lg font-black tabular-nums text-slate-900">
-                  {formatKrw(grandTotalKrw)}
+                  {formatPriceByLocale(grandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
                 </span>
               </div>
             </div>
@@ -375,7 +378,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           </span>
                         </div>
                         <strong className="font-black text-slate-900 tabular-nums shrink-0">
-                          {formatKrw(shoppingAmountKrw)}
+                          {formatPriceByLocale(shoppingAmountKrw, locale, usdRate)}
                         </strong>
                       </div>
                     )}
@@ -387,11 +390,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             {locale === "ko" ? "일일 용돈" : "Daily Allowance"}
                           </span>
                           <span className="text-[10px] text-slate-400 block tabular-nums">
-                            {formatKrw(dailyAllowancePerPerson)} × {adultCount}인 × {totalNights}박
+                            {formatPriceByLocale(dailyAllowancePerPerson, locale, usdRate)} × {adultCount}{locale === "ko" ? "인" : " Travelers"} × {totalNights}{locale === "ko" ? "박" : "N"}
                           </span>
                         </div>
                         <strong className="font-black text-slate-900 tabular-nums shrink-0">
-                          {formatKrw(totalDailyAllowanceKrw)}
+                          {formatPriceByLocale(totalDailyAllowanceKrw, locale, usdRate)}
                         </strong>
                       </div>
                     )}
@@ -407,7 +410,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           </span>
                         </div>
                         <strong className="font-black text-slate-900 tabular-nums shrink-0">
-                          {formatKrw(computedEmergencyKrw)}
+                          {formatPriceByLocale(computedEmergencyKrw, locale, usdRate)}
                         </strong>
                       </div>
                     )}
@@ -434,7 +437,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                         </span>
                       </div>
                       <span className="font-bold text-slate-900 text-xs tabular-nums">
-                        {formatKrw(cInfo.subtotalKrw)}
+                        {formatPriceByLocale(cInfo.subtotalKrw, locale, usdRate)}
                       </span>
                     </div>
 
@@ -462,7 +465,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                               <span className="text-[10px] text-slate-400 block mt-0.5 tabular-nums">
                                 {locale === "ko"
                                   ? `1박 ${formatKrw(cInfo.stayNightlyPrice)} × ${cInfo.nights}박`
-                                  : `${formatKrw(cInfo.stayNightlyPrice)}/night × ${cInfo.nights}N`}
+                                  : `${formatPriceByLocale(cInfo.stayNightlyPrice, locale, usdRate)}/night × ${cInfo.nights}N`}
                               </span>
                             )}
                             {(() => {
@@ -503,7 +506,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             })()}
                           </div>
                           <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                            {formatKrw(cInfo.stayTotalKrw)}
+                            {formatPriceByLocale(cInfo.stayTotalKrw, locale, usdRate)}
                           </strong>
                         </div>
                       </div>
@@ -524,7 +527,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             </div>
                           </div>
                           <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                            {formatKrw(cInfo.foodTotalKrw)}
+                            {formatPriceByLocale(cInfo.foodTotalKrw, locale, usdRate)}
                           </strong>
                         </div>
 
@@ -539,7 +542,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                     {fName} ×{fItem.quantity}
                                   </span>
                                   <span className="tabular-nums font-medium text-slate-700 shrink-0">
-                                    {formatKrw(fItem.subtotalKrw)}
+                                    {formatPriceByLocale(fItem.subtotalKrw, locale, usdRate)}
                                   </span>
                                 </div>
                               );
@@ -562,7 +565,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             </div>
                           </div>
                           <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                            {formatKrw(cInfo.transportTotalKrw)}
+                            {formatPriceByLocale(cInfo.transportTotalKrw, locale, usdRate)}
                           </strong>
                         </div>
                       </div>
@@ -583,7 +586,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             </div>
                           </div>
                           <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                            {formatKrw(cInfo.attractionTotalKrw)}
+                            {formatPriceByLocale(cInfo.attractionTotalKrw, locale, usdRate)}
                           </strong>
                         </div>
 
@@ -599,13 +602,13 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                   <span className="truncate pr-2 text-slate-700 flex items-center gap-1">
                                     {isActivity && (
                                       <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-700 font-bold">
-                                        액티비티
+                                        {locale === "ko" ? "액티비티" : "Activity"}
                                       </span>
                                     )}
                                     {sName}
                                   </span>
                                   <span className="tabular-nums font-medium text-slate-900 shrink-0">
-                                    {isFree ? (locale === "ko" ? "무료" : "Free") : formatKrw(spot.price * adultCount)}
+                                    {isFree ? (locale === "ko" ? "무료" : "Free") : formatPriceByLocale(spot.price * adultCount, locale, usdRate)}
                                   </span>
                                 </div>
                               );
@@ -626,7 +629,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       {dict.planner.intercityTransportation}
                     </span>
                     <span className="font-bold text-slate-900 text-xs tabular-nums">
-                      {formatKrw(intercityTotal)}
+                      {formatPriceByLocale(intercityTotal, locale, usdRate)}
                     </span>
                   </div>
 
@@ -642,7 +645,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           </span>
                         </div>
                         <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                          {formatKrw(item.lineTotalKrw)}
+                          {formatPriceByLocale(item.lineTotalKrw, locale, usdRate)}
                         </strong>
                       </div>
                     ))}

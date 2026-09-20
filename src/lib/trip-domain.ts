@@ -147,13 +147,21 @@ export function ensureTripStops(draft: TripDraft): TripStop[] {
 /**
  * stops를 변경했을 때 draft의 selectedCities, cityNightAllocations, totalNights를 동기화
  */
-export function syncDraftFromStops(draft: TripDraft, stops: TripStop[]): TripDraft {
+export function syncDraftFromStops(
+  draft: TripDraft,
+  stops: TripStop[],
+  options?: { preserveTotalNights?: boolean }
+): TripDraft {
   const selectedCities = stops.map((s) => s.city);
   const cityNightAllocations: CityNightAllocation = {};
   stops.forEach((s) => {
     cityNightAllocations[s.city] = (cityNightAllocations[s.city] || 0) + s.nights;
   });
-  const totalNights = stops.reduce((sum, s) => sum + s.nights, 0);
+  const allocatedSum = stops.reduce((sum, s) => sum + s.nights, 0);
+  const shouldPreserve = options?.preserveTotalNights ?? false;
+  const totalNights = shouldPreserve
+    ? Math.max(allocatedSum, draft.totalNights && draft.totalNights > 0 ? draft.totalNights : 5)
+    : allocatedSum;
 
   return {
     ...draft,
@@ -469,8 +477,8 @@ export function sanitizeTripDraft(draft: unknown): TripDraft {
     }
   }
 
-  // 합계가 totalNights를 초과하거나 0인 경우 기본 분배 재연산
-  if (currentSum > totalNights || currentSum === 0) {
+  // 합계가 totalNights를 초과하는 경우에만 기본 분배 재연산 (0박 비우기는 정상적인 미배분 상태로 허용)
+  if (currentSum > totalNights) {
     const defaultAlloc = calculateDefaultNightAllocation(selectedCities, totalNights);
     Object.assign(cityNightAllocations, defaultAlloc);
   }

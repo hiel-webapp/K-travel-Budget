@@ -1398,7 +1398,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       idx === stopIndex ? { ...s, nights: clampedNights } : s
     );
 
-    let nextDraft = syncDraftFromStops(currentDraft, nextStops);
+    let nextDraft = syncDraftFromStops(currentDraft, nextStops, { preserveTotalNights: true });
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) {
       nextDraft = sanitizeTripDraft(nextDraft);
@@ -1497,7 +1497,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     };
 
     const nextStops = ensureTripStops(nextDraft);
-    nextDraft = syncDraftFromStops(nextDraft, nextStops);
+    nextDraft = syncDraftFromStops(nextDraft, nextStops, { preserveTotalNights: true });
 
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) return;
@@ -1565,7 +1565,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       };
     });
 
-    let nextDraft = syncDraftFromStops(currentDraft, finalStops);
+    let nextDraft = syncDraftFromStops(currentDraft, finalStops, { preserveTotalNights: true });
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) {
       nextDraft = sanitizeTripDraft(nextDraft);
@@ -1660,7 +1660,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       };
     });
 
-    let nextDraft = syncDraftFromStops(currentDraft, finalStops);
+    let nextDraft = syncDraftFromStops(currentDraft, finalStops, { preserveTotalNights: true });
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) {
       nextDraft = sanitizeTripDraft(nextDraft);
@@ -1724,7 +1724,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       stops: undefined,
     };
     const freshStops = ensureTripStops(draftWithoutStops);
-    const nextDraft = syncDraftFromStops(currentDraft, freshStops);
+    const nextDraft = syncDraftFromStops(currentDraft, freshStops, { preserveTotalNights: true });
 
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) return;
@@ -1748,7 +1748,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const currentDraft = state.draft;
     const currentStops = ensureTripStops(currentDraft);
     const zeroStops = currentStops.map((s) => ({ ...s, nights: 0 }));
-    const nextDraft = syncDraftFromStops(currentDraft, zeroStops);
+    const nextDraft = syncDraftFromStops(currentDraft, zeroStops, { preserveTotalNights: true });
 
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) return;
@@ -3658,15 +3658,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             isDraggingThis
                               ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
                               : isActive
-                              ? isAddedStop
-                                ? "bg-[#fff8f8] border-dashed border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
-                                : "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
-                              : isAddedStop
-                              ? "bg-slate-50/70 border-dashed border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-100/70 shadow-2xs"
+                              ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
                               : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
                           }`}
                         >
-                          {/* 도시 삭제 (✕) 버튼: 사용자가 [+ 도시 추가]로 추가한 도시에만 표시되며, 카드를 따라다님 */}
+                          {/* 도시 삭제 (✕) 버튼: 사용자가 [+ 도시 추가]로 추가한 도시에만 표시되며, 명확한 빨간색 강조 */}
                           {isAddedStop && (
                             <button
                               type="button"
@@ -3674,7 +3670,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 e.stopPropagation();
                                 handleRemoveStopCity(idx);
                               }}
-                              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-200 hover:bg-rose-500 text-slate-500 hover:text-white flex items-center justify-center text-[9px] font-black shadow-xs transition-colors z-10 cursor-pointer"
+                              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[#e25c5c] hover:bg-rose-700 text-white flex items-center justify-center text-[9px] font-black shadow-xs transition-colors z-10 cursor-pointer"
                               title={locale === "ko" ? "이 추가 도시를 여정에서 삭제" : "Remove this stop"}
                             >
                               ✕

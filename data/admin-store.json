@@ -119,10 +119,10 @@
             ]
           }
         },
-        "emergencyFundKrw": 50000,
         "intercityTransportOverrides": {
           "SEOUL-BUSAN": "KTX"
-        }
+        },
+        "emergencyFundPct": 0.1
       },
       "isActive": true,
       "order": 1,
@@ -259,7 +259,7 @@
             ]
           }
         },
-        "emergencyFundKrw": 50000
+        "emergencyFundPct": 0.1
       },
       "isActive": true,
       "order": 2,
@@ -372,10 +372,10 @@
             ]
           }
         },
-        "emergencyFundKrw": 50000,
         "intercityTransportOverrides": {
           "SEOUL-GANGNEUNG": "KTX"
-        }
+        },
+        "emergencyFundPct": 0.1
       },
       "isActive": true,
       "order": 3,
@@ -495,10 +495,10 @@
             ]
           }
         },
-        "emergencyFundKrw": 50000,
         "intercityTransportOverrides": {
           "SEOUL-JEJU": "FLIGHT"
-        }
+        },
+        "emergencyFundPct": 0.1
       },
       "isActive": true,
       "order": 4,
@@ -655,7 +655,7 @@
             ]
           }
         },
-        "emergencyFundKrw": 50000
+        "emergencyFundPct": 0.1
       },
       "isActive": true,
       "order": 5,
@@ -8721,7 +8721,7 @@
     "YEOSU": "CUSTOM_ORDER",
     "NATIONAL": "CUSTOM_ORDER"
   },
-  "lastUpdated": "2026-09-20T11:53:20.170Z",
+  "lastUpdated": "2026-09-20T12:20:49.058Z",
   "guideCards": [
     {
       "id": "nav_google_vs_naver",

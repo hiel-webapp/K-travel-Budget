@@ -153,10 +153,10 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
           ]
         }
       },
-      "emergencyFundKrw": 50000,
       "intercityTransportOverrides": {
         "SEOUL-BUSAN": "KTX"
-      }
+      },
+      "emergencyFundPct": 0.1
     },
     "isActive": true,
     "order": 1,
@@ -293,7 +293,7 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
           ]
         }
       },
-      "emergencyFundKrw": 50000
+      "emergencyFundPct": 0.1
     },
     "isActive": true,
     "order": 2,
@@ -406,10 +406,10 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
           ]
         }
       },
-      "emergencyFundKrw": 50000,
       "intercityTransportOverrides": {
         "SEOUL-GANGNEUNG": "KTX"
-      }
+      },
+      "emergencyFundPct": 0.1
     },
     "isActive": true,
     "order": 3,
@@ -529,10 +529,10 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
           ]
         }
       },
-      "emergencyFundKrw": 50000,
       "intercityTransportOverrides": {
         "SEOUL-JEJU": "FLIGHT"
-      }
+      },
+      "emergencyFundPct": 0.1
     },
     "isActive": true,
     "order": 4,
@@ -689,7 +689,7 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
           ]
         }
       },
-      "emergencyFundKrw": 50000
+      "emergencyFundPct": 0.1
     },
     "isActive": true,
     "order": 5,

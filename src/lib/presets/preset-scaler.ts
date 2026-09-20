@@ -89,7 +89,7 @@ export function scalePresetPreferences(
     shoppingOption: preferences.shoppingOption,
     shoppingAmountKrw: preferences.shoppingAmountKrw,
     emergencyFundKrw: preferences.emergencyFundKrw,
-    emergencyFundPct: preferences.emergencyFundPct,
+    emergencyFundPct: preferences.emergencyFundPct !== undefined ? preferences.emergencyFundPct : (preferences.emergencyFundKrw ? undefined : 0.10),
     intercityTransportOverrides: preferences.intercityTransportOverrides,
   };
 }

@@ -324,7 +324,7 @@ export default function PresetBuilderModal({
         accommodationByCity: accByCity,
         foodBasketSelections: foodBasketSelectionsPayload,
         attractionSelections: attractionSelectionsPayload,
-        emergencyFundKrw,
+        emergencyFundPct: 0.10,
       },
       isActive: true,
       isCustom: true,

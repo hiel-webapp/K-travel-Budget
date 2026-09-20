@@ -16,7 +16,7 @@ import {
   AGODA_CITY_IDS,
 } from "../catalog/stay-archetypes";
 import { SplitStaySegment, BudgetBasketId } from "../domain/types";
-import { SplitStayModal } from "./SplitStayModal";
+import { SplitStayModal, CitySplitInfo } from "./SplitStayModal";
 
 export interface StaySelectorPanelProps {
   city: SupportedCity;
@@ -40,6 +40,9 @@ export interface StaySelectorPanelProps {
   splitStayOverride?: SplitStaySegment[] | null;
   onSaveSplitStay?: (city: SupportedCity, segments: SplitStaySegment[]) => void;
   onResetSplitStay?: (city: SupportedCity) => void;
+  allCitiesSplitInfo?: CitySplitInfo[];
+  onSaveSplitStayForCity?: (city: SupportedCity, segments: SplitStaySegment[]) => void;
+  onResetSplitStayForCity?: (city: SupportedCity) => void;
   hideHeader?: boolean;
 }
 
@@ -62,6 +65,9 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   onResetCustomStay,
   onSaveSplitStay,
   onResetSplitStay,
+  allCitiesSplitInfo,
+  onSaveSplitStayForCity,
+  onResetSplitStayForCity,
   hideHeader = false,
 }) => {
   const { usdRate } = useExchangeRate();
@@ -118,6 +124,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   // 분할 숙박(Split Stay) 상태, 모달 열림 여부 및 N개 세그먼트 정밀 연산
   const isSplitActive = !!(splitStayOverride && splitStayOverride.length >= 1);
   const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
+  const [pendingSwitchArchetypeId, setPendingSwitchArchetypeId] = useState<StayArchetypeId | null>(null);
 
   // N개 분할 세그먼트 총합 비용 연산
   const splitTotalCostKrw = isSplitActive
@@ -332,10 +339,11 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 type="button"
                 onClick={() => {
                   if (isSplitActive) {
-                    // 분할 중 카드를 클릭하면 단일 숙소로 전환
-                    onResetSplitStay?.(city);
+                    // 실수 방지: 분할 적용 중이면 확인 모달 노출
+                    setPendingSwitchArchetypeId(archetype.id);
+                  } else {
+                    onSelectArchetype(city, archetype.id);
                   }
-                  onSelectArchetype(city, archetype.id);
                 }}
                 className={`p-3 rounded-2xl border text-left flex flex-row items-stretch gap-3.5 transition-all duration-155 cursor-pointer relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
                   isSelected
@@ -601,26 +609,105 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         </div>
       )}
 
-      {/* 2.5 Split Stay Modal */}
+      {/* 2.5 Split Stay Modal (도시 탭 원스톱 분할) */}
       {cityNights >= 2 && (
         <SplitStayModal
           isOpen={isSplitModalOpen}
           onClose={() => setIsSplitModalOpen(false)}
-          city={city}
-          cityName={cityName}
-          cityNights={cityNights}
+          activeCity={city}
+          allCities={
+            allCitiesSplitInfo && allCitiesSplitInfo.length > 0
+              ? allCitiesSplitInfo
+              : [
+                  {
+                    city,
+                    cityName,
+                    cityNights,
+                    initialSegments: splitStayOverride,
+                    defaultArchetypeId: selectedArchetypeId,
+                  },
+                ]
+          }
           locale={locale}
           adultCount={adultCount}
           occupancyMode={occupancyMode}
-          initialSegments={splitStayOverride}
-          defaultArchetypeId={selectedArchetypeId}
-          onApply={(segments) => {
-            onSaveSplitStay?.(city, segments);
+          onApplyForCity={(targetCity, segments) => {
+            if (onSaveSplitStayForCity) {
+              onSaveSplitStayForCity(targetCity, segments);
+            } else {
+              onSaveSplitStay?.(targetCity, segments);
+            }
           }}
-          onResetSplit={() => {
-            onResetSplitStay?.(city);
+          onResetSplitForCity={(targetCity) => {
+            if (onResetSplitStayForCity) {
+              onResetSplitStayForCity(targetCity);
+            } else {
+              onResetSplitStay?.(targetCity);
+            }
           }}
         />
+      )}
+
+      {/* 2.6 분할 숙박 보호용 확인 팝업 (실수 방지 Alert Modal) */}
+      {pendingSwitchArchetypeId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setPendingSwitchArchetypeId(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg font-black shrink-0">
+                ⚠️
+              </span>
+              <div>
+                <h4 className="text-sm font-black text-slate-900">
+                  {locale === "ko" ? "숙소 분할을 해제하시겠습니까?" : "Cancel Split Stay?"}
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {cityName} {locale === "ko" ? "숙소 설정 안내" : "Stay Settings Notice"}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+              {locale === "ko" ? (
+                <>
+                  현재 <strong>{cityName}</strong>에는 박수별 숙소 분할이 적용되어 있습니다.<br />
+                  <strong className="text-[#e25c5c]">{STAY_ARCHETYPES.find(a => a.id === pendingSwitchArchetypeId)?.titleKo}</strong> 단일 숙소로 변경하시면 <strong>기존 분할 설정이 초기화</strong>됩니다.
+                </>
+              ) : (
+                <>
+                  Split stay is currently active for <strong>{cityName}</strong>.<br />
+                  Switching to <strong>{STAY_ARCHETYPES.find(a => a.id === pendingSwitchArchetypeId)?.titleEn}</strong> will <strong>reset your split stay settings</strong>.
+                </>
+              )}
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setPendingSwitchArchetypeId(null)}
+                className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "취소 (분할 유지)" : "Keep Split"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  onResetSplitStay?.(city);
+                  onSelectArchetype(city, pendingSwitchArchetypeId);
+                  setPendingSwitchArchetypeId(null);
+                }}
+                className="px-4 py-2 rounded-xl bg-[#e25c5c] hover:bg-rose-600 text-white text-xs font-black transition-colors cursor-pointer shadow-xs"
+              >
+                {locale === "ko" ? "단일 숙소로 변경" : "Change to Single Stay"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

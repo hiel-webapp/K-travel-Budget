@@ -4901,6 +4901,38 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       onResetSplitStay={() => {
                         handleResetStopStay(activeStop);
                       }}
+                      allCitiesSplitInfo={(draft.selectedCities || []).map((c) => {
+                        const n = draft.cityNightAllocations?.[c] ?? 0;
+                        const cName = locale === "ko" ? (CITY_KOREAN_NAMES[c] || c) : (CITY_ENGLISH_NAMES[c] || c);
+                        const cAcc = preferences.accommodationByCity?.[c];
+                        const isSpl = cAcc && typeof cAcc === "object" && (cAcc as any).kind === "SPLIT";
+                        return {
+                          city: c,
+                          cityName: cName,
+                          cityNights: n,
+                          initialSegments: isSpl ? (cAcc as any).segments : null,
+                          defaultArchetypeId: selectedArchetypeId,
+                        };
+                      })}
+                      onSaveSplitStayForCity={(targetCity, segments) => {
+                        const targetStop = stops.find((s) => s.city === targetCity) || {
+                          id: `stop_${targetCity.toLowerCase()}`,
+                          city: targetCity,
+                          nights: draft.cityNightAllocations?.[targetCity] ?? 2,
+                        };
+                        handleStopStayOverride(targetStop, {
+                          kind: "SPLIT",
+                          segments,
+                        });
+                      }}
+                      onResetSplitStayForCity={(targetCity) => {
+                        const targetStop = stops.find((s) => s.city === targetCity) || {
+                          id: `stop_${targetCity.toLowerCase()}`,
+                          city: targetCity,
+                          nights: draft.cityNightAllocations?.[targetCity] ?? 2,
+                        };
+                        handleResetStopStay(targetStop);
+                      }}
                       onSaveCustomStay={(c, placeName, nightlyPriceKrw) => {
                         handleStopStayOverride(activeStop, {
                           kind: "PLACE",

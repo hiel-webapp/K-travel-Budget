@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import type { Locale } from "../lib/i18n/locales";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
@@ -86,22 +86,43 @@ export default function AttractionPlannerPanel({
       .catch(() => {});
   }, []);
 
-  // 연계 K-체험 추천 플로팅 스낵바 상태 (대안 A)
-  const [promptActivity, setPromptActivity] = useState<{
-    spotName: string;
-    activity: ThemeActivityItem;
-  } | null>(null);
+  // 개별 관광지 카드별 독립 3D 플립 상태 및 10초 타이머 관리
+  const [flippedCards, setFlippedCards] = useState<Record<string, { activity: ThemeActivityItem; spotName: string }>>({});
+  const flipTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
 
-  // 스낵바 자동 사라짐 타이머 (6초)
+  const unflipCard = useCallback((spotId: string) => {
+    if (flipTimersRef.current[spotId]) {
+      clearTimeout(flipTimersRef.current[spotId]);
+      delete flipTimersRef.current[spotId];
+    }
+    setFlippedCards((prev) => {
+      if (!prev[spotId]) return prev;
+      const next = { ...prev };
+      delete next[spotId];
+      return next;
+    });
+  }, []);
+
+  const flipCard = useCallback((spotId: string, spotName: string, activity: ThemeActivityItem) => {
+    if (flipTimersRef.current[spotId]) {
+      clearTimeout(flipTimersRef.current[spotId]);
+    }
+    setFlippedCards((prev) => ({ ...prev, [spotId]: { activity, spotName } }));
+    // 10초 동안 노출 후 원래 앞면으로 자동 복귀
+    flipTimersRef.current[spotId] = setTimeout(() => {
+      unflipCard(spotId);
+    }, 10000);
+  }, [unflipCard]);
+
+  // 컴포넌트 언마운트 시 모든 타이머 정리
   useEffect(() => {
-    if (!promptActivity) return;
-    const timer = setTimeout(() => {
-      setPromptActivity(null);
-    }, 6000);
-    return () => clearTimeout(timer);
-  }, [promptActivity]);
+    return () => {
+      Object.values(flipTimersRef.current).forEach((timer) => clearTimeout(timer));
+      flipTimersRef.current = {};
+    };
+  }, []);
 
-  // 명소 클릭 시 원클릭 담기 + 연계 K-체험 감지
+  // 명소 클릭 시 원클릭 담기 + 연계 K-체험 카드 3D 플립 애니메이션 트리거
   const handleToggleSpotWithActivityPrompt = (spotId: string, spotName: string) => {
     const isCurrentlySelected =
       individualSpotIds.some((sid) => isSameSpot(sid, spotId)) ||
@@ -113,29 +134,23 @@ export default function AttractionPlannerPanel({
     // 1. 기존 명소 토글 실행 (100% 즉시 반영, 딜레이 0)
     onToggleSpot(city, spotId);
 
-    // 2. '담기'로 변경되는 순간 연계 액티비티가 있고 아직 담기지 않은 경우 스낵바 노출
+    // 2. '담기'로 변경되는 순간 연계 액티비티가 있고 아직 담기지 않은 경우 해당 카드만 10초간 뒤집기
     if (!isCurrentlySelected) {
       const relatedAct = getRelatedThemeActivity(spotId, spotName);
       if (relatedAct && !selectedSpotKeys.has(normalizeSpotKey(relatedAct.id))) {
-        setPromptActivity({
-          spotName,
-          activity: relatedAct,
-        });
+        flipCard(spotId, spotName, relatedAct);
       } else {
-        setPromptActivity(null);
+        unflipCard(spotId);
       }
     } else {
-      // 담기 취소 시 해당 스낵바 닫기
-      if (promptActivity?.spotName === spotName) {
-        setPromptActivity(null);
-      }
+      // 담기 취소 시 뒤집힘 해제
+      unflipCard(spotId);
     }
   };
 
-  const handleAddPromptActivity = () => {
-    if (!promptActivity) return;
-    onToggleSpot(city, promptActivity.activity.id);
-    setPromptActivity(null);
+  const handleAddLinkedActivity = (spotId: string, activity: ThemeActivityItem) => {
+    onToggleSpot(city, activity.id);
+    unflipCard(spotId);
   };
 
   // 1. 도시 대표 명소 목록 병합 및 추천(isFeatured) 우선 정렬
@@ -265,6 +280,12 @@ export default function AttractionPlannerPanel({
 
   return (
     <div className="w-full space-y-5">
+      <style>{`
+        @keyframes flipTimerShrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
       {/* 1. 관광 바스켓 요약 바 (Top Summary Bar: Food/Stay 플래너와 100% 동일한 위계 및 디자인 규격) */}
       {!hideHeader && (
         <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-3.5">
@@ -492,16 +513,35 @@ export default function AttractionPlannerPanel({
                 const relatedAct = getRelatedThemeActivity(rawSpot.id, name);
                 const isActivitySelected = !!(relatedAct && selectedSpotKeys.has(normalizeSpotKey(relatedAct.id)));
 
+                const isFlipped = Boolean(flippedCards[rawSpot.id]);
+                const flippedData = flippedCards[rawSpot.id];
+                const act = flippedData?.activity;
+
                 return (
                   <div
                     key={rawSpot.id}
-                    onClick={() => handleToggleSpotWithActivityPrompt(rawSpot.id, name)}
-                    className={`rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
-                      isSelected
-                        ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
-                        : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
-                    }`}
+                    className="relative [perspective:1000px] w-full min-h-[390px] flex flex-col"
                   >
+                    <div
+                      className="relative w-full h-full flex-1 transition-transform duration-500 ease-in-out"
+                      style={{
+                        transformStyle: "preserve-3d",
+                        transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                      }}
+                    >
+                      {/* 앞면 (FRONT): 일반 관광지 카드 */}
+                      <div
+                        style={{
+                          backfaceVisibility: "hidden",
+                          WebkitBackfaceVisibility: "hidden",
+                        }}
+                        onClick={() => handleToggleSpotWithActivityPrompt(rawSpot.id, name)}
+                        className={`w-full h-full rounded-2xl border p-3 flex flex-col justify-between transition-all duration-200 overflow-hidden cursor-pointer group ${
+                          isSelected
+                            ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs"
+                            : "bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs"
+                        }`}
+                      >
                     <div className="space-y-2">
                       {/* 실사 이미지 썸네일 */}
                       {hasImage ? (
@@ -724,7 +764,115 @@ export default function AttractionPlannerPanel({
                       </button>
                     </div>
                   </div>
-                );
+
+                  {/* 뒷면 (BACK): 10초간 노출되는 연계 K-체험 카드 */}
+                  {act && (
+                    <div
+                      style={{
+                        backfaceVisibility: "hidden",
+                        WebkitBackfaceVisibility: "hidden",
+                        transform: "rotateY(180deg)",
+                      }}
+                      className="absolute inset-0 w-full h-full rounded-2xl border border-purple-200/90 bg-gradient-to-b from-purple-50/70 via-white to-rose-50/40 p-3.5 flex flex-col justify-between shadow-md overflow-hidden z-20"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* 1. 상단 바: 추천 뱃지 + ✕ 닫기 버튼 */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10.5px] font-black px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 border border-purple-200 flex items-center gap-1 shrink-0">
+                          <span>✨</span>
+                          <span>{locale === "ko" ? `${name} 연계 K-체험` : "Recommended Activity"}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => unflipCard(rawSpot.id)}
+                          className="w-6 h-6 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs font-black transition-colors cursor-pointer shrink-0 shadow-2xs"
+                          title={locale === "ko" ? "닫기" : "Close"}
+                          aria-label={locale === "ko" ? "닫기" : "Close"}
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      {/* 2. 본문 영역: 이미지/아이콘 + 명칭 + 가격/소요시간 + 혜택 안내 */}
+                      <div className="space-y-2 my-auto py-1">
+                        {act.imageUrl ? (
+                          <div className="relative w-full h-24 sm:h-28 rounded-xl overflow-hidden bg-slate-100 shadow-2xs border border-purple-100/80">
+                            <img
+                              src={act.imageUrl}
+                              alt={locale === "ko" ? act.nameKo : act.nameEn}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-20 sm:h-24 rounded-xl bg-purple-100/60 border border-purple-200/60 flex items-center justify-center text-3xl shadow-2xs">
+                            👘
+                          </div>
+                        )}
+
+                        <div>
+                          <h4 className="text-sm sm:text-[15px] font-black text-slate-900 leading-snug">
+                            {locale === "ko" ? act.nameKo : act.nameEn}
+                          </h4>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-xs sm:text-sm font-black text-[#e25c5c]">
+                              +{formatPriceByLocale(act.priceKrw, locale, usdRate)}
+                            </span>
+                            {act.durationTextKo && (
+                              <span className="text-[10.5px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded">
+                                ({locale === "ko" ? act.durationTextKo : act.durationTextEn})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {isPalaceFreeSpot(rawSpot.id, name) && isHanbokActivityId(act.id) ? (
+                          <div className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5 shadow-2xs">
+                            <span className="text-sm leading-none">👘</span>
+                            <span>{locale === "ko" ? "한복 착용 시 4대궁 입장료 무료!" : "Free admission with Hanbok rental!"}</span>
+                          </div>
+                        ) : (
+                          <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                            {locale === "ko" ? act.descKo : act.descEn}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* 3. 하단 액션 영역: 10초 카운트다운 게이지 바 + [앞면 보기] / [+ 함께 담기] 버튼 */}
+                      <div className="space-y-2 pt-1.5 border-t border-purple-100/80">
+                        {/* 10초 진행 바 */}
+                        <div className="w-full bg-purple-100 h-1 rounded-full overflow-hidden">
+                          <div
+                            className="bg-purple-500 h-full w-full"
+                            style={{
+                              animation: "flipTimerShrink 10s linear forwards",
+                            }}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => unflipCard(rawSpot.id)}
+                            className="px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+                          >
+                            {locale === "ko" ? "앞면 보기" : "Back to Spot"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleAddLinkedActivity(rawSpot.id, act)}
+                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-95 text-white text-xs font-black transition-all cursor-pointer shadow-xs flex items-center gap-1 whitespace-nowrap"
+                          >
+                            <span>+</span>
+                            <span>{locale === "ko" ? "함께 담기" : "Add Bundle"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
               })}
             </div>
           )}
@@ -992,68 +1140,7 @@ export default function AttractionPlannerPanel({
         )}
       </div>
 
-      {/* 플로팅 연계 K-체험 추천 스낵바 (대안 A) */}
-      {promptActivity && (
-        <aside
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-lg bg-[#0f172a]/95 text-white backdrop-blur-md rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-slate-700/80 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            {promptActivity.activity.imageUrl ? (
-              <img
-                src={promptActivity.activity.imageUrl}
-                alt={locale === "ko" ? promptActivity.activity.nameKo : promptActivity.activity.nameEn}
-                className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl object-cover shrink-0 border border-white/20 shadow-xs"
-              />
-            ) : (
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-purple-600/30 text-purple-300 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-            )}
-            <div className="min-w-0 space-y-0.5">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-purple-500/25 text-purple-300 border border-purple-400/30">
-                  {locale === "ko" ? `${promptActivity.spotName} 연계 K-체험` : `Related Experience`}
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm font-bold text-slate-100 truncate">
-                {locale === "ko" ? promptActivity.activity.nameKo : promptActivity.activity.nameEn}
-              </p>
-              <p className="text-[11px] font-black text-rose-400">
-                +{formatPriceByLocale(promptActivity.activity.priceKrw, locale, usdRate)}
-                {promptActivity.activity.durationTextKo && (
-                  <span className="text-slate-400 font-normal ml-1.5">
-                    ({locale === "ko" ? promptActivity.activity.durationTextKo : promptActivity.activity.durationTextEn})
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={handleAddPromptActivity}
-              className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white text-xs font-black transition-all cursor-pointer shadow-xs flex items-center gap-1 whitespace-nowrap"
-            >
-              <span>+</span>
-              <span>{locale === "ko" ? "함께 담기" : "Add Bundle"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPromptActivity(null)}
-              className="p-2 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
-              title={locale === "ko" ? "닫기" : "Close"}
-              aria-label={locale === "ko" ? "닫기" : "Close"}
-            >
-              ✕
-            </button>
-          </div>
-        </aside>
-      )}
     </div>
   );
 }

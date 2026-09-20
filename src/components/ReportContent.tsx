@@ -539,11 +539,25 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                           <div className="pl-4 pt-1 space-y-1 border-l-2 border-slate-100">
                             {foodItems.map((fItem: any) => {
                               const fName = locale === "ko" ? fItem.food.nameKo : fItem.food.nameEn;
+                              const unitPrice = fItem.food.unitPriceKrw || 0;
+                              const qty = fItem.quantity || 1;
+                              const subtext = adultCount > 1
+                                ? (locale === "ko"
+                                    ? `1인 ${formatKrw(unitPrice)}${qty > 1 ? ` (${qty}세트)` : ""} × ${adultCount}명`
+                                    : `${formatPriceByLocale(unitPrice, locale, usdRate)}/person${qty > 1 ? ` (${qty} sets)` : ""} × ${adultCount} travelers`)
+                                : (qty > 1 ? (locale === "ko" ? `${qty}인분` : `${qty} servings`) : "");
                               return (
-                                <div key={fItem.food.id} className="flex justify-between items-center text-[11px] text-slate-600">
-                                  <span className="truncate pr-2">
-                                    {fName} ×{fItem.quantity}
-                                  </span>
+                                <div key={fItem.food.id} className="flex justify-between items-start text-[11px]">
+                                  <div className="space-y-0.5 min-w-0 pr-2">
+                                    <span className="font-medium text-slate-700 block truncate">
+                                      {fName}
+                                    </span>
+                                    {subtext && (
+                                      <span className="text-[10px] text-slate-400 block tabular-nums">
+                                        {subtext}
+                                      </span>
+                                    )}
+                                  </div>
                                   <span className="tabular-nums font-medium text-slate-700 shrink-0">
                                     {formatPriceByLocale(fItem.subtotalKrw, locale, usdRate)}
                                   </span>
@@ -600,16 +614,28 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                               const sName = locale === "ko" ? spot.nameKo : spot.nameEn;
                               const isActivity = (spot as any).categoryType === "액티비티" || spot.id.startsWith("act_");
                               const isFree = spot.priceStatus === "FREE" || spot.price === 0;
+                              const spotSubtext = (!isFree && adultCount > 1)
+                                ? (locale === "ko"
+                                    ? `1인 ${isActivity ? "체험비" : "입장료"} ${formatKrw(spot.price)} × ${adultCount}명`
+                                    : `${formatPriceByLocale(spot.price, locale, usdRate)}/person × ${adultCount} travelers`)
+                                : "";
                               return (
-                                <div key={spot.id} className="flex justify-between items-center text-[11px]">
-                                  <span className="truncate pr-2 text-slate-700 flex items-center gap-1">
-                                    {isActivity && (
-                                      <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-700 font-bold">
-                                        {locale === "ko" ? "액티비티" : "Activity"}
+                                <div key={spot.id} className="flex justify-between items-start text-[11px]">
+                                  <div className="space-y-0.5 min-w-0 pr-2">
+                                    <span className="truncate text-slate-700 flex items-center gap-1">
+                                      {isActivity && (
+                                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-700 font-bold">
+                                          {locale === "ko" ? "액티비티" : "Activity"}
+                                        </span>
+                                      )}
+                                      {sName}
+                                    </span>
+                                    {spotSubtext && (
+                                      <span className="text-[10px] text-slate-400 block tabular-nums">
+                                        {spotSubtext}
                                       </span>
                                     )}
-                                    {sName}
-                                  </span>
+                                  </div>
                                   <span className="tabular-nums font-medium text-slate-900 shrink-0">
                                     {isFree ? (locale === "ko" ? "무료" : "Free") : formatPriceByLocale(spot.price * adultCount, locale, usdRate)}
                                   </span>

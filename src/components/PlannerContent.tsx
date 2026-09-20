@@ -5736,9 +5736,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                             <div className="space-y-1 pl-5">
                                               {selectedFoods.map((item) => {
                                                 const name = locale === "ko" ? item.food.nameKo : item.food.nameEn;
+                                                const qty = item.quantity || 1;
+                                                const personText = adultCount > 1
+                                                  ? (qty > 1 ? ` (${qty}세트 × ${adultCount}${locale === "ko" ? "인" : "p"})` : ` × ${adultCount}${locale === "ko" ? "인" : "p"}`)
+                                                  : (qty > 1 ? ` x${qty}` : "");
                                                 return (
                                                   <div key={item.food.id} className="flex justify-between items-center text-[11px] text-slate-600">
-                                                    <span className="truncate pr-2">{name} x{item.quantity}</span>
+                                                    <span className="truncate pr-2">{name}{personText}</span>
                                                     <span className="tabular-nums font-medium text-slate-700 shrink-0">
                                                       {formatKrw(item.subtotalKrw)}
                                                     </span>
@@ -5758,9 +5762,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                 const uPrice = fp.priceKrw ?? (fp as any).estimatedPriceKrw ?? (fp.category === "CAFE" ? 8000 : 18000);
                                                 const iTotal = uPrice * adultCount;
                                                 const fName = locale === "ko" ? (fp.translations?.ko?.title || (fp as any).title || (fp as any).nameKo) : (fp.translations?.en?.title || (fp as any).title || (fp as any).nameEn);
+                                                const customPersonText = adultCount > 1 ? ` × ${adultCount}${locale === "ko" ? "인" : "p"}` : "";
                                                 return (
                                                   <div key={fp.id} className="flex justify-between items-center text-[10px] text-slate-500">
-                                                    <span className="truncate pr-2">{fName}</span>
+                                                    <span className="truncate pr-2">{fName}{customPersonText}</span>
                                                     <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(iTotal)}</span>
                                                   </div>
                                                 );
@@ -5832,9 +5837,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           const sName = locale === "ko" ? (bilingual?.nameKo || spot.nameKo) : (bilingual?.nameEn || spot.nameEn);
                                           const isPalaceFree = !!spot.isPalaceFree;
                                           const sTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
+                                          const spotPersonText = (!isPalaceFree && sTotal > 0 && adultCount > 1) ? ` × ${adultCount}${locale === "ko" ? "인" : "p"}` : "";
                                           return (
                                             <div key={spot.id} className="flex justify-between items-center text-[11px] text-slate-600">
-                                              <span className="truncate pr-2">{sName}</span>
+                                              <span className="truncate pr-2">{sName}{spotPersonText}</span>
                                               <span className="tabular-nums font-medium shrink-0">
                                                 {isPalaceFree ? (
                                                   <span className="text-emerald-600 font-bold flex items-center gap-0.5">

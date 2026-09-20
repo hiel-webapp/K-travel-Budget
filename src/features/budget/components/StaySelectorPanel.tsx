@@ -648,49 +648,57 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         />
       )}
 
-      {/* 2.6 분할 숙박 보호용 확인 팝업 (실수 방지 Alert Modal) */}
+      {/* 2.6 분할 숙박 보호용 확인 팝업 (시원한 폰트 및 모달 크기 확대) */}
       {pendingSwitchArchetypeId && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
           onClick={() => setPendingSwitchArchetypeId(null)}
         >
           <div
-            className="w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150"
+            className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg font-black shrink-0">
+            <div className="flex items-center gap-3.5">
+              <span className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl font-black shrink-0 shadow-2xs">
                 ⚠️
               </span>
               <div>
-                <h4 className="text-sm font-black text-slate-900">
+                <h4 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                   {locale === "ko" ? "숙소 분할을 해제하시겠습니까?" : "Cancel Split Stay?"}
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs sm:text-sm text-slate-500 mt-0.5 font-medium">
                   {cityName} {locale === "ko" ? "숙소 설정 안내" : "Stay Settings Notice"}
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+            <div className="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-1.5">
               {locale === "ko" ? (
                 <>
-                  현재 <strong>{cityName}</strong>에는 박수별 숙소 분할이 적용되어 있습니다.<br />
-                  <strong className="text-[#e25c5c]">{STAY_ARCHETYPES.find(a => a.id === pendingSwitchArchetypeId)?.titleKo}</strong> 단일 숙소로 변경하시면 <strong>기존 분할 설정이 초기화</strong>됩니다.
+                  <p>
+                    현재 <strong>{cityName}</strong>에는 박수별 숙소 분할이 적용되어 있습니다.
+                  </p>
+                  <p className="text-slate-800 font-bold">
+                    <strong className="text-[#e25c5c] font-black">{STAY_ARCHETYPES.find(a => a.id === pendingSwitchArchetypeId)?.titleKo}</strong> 단일 숙소로 변경하시면 <span className="text-rose-600 font-black underline underline-offset-2">기존 분할 설정이 초기화</span>됩니다.
+                  </p>
                 </>
               ) : (
                 <>
-                  Split stay is currently active for <strong>{cityName}</strong>.<br />
-                  Switching to <strong>{STAY_ARCHETYPES.find(a => a.id === pendingSwitchArchetypeId)?.titleEn}</strong> will <strong>reset your split stay settings</strong>.
+                  <p>
+                    Split stay is currently active for <strong>{cityName}</strong>.
+                  </p>
+                  <p>
+                    Switching to <strong>{STAY_ARCHETYPES.find(a => a.id === pendingSwitchArchetypeId)?.titleEn}</strong> will reset your split stay settings.
+                  </p>
                 </>
               )}
-            </p>
+            </div>
 
-            <div className="flex items-center justify-end gap-2 pt-1">
+            <div className="flex items-center justify-end gap-2.5 pt-1.5">
               <button
                 type="button"
                 onClick={() => setPendingSwitchArchetypeId(null)}
-                className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-700 transition-colors cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-xs sm:text-sm font-bold text-slate-700 transition-colors cursor-pointer"
               >
                 {locale === "ko" ? "취소 (분할 유지)" : "Keep Split"}
               </button>
@@ -701,7 +709,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   onSelectArchetype(city, pendingSwitchArchetypeId);
                   setPendingSwitchArchetypeId(null);
                 }}
-                className="px-4 py-2 rounded-xl bg-[#e25c5c] hover:bg-rose-600 text-white text-xs font-black transition-colors cursor-pointer shadow-xs"
+                className="px-5 py-2.5 rounded-xl bg-[#e25c5c] hover:bg-rose-600 text-white text-xs sm:text-sm font-black transition-colors cursor-pointer shadow-xs"
               >
                 {locale === "ko" ? "단일 숙소로 변경" : "Change to Single Stay"}
               </button>

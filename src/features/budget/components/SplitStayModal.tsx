@@ -208,20 +208,20 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-3xl lg:max-w-4xl max-h-[92vh] bg-white rounded-3xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 1. 모달 헤더 */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-rose-50/50 via-white to-amber-50/40 shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md bg-[#e25c5c] text-white text-[11px] font-black tracking-tight">
+        {/* 1. 모달 헤더 (확대 & 강조) */}
+        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-rose-50/60 via-white to-amber-50/50 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <span className="px-3 py-1 rounded-lg bg-[#e25c5c] text-white text-xs sm:text-sm font-black tracking-tight shadow-xs">
               {locale === "ko" ? "숙소 분할" : "Split Stay"}
             </span>
-            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
               {locale === "ko" ? "박수별 숙소 나누기" : "Divide Stay by Night"}
             </h2>
           </div>
@@ -229,17 +229,17 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer text-sm font-black"
+            className="w-9 h-9 rounded-full bg-slate-100 text-slate-400 hover:text-slate-800 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer text-base font-black"
             aria-label="Close"
           >
             ✕
           </button>
         </div>
 
-        {/* 2. 도시 탭 바 (모달 안에서 전체 도시 원스톱 전환) */}
+        {/* 2. 도시 탭 바 (시원한 버튼 크기 및 폰트) */}
         {allCities.length > 0 && (
-          <div className="px-4 sm:px-6 pt-3.5 pb-1 border-b border-slate-100 bg-slate-50/70 shrink-0">
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <div className="px-5 sm:px-6 pt-4 pb-2 border-b border-slate-100 bg-slate-50/70 shrink-0">
+            <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
               {allCities.map((c) => {
                 const isSelected = selectedCity === c.city;
                 const canSplit = c.cityNights >= 2;
@@ -251,24 +251,24 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
                     type="button"
                     disabled={!canSplit}
                     onClick={() => setSelectedCity(c.city)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 border shrink-0 ${
+                    className={`px-4 py-2.5 rounded-2xl text-sm sm:text-base font-black transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 border shrink-0 ${
                       !canSplit
                         ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60"
                         : isSelected
-                        ? "bg-[#e25c5c] border-[#e25c5c] text-white shadow-xs"
-                        : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                        ? "bg-[#e25c5c] border-[#e25c5c] text-white shadow-sm ring-2 ring-rose-200"
+                        : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                     }`}
                   >
                     <span>{c.cityName}</span>
-                    <span className={isSelected ? "text-rose-100 font-bold" : "text-slate-400 font-bold"}>
+                    <span className={isSelected ? "text-rose-100 font-extrabold" : "text-slate-400 font-extrabold"}>
                       {c.cityNights}박
                     </span>
                     {!canSplit ? (
-                      <span className="text-[10px] text-slate-400 font-normal">
+                      <span className="text-xs text-slate-400 font-normal">
                         ({locale === "ko" ? "1박 단일" : "1N"})
                       </span>
                     ) : hasExistingSplit ? (
-                      <span className={`text-[10px] px-1 py-0.2 rounded-full font-black ${
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-black ${
                         isSelected ? "bg-white text-[#e25c5c]" : "bg-rose-100 text-[#e25c5c]"
                       }`}>
                         ✓
@@ -281,18 +281,18 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
           </div>
         )}
 
-        {/* 3. 모달 바디: 군더더기 없는 슬림한 박수별 슬롯 */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 flex-1">
+        {/* 3. 모달 바디: 큼직하고 시원한 박수별 슬롯 */}
+        <div className="p-5 sm:p-7 overflow-y-auto space-y-4 flex-1">
           {currentNights < 2 ? (
-            <div className="p-8 text-center text-slate-500 space-y-2">
-              <p className="text-sm font-bold text-slate-700">
+            <div className="p-10 text-center text-slate-500 space-y-2">
+              <p className="text-base font-bold text-slate-700">
                 {locale === "ko"
                   ? `${currentCityInfo.cityName}은 1박 체류이므로 숙소 분할이 필요하지 않습니다.`
                   : `${currentCityInfo.cityName} is a 1-night stay. Split stay requires at least 2 nights.`}
               </p>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {Array.from({ length: currentNights }, (_, i) => {
                 const currentArchId = currentSelections[i] || "BUSINESS_HOTEL";
                 const nightNum = i + 1;
@@ -300,20 +300,20 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
                 return (
                   <div
                     key={`night_slot_${i}`}
-                    className="p-2.5 sm:p-3 rounded-2xl bg-slate-50/80 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                    className="p-3.5 sm:p-4 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
                   >
-                    {/* 박수 뱃지 */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="w-6 h-6 rounded-lg bg-slate-900 text-white text-xs font-black flex items-center justify-center">
+                    {/* 박수 뱃지 및 라벨 (확대) */}
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="w-8 h-8 rounded-xl bg-slate-900 text-white text-sm sm:text-base font-black flex items-center justify-center shadow-xs">
                         {nightNum}
                       </span>
-                      <span className="text-xs font-black text-slate-800">
+                      <span className="text-sm sm:text-base font-black text-slate-800">
                         {locale === "ko" ? `${nightNum}박차` : `Night ${nightNum}`}
                       </span>
                     </div>
 
-                    {/* 4개 숙소 선택 칩 */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 flex-1 max-w-xl">
+                    {/* 4개 숙소 선택 칩 (크기 & 폰트 확대) */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1 max-w-2xl">
                       {STAY_ARCHETYPES.map((arch) => {
                         const isSelected = currentArchId === arch.id;
                         const price = getStayArchetypePrice(selectedCity, arch.id);
@@ -323,18 +323,18 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
                             key={arch.id}
                             type="button"
                             onClick={() => handleSelectNight(i, arch.id)}
-                            className={`px-2 py-1.5 rounded-xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
+                            className={`p-2.5 sm:p-3 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[66px] ${
                               isSelected
-                                ? "bg-[#fff7f7] border-[#e25c5c] text-[#e25c5c] ring-1 ring-[#e25c5c] shadow-2xs font-black"
-                                : "bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50"
+                                ? "bg-[#fff7f7] border-[#e25c5c] text-[#e25c5c] ring-2 ring-[#e25c5c] shadow-xs font-black"
+                                : "bg-white border-slate-200 text-slate-800 hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                             }`}
                           >
-                            <span className="text-[11px] truncate block leading-tight font-bold">
+                            <span className="text-xs sm:text-[13.5px] truncate block leading-snug font-black">
                               {locale === "ko" ? arch.titleKo : arch.titleEn}
                             </span>
                             <span
-                              className={`text-[10px] font-extrabold mt-0.5 block ${
-                                isSelected ? "text-[#e25c5c]" : "text-slate-400"
+                              className={`text-xs sm:text-sm font-black mt-1 block tracking-tight ${
+                                isSelected ? "text-[#e25c5c]" : "text-slate-500"
                               }`}
                             >
                               {formatPriceByLocale(price, locale, usdRate)}
@@ -349,10 +349,10 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
             </div>
           )}
 
-          {/* 슬림한 스마트 그룹핑 요약 */}
+          {/* 스마트 그룹핑 요약 바 (가독성 향상) */}
           {currentNights >= 2 && (
-            <div className="p-3 rounded-xl bg-slate-100/80 border border-slate-200 flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="font-black text-slate-700 shrink-0 mr-1">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-100/90 border border-slate-200 flex flex-wrap items-center gap-2 text-sm">
+              <span className="font-black text-slate-800 shrink-0 mr-1 text-sm sm:text-base">
                 {locale === "ko" ? "분할 구성:" : "Summary:"}
               </span>
               {groupedSummary.map((grp, idx) => {
@@ -365,9 +365,9 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
 
                 return (
                   <React.Fragment key={idx}>
-                    {idx > 0 && <span className="text-slate-400 font-bold">+</span>}
-                    <span className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
-                      <strong className="text-[#e25c5c] mr-1">{nightLabel}</strong>
+                    {idx > 0 && <span className="text-slate-400 font-black text-sm">+</span>}
+                    <span className="px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-800 shadow-2xs">
+                      <strong className="text-[#e25c5c] font-black mr-1.5">{nightLabel}</strong>
                       <span>{title}</span>
                     </span>
                   </React.Fragment>
@@ -377,39 +377,39 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
           )}
         </div>
 
-        {/* 4. 모달 푸터: 실시간 예산 & 적용 액션 */}
-        <div className="p-3.5 sm:p-4 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
-          <div className="flex items-baseline gap-2">
-            <span className="text-xs font-bold text-slate-500">
-              {currentCityInfo.cityName} {locale === "ko" ? `숙박비 (${currentNights}박):` : `Total:`}
+        {/* 4. 모달 푸터: 시원한 가격 표시 & 넉넉한 버튼 */}
+        <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+          <div className="flex items-baseline gap-2.5 flex-wrap">
+            <span className="text-sm sm:text-base font-black text-slate-600">
+              {currentCityInfo.cityName} {locale === "ko" ? `총 숙박비 (${currentNights}박):` : `Total:`}
             </span>
-            <span className="text-base sm:text-lg font-black text-[#e25c5c] tracking-tight">
+            <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
               {formatPriceByLocale(totalCostKrw, locale, usdRate)}
             </span>
-            <span className="text-[11px] text-slate-500 font-medium ml-1">
-              ({locale === "ko" ? "1인" : "Per person"} {formatPriceByLocale(perPersonCostKrw, locale, usdRate)})
+            <span className="text-xs sm:text-sm text-slate-600 font-bold ml-1">
+              ({locale === "ko" ? "1인당" : "Per person"} {formatPriceByLocale(perPersonCostKrw, locale, usdRate)})
             </span>
           </div>
 
-          <div className="flex items-center gap-2 justify-end">
+          <div className="flex items-center gap-2.5 justify-end">
             <button
               type="button"
               onClick={() => onResetSplitForCity(selectedCity)}
-              className="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-black transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs sm:text-sm font-black transition-colors cursor-pointer"
             >
               {locale === "ko" ? "분할 해제" : "Reset"}
             </button>
             <button
               type="button"
               onClick={handleApplyCurrentCity}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#e25c5c] to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-black shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#e25c5c] to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm font-black shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
             >
               <span>{savedCityNotice === selectedCity ? "✓ 적용 완료!" : `✓ ${currentCityInfo.cityName} 분할 적용`}</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-black transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-black transition-colors cursor-pointer shadow-xs"
             >
               {locale === "ko" ? "완료" : "Done"}
             </button>

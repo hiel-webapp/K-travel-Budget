@@ -297,10 +297,16 @@ export default function FoodCatalogPanel() {
 
     setIsSyncing(true);
     try {
-      const sorted = [...foods].sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko"));
+      const sorted = [...foods].sort((a, b) => {
+        const aMust = !!a.isMustEatTop3;
+        const bMust = !!b.isMustEatTop3;
+        if (aMust && !bMust) return -1;
+        if (!aMust && bMust) return 1;
+        return a.nameKo.localeCompare(b.nameKo, "ko");
+      });
       const orderedIds = sorted.map((f) => f.id);
       await handleSaveFoodReorder(orderedIds);
-      alert(`성공적으로 ${cityLabel} 음식 ${sorted.length}개가 'ㄱㄴㄷ 가나다순'으로 정렬되어 저장되었습니다.`);
+      alert(`성공적으로 ${cityLabel} 음식 ${sorted.length}개가 추천 우선 및 'ㄱㄴㄷ 가나다순'으로 정렬되어 저장되었습니다.`);
     } catch (err: any) {
       alert(`ㄱㄴㄷ 정렬 저장 중 오류 발생: ${err.message}`);
     } finally {
@@ -355,6 +361,18 @@ export default function FoodCatalogPanel() {
       f.id.toLowerCase().includes(q)
     );
   });
+
+  // 추천(isMustEatTop3) 항목을 무조건 최상단에 우선 배치하고,
+  // 그 안에서 본래 정렬 순서(sortOrder / ㄱㄴㄷ 순)를 유지합니다.
+  const sortedFoods = React.useMemo(() => {
+    return [...filteredFoods].sort((a, b) => {
+      const aMust = !!a.isMustEatTop3;
+      const bMust = !!b.isMustEatTop3;
+      if (aMust && !bMust) return -1;
+      if (!aMust && bMust) return 1;
+      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+    });
+  }, [filteredFoods]);
 
   return (
     <div className="space-y-6">
@@ -506,7 +524,7 @@ export default function FoodCatalogPanel() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-100 font-medium">
-                {filteredFoods.map((food) => {
+                {sortedFoods.map((food) => {
                   const scopeType = food.targetScope || "BOTH";
                   const isItemActive = food.isActive !== false;
                   return (
@@ -943,13 +961,14 @@ export default function FoodCatalogPanel() {
             : "음식 카탈로그 노출 순서 정렬"
         }
         categoryIcon="🍲"
-        items={foods.map((f) => ({
+        items={sortedFoods.map((f) => ({
           id: f.id,
           titleKo: f.nameKo,
           titleEn: f.nameEn,
           subtitle: `${f.scope === "NATIONAL" ? "전국" : CITY_KOREAN_NAMES[f.cityCode!] || f.cityCode} · ₩${f.unitPriceKrw?.toLocaleString()}`,
           imageUrl: f.imageUrl,
           badge: f.isMustEatTop3 ? "Must-Eat" : undefined,
+          highlight: f.isMustEatTop3,
         }))}
         onSave={handleSaveFoodReorder}
         noticeText="저장 시 선택된 지역의 정렬 규칙이 커스텀 순서(CUSTOM_ORDER)로 자동 적용됩니다."

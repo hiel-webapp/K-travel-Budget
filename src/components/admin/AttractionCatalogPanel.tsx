@@ -293,10 +293,16 @@ export default function AttractionCatalogPanel() {
 
     setIsSyncing(true);
     try {
-      const sorted = [...attractions].sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko"));
+      const sorted = [...attractions].sort((a, b) => {
+        const aFeat = !!a.isFeatured;
+        const bFeat = !!b.isFeatured;
+        if (aFeat && !bFeat) return -1;
+        if (!aFeat && bFeat) return 1;
+        return a.nameKo.localeCompare(b.nameKo, "ko");
+      });
       const orderedIds = sorted.map((s) => s.id);
       await handleSaveAttractionReorder(orderedIds);
-      alert(`성공적으로 ${cityLabel} 관광지 ${sorted.length}개가 'ㄱㄴㄷ 가나다순'으로 정렬되어 저장되었습니다.`);
+      alert(`성공적으로 ${cityLabel} 관광지 ${sorted.length}개가 추천 우선 및 'ㄱㄴㄷ 가나다순'으로 정렬되어 저장되었습니다.`);
     } catch (err: any) {
       alert(`ㄱㄴㄷ 정렬 저장 중 오류 발생: ${err.message}`);
     } finally {
@@ -351,6 +357,18 @@ export default function AttractionCatalogPanel() {
       s.id.toLowerCase().includes(q)
     );
   });
+
+  // 추천(isFeatured) 항목을 무조건 최상단에 우선 배치하고,
+  // 그 안에서 본래 정렬 순서(sortOrder / ㄱㄴㄷ 순)를 유지합니다.
+  const sortedSpots = React.useMemo(() => {
+    return [...filteredSpots].sort((a, b) => {
+      const aFeat = !!a.isFeatured;
+      const bFeat = !!b.isFeatured;
+      if (aFeat && !bFeat) return -1;
+      if (!aFeat && bFeat) return 1;
+      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+    });
+  }, [filteredSpots]);
 
   return (
     <div className="space-y-6">
@@ -494,7 +512,7 @@ export default function AttractionCatalogPanel() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-100 font-medium">
-                {filteredSpots.map((spot) => {
+                {sortedSpots.map((spot) => {
                   const scopeType = spot.targetScope || "BOTH";
                   const isItemActive = spot.isActive !== false;
                   return (
@@ -933,13 +951,14 @@ export default function AttractionCatalogPanel() {
             : "관광 명소 카탈로그 노출 순서 정렬"
         }
         categoryIcon="🏛️"
-        items={attractions.map((s) => ({
+        items={sortedSpots.map((s) => ({
           id: s.id,
           titleKo: s.nameKo,
           titleEn: s.nameEn,
           subtitle: `${CITY_KOREAN_NAMES[s.cityCode] || s.cityCode} · ${s.price === 0 ? "무료" : `₩${s.price.toLocaleString()}`} · ${s.categoryType || "명소"}`,
           imageUrl: s.imageUrl,
           badge: s.isFeatured ? "추천" : undefined,
+          highlight: s.isFeatured,
         }))}
         onSave={handleSaveAttractionReorder}
         noticeText="저장 시 선택된 지역의 정렬 규칙이 커스텀 순서(CUSTOM_ORDER)로 자동 적용됩니다."

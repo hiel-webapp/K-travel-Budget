@@ -703,49 +703,99 @@ export async function saveAdminSortingRule(city: string, rule: SortingRuleType):
 
 function applyFoodSorting(items: FoodItemDefinition[], rule: SortingRuleType): FoodItemDefinition[] {
   const list = [...items];
+
+  // 추천(isMustEatTop3) 항목은 정렬 규칙에 상관없이 무조건 최상단에 위치하며,
+  // 추천 해제 시 사용자가 설정한 본래 순서(sortOrder / ㄱㄴㄷ 등)로 자연스럽게 복귀합니다.
+  const recommendedComparator = (a: FoodItemDefinition, b: FoodItemDefinition): number => {
+    const aRec = !!a.isMustEatTop3;
+    const bRec = !!b.isMustEatTop3;
+    if (aRec && !bRec) return -1;
+    if (!aRec && bRec) return 1;
+    return 0;
+  };
+
   switch (rule) {
     case "CUSTOM_ORDER":
-      return list.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
     case "RECOMMENDED":
+    default:
       return list.sort((a, b) => {
-        if (a.isMustEatTop3 && !b.isMustEatTop3) return -1;
-        if (!a.isMustEatTop3 && b.isMustEatTop3) return 1;
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
         return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
       });
     case "PRICE_ASC":
-      return list.sort((a, b) => a.unitPriceKrw - b.unitPriceKrw);
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return a.unitPriceKrw - b.unitPriceKrw;
+      });
     case "PRICE_DESC":
-      return list.sort((a, b) => b.unitPriceKrw - a.unitPriceKrw);
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return b.unitPriceKrw - a.unitPriceKrw;
+      });
     case "NAME_ASC":
-      return list.sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko"));
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return a.nameKo.localeCompare(b.nameKo, "ko");
+      });
     case "LATEST":
-      return list.reverse();
-    default:
-      return list;
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return (b.sortOrder ?? 0) - (a.sortOrder ?? 0);
+      });
   }
 }
 
 function applyAttractionSorting(items: AttractionSpot[], rule: SortingRuleType): AttractionSpot[] {
   const list = [...items];
+
+  // 추천(isFeatured) 항목은 정렬 규칙에 상관없이 무조건 최상단에 위치하며,
+  // 추천 해제 시 사용자가 설정한 본래 순서(sortOrder / ㄱㄴㄷ 등)로 자연스럽게 복귀합니다.
+  const recommendedComparator = (a: AttractionSpot, b: AttractionSpot): number => {
+    const aRec = !!a.isFeatured;
+    const bRec = !!b.isFeatured;
+    if (aRec && !bRec) return -1;
+    if (!aRec && bRec) return 1;
+    return 0;
+  };
+
   switch (rule) {
     case "CUSTOM_ORDER":
-      return list.sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999));
     case "RECOMMENDED":
+    default:
       return list.sort((a, b) => {
-        if (a.isFeatured && !b.isFeatured) return -1;
-        if (!a.isFeatured && b.isFeatured) return 1;
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
         return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
       });
     case "PRICE_ASC":
-      return list.sort((a, b) => a.price - b.price);
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return a.price - b.price;
+      });
     case "PRICE_DESC":
-      return list.sort((a, b) => b.price - a.price);
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return b.price - a.price;
+      });
     case "NAME_ASC":
-      return list.sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko"));
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return a.nameKo.localeCompare(b.nameKo, "ko");
+      });
     case "LATEST":
-      return list.reverse();
-    default:
-      return list;
+      return list.sort((a, b) => {
+        const recDiff = recommendedComparator(a, b);
+        if (recDiff !== 0) return recDiff;
+        return (b.sortOrder ?? 0) - (a.sortOrder ?? 0);
+      });
   }
 }
 

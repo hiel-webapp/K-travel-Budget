@@ -125,6 +125,7 @@ export default function FoodPlannerPanel({
   }, [basketSelections, activeCityTab, currentCity]);
 
   // 활성 도시의 10대 대표 음식 (Top 3 vs 탐색 7선) - K-스팟 전용 아이템은 제외
+  // 추천(isMustEatTop3) 항목은 무조건 최상단에 우선 배치되며, 해제 시 본래 순서(sortOrder / ㄱㄴㄷ 순)로 복귀
   const cityFoods = useMemo(() => {
     let list: FoodItemDefinition[];
     if (dynamicFoods.length > 0) {
@@ -136,9 +137,16 @@ export default function FoodPlannerPanel({
         (f) => f.targetScope !== "K_SPOT" && f.isActive !== false
       );
     }
-    const top3 = list.filter((f) => f.isMustEatTop3);
-    const explore7 = list.filter((f) => !f.isMustEatTop3);
-    return { all: list, top3, explore7 };
+    const sorted = [...list].sort((a, b) => {
+      const aMust = !!a.isMustEatTop3;
+      const bMust = !!b.isMustEatTop3;
+      if (aMust && !bMust) return -1;
+      if (!aMust && bMust) return 1;
+      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+    });
+    const top3 = sorted.filter((f) => f.isMustEatTop3);
+    const explore7 = sorted.filter((f) => !f.isMustEatTop3);
+    return { all: sorted, top3, explore7 };
   }, [activeCityTab, dynamicFoods]);
 
   // 한국 대표 음식 필터링 - K-스팟 전용 아이템은 제외
@@ -151,8 +159,15 @@ export default function FoodPlannerPanel({
     } else {
       base = NATIONAL_K_FOODS.filter((f) => f.targetScope !== "K_SPOT" && f.isActive !== false);
     }
-    if (nationalCategoryFilter === "ALL") return base;
-    return base.filter((f) => f.categoryTag === nationalCategoryFilter);
+    const sorted = [...base].sort((a, b) => {
+      const aMust = !!a.isMustEatTop3;
+      const bMust = !!b.isMustEatTop3;
+      if (aMust && !bMust) return -1;
+      if (!aMust && bMust) return 1;
+      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+    });
+    if (nationalCategoryFilter === "ALL") return sorted;
+    return sorted.filter((f) => f.categoryTag === nationalCategoryFilter);
   }, [nationalCategoryFilter, dynamicFoods]);
 
   const handleAdd = (foodId: string, cityCode?: SupportedCity) => {

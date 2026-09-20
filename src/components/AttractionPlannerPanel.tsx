@@ -135,9 +135,17 @@ export default function AttractionPlannerPanel({
     setPromptActivity(null);
   };
 
-  // 1. 도시 대표 명소 목록 병합
+  // 1. 도시 대표 명소 목록 병합 및 추천(isFeatured) 우선 정렬
+  // 추천 항목은 최상단에 위치하며, 추천 해제 시 본래 순서(sortOrder / ㄱㄴㄷ 순)로 복귀합니다.
   const spotsForCity = useMemo(() => {
-    return [...customAttractionPlaces, ...baseSpotsForCity];
+    const combined = [...customAttractionPlaces, ...baseSpotsForCity];
+    return combined.sort((a, b) => {
+      const aFeat = !!a.isFeatured;
+      const bFeat = !!b.isFeatured;
+      if (aFeat && !bFeat) return -1;
+      if (!aFeat && bFeat) return 1;
+      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+    });
   }, [customAttractionPlaces, baseSpotsForCity]);
 
   // 2. 현재 도시의 K-테마 액티비티 목록

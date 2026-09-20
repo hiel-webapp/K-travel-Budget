@@ -5011,7 +5011,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const validDbSpots = dbSpots?.filter((s) => s.cityCode === city);
                   const baseSpotsForCity = ((validDbSpots && validDbSpots.length > 0)
                     ? validDbSpots
-                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)).filter((s) => s.isActive !== false);
+                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city))
+                    .filter((s) => s.isActive !== false)
+                    .sort((a, b) => {
+                      const aFeat = !!a.isFeatured;
+                      const bFeat = !!b.isFeatured;
+                      if (aFeat && !bFeat) return -1;
+                      if (!aFeat && bFeat) return 1;
+                      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+                    });
 
                   // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합
                   const customAttractionPlaces = budgetPlaces

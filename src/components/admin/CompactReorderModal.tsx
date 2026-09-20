@@ -57,9 +57,14 @@ export default function CompactReorderModal({
     setList(updated);
   };
 
-  // ㄱㄴㄷ(가나다순) 자동 정렬 핸들러
+  // ㄱㄴㄷ(가나다순) 자동 정렬 핸들러 (추천 항목 최상단 우선 유지)
   const handleSortAlphabetical = (direction: "asc" | "desc" = "asc") => {
     const sorted = [...list].sort((a, b) => {
+      const aHighlight = !!(a.highlight || (a.badge && (a.badge.includes("Must") || a.badge.includes("추천"))));
+      const bHighlight = !!(b.highlight || (b.badge && (b.badge.includes("Must") || b.badge.includes("추천"))));
+      if (aHighlight && !bHighlight) return -1;
+      if (!aHighlight && bHighlight) return 1;
+
       const cmp = a.titleKo.localeCompare(b.titleKo, "ko");
       return direction === "asc" ? cmp : -cmp;
     });

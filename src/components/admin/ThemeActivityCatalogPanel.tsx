@@ -348,7 +348,6 @@ export default function ThemeActivityCatalogPanel() {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-700 bg-slate-800/90 text-slate-100 font-bold uppercase tracking-wider">
                 <tr>
-                  <th className="p-3.5">사진</th>
                   <th className="p-3.5">체험명 / ID</th>
                   <th className="p-3.5">상태</th>
                   <th className="p-3.5">연계 관광지 (트리거)</th>
@@ -370,19 +369,6 @@ export default function ThemeActivityCatalogPanel() {
                           : "hover:bg-slate-900/80 bg-slate-950/50 opacity-60"
                       }`}
                     >
-                      <td className="p-3.5">
-                        {act.imageUrl ? (
-                          <img
-                            src={act.imageUrl}
-                            alt={act.nameKo}
-                            className="h-10 w-10 rounded-lg object-cover border border-slate-600"
-                          />
-                        ) : (
-                          <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-base border border-slate-700">
-                            🎭
-                          </div>
-                        )}
-                      </td>
                       <td className="p-3.5">
                         <div className="font-bold text-white text-sm">
                           {act.nameKo}
@@ -641,27 +627,6 @@ export default function ThemeActivityCatalogPanel() {
                   </div>
                 </div>
 
-                <div className="sm:col-span-2">
-                  <label className="font-bold text-slate-200">사진 이미지 URL</label>
-                  <input
-                    type="text"
-                    placeholder="https://images.unsplash.com/..."
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 font-medium text-white focus:border-rose-400 focus:outline-none"
-                  />
-                  {imageUrl && (
-                    <div className="mt-2 flex items-center gap-3">
-                      <img
-                        src={imageUrl}
-                        alt="Preview"
-                        className="h-16 w-16 rounded-xl object-cover border border-slate-600"
-                        onError={(e: any) => (e.target.style.display = "none")}
-                      />
-                      <span className="text-[11px] text-slate-400">이미지 미리보기</span>
-                    </div>
-                  )}
-                </div>
 
                 <div className="sm:col-span-2">
                   <label className="font-bold text-slate-200">체험 설명 (한국어)</label>

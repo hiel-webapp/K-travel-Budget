@@ -25,7 +25,7 @@ import {
 import { applyFoodReplacements, applyFoodAddOns, calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "./food-engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, isSameSpot } from "../catalog/attraction-spots";
 import { THEME_ACTIVITIES_CATALOG, isPalaceFreeSpot, isHanbokActivityId } from "../catalog/theme-activities";
-import { STAY_ARCHETYPES } from "../catalog/stay-archetypes";
+import { STAY_ARCHETYPES, getStayArchetypePrice, StayArchetypeId } from "../catalog/stay-archetypes";
 import { getIntercityFareOptions, getAirportTransitOptions, AIRPORT_INFO_MAP } from "../../../lib/transport/intercity-fares";
 
 /**
@@ -199,7 +199,9 @@ export function generateInitialBudgetPlan(
                 accSelection.segments.forEach((seg) => {
                   const segNights = seg.nights || 0;
                   const segBasket = findBasket(catalog, seg.basketId, category, city) || catalog.find((b) => b.category === "ACCOMMODATION");
-                  const segUnitPrice = seg.nightlyPriceKrw ?? segBasket?.representativePriceKrw ?? 95000;
+                  const matchedArch = STAY_ARCHETYPES.find((a) => (a.id as string) === (seg.basketId as string));
+                  const archCityPrice = matchedArch ? getStayArchetypePrice(city, matchedArch.id) : undefined;
+                  const segUnitPrice = seg.nightlyPriceKrw ?? archCityPrice ?? segBasket?.representativePriceKrw ?? 95000;
                   splitTotalKrw += segUnitPrice * roomCount * segNights;
 
                   let nameKo = seg.placeNameKo;
@@ -470,8 +472,27 @@ export function generateInitialBudgetPlan(
               throw new Error(`Price catalog missing item for city: ${city}, category: ${category}, tier: ${budgetTier}`);
             }
           } else {
+            let effectiveBasket = basket;
+            if (category === "ACCOMMODATION") {
+              const matchedArch = STAY_ARCHETYPES.find(
+                (a) =>
+                  a.id === basketId ||
+                  (basketId === "BUDGET_STAY" && a.id === "HOSTEL_GUESTHOUSE") ||
+                  (basketId === "STANDARD_HOTEL" && a.id === "BUSINESS_HOTEL") ||
+                  (basketId === "PREMIUM_HERITAGE" && a.id === "HANOK_BOUTIQUE")
+              );
+              if (matchedArch) {
+                const archPrice = getStayArchetypePrice(city, matchedArch.id);
+                effectiveBasket = {
+                  ...basket,
+                  representativePriceKrw: archPrice,
+                  priceMinKrw: Math.round(archPrice * 0.75),
+                  priceMaxKrw: Math.round(archPrice * 1.35),
+                };
+              }
+            }
             item = calculateLineItem({
-              basket,
+              basket: effectiveBasket,
               cityCode: city,
               route: null,
               adultCount,

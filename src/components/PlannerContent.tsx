@@ -684,6 +684,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   }, []);
 
+  // 상태 로딩 완료 또는 인원/도시 변경 시 미설정 도시에 2인 1실(SHARED_PAIR) 보장
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const prefsOcc = state.preferences.occupancyModeByCity || {};
+    const adultCount = state.draft.adultCount || 1;
+    let hasChanges = false;
+    const nextOcc: Record<string, OccupancyMode> = { ...occupancyModeByCity, ...prefsOcc };
+
+    (state.draft.selectedCities || []).forEach((c) => {
+      if (!nextOcc[c]) {
+        nextOcc[c] = adultCount > 1 ? "SHARED_PAIR" : "SOLO";
+        hasChanges = true;
+      }
+    });
+
+    if (hasChanges) {
+      setOccupancyModeByCity(nextOcc);
+    }
+  }, [state]);
+
   useEffect(() => {
     const customAttractions = budgetPlaces
       .filter((p) => !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
@@ -4893,7 +4913,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       onSelectArchetype={(c, archId) => handleStopStayOverride(activeStop, archId as BudgetBasketId)}
                       occupancyMode={occupancyMode}
                       onSelectOccupancyMode={(c, mode) => {
-                        setOccupancyModeByCity((prev) => ({ ...prev, [c]: mode }));
+                        const nextOcc = { ...occupancyModeByCity, [c]: mode };
+                        setOccupancyModeByCity(nextOcc);
+                        persistPreferences({ occupancyModeByCity: nextOcc });
+                        setState((prev) =>
+                          prev.status === "ready"
+                            ? {
+                                ...prev,
+                                preferences: { ...prev.preferences, occupancyModeByCity: nextOcc },
+                              }
+                            : prev
+                        );
                       }}
                       onResetToRecommended={() => handleResetStopStay(activeStop)}
                       hasCustomOverride={hasOverride}
@@ -4913,12 +4943,31 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         const cName = locale === "ko" ? (CITY_KOREAN_NAMES[c] || c) : (CITY_ENGLISH_NAMES[c] || c);
                         const cAcc = preferences.accommodationByCity?.[c];
                         const isSpl = cAcc && typeof cAcc === "object" && (cAcc as any).kind === "SPLIT";
+                        
+                        let cityArchId: StayArchetypeId = "BUSINESS_HOTEL";
+                        if (typeof cAcc === "string") {
+                          if (STAY_ARCHETYPES.some((a) => a.id === cAcc)) {
+                            cityArchId = cAcc as StayArchetypeId;
+                          } else if (cAcc === "BUDGET_STAY") cityArchId = "HOSTEL_GUESTHOUSE";
+                          else if (cAcc === "STANDARD_HOTEL") cityArchId = "BUSINESS_HOTEL";
+                          else if (cAcc === "PREMIUM_HERITAGE") cityArchId = "HANOK_BOUTIQUE";
+                        } else if (cAcc && typeof cAcc === "object" && (cAcc as any).basketId) {
+                          const b = (cAcc as any).basketId;
+                          if (STAY_ARCHETYPES.some((a) => a.id === b)) {
+                            cityArchId = b;
+                          } else if (b === "BUDGET_STAY") cityArchId = "HOSTEL_GUESTHOUSE";
+                          else if (b === "STANDARD_HOTEL") cityArchId = "BUSINESS_HOTEL";
+                          else if (b === "PREMIUM_HERITAGE") cityArchId = "HANOK_BOUTIQUE";
+                        } else {
+                          cityArchId = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
+                        }
+
                         return {
                           city: c,
                           cityName: cName,
                           cityNights: n,
                           initialSegments: isSpl ? (cAcc as any).segments : null,
-                          defaultArchetypeId: selectedArchetypeId,
+                          defaultArchetypeId: cityArchId,
                         };
                       })}
                       onSaveSplitStayForCity={(targetCity, segments) => {
@@ -4938,7 +4987,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           city: targetCity,
                           nights: draft.cityNightAllocations?.[targetCity] ?? 2,
                         };
-                        handleResetStopStay(targetStop);
+                        const tierArch = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
+                        handleStopStayOverride(targetStop, tierArch as BudgetBasketId);
                       }}
                       onBatchApplySplit={(batch) => {
                         const nextAcc = { ...preferences.accommodationByCity };
@@ -4960,8 +5010,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       }}
                       onBatchResetSplit={(cities) => {
                         const nextAcc = { ...preferences.accommodationByCity };
+                        const tierArch = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
                         cities.forEach((c) => {
-                          delete nextAcc[c];
+                          nextAcc[c] = tierArch;
                         });
                         persistPreferences({ accommodationByCity: nextAcc });
                         setState((prev) =>
@@ -5599,7 +5650,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                     const isSoloTraveler = (draft.adultCount || 1) <= 1;
                                                     const effectiveOccMode = occupancyModeByCity[city] || (isSoloTraveler ? "SOLO" : "SHARED_PAIR");
                                                     const roomCount = isSoloTraveler ? 1 : (effectiveOccMode === "SHARED_PAIR" ? Math.ceil((draft.adultCount || 1) / 2) : (draft.adultCount || 1));
-                                                    const segTotal = (seg.nightlyPriceKrw || 0) * roomCount * (seg.nights || 1);
+                                                    const segUnitPrice = seg.nightlyPriceKrw || getStayArchetypePrice(city, seg.basketId as StayArchetypeId) || 0;
+                                                    const segTotal = segUnitPrice * roomCount * (seg.nights || 1);
                                                     return (
                                                       <div key={sIdx} className="flex justify-between text-[10.5px] text-slate-600">
                                                         <span className="truncate pr-1">• {segName} ({segNightText})</span>

@@ -9,7 +9,6 @@ import type { PlaceItem } from "../lib/places/types";
 
 import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle, FoodBasketItemSelection, SplitStaySegment } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
-import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata, SEOUL_LANDMARK_BILINGUAL_MAP, isSameSpot, normalizeSpotKey } from "../features/budget/catalog/attraction-spots";
 import { SHOW_LOCAL_SPOTS } from "../lib/config/spots-visibility";
 import { ACCOMMODATION_SPOTS_CATALOG, AccommodationCandidateSpot } from "../features/budget/catalog/accommodation-spots";
@@ -3337,28 +3336,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     } else {
       setSaveError(true);
     }
-  };
-
-  const getCatalogStayPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
-    const cityMatch = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ACCOMMODATION" && b.id === basketId && b.applicableCity === city
-    );
-    if (cityMatch) return cityMatch.representativePriceKrw;
-    const fallbackMatch = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ACCOMMODATION" && b.id === basketId
-    );
-    return fallbackMatch ? fallbackMatch.representativePriceKrw : 0;
-  };
-
-  const getCatalogAttractionPrice = (city: SupportedCity, basketId: BudgetBasketId): number => {
-    const cityMatch = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ATTRACTION" && b.id === basketId && b.applicableCity === city
-    );
-    if (cityMatch) return cityMatch.representativePriceKrw;
-    const fallbackMatch = MOCK_PRICE_CATALOG.find(
-      (b) => b.category === "ATTRACTION" && b.id === basketId
-    );
-    return fallbackMatch ? fallbackMatch.representativePriceKrw : 0;
   };
 
   return (

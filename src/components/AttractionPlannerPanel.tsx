@@ -18,6 +18,7 @@ import {
   getRelatedThemeActivity,
   getAllThemeActivities,
   registerCustomThemeActivities,
+  PALACE_HANBOK_FREE_SPOT_IDS,
 } from "../features/budget/catalog/theme-activities";
 import { formatKrw } from "../features/budget/presentation/formatters";
 import { useExchangeRate } from "../lib/hooks/useExchangeRate";
@@ -179,14 +180,27 @@ export default function AttractionPlannerPanel({
     return list;
   }, [spotsForCity, themeActivitiesForCity, selectedSpotKeys]);
 
+  // 서울 한복 대여 선택 여부 감지 (경복궁, 창덕궁, 창경궁, 덕수궁 무료 입장 연동)
+  const isHanbokRentalSelected = useMemo(() => {
+    return city === "SEOUL" && selectedSpotKeys.has(normalizeSpotKey("act_seoul_hanbok"));
+  }, [city, selectedSpotKeys]);
+
   // 4. 바스켓 통계 요약 (무료/유료 개수 및 총 입장료)
   const basketSummary = useMemo(() => {
     let freeCount = 0;
     let paidCount = 0;
     let totalPerPersonKrw = 0;
+    let hanbokSavingsPerPersonKrw = 0;
 
     selectedSpotsInCity.forEach((spot) => {
-      if (spot.priceStatus === "FREE" || spot.price === 0) {
+      const isPalaceFree =
+        isHanbokRentalSelected &&
+        PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(spot.id));
+
+      if (isPalaceFree) {
+        freeCount += 1;
+        hanbokSavingsPerPersonKrw += spot.price;
+      } else if (spot.priceStatus === "FREE" || spot.price === 0) {
         freeCount += 1;
       } else {
         paidCount += 1;
@@ -195,6 +209,7 @@ export default function AttractionPlannerPanel({
     });
 
     const grandTotalKrw = totalPerPersonKrw * adultCount;
+    const totalSavingsKrw = hanbokSavingsPerPersonKrw * adultCount;
 
     return {
       totalCount: selectedSpotsInCity.length,
@@ -202,8 +217,10 @@ export default function AttractionPlannerPanel({
       paidCount,
       totalPerPersonKrw,
       grandTotalKrw,
+      totalSavingsKrw,
+      hasHanbokSavings: totalSavingsKrw > 0,
     };
-  }, [selectedSpotsInCity, adultCount]);
+  }, [selectedSpotsInCity, adultCount, isHanbokRentalSelected]);
 
   // 5. 도시 대표 명소 필터링
   const effectiveCatFilter = categoryFilter === "SAVED_ONLY" && selectedSpotKeys.size === 0 ? "ALL" : categoryFilter;
@@ -361,6 +378,18 @@ export default function AttractionPlannerPanel({
             </span>
           </button>
         </div>
+
+        {/* 한복 무료 입장 혜택 알림 뱃지 */}
+        {basketSummary.hasHanbokSavings && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold animate-fade-in shadow-2xs">
+            <span className="text-sm">👘</span>
+            <span>
+              {locale === "ko"
+                ? `한복 착용 궁궐 무료 입장 (-${formatPriceByLocale(basketSummary.totalSavingsKrw, locale, usdRate)} 절감)`
+                : `Hanbok Palace Free Pass (-${formatPriceByLocale(basketSummary.totalSavingsKrw, locale, usdRate)})`}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 3. 서브탭별 본문 */}
@@ -533,17 +562,41 @@ export default function AttractionPlannerPanel({
                           </h5>
                         </div>
 
-                        <span
-                          className={`text-xs sm:text-sm font-black shrink-0 whitespace-nowrap ${
-                            rawSpot.priceStatus === "FREE" || rawSpot.price === 0
-                              ? "text-emerald-600"
-                              : "text-[#e25c5c]"
-                          }`}
-                        >
-                          {rawSpot.priceStatus === "FREE" || rawSpot.price === 0
-                            ? (locale === "ko" ? "무료" : "Free")
-                            : formatPriceByLocale(rawSpot.price, locale, usdRate)}
-                        </span>
+                        {/* 가격 표시: 한복 대여 시 4대궁 무료 혜택 적용 */}
+                        {(() => {
+                          const isPalaceFreeWithHanbok =
+                            city === "SEOUL" &&
+                            isHanbokRentalSelected &&
+                            PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(rawSpot.id));
+
+                          if (isPalaceFreeWithHanbok) {
+                            return (
+                              <div className="text-right shrink-0 whitespace-nowrap">
+                                <span className="text-[11px] text-slate-400 line-through block">
+                                  {formatPriceByLocale(rawSpot.price, locale, usdRate)}
+                                </span>
+                                <span className="text-xs sm:text-sm font-black text-emerald-600 flex items-center gap-0.5 justify-end">
+                                  <span>👘</span>
+                                  <span>{locale === "ko" ? "0원 (한복 무료)" : "Free (Hanbok)"}</span>
+                                </span>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <span
+                              className={`text-xs sm:text-sm font-black shrink-0 whitespace-nowrap ${
+                                rawSpot.priceStatus === "FREE" || rawSpot.price === 0
+                                  ? "text-emerald-600"
+                                  : "text-[#e25c5c]"
+                              }`}
+                            >
+                              {rawSpot.priceStatus === "FREE" || rawSpot.price === 0
+                                ? (locale === "ko" ? "무료" : "Free")
+                                : formatPriceByLocale(rawSpot.price, locale, usdRate)}
+                            </span>
+                          );
+                        })()}
                       </div>
 
                       {/* 카테고리 뱃지 */}
@@ -751,7 +804,10 @@ export default function AttractionPlannerPanel({
             <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
               <div className="divide-y divide-slate-100">
                 {selectedSpotsInCity.map((spot, idx) => {
-                  const isFree = spot.priceStatus === "FREE" || spot.price === 0;
+                  const isPalaceFree =
+                    isHanbokRentalSelected &&
+                    PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(spot.id));
+                  const isFree = spot.priceStatus === "FREE" || spot.price === 0 || isPalaceFree;
                   const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
                   const totalItemPrice = spot.price * adultCount;
 
@@ -771,31 +827,50 @@ export default function AttractionPlannerPanel({
                             </h6>
                             <span
                               className={`text-[10px] font-bold px-1.5 py-0.2 rounded-md ${
-                                isFree
+                                isPalaceFree
+                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                  : isFree
                                   ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                                   : "bg-rose-50 text-rose-700 border border-rose-200"
                               }`}
                             >
-                              {isFree ? (locale === "ko" ? "무료" : "Free") : (locale === "ko" ? "유료" : "Paid")}
+                              {isPalaceFree
+                                ? (locale === "ko" ? "한복 무료" : "Hanbok Free")
+                                : isFree
+                                ? (locale === "ko" ? "무료" : "Free")
+                                : (locale === "ko" ? "유료" : "Paid")}
                             </span>
                           </div>
                           <p className="text-[11px] text-slate-400 truncate max-w-md">
-                            {spot.tag || "Attraction"}
+                            {isPalaceFree
+                              ? (locale === "ko" ? "한복 착용 시 입장료 무료 혜택 적용" : "Free admission with Hanbok rental")
+                              : spot.tag || "Attraction"}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
-                        <div className="text-right">
-                          <span className="text-xs sm:text-sm font-black text-[#0f172a] block">
-                            {isFree ? (locale === "ko" ? "0원" : "$0") : formatPriceByLocale(totalItemPrice, locale, usdRate)}
-                          </span>
-                          {!isFree && adultCount > 1 && (
-                            <span className="text-[10px] text-slate-400 block">
-                              {locale === "ko" ? `1인 ${formatKrw(spot.price)}` : `1p ${formatPriceByLocale(spot.price, locale, usdRate)}`}
+                        {isPalaceFree ? (
+                          <div className="text-right">
+                            <span className="text-[10px] text-slate-400 line-through block">
+                              {formatPriceByLocale(totalItemPrice, locale, usdRate)}
                             </span>
-                          )}
-                        </div>
+                            <span className="text-xs sm:text-sm font-black text-emerald-600 block">
+                              {locale === "ko" ? "0원 (무료)" : "$0 (Free)"}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="text-right">
+                            <span className="text-xs sm:text-sm font-black text-[#0f172a] block">
+                              {isFree ? (locale === "ko" ? "0원" : "$0") : formatPriceByLocale(totalItemPrice, locale, usdRate)}
+                            </span>
+                            {!isFree && adultCount > 1 && (
+                              <span className="text-[10px] text-slate-400 block">
+                                {locale === "ko" ? `1인 ${formatKrw(spot.price)}` : `1p ${formatPriceByLocale(spot.price, locale, usdRate)}`}
+                              </span>
+                            )}
+                          </div>
+                        )}
 
                         <button
                           type="button"
@@ -818,6 +893,18 @@ export default function AttractionPlannerPanel({
                   <span>{locale === "ko" ? "선택 명소 합계 (1인 기준)" : "Selected Spots Subtotal (Per Person)"}:</span>
                   <span className="font-bold text-slate-800">{formatPriceByLocale(basketSummary.totalPerPersonKrw, locale, usdRate)}</span>
                 </div>
+
+                {basketSummary.hasHanbokSavings && (
+                  <div className="flex justify-between items-center text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 font-medium">
+                    <span className="flex items-center gap-1 font-bold">
+                      <span>👘</span>
+                      <span>{locale === "ko" ? "한복 착용 4대궁 무료 입장 혜택" : "Hanbok Palace Free Admission"}</span>
+                    </span>
+                    <span className="font-black text-emerald-800">
+                      -{formatPriceByLocale(basketSummary.totalSavingsKrw, locale, usdRate)}
+                    </span>
+                  </div>
+                )}
 
                 <div className="pt-2 border-t border-slate-200 flex justify-between items-baseline text-sm font-black text-[#0f172a]">
                   <span>{locale === "ko" ? `최종 관광비 합계 (${adultCount}인)` : `Total Attraction Budget (${adultCount}p)`}:</span>

@@ -22,6 +22,9 @@ export interface ThemeActivityItem {
   isActive?: boolean;
 }
 
+/**
+ * 관광지 입장료와 중복되지 않는 순수 부가 체험 목록 (입장권 중복 과금 방지)
+ */
 export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
   // ========================================================
   // 1. 서울 (SEOUL)
@@ -34,7 +37,7 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     relatedSpotNameEn: "Gyeongbokgung Palace",
     nameKo: "경복궁 한복 대여",
     nameEn: "Gyeongbokgung Hanbok Rental",
-    descKo: "경복궁 산책용 고급 한복 대여 및 헤어 손질 (한복 착용 시 경복궁 무료 입장).",
+    descKo: "경복궁 산책용 고급 한복 대여 및 헤어 손질 (한복 착용 시 4대궁 무료 입장).",
     descEn: "2-hour premium hanbok rental and traditional hairstyling with free palace admission.",
     priceKrw: 25000,
     tag: "K-컬처/인기",
@@ -44,17 +47,17 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     durationTextEn: "2 hours",
   },
   {
-    id: "act_seoul_lotteworld",
+    id: "act_seoul_gyobok",
     cityCode: "SEOUL",
     relatedSpotKey: "seoul_lotteworld",
     relatedSpotNameKo: "롯데월드 어드벤처",
     relatedSpotNameEn: "Lotte World Adventure",
-    nameKo: "롯데월드 종합이용권",
-    nameEn: "Lotte World All-Day Pass",
-    descKo: "실내 어드벤처와 석촌호수 매직아일랜드를 자유롭게 이용하는 1일 종합이용권.",
-    descEn: "Full-day unlimited pass to world's largest indoor theme park and outdoor lake attractions.",
-    priceKrw: 62000,
-    tag: "테마파크",
+    nameKo: "잠실 감성교복 대여",
+    nameEn: "Jamsil Korean School Uniform Rental",
+    descKo: "롯데월드와 석촌호수 인생샷을 위한 트렌디한 K-스쿨 교복 종일 대여 체험.",
+    descEn: "Full-day rental of trendy Korean high school uniforms for photo sessions at Lotte World.",
+    priceKrw: 20000,
+    tag: "K-패션/체험",
     categoryType: "엔터",
     imageUrl: "",
     durationTextKo: "종일",
@@ -133,23 +136,6 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
   // 2. 부산 (BUSAN)
   // ========================================================
   {
-    id: "act_busan_blueline",
-    cityCode: "BUSAN",
-    relatedSpotKey: "busan_blueline",
-    relatedSpotNameKo: "해운대 블루라인파크",
-    relatedSpotNameEn: "Haeundae Blueline Park",
-    nameKo: "해운대 블루라인 해변열차",
-    nameEn: "Haeundae Beach Train",
-    descKo: "미포에서 송정까지 동해안 해안 절경을 따라 달리는 낭만적인 해변열차 탑승권.",
-    descEn: "Scenic coastal train ride linking Mipo to Songjeong beach along the Busan shoreline.",
-    priceKrw: 12000,
-    tag: "해변열차",
-    categoryType: "자연",
-    imageUrl: "",
-    durationTextKo: "90분",
-    durationTextEn: "90 mins",
-  },
-  {
     id: "act_busan_yacht",
     cityCode: "BUSAN",
     relatedSpotKey: "busan_thebay101",
@@ -165,23 +151,6 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     imageUrl: "",
     durationTextKo: "60분",
     durationTextEn: "60 mins",
-  },
-  {
-    id: "act_busan_aircruise",
-    cityCode: "BUSAN",
-    relatedSpotKey: "busan_songdo_cablecar",
-    relatedSpotNameKo: "송도 해상케이블카 & 구름산책로",
-    relatedSpotNameEn: "Songdo Marine Cable Car",
-    nameKo: "송도 해상케이블카 크리스탈",
-    nameEn: "Songdo Cable Car Crystal Cabin",
-    descKo: "바닥이 투명한 유리 캐빈으로 송도 앞바다 86m 상공을 가로지르는 왕복 탑승권.",
-    descEn: "Glass-bottom ocean cable car soaring 86m above Songdo beach waters.",
-    priceKrw: 22000,
-    tag: "해상케이블카",
-    categoryType: "명소",
-    imageUrl: "",
-    durationTextKo: "40분",
-    durationTextEn: "40 mins",
   },
   {
     id: "act_busan_spaland",
@@ -260,23 +229,6 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
   // 4. 인천 (INCHEON)
   // ========================================================
   {
-    id: "act_incheon_luge",
-    cityCode: "INCHEON",
-    relatedSpotKey: "incheon_ganghwa_luge",
-    relatedSpotNameKo: "강화 루지 (강화씨사이드리조트)",
-    relatedSpotNameEn: "Ganghwa Seaside Luge",
-    nameKo: "강화 씨사이드 루지 탑승권",
-    nameEn: "Ganghwa Seaside Luge Ride",
-    descKo: "아시아 최장 1.8km 트랙을 서해 바다를 바라보며 질주하는 곤돌라+루지 1회 탑승권.",
-    descEn: "Thrilling 1.8km downhill gravity ride with coastal panorama via scenic gondola.",
-    priceKrw: 19000,
-    tag: "루지/레포츠",
-    categoryType: "엔터",
-    imageUrl: "",
-    durationTextKo: "40분",
-    durationTextEn: "40 mins",
-  },
-  {
     id: "act_incheon_wolmido",
     cityCode: "INCHEON",
     relatedSpotKey: "incheon_wolmido",
@@ -297,40 +249,6 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
   // ========================================================
   // 5. 수원 (SUWON)
   // ========================================================
-  {
-    id: "act_suwon_flying",
-    cityCode: "SUWON",
-    relatedSpotKey: "suwon_flying_suwon",
-    relatedSpotNameKo: "플라잉 수원 (헬륨 열기구)",
-    relatedSpotNameEn: "Flying Suwon",
-    nameKo: "플라잉 수원 헬륨기구 탑승권",
-    nameEn: "Flying Suwon Helium Balloon",
-    descKo: "150m 상공으로 솟아올라 수원화성 성곽과 도심 전체의 낭만적인 야경을 감상하는 계류식 열기구.",
-    descEn: "Tethered helium balloon flight reaching 150m above ground with night view over Hwaseong Fortress.",
-    priceKrw: 20000,
-    tag: "열기구/전망",
-    categoryType: "명소",
-    imageUrl: "",
-    durationTextKo: "15분",
-    durationTextEn: "15 mins",
-  },
-  {
-    id: "act_suwon_archery",
-    cityCode: "SUWON",
-    relatedSpotKey: "suwon_yeonmudae_archery",
-    relatedSpotNameKo: "연무대(동장대) & 국궁 활쏘기 체험",
-    relatedSpotNameEn: "Yeonmudae Archery Experience",
-    nameKo: "수원화성 연무대 국궁 체험",
-    nameEn: "Suwon Fortress Traditional Archery",
-    descKo: "조선시대 군사 훈련장 연무대에서 사두에게 직접 배우는 전통 한국 국궁 10발 사격.",
-    descEn: "Authentic Korean traditional archery practice with 10 arrows guided by master instructors.",
-    priceKrw: 20000,
-    tag: "전통무예/국궁",
-    categoryType: "명소",
-    imageUrl: "",
-    durationTextKo: "20분",
-    durationTextEn: "20 mins",
-  },
   {
     id: "act_suwon_hanbok",
     cityCode: "SUWON",
@@ -416,23 +334,6 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
   // 9. 속초 (SOKCHO)
   // ========================================================
   {
-    id: "act_sokcho_sokchoeye",
-    cityCode: "SOKCHO",
-    relatedSpotKey: "sokcho_sokchoeye",
-    relatedSpotNameKo: "속초아이 대관람차",
-    relatedSpotNameEn: "Sokcho Eye Ferris Wheel",
-    nameKo: "속초아이 대관람차 탑승권",
-    nameEn: "Sokcho Eye Ferris Wheel Pass",
-    descKo: "동해안 최초 해변 대관람차로 해발 65m에서 속초 바다와 설악산 울산바위를 한눈에 조망.",
-    descEn: "Ride the iconic 65-meter coastal Ferris wheel overlooking Sokcho beach and Mt. Seorak.",
-    priceKrw: 12000,
-    tag: "대관람차/오션뷰",
-    categoryType: "명소",
-    imageUrl: "",
-    durationTextKo: "15분",
-    durationTextEn: "15 mins",
-  },
-  {
     id: "act_sokcho_abai_boat",
     cityCode: "SOKCHO",
     relatedSpotKey: "sokcho_abai",
@@ -449,27 +350,6 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     durationTextKo: "왕복",
     durationTextEn: "Round-trip",
   },
-
-  // ========================================================
-  // 10. 여수 (YEOSU)
-  // ========================================================
-  {
-    id: "act_yeosu_cablecar",
-    cityCode: "YEOSU",
-    relatedSpotKey: "yeosu_marine_cablecar",
-    relatedSpotNameKo: "여수 해상케이블카",
-    relatedSpotNameEn: "Yeosu Marine Cable Car",
-    nameKo: "여수 해상케이블카 크리스탈 왕복",
-    nameEn: "Yeosu Marine Cable Car Crystal Cabin",
-    descKo: "돌산공원과 자산공원을 잇는 바다 위 80m 높이에서 즐기는 바닥 투명 크리스탈 캐빈 왕복 승차권.",
-    descEn: "Round-trip ticket on transparent glass-floor marine cable car 80m over the sea.",
-    priceKrw: 24000,
-    tag: "해상케이블카/야경",
-    categoryType: "명소",
-    imageUrl: "",
-    durationTextKo: "30분",
-    durationTextEn: "30 mins",
-  },
 ];
 
 let dynamicActivitiesCache: ThemeActivityItem[] | null = null;
@@ -485,6 +365,16 @@ export function getAllThemeActivities(includeInactive = false): ThemeActivityIte
 }
 
 /**
+ * 서울 4대궁 ID 목록: 한복 대여 착용 시 입장료 무료(0원) 혜택 대상
+ */
+export const PALACE_HANBOK_FREE_SPOT_IDS = new Set([
+  "seoul_gyeongbokgung",     // 경복궁 (3,000원)
+  "seoul_changdeokgung",     // 창덕궁 (3,000원)
+  "seoul_changgyeonggung",   // 창경궁 (1,000원)
+  "seoul_deoksugung",        // 덕수궁 (1,000원)
+]);
+
+/**
  * 주어진 spot ID 또는 명칭과 연계된 K-테마 액티비티를 검색합니다.
  */
 export function getRelatedThemeActivity(spotId: string, spotName?: string): ThemeActivityItem | undefined {
@@ -494,6 +384,12 @@ export function getRelatedThemeActivity(spotId: string, spotName?: string): Them
   // 1. 정확한 spotId key 매칭
   const byKey = catalog.find((act) => act.relatedSpotKey && (act.relatedSpotKey === normalized || act.relatedSpotKey === spotId));
   if (byKey) return byKey;
+
+  // 1-1. 서울 4대궁 한복 대여 연계 (창덕궁, 창경궁, 덕수궁에서도 한복 대여 연계 추천)
+  if (PALACE_HANBOK_FREE_SPOT_IDS.has(normalized) || PALACE_HANBOK_FREE_SPOT_IDS.has(spotId)) {
+    const hanbokAct = catalog.find((act) => act.id === "act_seoul_hanbok");
+    if (hanbokAct) return hanbokAct;
+  }
 
   // 2. 명칭 매칭 (보조 매칭)
   if (spotName) {

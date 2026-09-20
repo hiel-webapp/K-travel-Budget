@@ -11,7 +11,11 @@ import {
   normalizeSpotKey,
   SEOUL_LANDMARK_BILINGUAL_MAP,
 } from "../catalog/attraction-spots";
-import { THEME_ACTIVITIES_CATALOG, themeActivityToAttractionSpot } from "../catalog/theme-activities";
+import {
+  THEME_ACTIVITIES_CATALOG,
+  themeActivityToAttractionSpot,
+  PALACE_HANBOK_FREE_SPOT_IDS,
+} from "../catalog/theme-activities";
 import { STAY_ARCHETYPES } from "../catalog/stay-archetypes";
 import type { PlaceItem } from "src/lib/places/types";
 import type { Locale } from "src/lib/i18n/locales";
@@ -227,6 +231,8 @@ export function calculateTripBudgetSummary(
     });
     (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
+    const hasHanbokRental = Array.from(selectedSpotKeys).some((key) => isSameSpot(key, "act_seoul_hanbok"));
+
     const selectedSpotsList: AttractionSpot[] = [];
     let attractionTotal = 0;
     selectedSpotKeys.forEach((normKey) => {
@@ -234,9 +240,23 @@ export function calculateTripBudgetSummary(
         spotsForCity.find((s) => isSameSpot(s.id, normKey)) ||
         ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
       if (spot) {
-        selectedSpotsList.push(spot);
-        if (spot.priceStatus === "PAID" && spot.price > 0) {
-          attractionTotal += spot.price * adultCount;
+        const isPalaceFree =
+          city === "SEOUL" &&
+          hasHanbokRental &&
+          PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(spot.id));
+
+        const calculatedSpot: AttractionSpot = isPalaceFree
+          ? {
+              ...spot,
+              price: 0,
+              priceStatus: "FREE",
+              descKo: `${spot.descKo} [한복 착용 무료 입장 혜택 적용]`,
+            }
+          : spot;
+
+        selectedSpotsList.push(calculatedSpot);
+        if (calculatedSpot.priceStatus === "PAID" && calculatedSpot.price > 0) {
+          attractionTotal += calculatedSpot.price * adultCount;
         }
       }
     });

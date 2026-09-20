@@ -104,9 +104,10 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
     );
   }, [citySelectionsMap, selectedCity, currentNights, currentCityInfo]);
 
-  // 방 개수 및 인원 계산
+  // 방 개수 및 인원 계산 (2인 이상 기본값은 2인 1실 SHARED_PAIR 100% 보장)
   const isSoloTraveler = adultCount <= 1;
-  const isPairSplit = !isSoloTraveler && occupancyMode === "SHARED_PAIR";
+  const effectiveOccupancy = isSoloTraveler ? "SOLO" : (occupancyMode || "SHARED_PAIR");
+  const isPairSplit = !isSoloTraveler && effectiveOccupancy === "SHARED_PAIR";
   const sharedRoomCount = Math.ceil(adultCount / 2);
   const roomCount = isSoloTraveler ? 1 : isPairSplit ? sharedRoomCount : adultCount;
 

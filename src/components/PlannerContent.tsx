@@ -653,10 +653,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const [attractionCategoryFilterByCity, setAttractionCategoryFilterByCity] = useState<Record<string, string>>({});
   const [visibleAccommodationsCountByCity, setVisibleAccommodationsCountByCity] = useState<Record<string, number>>({});
   const [occupancyModeByCity, setOccupancyModeByCity] = useState<Record<string, OccupancyMode>>(() => {
-    if (state.status === "ready" && state.preferences.occupancyModeByCity) {
+    if (state.status === "ready" && state.preferences.occupancyModeByCity && Object.keys(state.preferences.occupancyModeByCity).length > 0) {
       return state.preferences.occupancyModeByCity;
     }
-    return {};
+    // 기본 인원이 2인 이상이면 모든 선택 도시에 기본적으로 SHARED_PAIR (2인 1실) 부여
+    const initial: Record<string, OccupancyMode> = {};
+    if (state.status === "ready" && (state.draft.adultCount || 1) > 1) {
+      (state.draft.selectedCities || []).forEach((c) => {
+        initial[c] = "SHARED_PAIR";
+      });
+    }
+    return initial;
   });
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
   const [expandedReceiptCities, setExpandedReceiptCities] = useState<Record<string, boolean>>({});
@@ -5589,8 +5596,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                       }
                                                     }
                                                     const segNightText = locale === "ko" ? `${seg.nights}박` : `${seg.nights}N`;
-                                                    const pairFactor = occupancyModeByCity[city] === "SHARED_PAIR" ? Math.ceil((draft.adultCount || 1) / 2) : (draft.adultCount || 1);
-                                                    const segTotal = (seg.nightlyPriceKrw || 0) * pairFactor * (seg.nights || 1);
+                                                    const isSoloTraveler = (draft.adultCount || 1) <= 1;
+                                                    const effectiveOccMode = occupancyModeByCity[city] || (isSoloTraveler ? "SOLO" : "SHARED_PAIR");
+                                                    const roomCount = isSoloTraveler ? 1 : (effectiveOccMode === "SHARED_PAIR" ? Math.ceil((draft.adultCount || 1) / 2) : (draft.adultCount || 1));
+                                                    const segTotal = (seg.nightlyPriceKrw || 0) * roomCount * (seg.nights || 1);
                                                     return (
                                                       <div key={sIdx} className="flex justify-between text-[10.5px] text-slate-600">
                                                         <span className="truncate pr-1">• {segName} ({segNightText})</span>

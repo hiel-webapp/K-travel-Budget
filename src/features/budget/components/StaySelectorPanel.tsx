@@ -118,10 +118,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   // - SHARED_PAIR (기본): 2인 1실 (총 객실비 = 1개 방 * 박수, 1인당 부담 = 1/2)
   // - SOLO: 1인 1실 (총 객실비 = adultCount개 방 * 박수, 1인당 부담 = 방 1개 전액)
   const isSoloTraveler = adultCount <= 1;
-  const isPairSplit = !isSoloTraveler && occupancyMode === "SHARED_PAIR";
+  const effectiveOccupancy = isSoloTraveler ? "SOLO" : (occupancyMode || "SHARED_PAIR");
+  const isPairSplit = !isSoloTraveler && effectiveOccupancy === "SHARED_PAIR";
 
-  // 여행 전체 숙박비 (총 결제액)
-  // 여행 전체 숙박비 (총 결제액)
+  // 여행 전체 숙박비 (2인 이상 기본값 SHARED_PAIR: 2인 1실 방 1개)
   const sharedRoomCount = Math.ceil(adultCount / 2);
   const roomCount = isSoloTraveler ? 1 : isPairSplit ? sharedRoomCount : adultCount;
 

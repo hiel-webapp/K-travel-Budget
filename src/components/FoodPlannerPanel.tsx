@@ -65,19 +65,45 @@ export default function FoodPlannerPanel({
   const [activeCityTab, setActiveCityTab] = useState<SupportedCity>(currentCity);
   const [nationalCategoryFilter, setNationalCategoryFilter] = useState<"ALL" | FoodCategoryTag>("ALL");
   const [previewFood, setPreviewFood] = useState<FoodItemDefinition | null>(null);
-  const [dynamicFoods, setDynamicFoods] = useState<FoodItemDefinition[]>(() => ALL_FOOD_ITEMS);
-
-  // 관리자 / Supabase 실시간 동적 카탈로그 로드
-  useEffect(() => {
-    fetch("/api/admin/catalog?type=FOOD")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.success && Array.isArray(data.foods) && data.foods.length > 0) {
-          registerCustomFoodItems(data.foods);
-          setDynamicFoods(data.foods);
+  const [dynamicFoods, setDynamicFoods] = useState<FoodItemDefinition[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("hypeheritage_admin_foods");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            registerCustomFoodItems(parsed);
+            return parsed;
+          }
         }
-      })
-      .catch(() => {});
+      } catch {}
+    }
+    return ALL_FOOD_ITEMS;
+  });
+
+  // 관리자 / Supabase 실시간 동적 카탈로그 로드 및 동기화
+  useEffect(() => {
+    const loadLatestFoods = () => {
+      fetch("/api/admin/catalog?type=FOOD")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && Array.isArray(data.foods) && data.foods.length > 0) {
+            registerCustomFoodItems(data.foods);
+            setDynamicFoods(data.foods);
+            try {
+              localStorage.setItem("hypeheritage_admin_foods", JSON.stringify(data.foods));
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    };
+
+    loadLatestFoods();
+
+    window.addEventListener("hypeheritage_admin_foods_changed", loadLatestFoods);
+    return () => {
+      window.removeEventListener("hypeheritage_admin_foods_changed", loadLatestFoods);
+    };
   }, []);
 
   // 현재 활성화된 도시 목록 (전달된 selectedCities 기준 또는 기본 도시)
@@ -732,6 +758,7 @@ function FoodItemCard({
               alt={locale === "ko" ? food.nameKo : food.nameEn}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               loading="lazy"
+              decoding="async"
               onError={(e) => {
                 // 이미지 로드 실패 시 숨김 처리
                 (e.target as HTMLElement).style.display = 'none';

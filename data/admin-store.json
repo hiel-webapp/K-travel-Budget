@@ -1489,7 +1489,7 @@
       "priceMaxKrw": 75000,
       "isMustEatTop3": false,
       "emoji": "🥩",
-      "imageUrl": "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/foods/jeju-black-pork.jpg",
+      "imageUrl": "/assets/jeju-black-pork.jpg",
       "targetScope": "BOTH",
       "sortOrder": 1,
       "isActive": true
@@ -1755,7 +1755,7 @@
       "priceMaxKrw": 16000,
       "isMustEatTop3": false,
       "emoji": "",
-      "imageUrl": "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/foods/jeonju-moju.png",
+      "imageUrl": "/assets/jeonju-moju.png",
       "targetScope": "BOTH",
       "sortOrder": 6,
       "isActive": true

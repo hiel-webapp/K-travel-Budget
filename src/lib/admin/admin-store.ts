@@ -278,6 +278,37 @@ export function getTravelPresetById(id: TravelPresetId): TravelPreset | undefine
     console.warn("[AdminStore] travel-presets.ts sync skipped:", syncErr);
   }
 
+  // 정적 food-catalog.ts 파일도 최신 음식 목록과 동기화하여 첫 로딩 시의 플리커링/구버전 이미지 번쩍임 영구 방지
+  try {
+    const catalogPath = path.join(process.cwd(), "src", "features", "budget", "catalog", "food-catalog.ts");
+    if (fs.existsSync(catalogPath)) {
+      let code = fs.readFileSync(catalogPath, "utf-8");
+      const foods = data.foodItems || [];
+      const nationalFoods = foods.filter((f) => f.scope === "NATIONAL");
+      const cityCodes: SupportedCity[] = ["SEOUL", "BUSAN", "JEJU", "INCHEON", "GYEONGJU", "GANGNEUNG", "JEONJU", "SOKCHO", "SUWON", "YEOSU"];
+      const cityFoods: Record<string, FoodItemDefinition[]> = {};
+      cityCodes.forEach((c) => {
+        cityFoods[c] = foods.filter((f) => f.cityCode === c && f.scope === "CITY_LOCAL");
+      });
+
+      const newNatBlock = `export const NATIONAL_K_FOODS: FoodItemDefinition[] = ${JSON.stringify(nationalFoods, null, 2)};`;
+      const newCityBlock = `export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition[]> = ${JSON.stringify(cityFoods, null, 2)};`;
+
+      code = code.replace(
+        /export const NATIONAL_K_FOODS: FoodItemDefinition\[\] = \[[\s\S]*?\];\r?\n\r?\n\/\//,
+        `${newNatBlock}\n\n//`
+      );
+      code = code.replace(
+        /export const CITY_SPECIALTY_FOODS: Record<SupportedCity, FoodItemDefinition\[\]> = \{[\s\S]*?\};\r?\n\r?\n\/\//,
+        `${newCityBlock}\n\n//`
+      );
+
+      fs.writeFileSync(catalogPath, code, "utf-8");
+    }
+  } catch (syncErr) {
+    console.warn("[AdminStore] food-catalog.ts sync skipped:", syncErr);
+  }
+
   // Supabase 원격 실시간 저장
   await uploadToSupabase(data);
 }

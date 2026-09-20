@@ -64,6 +64,12 @@ export default function FoodCatalogPanel() {
     fetchFoods();
   }, [selectedCity, selectedScope]);
 
+  const notifyFoodsChanged = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("hypeheritage_admin_foods_changed"));
+    }
+  };
+
   const handleToggleActive = async (food: FoodItemDefinition) => {
     const nextStatus = food.isActive === false ? true : false;
     try {
@@ -78,6 +84,7 @@ export default function FoodCatalogPanel() {
       const data = await res.json();
       if (data.success) {
         setFoods(foods.map((f) => (f.id === food.id ? { ...f, isActive: nextStatus } : f)));
+        notifyFoodsChanged();
       } else {
         alert(`상태 변경 실패: ${data.error}`);
       }
@@ -234,6 +241,7 @@ export default function FoodCatalogPanel() {
       const data = await res.json();
       if (data.success) {
         setIsModalOpen(false);
+        notifyFoodsChanged();
         fetchFoods();
       } else {
         alert(`저장 실패: ${data.error}`);
@@ -253,6 +261,7 @@ export default function FoodCatalogPanel() {
       const data = await res.json();
       if (data.success) {
         setFoods(foods.filter((f) => f.id !== food.id));
+        notifyFoodsChanged();
       }
     } catch (err) {
       console.error(err);
@@ -272,6 +281,7 @@ export default function FoodCatalogPanel() {
     });
     const data = await res.json();
     if (data.success) {
+      notifyFoodsChanged();
       fetchFoods();
     } else {
       throw new Error(data.error || "순서 저장 실패");

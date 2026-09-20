@@ -57,6 +57,15 @@ export default function CompactReorderModal({
     setList(updated);
   };
 
+  // ㄱㄴㄷ(가나다순) 자동 정렬 핸들러
+  const handleSortAlphabetical = (direction: "asc" | "desc" = "asc") => {
+    const sorted = [...list].sort((a, b) => {
+      const cmp = a.titleKo.localeCompare(b.titleKo, "ko");
+      return direction === "asc" ? cmp : -cmp;
+    });
+    setList(sorted);
+  };
+
   const moveToTop = (index: number) => {
     moveItem(index, 0);
   };
@@ -168,12 +177,33 @@ export default function CompactReorderModal({
               </button>
             )}
           </div>
-          {noticeText && (
-            <div className="text-[11px] text-amber-300/90 bg-amber-950/40 border border-amber-500/30 rounded-lg px-2.5 py-1 flex items-center gap-1">
-              <span>💡</span>
-              <span>{noticeText}</span>
-            </div>
-          )}
+
+          {/* Quick Sort Actions */}
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+            <button
+              type="button"
+              onClick={() => handleSortAlphabetical("asc")}
+              className="rounded-xl border border-indigo-500/50 bg-indigo-600/30 px-3 py-1.5 text-xs font-bold text-indigo-200 hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
+              title="한글 이름 기준 가나다(ㄱ~ㅎ) 순으로 전체 정렬"
+            >
+              <span>🔤</span>
+              <span>ㄱㄴㄷ순 정렬</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSortAlphabetical("desc")}
+              className="rounded-xl border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-xs font-bold text-slate-300 hover:bg-slate-700 hover:text-white transition-all shadow-sm active:scale-95"
+              title="한글 이름 기준 역순(ㅎ~ㄱ)으로 전체 정렬"
+            >
+              <span>ㅎ~ㄱ</span>
+            </button>
+            {noticeText && (
+              <div className="text-[11px] text-amber-300/90 bg-amber-950/40 border border-amber-500/30 rounded-lg px-2.5 py-1 flex items-center gap-1">
+                <span>💡</span>
+                <span className="hidden md:inline">{noticeText}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Reorderable List */}

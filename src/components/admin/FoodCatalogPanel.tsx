@@ -278,6 +278,36 @@ export default function FoodCatalogPanel() {
     }
   };
 
+  const handleSortFoodsAlphabetical = async () => {
+    if (foods.length === 0) return;
+    const cityLabel =
+      selectedCity !== "ALL"
+        ? selectedCity === "NATIONAL"
+          ? "전국 대표"
+          : `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity}`
+        : "전체";
+
+    if (
+      !confirm(
+        `현재 ${cityLabel} 음식 목록(총 ${foods.length}개)을 'ㄱㄴㄷ 가나다순'으로 자동 정렬하고 즉시 저장하시겠습니까?`
+      )
+    ) {
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const sorted = [...foods].sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko"));
+      const orderedIds = sorted.map((f) => f.id);
+      await handleSaveFoodReorder(orderedIds);
+      alert(`성공적으로 ${cityLabel} 음식 ${sorted.length}개가 'ㄱㄴㄷ 가나다순'으로 정렬되어 저장되었습니다.`);
+    } catch (err: any) {
+      alert(`ㄱㄴㄷ 정렬 저장 중 오류 발생: ${err.message}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleMoveFood = async (foodId: string, direction: "top" | "up" | "down") => {
     const currentList = [...foods];
     const index = currentList.findIndex((f) => f.id === foodId);
@@ -358,6 +388,16 @@ export default function FoodCatalogPanel() {
                 ? `${selectedCity === "NATIONAL" ? "전국" : CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity} 순서 정렬`
                 : "순서 정렬 (드래그)"}
             </span>
+          </button>
+          <button
+            type="button"
+            onClick={handleSortFoodsAlphabetical}
+            disabled={isSyncing || foods.length === 0}
+            className="rounded-xl border border-emerald-500/50 bg-emerald-600/20 px-3.5 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-600/40 hover:text-white transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            title="현재 지역의 모든 음식을 한글 가나다(ㄱㄴㄷ) 순으로 자동 정렬하고 즉시 저장"
+          >
+            <span>🔤</span>
+            <span>ㄱㄴㄷ순 정렬</span>
           </button>
           <button
             type="button"

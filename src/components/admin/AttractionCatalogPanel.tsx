@@ -276,6 +276,34 @@ export default function AttractionCatalogPanel() {
     }
   };
 
+  const handleSortAttractionsAlphabetical = async () => {
+    if (attractions.length === 0) return;
+    const cityLabel =
+      selectedCity !== "ALL"
+        ? `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity}`
+        : "전체";
+
+    if (
+      !confirm(
+        `현재 ${cityLabel} 관광지/명소 목록(총 ${attractions.length}개)을 'ㄱㄴㄷ 가나다순'으로 자동 정렬하고 즉시 저장하시겠습니까?`
+      )
+    ) {
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      const sorted = [...attractions].sort((a, b) => a.nameKo.localeCompare(b.nameKo, "ko"));
+      const orderedIds = sorted.map((s) => s.id);
+      await handleSaveAttractionReorder(orderedIds);
+      alert(`성공적으로 ${cityLabel} 관광지 ${sorted.length}개가 'ㄱㄴㄷ 가나다순'으로 정렬되어 저장되었습니다.`);
+    } catch (err: any) {
+      alert(`ㄱㄴㄷ 정렬 저장 중 오류 발생: ${err.message}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleMoveAttraction = async (spotId: string, direction: "top" | "up" | "down") => {
     const currentList = [...attractions];
     const index = currentList.findIndex((s) => s.id === spotId);
@@ -356,6 +384,16 @@ export default function AttractionCatalogPanel() {
                 ? `${CITY_KOREAN_NAMES[selectedCity as SupportedCity] || selectedCity} 순서 정렬`
                 : "순서 정렬 (드래그)"}
             </span>
+          </button>
+          <button
+            type="button"
+            onClick={handleSortAttractionsAlphabetical}
+            disabled={isSyncing || attractions.length === 0}
+            className="rounded-xl border border-emerald-500/50 bg-emerald-600/20 px-3.5 py-2 text-xs font-bold text-emerald-200 hover:bg-emerald-600/40 hover:text-white transition-all shadow-sm flex items-center gap-1.5 flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+            title="현재 지역의 모든 관광지를 한글 가나다(ㄱㄴㄷ) 순으로 자동 정렬하고 즉시 저장"
+          >
+            <span>🔤</span>
+            <span>ㄱㄴㄷ순 정렬</span>
           </button>
           <button
             type="button"

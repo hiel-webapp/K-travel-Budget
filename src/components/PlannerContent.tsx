@@ -1491,12 +1491,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       [city]: clampedNights,
     };
 
+    // stops 배열에서도 해당 도시의 nights를 즉시 갱신하여 ensureTripStops/syncDraftFromStops가 과거 박수로 덮어쓰지 못하도록 보장
+    const nextStops = currentStops.map((s) => (s.city === city ? { ...s, nights: clampedNights } : s));
+
     let nextDraft: TripDraft = {
       ...currentDraft,
       cityNightAllocations: nextAlloc,
+      stops: nextStops,
     };
 
-    const nextStops = ensureTripStops(nextDraft);
     nextDraft = syncDraftFromStops(nextDraft, nextStops, { preserveTotalNights: true });
 
     const validation = validateTripDraft(nextDraft);
@@ -3724,11 +3727,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             <select
                               value={currentStopNights}
                               onChange={(e) => {
-                                if (isRepeatedCity) {
-                                  handleSetStopNights(idx, Number(e.target.value));
-                                } else {
-                                  handleSetCityNights(city, Number(e.target.value));
-                                }
+                                handleSetStopNights(idx, Number(e.target.value));
                               }}
                               className={`w-full text-center appearance-none py-1 pl-2 pr-4 rounded-lg text-xs font-black cursor-pointer border transition-all focus:outline-none focus:ring-1 focus:ring-[#e25c5c] ${
                                 currentStopNights === 0

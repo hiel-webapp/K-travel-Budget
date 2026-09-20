@@ -555,7 +555,7 @@ function validateSingleAccommodation(
           seg &&
           typeof seg === "object" &&
           typeof seg.nights === "number" &&
-          seg.nights > 0 &&
+          seg.nights >= 0 &&
           (typeof seg.basketId === "string" || typeof seg.placeNameKo === "string" || typeof seg.nightlyPriceKrw === "number")
         );
       });

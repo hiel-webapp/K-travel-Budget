@@ -16,6 +16,7 @@ import {
   AGODA_CITY_IDS,
 } from "../catalog/stay-archetypes";
 import { SplitStaySegment, BudgetBasketId } from "../domain/types";
+import { SplitStayModal } from "./SplitStayModal";
 
 export interface StaySelectorPanelProps {
   city: SupportedCity;
@@ -114,114 +115,22 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   const sharedRoomCount = Math.ceil(adultCount / 2);
   const roomCount = isSoloTraveler ? 1 : isPairSplit ? sharedRoomCount : adultCount;
 
-  // 분할 숙박(Split Stay) 상태 및 연산
-  const isSplitActive = !!(splitStayOverride && splitStayOverride.length >= 2);
-  const [activeSplitTab, setActiveSplitTab] = useState<0 | 1>(0);
+  // 분할 숙박(Split Stay) 상태, 모달 열림 여부 및 N개 세그먼트 정밀 연산
+  const isSplitActive = !!(splitStayOverride && splitStayOverride.length >= 1);
+  const [isSplitModalOpen, setIsSplitModalOpen] = useState(false);
 
-  const defaultSeg1Nights = Math.max(1, Math.floor(cityNights / 2));
-  const defaultSeg2Nights = Math.max(1, cityNights - defaultSeg1Nights);
-
-  const seg1BasketId: StayArchetypeId =
-    (splitStayOverride?.[0]?.basketId as StayArchetypeId) || selectedArchetypeId || "BUSINESS_HOTEL";
-  const seg1Nights = splitStayOverride?.[0]?.nights ?? defaultSeg1Nights;
-
-  const seg2BasketId: StayArchetypeId =
-    (splitStayOverride?.[1]?.basketId as StayArchetypeId) || "HANOK_BOUTIQUE";
-  const seg2Nights = splitStayOverride?.[1]?.nights ?? defaultSeg2Nights;
-
-  const seg1Price = getStayArchetypePrice(city, seg1BasketId);
-  const seg2Price = getStayArchetypePrice(city, seg2BasketId);
-
-  const splitTotalCostKrw = (seg1Price * seg1Nights + seg2Price * seg2Nights) * roomCount;
+  // N개 분할 세그먼트 총합 비용 연산
+  const splitTotalCostKrw = isSplitActive
+    ? splitStayOverride!.reduce((sum, seg) => {
+        const price = seg.nightlyPriceKrw ?? getStayArchetypePrice(city, seg.basketId as StayArchetypeId);
+        return sum + price * (seg.nights || 1);
+      }, 0) * roomCount
+    : 0;
   const splitPerPersonKrw = Math.round(splitTotalCostKrw / adultCount);
 
   // 최종 표출 숙박비 (분할 숙박 중이면 splitTotalCostKrw 사용)
   const effectiveTotalStayCostKrw = isSplitActive ? splitTotalCostKrw : (nightlyRoomPrice * roomCount * cityNights);
   const effectivePerPersonStayCostKrw = isSplitActive ? splitPerPersonKrw : Math.round(effectiveTotalStayCostKrw / adultCount);
-
-  const handleToggleSplit = () => {
-    if (isSplitActive) {
-      onResetSplitStay?.(city);
-    } else {
-      const arch1 = STAY_ARCHETYPES.find((a) => a.id === (selectedArchetypeId || "BUSINESS_HOTEL"));
-      const arch2 = STAY_ARCHETYPES.find((a) => a.id === "HANOK_BOUTIQUE");
-      const segs: SplitStaySegment[] = [
-        {
-          segmentId: "seg_1",
-          basketId: (selectedArchetypeId || "BUSINESS_HOTEL") as BudgetBasketId,
-          nights: defaultSeg1Nights,
-          nightlyPriceKrw: getStayArchetypePrice(city, selectedArchetypeId || "BUSINESS_HOTEL"),
-          placeNameKo: arch1?.titleKo || "도심 비즈니스 호텔",
-          placeNameEn: arch1?.titleEn || "Urban Business Hotel",
-        },
-        {
-          segmentId: "seg_2",
-          basketId: "HANOK_BOUTIQUE" as BudgetBasketId,
-          nights: defaultSeg2Nights,
-          nightlyPriceKrw: getStayArchetypePrice(city, "HANOK_BOUTIQUE"),
-          placeNameKo: arch2?.titleKo || "한옥 스테이",
-          placeNameEn: arch2?.titleEn || "Boutique Hanok Stay",
-        },
-      ];
-      onSaveSplitStay?.(city, segs);
-    }
-  };
-
-  const handleAdjustSplitNights = (delta: number) => {
-    const newSeg1 = Math.max(1, Math.min(cityNights - 1, seg1Nights + delta));
-    const newSeg2 = cityNights - newSeg1;
-    const arch1 = STAY_ARCHETYPES.find((a) => a.id === seg1BasketId);
-    const arch2 = STAY_ARCHETYPES.find((a) => a.id === seg2BasketId);
-    const nameKo1 = (splitStayOverride?.[0]?.placeNameKo && splitStayOverride[0].placeNameKo !== "호텔") ? splitStayOverride[0].placeNameKo : (arch1?.titleKo || "도심 비즈니스 호텔");
-    const nameEn1 = (splitStayOverride?.[0]?.placeNameEn && splitStayOverride[0].placeNameEn !== "Hotel") ? splitStayOverride[0].placeNameEn : (arch1?.titleEn || "Urban Business Hotel");
-    const nameKo2 = (splitStayOverride?.[1]?.placeNameKo && splitStayOverride[1].placeNameKo !== "호텔") ? splitStayOverride[1].placeNameKo : (arch2?.titleKo || "한옥 스테이");
-    const nameEn2 = (splitStayOverride?.[1]?.placeNameEn && splitStayOverride[1].placeNameEn !== "Hotel") ? splitStayOverride[1].placeNameEn : (arch2?.titleEn || "Boutique Hanok Stay");
-    const segs: SplitStaySegment[] = [
-      {
-        segmentId: "seg_1",
-        basketId: seg1BasketId as BudgetBasketId,
-        nights: newSeg1,
-        nightlyPriceKrw: seg1Price,
-        placeNameKo: nameKo1,
-        placeNameEn: nameEn1,
-      },
-      {
-        segmentId: "seg_2",
-        basketId: seg2BasketId as BudgetBasketId,
-        nights: newSeg2,
-        nightlyPriceKrw: seg2Price,
-        placeNameKo: nameKo2,
-        placeNameEn: nameEn2,
-      },
-    ];
-    onSaveSplitStay?.(city, segs);
-  };
-
-  const handleSelectSplitArchetype = (archId: StayArchetypeId) => {
-    const chosen1 = activeSplitTab === 0 ? archId : seg1BasketId;
-    const chosen2 = activeSplitTab === 1 ? archId : seg2BasketId;
-    const arch1 = STAY_ARCHETYPES.find((a) => a.id === chosen1);
-    const arch2 = STAY_ARCHETYPES.find((a) => a.id === chosen2);
-    const segs: SplitStaySegment[] = [
-      {
-        segmentId: "seg_1",
-        basketId: chosen1 as BudgetBasketId,
-        nights: seg1Nights,
-        nightlyPriceKrw: activeSplitTab === 0 ? getStayArchetypePrice(city, archId) : seg1Price,
-        placeNameKo: arch1?.titleKo || "도심 비즈니스 호텔",
-        placeNameEn: arch1?.titleEn || "Urban Business Hotel",
-      },
-      {
-        segmentId: "seg_2",
-        basketId: chosen2 as BudgetBasketId,
-        nights: seg2Nights,
-        nightlyPriceKrw: activeSplitTab === 1 ? getStayArchetypePrice(city, archId) : seg2Price,
-        placeNameKo: arch2?.titleKo || "한옥 스테이",
-        placeNameEn: arch2?.titleEn || "Boutique Hanok Stay",
-      },
-    ];
-    onSaveSplitStay?.(city, segs);
-  };
 
   const handleApplyCustomStay = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -271,8 +180,14 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               <p className="text-xs text-slate-500">
                 {isSplitActive
                   ? (locale === "ko"
-                      ? `분할 숙박 중: 1차(${seg1Nights}박) + 2차(${seg2Nights}박) 혼합 구성`
-                      : `Split Stay: Leg 1 (${seg1Nights}N) + Leg 2 (${seg2Nights}N)`)
+                      ? `분할 숙박 중: ${splitStayOverride!.map((seg, idx) => {
+                          const arch = STAY_ARCHETYPES.find((a) => a.id === seg.basketId);
+                          return `${idx + 1}차(${seg.nights}박 ${arch?.titleKo || seg.placeNameKo || "숙소"})`;
+                        }).join(" + ")}`
+                      : `Split Stay: ${splitStayOverride!.map((seg, idx) => {
+                          const arch = STAY_ARCHETYPES.find((a) => a.id === seg.basketId);
+                          return `Leg ${idx + 1}(${seg.nights}N ${arch?.titleEn || seg.placeNameEn || "Stay"})`;
+                        }).join(" + ")}`)
                   : !hasSelection
                   ? (locale === "ko"
                       ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
@@ -336,16 +251,19 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
             {cityNights >= 2 && (
               <button
                 type="button"
-                onClick={handleToggleSplit}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-black transition-all cursor-pointer border ${
+                onClick={() => setIsSplitModalOpen(true)}
+                className={`px-3 py-1 rounded-full text-[11px] font-black transition-all cursor-pointer border flex items-center gap-1 ${
                   isSplitActive
-                    ? "bg-rose-50 border-rose-300 text-[#e25c5c] ring-1 ring-rose-200"
-                    : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-[#e25c5c]"
+                    ? "bg-rose-50 border-rose-300 text-[#e25c5c] ring-1 ring-rose-200 hover:bg-rose-100"
+                    : "bg-slate-100 border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-[#e25c5c] hover:border-rose-200"
                 }`}
               >
-                {isSplitActive
-                  ? (locale === "ko" ? "✓ 숙소 분할 사용 중 (클릭 시 해제)" : "✓ Split Stay Active")
-                  : (locale === "ko" ? "+ 숙소 분할하기 (Split Stay)" : "+ Split Stay")}
+                <span>{isSplitActive ? "✓" : "+"}</span>
+                <span>
+                  {isSplitActive
+                    ? (locale === "ko" ? "숙소 분할 설정 변경 (클릭)" : "Edit Split Stay")
+                    : (locale === "ko" ? "숙소 분할하기 (Split Stay)" : "Split Stay")}
+                </span>
               </button>
             )}
           </div>
@@ -354,88 +272,56 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
           </span>
         </div>
 
-        {/* [분할 숙박 모드 UI] 2구간 박수 조절 및 탭 전환 */}
+        {/* [분할 숙박 모드 UI] 깔끔한 분할 요약 카드 및 모달 재호출 버튼 */}
         {isSplitActive && (
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-50/70 via-white to-amber-50/70 border border-rose-200/80 shadow-xs space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-rose-50/70 via-white to-amber-50/70 border border-rose-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black text-slate-900">
-                  {locale === "ko" ? "체류 박수 나누기:" : "Divide Nights:"}
+                <span className="px-2 py-0.5 rounded-md bg-[#e25c5c] text-white text-[10.5px] font-black tracking-tight">
+                  {locale === "ko" ? "분할 숙박 적용 중" : "Split Stay Active"}
                 </span>
                 <span className="text-xs font-bold text-slate-600">
-                  {locale === "ko" ? `총 ${cityNights}박 중` : `Total ${cityNights}N`}
+                  {locale === "ko" ? `총 ${cityNights}박 여정` : `Total ${cityNights} Nights`}
                 </span>
-                <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-xl border border-slate-200 text-xs font-black shadow-2xs">
-                  <span className="text-[#e25c5c]">1차 {seg1Nights}박</span>
-                  <span className="text-slate-300">/</span>
-                  <span className="text-amber-600">2차 {seg2Nights}박</span>
-                </div>
-                <div className="flex items-center gap-1 ml-1">
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustSplitNights(-1)}
-                    disabled={seg1Nights <= 1}
-                    className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 disabled:opacity-30 hover:bg-slate-50 font-bold text-xs flex items-center justify-center cursor-pointer shadow-2xs"
-                    title="1차 박수 줄이기"
-                  >
-                    -
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleAdjustSplitNights(1)}
-                    disabled={seg2Nights <= 1}
-                    className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 disabled:opacity-30 hover:bg-slate-50 font-bold text-xs flex items-center justify-center cursor-pointer shadow-2xs"
-                    title="1차 박수 늘리기"
-                  >
-                    +
-                  </button>
-                </div>
               </div>
-
-              {/* 1차 / 2차 스타일 선택 탭 */}
-              <div className="flex items-center gap-1.5 self-start sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => setActiveSplitTab(0)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border ${
-                    activeSplitTab === 0
-                      ? "bg-[#e25c5c] text-white border-[#e25c5c] shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {locale === "ko" ? `1차 숙소 (${seg1Nights}박)` : `Leg 1 (${seg1Nights}N)`}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveSplitTab(1)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer border ${
-                    activeSplitTab === 1
-                      ? "bg-amber-600 text-white border-amber-600 shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {locale === "ko" ? `2차 숙소 (${seg2Nights}박)` : `Leg 2 (${seg2Nights}N)`}
-                </button>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {splitStayOverride?.map((seg, idx) => {
+                  const arch = STAY_ARCHETYPES.find((a) => a.id === seg.basketId);
+                  return (
+                    <React.Fragment key={idx}>
+                      {idx > 0 && <span className="text-slate-300 font-bold text-xs">+</span>}
+                      <span className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
+                        <strong className="text-[#e25c5c] font-black mr-1">{seg.nights}박</strong>
+                        <span>{locale === "ko" ? (arch?.titleKo || seg.placeNameKo) : (arch?.titleEn || seg.placeNameEn)}</span>
+                      </span>
+                    </React.Fragment>
+                  );
+                })}
               </div>
             </div>
 
-            <p className="text-[11.5px] text-slate-600 font-medium">
-              {activeSplitTab === 0
-                ? (locale === "ko"
-                    ? `아래 스타일 카드에서 [1차 숙소 (${seg1Nights}박)]로 이용할 스타일을 선택하세요. (현재: ${STAY_ARCHETYPES.find(a => a.id === seg1BasketId)?.titleKo})`
-                    : `Choose style for Leg 1 (${seg1Nights}N). Current: ${STAY_ARCHETYPES.find(a => a.id === seg1BasketId)?.titleEn}`)
-                : (locale === "ko"
-                    ? `아래 스타일 카드에서 [2차 숙소 (${seg2Nights}박)]로 이용할 스타일을 선택하세요. (현재: ${STAY_ARCHETYPES.find(a => a.id === seg2BasketId)?.titleKo})`
-                    : `Choose style for Leg 2 (${seg2Nights}N). Current: ${STAY_ARCHETYPES.find(a => a.id === seg2BasketId)?.titleEn}`)}
-            </p>
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setIsSplitModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-white border border-rose-300 hover:bg-rose-50 text-[#e25c5c] text-xs font-black transition-colors cursor-pointer shadow-2xs"
+              >
+                {locale === "ko" ? "⚙️ 박수/숙소 다시 나누기" : "⚙️ Edit Nights"}
+              </button>
+              <button
+                type="button"
+                onClick={() => onResetSplitStay?.(city)}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold transition-colors cursor-pointer"
+              >
+                {locale === "ko" ? "분할 해제" : "Cancel"}
+              </button>
+            </div>
           </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {STAY_ARCHETYPES.map((archetype) => {
-            const isSelected = isSplitActive
-              ? (activeSplitTab === 0 ? seg1BasketId === archetype.id : seg2BasketId === archetype.id)
-              : (!isCustomActive && currentArchetype?.id === archetype.id);
+            const isSelected = !isSplitActive && !isCustomActive && currentArchetype?.id === archetype.id;
             const price = getStayArchetypePrice(city, archetype.id);
             const title = locale === "ko" ? archetype.titleKo : archetype.titleEn;
             const desc = locale === "ko" ? archetype.descKo : archetype.descEn;
@@ -446,10 +332,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                 type="button"
                 onClick={() => {
                   if (isSplitActive) {
-                    handleSelectSplitArchetype(archetype.id);
-                  } else {
-                    onSelectArchetype(city, archetype.id);
+                    // 분할 중 카드를 클릭하면 단일 숙소로 전환
+                    onResetSplitStay?.(city);
                   }
+                  onSelectArchetype(city, archetype.id);
                 }}
                 className={`p-3 rounded-2xl border text-left flex flex-row items-stretch gap-3.5 transition-all duration-155 cursor-pointer relative overflow-hidden group focus-visible:outline-2 focus-visible:outline-[#e25c5c] ${
                   isSelected
@@ -715,6 +601,27 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
         </div>
       )}
 
+      {/* 2.5 Split Stay Modal */}
+      {cityNights >= 2 && (
+        <SplitStayModal
+          isOpen={isSplitModalOpen}
+          onClose={() => setIsSplitModalOpen(false)}
+          city={city}
+          cityName={cityName}
+          cityNights={cityNights}
+          locale={locale}
+          adultCount={adultCount}
+          occupancyMode={occupancyMode}
+          initialSegments={splitStayOverride}
+          defaultArchetypeId={selectedArchetypeId}
+          onApply={(segments) => {
+            onSaveSplitStay?.(city, segments);
+          }}
+          onResetSplit={() => {
+            onResetSplitStay?.(city);
+          }}
+        />
+      )}
     </div>
   );
 };

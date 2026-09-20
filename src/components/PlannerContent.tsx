@@ -4615,8 +4615,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           : "Select a stay archetype or enter your custom booked stay.")
                                       : isSplitStay
                                       ? (locale === "ko"
-                                          ? `숙소 분할 적용: 1차 ${splitSegments[0]?.nights || 0}박 (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[0]?.basketId)?.titleKo || "1차"}) + 2차 ${splitSegments[1]?.nights || 0}박 (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[1]?.basketId)?.titleKo || "2차"})`
-                                          : `Split Stay: 1st ${splitSegments[0]?.nights || 0}N (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[0]?.basketId)?.titleEn || "1st"}) + 2nd ${splitSegments[1]?.nights || 0}N (${STAY_ARCHETYPES.find((a) => a.id === splitSegments[1]?.basketId)?.titleEn || "2nd"})`)
+                                           ? `숙소 분할 적용: ${splitSegments.map((s: any, idx: number) => `${idx + 1}차 ${s?.nights || 0}박(${STAY_ARCHETYPES.find((a: any) => a.id === s?.basketId)?.titleKo || s?.placeNameKo || "숙소"})`).join(" + ")}`
+                                           : `Split Stay: ${splitSegments.map((s: any, idx: number) => `Leg ${idx + 1} ${s?.nights || 0}N(${STAY_ARCHETYPES.find((a: any) => a.id === s?.basketId)?.titleEn || s?.placeNameEn || "Stay"})`).join(" + ")}`)
                                       : isCustomStay
                                       ? (locale === "ko"
                                           ? `직접 입력 숙소: "${(accOverride as any).placeNameKo || (accOverride as any).placeNameEn}" (1박 ${formatKrw(nightlyPrice)})`

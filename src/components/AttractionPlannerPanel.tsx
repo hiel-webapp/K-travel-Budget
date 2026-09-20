@@ -19,6 +19,8 @@ import {
   getAllThemeActivities,
   registerCustomThemeActivities,
   PALACE_HANBOK_FREE_SPOT_IDS,
+  isPalaceFreeSpot,
+  isHanbokActivityId,
 } from "../features/budget/catalog/theme-activities";
 import { formatKrw } from "../features/budget/presentation/formatters";
 import { useExchangeRate } from "../lib/hooks/useExchangeRate";
@@ -182,7 +184,7 @@ export default function AttractionPlannerPanel({
 
   // 서울 한복 대여 선택 여부 감지 (경복궁, 창덕궁, 창경궁, 덕수궁 무료 입장 연동)
   const isHanbokRentalSelected = useMemo(() => {
-    return city === "SEOUL" && selectedSpotKeys.has(normalizeSpotKey("act_seoul_hanbok"));
+    return city === "SEOUL" && Array.from(selectedSpotKeys).some((k) => isHanbokActivityId(k));
   }, [city, selectedSpotKeys]);
 
   // 4. 바스켓 통계 요약 (무료/유료 개수 및 총 입장료)
@@ -195,7 +197,7 @@ export default function AttractionPlannerPanel({
     selectedSpotsInCity.forEach((spot) => {
       const isPalaceFree =
         isHanbokRentalSelected &&
-        PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(spot.id));
+        isPalaceFreeSpot(spot.id, spot.nameKo);
 
       if (isPalaceFree) {
         freeCount += 1;
@@ -567,7 +569,7 @@ export default function AttractionPlannerPanel({
                           const isPalaceFreeWithHanbok =
                             city === "SEOUL" &&
                             isHanbokRentalSelected &&
-                            PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(rawSpot.id));
+                            isPalaceFreeSpot(rawSpot.id, rawSpot.nameKo);
 
                           if (isPalaceFreeWithHanbok) {
                             return (
@@ -806,7 +808,7 @@ export default function AttractionPlannerPanel({
                 {selectedSpotsInCity.map((spot, idx) => {
                   const isPalaceFree =
                     isHanbokRentalSelected &&
-                    PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(spot.id));
+                    isPalaceFreeSpot(spot.id, spot.nameKo);
                   const isFree = spot.priceStatus === "FREE" || spot.price === 0 || isPalaceFree;
                   const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
                   const totalItemPrice = spot.price * adultCount;

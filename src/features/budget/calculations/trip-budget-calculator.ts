@@ -15,6 +15,8 @@ import {
   THEME_ACTIVITIES_CATALOG,
   themeActivityToAttractionSpot,
   PALACE_HANBOK_FREE_SPOT_IDS,
+  isPalaceFreeSpot,
+  isHanbokActivityId,
 } from "../catalog/theme-activities";
 import { STAY_ARCHETYPES } from "../catalog/stay-archetypes";
 import type { PlaceItem } from "src/lib/places/types";
@@ -231,7 +233,7 @@ export function calculateTripBudgetSummary(
     });
     (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
-    const hasHanbokRental = Array.from(selectedSpotKeys).some((key) => isSameSpot(key, "act_seoul_hanbok"));
+    const hasHanbokRental = Array.from(selectedSpotKeys).some((key) => isHanbokActivityId(key));
 
     const selectedSpotsList: AttractionSpot[] = [];
     let attractionTotal = 0;
@@ -243,7 +245,7 @@ export function calculateTripBudgetSummary(
         const isPalaceFree =
           city === "SEOUL" &&
           hasHanbokRental &&
-          PALACE_HANBOK_FREE_SPOT_IDS.has(normalizeSpotKey(spot.id));
+          isPalaceFreeSpot(spot.id, spot.nameKo);
 
         const calculatedSpot: AttractionSpot = isPalaceFree
           ? {

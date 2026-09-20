@@ -22,6 +22,8 @@ import {
   THEME_ACTIVITIES_CATALOG,
   getRelatedThemeActivity,
   themeActivityToAttractionSpot,
+  isPalaceFreeSpot,
+  isHanbokActivityId,
 } from "../features/budget/catalog/theme-activities";
 import { StaySelectorPanel } from "../features/budget/components/StaySelectorPanel";
 import {
@@ -5356,14 +5358,26 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         });
                         (citySel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
-                        const addedSpotsList: AttractionSpot[] = [];
+                        const hasHanbokRental = Array.from(selectedSpotKeys).some((key) => isHanbokActivityId(key));
+
+                        const addedSpotsList: (AttractionSpot & { isPalaceFree?: boolean })[] = [];
                         let attractionsAddedTotalKrw = 0;
                         selectedSpotKeys.forEach((normKey) => {
                           const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
                           if (spot) {
-                            addedSpotsList.push(spot);
-                            if (spot.priceStatus === "PAID" && spot.price > 0) {
-                              attractionsAddedTotalKrw += spot.price * adultCount;
+                            const isPalaceFree = city === "SEOUL" && hasHanbokRental && isPalaceFreeSpot(spot.id, spot.nameKo);
+                            const calculatedSpot = isPalaceFree
+                              ? {
+                                  ...spot,
+                                  price: 0,
+                                  priceStatus: "FREE" as const,
+                                  isPalaceFree: true,
+                                }
+                              : { ...spot, isPalaceFree: false };
+
+                            addedSpotsList.push(calculatedSpot);
+                            if (calculatedSpot.priceStatus === "PAID" && calculatedSpot.price > 0) {
+                              attractionsAddedTotalKrw += calculatedSpot.price * adultCount;
                             }
                           }
                         });
@@ -5642,12 +5656,22 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           const spotKey = normalizeSpotKey(spot.id);
                                           const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
                                           const sName = locale === "ko" ? (bilingual?.nameKo || spot.nameKo) : (bilingual?.nameEn || spot.nameEn);
+                                          const isPalaceFree = !!spot.isPalaceFree;
                                           const sTotal = spot.priceStatus === "PAID" && spot.price > 0 ? spot.price * adultCount : 0;
                                           return (
                                             <div key={spot.id} className="flex justify-between items-center text-[11px] text-slate-600">
                                               <span className="truncate pr-2">{sName}</span>
-                                              <span className="tabular-nums font-medium text-slate-700 shrink-0">
-                                                {sTotal > 0 ? formatKrw(sTotal) : (locale === "ko" ? "무료" : "Free")}
+                                              <span className="tabular-nums font-medium shrink-0">
+                                                {isPalaceFree ? (
+                                                  <span className="text-emerald-600 font-bold flex items-center gap-0.5">
+                                                    <span>👘</span>
+                                                    <span>{locale === "ko" ? "₩0 (한복 무료)" : "Free (Hanbok)"}</span>
+                                                  </span>
+                                                ) : sTotal > 0 ? (
+                                                  <span className="text-slate-700">{formatKrw(sTotal)}</span>
+                                                ) : (
+                                                  <span className="text-emerald-600">{locale === "ko" ? "무료" : "Free"}</span>
+                                                )}
                                               </span>
                                             </div>
                                           );

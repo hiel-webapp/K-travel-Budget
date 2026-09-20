@@ -375,6 +375,42 @@ export const PALACE_HANBOK_FREE_SPOT_IDS = new Set([
 ]);
 
 /**
+ * 주어진 ID가 서울 한복 대여 액티비티인지 판별합니다.
+ */
+export function isHanbokActivityId(id?: string): boolean {
+  if (!id) return false;
+  const clean = id.trim();
+  return clean === "act_seoul_hanbok" || clean.endsWith("act_seoul_hanbok");
+}
+
+/**
+ * 해당 스팟이 한복 착용 시 무료 입장 혜택을 받는 서울 4대궁(경복궁, 창덕궁, 창경궁, 덕수궁)인지 판별합니다.
+ * (한복 대여 액티비티 자체는 대상이 아닙니다)
+ */
+export function isPalaceFreeSpot(spotId?: string, spotNameKo?: string): boolean {
+  if (!spotId && !spotNameKo) return false;
+  // 한복 대여 액티비티 자체는 제외
+  if (spotId && (isHanbokActivityId(spotId) || spotId.startsWith("act_"))) return false;
+  if (spotNameKo && (spotNameKo.includes("대여") || spotNameKo.includes("체험") || spotNameKo.includes("Rental"))) {
+    return false;
+  }
+
+  const normalized = spotId
+    ? spotId.replace(/^seoul_rep_/, "").replace(/^kto_custom_/, "").replace(/^kto_/, "").trim()
+    : "";
+  if (spotId && (PALACE_HANBOK_FREE_SPOT_IDS.has(spotId) || PALACE_HANBOK_FREE_SPOT_IDS.has(normalized))) {
+    return true;
+  }
+  if (spotNameKo) {
+    const clean = spotNameKo.replace(/\s+/g, "");
+    if (clean.includes("경복궁") || clean.includes("창덕궁") || clean.includes("창경궁") || clean.includes("덕수궁")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * 주어진 spot ID 또는 명칭과 연계된 K-테마 액티비티를 검색합니다.
  */
 export function getRelatedThemeActivity(spotId: string, spotName?: string): ThemeActivityItem | undefined {

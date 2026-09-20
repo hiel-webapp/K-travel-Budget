@@ -43,6 +43,8 @@ export interface StaySelectorPanelProps {
   allCitiesSplitInfo?: CitySplitInfo[];
   onSaveSplitStayForCity?: (city: SupportedCity, segments: SplitStaySegment[]) => void;
   onResetSplitStayForCity?: (city: SupportedCity) => void;
+  onBatchApplySplit?: (batch: Record<string, SplitStaySegment[]>) => void;
+  onBatchResetSplit?: (cities: SupportedCity[]) => void;
   hideHeader?: boolean;
 }
 
@@ -68,6 +70,8 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   allCitiesSplitInfo,
   onSaveSplitStayForCity,
   onResetSplitStayForCity,
+  onBatchApplySplit,
+  onBatchResetSplit,
   hideHeader = false,
 }) => {
   const { usdRate } = useExchangeRate();
@@ -645,6 +649,8 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
               onResetSplitStay?.(targetCity);
             }
           }}
+          onBatchApplySplit={onBatchApplySplit}
+          onBatchResetSplit={onBatchResetSplit}
         />
       )}
 

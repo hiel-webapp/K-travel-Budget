@@ -30,6 +30,8 @@ export interface SplitStayModalProps {
   occupancyMode: OccupancyMode;
   onApplyForCity: (city: SupportedCity, segments: SplitStaySegment[]) => void;
   onResetSplitForCity: (city: SupportedCity) => void;
+  onBatchApplySplit?: (batch: Record<string, SplitStaySegment[]>) => void;
+  onBatchResetSplit?: (cities: SupportedCity[]) => void;
 }
 
 export const SplitStayModal: React.FC<SplitStayModalProps> = ({
@@ -42,6 +44,8 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
   occupancyMode,
   onApplyForCity,
   onResetSplitForCity,
+  onBatchApplySplit,
+  onBatchResetSplit,
 }) => {
   const { usdRate } = useExchangeRate();
 
@@ -195,8 +199,27 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
     setTimeout(() => setSavedCityNotice(null), 2000);
   };
 
-  // 2. 전체 도시 분할 일괄 적용 (2박 이상인 모든 도시)
+  // 2. 현재 선택된 도시 분할 해제
+  const handleResetCurrentCity = () => {
+    onResetSplitForCity(selectedCity);
+
+    // 로컬 상태 즉시 기본 단일 숙소로 리셋
+    setCitySelectionsMap((prev) => ({
+      ...prev,
+      [selectedCity]: Array.from(
+        { length: currentNights },
+        () => currentCityInfo.defaultArchetypeId || "BUSINESS_HOTEL"
+      ),
+    }));
+
+    setSavedCityNotice(`RESET_${selectedCity}`);
+    setTimeout(() => setSavedCityNotice(null), 2000);
+  };
+
+  // 3. 전체 도시 분할 일괄 적용 (2박 이상인 모든 도시)
   const handleApplyAllCities = () => {
+    const batchMap: Record<string, SplitStaySegment[]> = {};
+
     allCities.forEach((cityInfo) => {
       if (cityInfo.cityNights < 2) return;
 
@@ -237,20 +260,34 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
         };
       });
 
-      onApplyForCity(cityInfo.city, segments);
+      batchMap[cityInfo.city] = segments;
     });
+
+    if (onBatchApplySplit) {
+      onBatchApplySplit(batchMap);
+    } else {
+      Object.entries(batchMap).forEach(([c, segs]) => {
+        onApplyForCity(c as SupportedCity, segs);
+      });
+    }
 
     setSavedCityNotice("ALL");
     setTimeout(() => setSavedCityNotice(null), 2500);
   };
 
-  // 3. 전체 도시 분할 일괄 해제
+  // 4. 전체 도시 분할 일괄 해제
   const handleResetAllCities = () => {
-    allCities.forEach((cityInfo) => {
-      if (cityInfo.cityNights >= 2) {
-        onResetSplitForCity(cityInfo.city);
-      }
-    });
+    const eligibleCities = allCities
+      .filter((c) => c.cityNights >= 2)
+      .map((c) => c.city);
+
+    if (onBatchResetSplit) {
+      onBatchResetSplit(eligibleCities);
+    } else {
+      eligibleCities.forEach((cityCode) => {
+        onResetSplitForCity(cityCode);
+      });
+    }
 
     const resetMap: Record<string, StayArchetypeId[]> = {};
     allCities.forEach((c) => {
@@ -477,48 +514,49 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
             )}
           </div>
 
-          {/* 하단 버튼 라인: [좌: 해제 버튼군]  vs  [우: 적용 & 완료 버튼군] */}
+          {/* 하단 버튼 라인: [좌측: 도시 적용 / 분할 해제] vs [우측: 전체 적용 / 분할 해제 / 완료] */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            {/* 좌측: 해제 버튼 그룹 (위험도 분리, 차분한 아웃라인 톤) */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => onResetSplitForCity(selectedCity)}
-                className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
-              >
-                {locale === "ko" ? `${currentCityInfo.cityName} 분할 해제` : `Reset ${currentCityInfo.cityName}`}
-              </button>
-
-              {allCities.filter((c) => c.cityNights >= 2).length > 1 && (
-                <button
-                  type="button"
-                  onClick={handleResetAllCities}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-500 text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
-                >
-                  {locale === "ko" ? "전체 분할 해제" : "Reset All"}
-                </button>
-              )}
-            </div>
-
-            {/* 우측: 적용 및 완료 버튼 그룹 (시그니처 로즈 강조 & 완료 다크 버튼) */}
-            <div className="flex items-center gap-2 justify-end flex-wrap">
+            {/* 좌측: [도시 적용] [도시 분할 해제] */}
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={handleApplyCurrentCity}
-                className="px-4 py-2.5 rounded-xl border border-[#e25c5c] bg-white hover:bg-rose-50 text-[#e25c5c] text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap shadow-2xs active:scale-95"
+                className="px-4 sm:px-5 py-2.5 rounded-xl bg-[#e25c5c] hover:bg-rose-600 active:scale-95 text-white text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap shadow-xs flex items-center gap-1.5"
               >
-                {locale === "ko" ? `${currentCityInfo.cityName} 적용` : `Apply ${currentCityInfo.cityName}`}
+                <span>✓</span>
+                <span>{locale === "ko" ? `${currentCityInfo.cityName} 분할 적용` : `Apply ${currentCityInfo.cityName}`}</span>
               </button>
 
+              <button
+                type="button"
+                onClick={handleResetCurrentCity}
+                className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
+              >
+                {locale === "ko" ? `${currentCityInfo.cityName} 분할 해제` : `Reset ${currentCityInfo.cityName}`}
+              </button>
+            </div>
+
+            {/* 우측: [전체 분할 적용] [전체 분할 해제] [완료] */}
+            <div className="flex items-center gap-2 justify-end flex-wrap">
               {allCities.filter((c) => c.cityNights >= 2).length > 1 && (
-                <button
-                  type="button"
-                  onClick={handleApplyAllCities}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#e25c5c] to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap shadow-xs active:scale-95 flex items-center gap-1.5"
-                >
-                  <span>⚡</span>
-                  <span>{locale === "ko" ? "전체 일괄 적용" : "Apply All Cities"}</span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={handleApplyAllCities}
+                    className="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap shadow-xs active:scale-95 flex items-center gap-1.5"
+                  >
+                    <span>⚡</span>
+                    <span>{locale === "ko" ? "전체 분할 적용" : "Apply All"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetAllCities}
+                    className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-600 text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
+                  >
+                    {locale === "ko" ? "전체 분할 해제" : "Reset All"}
+                  </button>
+                </>
               )}
 
               <button

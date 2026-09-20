@@ -4933,6 +4933,39 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         };
                         handleResetStopStay(targetStop);
                       }}
+                      onBatchApplySplit={(batch) => {
+                        const nextAcc = { ...preferences.accommodationByCity };
+                        Object.entries(batch).forEach(([cKey, segs]) => {
+                          nextAcc[cKey] = {
+                            kind: "SPLIT",
+                            segments: segs,
+                          };
+                        });
+                        persistPreferences({ accommodationByCity: nextAcc });
+                        setState((prev) =>
+                          prev.status === "ready"
+                            ? {
+                                ...prev,
+                                preferences: { ...prev.preferences, accommodationByCity: nextAcc },
+                              }
+                            : prev
+                        );
+                      }}
+                      onBatchResetSplit={(cities) => {
+                        const nextAcc = { ...preferences.accommodationByCity };
+                        cities.forEach((c) => {
+                          delete nextAcc[c];
+                        });
+                        persistPreferences({ accommodationByCity: nextAcc });
+                        setState((prev) =>
+                          prev.status === "ready"
+                            ? {
+                                ...prev,
+                                preferences: { ...prev.preferences, accommodationByCity: nextAcc },
+                              }
+                            : prev
+                        );
+                      }}
                       onSaveCustomStay={(c, placeName, nightlyPriceKrw) => {
                         handleStopStayOverride(activeStop, {
                           kind: "PLACE",

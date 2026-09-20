@@ -175,7 +175,7 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
     };
   }, [currentSelections, selectedCity, roomCount, adultCount]);
 
-  // 적용 핸들러: SplitStaySegment[]로 변환하여 부모에 전달
+  // 1. 현재 선택된 도시 분할 적용
   const handleApplyCurrentCity = () => {
     const segments: SplitStaySegment[] = groupedSummary.map((grp, idx) => {
       const arch = STAY_ARCHETYPES.find((a) => a.id === grp.archId);
@@ -192,7 +192,77 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
 
     onApplyForCity(selectedCity, segments);
     setSavedCityNotice(selectedCity);
-    setTimeout(() => setSavedCityNotice(null), 1800);
+    setTimeout(() => setSavedCityNotice(null), 2000);
+  };
+
+  // 2. 전체 도시 분할 일괄 적용 (2박 이상인 모든 도시)
+  const handleApplyAllCities = () => {
+    allCities.forEach((cityInfo) => {
+      if (cityInfo.cityNights < 2) return;
+
+      const selections =
+        citySelectionsMap[cityInfo.city] ||
+        createInitialNightSelections(
+          cityInfo.cityNights,
+          cityInfo.initialSegments,
+          cityInfo.defaultArchetypeId
+        );
+
+      const grps: { archId: StayArchetypeId; nights: number }[] = [];
+      if (selections.length > 0) {
+        let curArch = selections[0];
+        let cnt = 1;
+        for (let i = 1; i < selections.length; i++) {
+          if (selections[i] === curArch) {
+            cnt += 1;
+          } else {
+            grps.push({ archId: curArch, nights: cnt });
+            curArch = selections[i];
+            cnt = 1;
+          }
+        }
+        grps.push({ archId: curArch, nights: cnt });
+      }
+
+      const segments: SplitStaySegment[] = grps.map((grp, idx) => {
+        const arch = STAY_ARCHETYPES.find((a) => a.id === grp.archId);
+        const nightlyPrice = getStayArchetypePrice(cityInfo.city, grp.archId);
+        return {
+          segmentId: `seg_${idx + 1}`,
+          basketId: grp.archId as BudgetBasketId,
+          nights: grp.nights,
+          nightlyPriceKrw: nightlyPrice,
+          placeNameKo: arch?.titleKo || "호텔",
+          placeNameEn: arch?.titleEn || "Hotel",
+        };
+      });
+
+      onApplyForCity(cityInfo.city, segments);
+    });
+
+    setSavedCityNotice("ALL");
+    setTimeout(() => setSavedCityNotice(null), 2500);
+  };
+
+  // 3. 전체 도시 분할 일괄 해제
+  const handleResetAllCities = () => {
+    allCities.forEach((cityInfo) => {
+      if (cityInfo.cityNights >= 2) {
+        onResetSplitForCity(cityInfo.city);
+      }
+    });
+
+    const resetMap: Record<string, StayArchetypeId[]> = {};
+    allCities.forEach((c) => {
+      resetMap[c.city] = Array.from(
+        { length: c.cityNights },
+        () => c.defaultArchetypeId || "BUSINESS_HOTEL"
+      );
+    });
+    setCitySelectionsMap(resetMap);
+
+    setSavedCityNotice("RESET_ALL");
+    setTimeout(() => setSavedCityNotice(null), 2500);
   };
 
   // 모달 닫기 시 ESC 키 지원
@@ -377,42 +447,88 @@ export const SplitStayModal: React.FC<SplitStayModalProps> = ({
           )}
         </div>
 
-        {/* 4. 모달 푸터: 시원한 가격 표시 & 넉넉한 버튼 */}
-        <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-          <div className="flex items-baseline gap-2.5 flex-wrap">
-            <span className="text-sm sm:text-base font-black text-slate-600">
-              {currentCityInfo.cityName} {locale === "ko" ? `총 숙박비 (${currentNights}박):` : `Total:`}
-            </span>
-            <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
-              {formatPriceByLocale(totalCostKrw, locale, usdRate)}
-            </span>
-            <span className="text-xs sm:text-sm text-slate-600 font-bold ml-1">
-              ({locale === "ko" ? "1인당" : "Per person"} {formatPriceByLocale(perPersonCostKrw, locale, usdRate)})
-            </span>
+        {/* 4. 모달 푸터: 직관적인 2단 액션 바 (가격 요약 / 좌: 해제 그룹 / 우: 적용 & 완료 그룹) */}
+        <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/95 space-y-3 shrink-0">
+          {/* 상단 라인: 가격 요약 및 실시간 저장 알림 뱃지 */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/70 pb-2.5">
+            <div className="flex items-baseline gap-2.5 flex-wrap">
+              <span className="text-sm sm:text-base font-black text-slate-700">
+                {currentCityInfo.cityName} {locale === "ko" ? `총 숙박비 (${currentNights}박):` : `Total:`}
+              </span>
+              <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight">
+                {formatPriceByLocale(totalCostKrw, locale, usdRate)}
+              </span>
+              <span className="text-xs sm:text-sm text-slate-500 font-bold ml-1">
+                ({locale === "ko" ? "1인당" : "Per person"} {formatPriceByLocale(perPersonCostKrw, locale, usdRate)})
+              </span>
+            </div>
+
+            {savedCityNotice && (
+              <span className="text-xs sm:text-sm font-black text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-300 animate-in fade-in self-start sm:self-auto flex items-center gap-1 shadow-2xs">
+                <span>✓</span>
+                <span>
+                  {savedCityNotice === "ALL"
+                    ? (locale === "ko" ? "전체 도시 분할 적용 완료!" : "All cities applied!")
+                    : savedCityNotice === "RESET_ALL"
+                    ? (locale === "ko" ? "전체 도시 분할 해제 완료!" : "All cities reset!")
+                    : (locale === "ko" ? `${currentCityInfo.cityName} 분할 적용 완료!` : `${currentCityInfo.cityName} applied!`)}
+                </span>
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center gap-2.5 justify-end">
-            <button
-              type="button"
-              onClick={() => onResetSplitForCity(selectedCity)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs sm:text-sm font-black transition-colors cursor-pointer"
-            >
-              {locale === "ko" ? "분할 해제" : "Reset"}
-            </button>
-            <button
-              type="button"
-              onClick={handleApplyCurrentCity}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#e25c5c] to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm font-black shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <span>{savedCityNotice === selectedCity ? "✓ 적용 완료!" : `✓ ${currentCityInfo.cityName} 분할 적용`}</span>
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-black transition-colors cursor-pointer shadow-xs"
-            >
-              {locale === "ko" ? "완료" : "Done"}
-            </button>
+          {/* 하단 버튼 라인: [좌: 해제 버튼군]  vs  [우: 적용 & 완료 버튼군] */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* 좌측: 해제 버튼 그룹 (위험도 분리, 차분한 아웃라인 톤) */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onResetSplitForCity(selectedCity)}
+                className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
+              >
+                {locale === "ko" ? `${currentCityInfo.cityName} 분할 해제` : `Reset ${currentCityInfo.cityName}`}
+              </button>
+
+              {allCities.filter((c) => c.cityNights >= 2).length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleResetAllCities}
+                  className="px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-500 text-xs sm:text-sm font-bold transition-colors cursor-pointer whitespace-nowrap shadow-2xs"
+                >
+                  {locale === "ko" ? "전체 분할 해제" : "Reset All"}
+                </button>
+              )}
+            </div>
+
+            {/* 우측: 적용 및 완료 버튼 그룹 (시그니처 로즈 강조 & 완료 다크 버튼) */}
+            <div className="flex items-center gap-2 justify-end flex-wrap">
+              <button
+                type="button"
+                onClick={handleApplyCurrentCity}
+                className="px-4 py-2.5 rounded-xl border border-[#e25c5c] bg-white hover:bg-rose-50 text-[#e25c5c] text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap shadow-2xs active:scale-95"
+              >
+                {locale === "ko" ? `${currentCityInfo.cityName} 적용` : `Apply ${currentCityInfo.cityName}`}
+              </button>
+
+              {allCities.filter((c) => c.cityNights >= 2).length > 1 && (
+                <button
+                  type="button"
+                  onClick={handleApplyAllCities}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#e25c5c] to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs sm:text-sm font-black transition-all cursor-pointer whitespace-nowrap shadow-xs active:scale-95 flex items-center gap-1.5"
+                >
+                  <span>⚡</span>
+                  <span>{locale === "ko" ? "전체 일괄 적용" : "Apply All Cities"}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs sm:text-sm font-black transition-colors cursor-pointer whitespace-nowrap shadow-xs"
+              >
+                {locale === "ko" ? "완료" : "Done"}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   migrateLegacyState,
   SupportedCity,
   BudgetTier,
+  ALL_SUPPORTED_CITIES,
 } from "./trip-domain";
 import {
   PlannerPreferences,
@@ -433,9 +434,8 @@ export function parsePlannerPreferences(
       const sanitizedAcc: AccommodationOverridesByCity = {};
       if (prefs.accommodationByCity && typeof prefs.accommodationByCity === "object") {
         for (const [cityKey, val] of Object.entries(prefs.accommodationByCity)) {
-          const city = cityKey as SupportedCity;
-          if (validateSingleAccommodation(city, val, draft)) {
-            sanitizedAcc[city] = val;
+          if (validateSingleAccommodation(cityKey, val, draft)) {
+            (sanitizedAcc as any)[cityKey] = val;
           }
         }
       }
@@ -509,12 +509,27 @@ export function parsePlannerPreferences(
   }
 }
 
+function getBaseCityFromKey(key: string): SupportedCity | null {
+  if (ALL_SUPPORTED_CITIES.includes(key as SupportedCity)) {
+    return key as SupportedCity;
+  }
+  const match = key.match(/^stop_\d+_([a-z]+)$/i);
+  if (match) {
+    const candidate = match[1].toUpperCase() as SupportedCity;
+    if (ALL_SUPPORTED_CITIES.includes(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function validateSingleAccommodation(
-  city: SupportedCity,
+  cityKey: string,
   val: unknown,
   draft: TripDraft
 ): boolean {
-  if (!draft.selectedCities.includes(city)) return false;
+  const city = getBaseCityFromKey(cityKey);
+  if (!city || !draft.selectedCities.includes(city)) return false;
   if (!val) return false;
 
   // 1. 객체 형태

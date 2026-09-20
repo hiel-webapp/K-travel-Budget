@@ -19,6 +19,7 @@ import { SplitStaySegment, BudgetBasketId } from "../domain/types";
 
 export interface StaySelectorPanelProps {
   city: SupportedCity;
+  stopLabel?: string;
   locale: "ko" | "en";
   dict: Dictionary;
   adultCount: number;
@@ -43,6 +44,7 @@ export interface StaySelectorPanelProps {
 
 export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   city,
+  stopLabel,
   locale,
   dict,
   adultCount,
@@ -81,9 +83,10 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
     setInputError(null);
   }, [customStayOverride, city]);
 
-  const cityName = locale === "ko"
+  const rawCityName = locale === "ko"
     ? CITY_KOREAN_NAMES[city] || city
     : CITY_ENGLISH_NAMES[city] || city;
+  const cityName = stopLabel ? `${rawCityName} (${stopLabel})` : rawCityName;
 
   const currentArchetype = selectedArchetypeId
     ? STAY_ARCHETYPES.find((a) => a.id === selectedArchetypeId) || null

@@ -43,3 +43,6 @@ next-env.d.ts
 # open-next & wrangler
 .open-next/
 .wrangler/
+
+# scratch scripts
+scratch/

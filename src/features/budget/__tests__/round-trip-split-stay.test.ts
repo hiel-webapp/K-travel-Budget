@@ -5,6 +5,7 @@ import {
   syncDraftFromStops,
   calculateDefaultNightAllocation,
   validateTripDraft,
+  sanitizeTripDraft,
 } from "../../../lib/trip-domain";
 import { generateInitialBudgetPlan } from "../calculations/engine";
 import { BUDGET_CATALOG } from "../catalog/mock-catalog";
@@ -152,5 +153,81 @@ describe("TripStop Architecture: Split Stay & Round-Trip Itinerary Unit Tests", 
     expect(seoulAcc?.lineTotalKrw).toBe(580000);
     expect(seoulAcc?.sourceLabel).toContain("실속 게스트하우스 3박");
     expect(seoulAcc?.sourceLabel).toContain("북촌 프리미엄 한옥 2박");
+  });
+
+  it("사용자 시나리오 검증: [서울, 부산, 서울] 경유 여정에서 서울 1차 비즈니스 호텔 + 2차 게스트하우스 독립 설정 연산", () => {
+    const roundTripDraft: TripDraft = {
+      totalNights: 5,
+      adultCount: 2,
+      selectedCities: ["SEOUL", "BUSAN", "SEOUL"],
+      cityNightAllocations: {
+        SEOUL: 3,
+        BUSAN: 2,
+      },
+      budgetTier: "STANDARD",
+      targetBudgetKrw: 3000000,
+      schemaVersion: 1,
+    };
+
+    // 1. ensureTripStops 균등 분배 확인
+    const stops = ensureTripStops(roundTripDraft);
+    expect(stops.length).toBe(3);
+    expect(stops[0].city).toBe("SEOUL");
+    expect(stops[0].nights).toBe(2);
+    expect(stops[0].label).toBe("1차");
+    expect(stops[1].city).toBe("BUSAN");
+    expect(stops[1].nights).toBe(2);
+    expect(stops[2].city).toBe("SEOUL");
+    expect(stops[2].nights).toBe(1);
+    expect(stops[2].label).toBe("2차");
+
+    // 2. sanitizeTripDraft에서 [SEOUL, BUSAN, SEOUL] 순환 여정이 Set 등으로 제거되지 않고 보존되는지 검증
+    const sanitized = sanitizeTripDraft(roundTripDraft);
+    expect(sanitized.selectedCities).toEqual(["SEOUL", "BUSAN", "SEOUL"]);
+
+    // 3. 서울 1차(비즈니스 호텔, 2박) + 2차(게스트하우스, 1박) SPLIT 숙소 생성 및 예산 연산
+    const seoulSplitStay: AccommodationSelection = {
+      kind: "SPLIT",
+      segments: [
+        {
+          segmentId: stops[0].id,
+          basketId: "BUSINESS_HOTEL",
+          nights: stops[0].nights, // 2박
+          nightlyPriceKrw: 120000,
+          placeNameKo: "도심 비즈니스 호텔",
+        },
+        {
+          segmentId: stops[2].id,
+          basketId: "HOSTEL_GUESTHOUSE",
+          nights: stops[2].nights, // 1박
+          nightlyPriceKrw: 60000,
+          placeNameKo: "실속 게스트하우스",
+        },
+      ],
+    };
+
+    const plan = generateInitialBudgetPlan(
+      roundTripDraft,
+      BUDGET_CATALOG,
+      {
+        accommodation: {
+          SEOUL: seoulSplitStay,
+          BUSAN: "STANDARD_HOTEL",
+        },
+        occupancyMode: {
+          SEOUL: "SHARED_PAIR", // 2인 1실
+          BUSAN: "SHARED_PAIR",
+        },
+      }
+    );
+
+    // 서울 총 숙박비: (120,000원 * 1실 * 2박) + (60,000원 * 1실 * 1박) = 240,000 + 60,000 = 300,000원
+    const seoulAcc = plan.citySections.SEOUL?.lineItems.find(
+      (i) => i.category === "ACCOMMODATION"
+    );
+    expect(seoulAcc).toBeDefined();
+    expect(seoulAcc?.lineTotalKrw).toBe(300000);
+    expect(seoulAcc?.sourceLabel).toContain("도심 비즈니스 호텔 2박");
+    expect(seoulAcc?.sourceLabel).toContain("실속 게스트하우스 1박");
   });
 });

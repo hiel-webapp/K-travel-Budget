@@ -98,18 +98,36 @@ export interface TripDraft {
  * TripDraft에서 stops 목록을 안전하게 추출 (기존 draft와의 100% 하위 호환성 보장)
  */
 export function ensureTripStops(draft: TripDraft): TripStop[] {
-  if (draft.stops && draft.stops.length > 0) {
+  if (
+    draft.stops &&
+    draft.stops.length === draft.selectedCities.length &&
+    draft.stops.every((s, idx) => s && s.city === draft.selectedCities[idx])
+  ) {
     return draft.stops;
   }
-  const cityCounts: Record<string, number> = {};
+  const cityTotalCount: Record<string, number> = {};
+  draft.selectedCities.forEach((city) => {
+    cityTotalCount[city] = (cityTotalCount[city] || 0) + 1;
+  });
+
+  const cityVisitedCount: Record<string, number> = {};
+  const cityRemainingNights: Record<string, number> = { ...(draft.cityNightAllocations || {}) };
+
   return draft.selectedCities.map((city, idx) => {
-    cityCounts[city] = (cityCounts[city] || 0) + 1;
-    const isRepeated = draft.selectedCities.filter((c) => c === city).length > 1;
+    cityVisitedCount[city] = (cityVisitedCount[city] || 0) + 1;
+    const isRepeated = cityTotalCount[city] > 1;
+    const currentCityTotal = cityRemainingNights[city] || 0;
+    const remainingVisits = cityTotalCount[city] - cityVisitedCount[city] + 1;
+    const stopNights = isRepeated
+      ? Math.round(currentCityTotal / remainingVisits)
+      : currentCityTotal;
+    cityRemainingNights[city] = Math.max(0, currentCityTotal - stopNights);
+
     return {
       id: `stop_${idx + 1}_${city.toLowerCase()}`,
       city,
-      nights: draft.cityNightAllocations[city] || 0,
-      label: isRepeated ? `${cityCounts[city]}차` : undefined,
+      nights: stopNights,
+      label: isRepeated ? `${cityVisitedCount[city]}차` : undefined,
     };
   });
 }
@@ -407,11 +425,16 @@ export function sanitizeTripDraft(draft: unknown): TripDraft {
       ? rawAdults
       : 2;
 
-  // 3. selectedCities 복구 (유효한 도시 1~4개, 기본값 ["SEOUL"])
+  // 3. selectedCities 복구 (유효한 도시 1~5개, 연속 즉시 중복 방지, 기본값 ["SEOUL"])
   let selectedCities: SupportedCity[] = [];
   if (Array.isArray(d.selectedCities)) {
-    selectedCities = d.selectedCities.filter((c): c is SupportedCity => ALL_SUPPORTED_CITIES.includes(c));
-    selectedCities = Array.from(new Set(selectedCities)).slice(0, 4);
+    const validFiltered = d.selectedCities.filter((c): c is SupportedCity => ALL_SUPPORTED_CITIES.includes(c));
+    for (const city of validFiltered) {
+      if (selectedCities.length >= 5) break;
+      if (selectedCities.length === 0 || selectedCities[selectedCities.length - 1] !== city) {
+        selectedCities.push(city);
+      }
+    }
   }
   if (selectedCities.length === 0) {
     selectedCities = ["SEOUL"];
@@ -454,6 +477,23 @@ export function sanitizeTripDraft(draft: unknown): TripDraft {
       ? rawBudget
       : defaultBudget.targetBudgetKrw;
 
+  // 7. stops 복구 및 무결성 보정
+  let stops: TripStop[] | undefined = undefined;
+  if (Array.isArray(d.stops) && d.stops.length === selectedCities.length) {
+    const validStops = d.stops.every(
+      (s, idx) => s && typeof s === "object" && (s as any).city === selectedCities[idx]
+    );
+    if (validStops) {
+      stops = (d.stops as any[]).map((s, idx) => ({
+        id: s.id || `stop_${idx + 1}_${s.city.toLowerCase()}`,
+        city: s.city,
+        nights: typeof s.nights === "number" && s.nights >= 0 ? s.nights : 0,
+        label: s.label,
+        staySegments: s.staySegments,
+      }));
+    }
+  }
+
   return {
     totalNights,
     adultCount,
@@ -462,6 +502,7 @@ export function sanitizeTripDraft(draft: unknown): TripDraft {
     budgetTier,
     targetBudgetKrw,
     schemaVersion: 1,
+    stops,
   };
 }
 

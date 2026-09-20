@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights, ALL_SUPPORTED_CITIES, CITY_ORDER } from "../lib/trip-domain";
+import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, SupportedCity, BudgetTier, CITY_ENGLISH_NAMES, CITY_KOREAN_NAMES, calculateDefaultNightAllocation, sortCitiesByStandardOrder, getDefaultTargetBudgetByNights, ALL_SUPPORTED_CITIES, CITY_ORDER, ensureTripStops, syncDraftFromStops, TripStop } from "../lib/trip-domain";
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, saveSingleTrip, getSingleSavedTrip, deleteSingleSavedTrip, restoreSavedTrip, SavedTripItem, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces, generateTripFingerprint } from "../lib/storage-helper";
 import type { PlaceItem } from "../lib/places/types";
 
-import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle, FoodBasketItemSelection } from "../features/budget/domain/types";
+import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle, FoodBasketItemSelection, SplitStaySegment } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { MOCK_PRICE_CATALOG } from "../features/budget/catalog/mock-catalog";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata, SEOUL_LANDMARK_BILINGUAL_MAP, isSameSpot, normalizeSpotKey } from "../features/budget/catalog/attraction-spots";
@@ -489,6 +489,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     return "ALL";
   });
 
+  // 순환 여정/재방문 시 각 정차지(Stop)를 고유하게 식별하기 위한 인덱스 상태
+  const [selectedStopIndex, setSelectedStopIndex] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlStop = params.get("stop");
+        if (urlStop !== null) {
+          const parsed = parseInt(urlStop, 10);
+          if (!isNaN(parsed) && parsed >= 0) return parsed;
+        }
+      } catch {}
+    }
+    return 0;
+  });
+
   // 카테고리 상태 복원 (1순위: URL 쿼리 파라미터, 2순위: sessionStorage, 3순위: "ACCOMMODATION")
   const [activeCategory, setActiveCategory] = useState<BudgetCategory>(() => {
     if (typeof window !== "undefined") {
@@ -524,13 +539,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         const url = new URL(window.location.href);
         if (selectedCityTab === "ALL") {
           url.searchParams.set("tab", "ALL");
+          url.searchParams.delete("stop");
+        } else if (selectedCityTab === "TRANSPORT") {
+          url.searchParams.set("tab", "TRANSPORT");
+          url.searchParams.delete("stop");
         } else {
           url.searchParams.set("tab", selectedCityTab);
+          url.searchParams.set("stop", String(selectedStopIndex));
         }
         window.history.replaceState(null, "", url.toString());
       } catch (e) {}
     }
-  }, [selectedCityTab]);
+  }, [selectedCityTab, selectedStopIndex]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1340,9 +1360,102 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     setTimeout(() => setToastMessage(null), 2500);
   };
 
+  const handleSetStopNights = (stopIndex: number, targetNights: number) => {
+    if (state.status !== "ready") return;
+    const currentDraft = state.draft;
+    const currentStops = ensureTripStops(currentDraft);
+    const targetStop = currentStops[stopIndex];
+    if (!targetStop) return;
+
+    const maxTotalNights = currentDraft.totalNights || 5;
+    const otherStopsSum = currentStops.reduce(
+      (sum, s, idx) => (idx === stopIndex ? sum : sum + (s.nights || 0)),
+      0
+    );
+
+    const maxAllowedForStop = Math.max(0, maxTotalNights - otherStopsSum);
+    const clampedNights = Math.max(0, Math.min(targetNights, maxAllowedForStop));
+
+    const nextStops = currentStops.map((s, idx) =>
+      idx === stopIndex ? { ...s, nights: clampedNights } : s
+    );
+
+    let nextDraft = syncDraftFromStops(currentDraft, nextStops);
+    const validation = validateTripDraft(nextDraft);
+    if (!validation.success) {
+      nextDraft = sanitizeTripDraft(nextDraft);
+    }
+
+    // 이 도시가 복수 방문(순환/재방문) 도시인 경우 SPLIT accommodation 세그먼트 박수도 동기화
+    const sameCityStops = nextStops.filter((s) => s.city === targetStop.city);
+    let nextAcc = { ...preferences.accommodationByCity };
+
+    if (sameCityStops.length > 1) {
+      const defaultBasket =
+        nextDraft.budgetTier === "BUDGET"
+          ? "HOSTEL_GUESTHOUSE"
+          : nextDraft.budgetTier === "PREMIUM"
+          ? "LUXURY_SKYLINE"
+          : "BUSINESS_HOTEL";
+
+      const segments: SplitStaySegment[] = sameCityStops.map((s) => {
+        const stopAcc = nextAcc[s.id] || nextAcc[s.city];
+        const bId = (typeof stopAcc === "string" ? stopAcc : (stopAcc as any)?.basketId) || defaultBasket;
+        const arch = STAY_ARCHETYPES.find((a) => a.id === bId);
+        const isPlace = typeof stopAcc === "object" && stopAcc !== null && "kind" in stopAcc && (stopAcc as any).kind === "PLACE";
+        return {
+          segmentId: s.id,
+          basketId: bId as BudgetBasketId,
+          nights: s.nights,
+          nightlyPriceKrw: isPlace ? (stopAcc as any).nightlyPriceKrw : (arch ? getStayArchetypePrice(s.city, arch.id) : 95000),
+          placeNameKo: isPlace ? (stopAcc as any).placeNameKo : arch?.titleKo,
+          placeNameEn: isPlace ? (stopAcc as any).placeNameEn : arch?.titleEn,
+        };
+      });
+      nextAcc[targetStop.city] = {
+        kind: "SPLIT",
+        segments,
+      };
+    }
+
+    saveTripDraft(nextDraft);
+    persistPreferences({ accommodationByCity: nextAcc }, nextDraft);
+    setState((prev) =>
+      prev.status === "ready"
+        ? {
+            ...prev,
+            draft: nextDraft,
+            preferences: { ...prev.preferences, accommodationByCity: nextAcc },
+          }
+        : prev
+    );
+
+    const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[targetStop.city] || targetStop.city) : (CITY_ENGLISH_NAMES[targetStop.city] || targetStop.city);
+    const stopLabel = targetStop.label ? ` (${targetStop.label})` : "";
+    const updatedSum = nextStops.reduce((sum, s) => sum + s.nights, 0);
+    const unallocated = maxTotalNights - updatedSum;
+
+    setToastMessage(
+      locale === "ko"
+        ? `${cityName}${stopLabel} 체류 기간이 ${clampedNights === 0 ? "당일" : `${clampedNights}박`}으로 설정되었습니다.${unallocated > 0 ? ` (${unallocated}박 여유)` : ""}`
+        : `${cityName}${stopLabel} stay set to ${clampedNights} night(s).`
+    );
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
   const handleSetCityNights = (city: SupportedCity, targetNights: number) => {
     if (state.status !== "ready") return;
     const currentDraft = state.draft;
+    const currentStops = ensureTripStops(currentDraft);
+    const matchingIndices = currentStops
+      .map((s, idx) => (s.city === city ? idx : -1))
+      .filter((i) => i !== -1);
+
+    if (matchingIndices.length > 1 && matchingIndices.includes(selectedStopIndex)) {
+      handleSetStopNights(selectedStopIndex, targetNights);
+      return;
+    }
+
     const maxTotalNights = currentDraft.totalNights || 5;
     const currentAlloc = currentDraft.cityNightAllocations || {};
     const selectedCities = currentDraft.selectedCities;
@@ -1360,10 +1473,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       [city]: clampedNights,
     };
 
-    const nextDraft: TripDraft = {
+    let nextDraft: TripDraft = {
       ...currentDraft,
       cityNightAllocations: nextAlloc,
     };
+
+    const nextStops = ensureTripStops(nextDraft);
+    nextDraft = syncDraftFromStops(nextDraft, nextStops);
 
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) return;
@@ -1400,34 +1516,82 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return;
     }
 
-    const nextCities = [...currentDraft.selectedCities, cityToAdd];
+    const currentStops = ensureTripStops(currentDraft);
     const maxTotalNights = currentDraft.totalNights || 5;
-    const currentAlloc = { ...(currentDraft.cityNightAllocations || {}) };
-    const allocatedSum = Object.values(currentAlloc).reduce((sum, n) => sum + (n || 0), 0);
+    const allocatedSum = currentStops.reduce((sum, s) => sum + (s.nights || 0), 0);
     const unallocated = Math.max(0, maxTotalNights - allocatedSum);
-    // 여유 박수가 남아있으면 1박, 모두 소진된 상태면 0박(당일 경유)으로 안전하게 시작
     const nightsForNew = unallocated > 0 ? 1 : 0;
 
-    const nextAlloc = {
-      ...currentAlloc,
-      [cityToAdd]: (currentAlloc[cityToAdd] || 0) + nightsForNew,
-    };
+    const newStopId = `stop_${currentStops.length + 1}_${cityToAdd.toLowerCase()}`;
+    const nextStops: TripStop[] = [
+      ...currentStops,
+      {
+        id: newStopId,
+        city: cityToAdd,
+        nights: nightsForNew,
+      },
+    ];
 
-    let nextDraft: TripDraft = {
-      ...currentDraft,
-      selectedCities: nextCities,
-      cityNightAllocations: nextAlloc,
-    };
+    // 중복 도시 발생 시 차수(1차, 2차 등) 레이블 재계산
+    const cityCounts: Record<string, number> = {};
+    const totalOccurrences: Record<string, number> = {};
+    nextStops.forEach((s) => {
+      totalOccurrences[s.city] = (totalOccurrences[s.city] || 0) + 1;
+    });
+    const finalStops = nextStops.map((s) => {
+      cityCounts[s.city] = (cityCounts[s.city] || 0) + 1;
+      return {
+        ...s,
+        label: totalOccurrences[s.city] > 1 ? `${cityCounts[s.city]}차` : undefined,
+      };
+    });
 
+    let nextDraft = syncDraftFromStops(currentDraft, finalStops);
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) {
       nextDraft = sanitizeTripDraft(nextDraft);
     }
 
+    // 추가된 도시가 이제 순환 재방문 도시가 된 경우 SPLIT accommodation 자동 합성
+    const sameCityStops = finalStops.filter((s) => s.city === cityToAdd);
+    let nextAcc = { ...preferences.accommodationByCity };
+    if (sameCityStops.length > 1) {
+      const defaultBasket =
+        nextDraft.budgetTier === "BUDGET"
+          ? "HOSTEL_GUESTHOUSE"
+          : nextDraft.budgetTier === "PREMIUM"
+          ? "LUXURY_SKYLINE"
+          : "BUSINESS_HOTEL";
+
+      const segments: SplitStaySegment[] = sameCityStops.map((s) => {
+        const stopAcc = nextAcc[s.id] || (s.id === newStopId ? defaultBasket : nextAcc[s.city]);
+        const bId = (typeof stopAcc === "string" ? stopAcc : (stopAcc as any)?.basketId) || defaultBasket;
+        const arch = STAY_ARCHETYPES.find((a) => a.id === bId);
+        const isPlace = typeof stopAcc === "object" && stopAcc !== null && "kind" in stopAcc && (stopAcc as any).kind === "PLACE";
+        return {
+          segmentId: s.id,
+          basketId: bId as BudgetBasketId,
+          nights: s.nights,
+          nightlyPriceKrw: isPlace ? (stopAcc as any).nightlyPriceKrw : (arch ? getStayArchetypePrice(s.city, arch.id) : 95000),
+          placeNameKo: isPlace ? (stopAcc as any).placeNameKo : arch?.titleKo,
+          placeNameEn: isPlace ? (stopAcc as any).placeNameEn : arch?.titleEn,
+        };
+      });
+      nextAcc[cityToAdd] = {
+        kind: "SPLIT",
+        segments,
+      };
+    }
+
     saveTripDraft(nextDraft);
-    persistPreferences({}, nextDraft);
-    setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
+    persistPreferences({ accommodationByCity: nextAcc }, nextDraft);
+    setState((prev) =>
+      prev.status === "ready"
+        ? { ...prev, draft: nextDraft, preferences: { ...prev.preferences, accommodationByCity: nextAcc } }
+        : prev
+    );
     setSelectedCityTab(cityToAdd);
+    setSelectedStopIndex(finalStops.length - 1);
     setIsAddCityOpen(false);
 
     setToastMessage(
@@ -1457,32 +1621,66 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return;
     }
 
+    const currentStops = ensureTripStops(currentDraft);
+    const stopToRemove = currentStops[indexToRemove];
     const cityToRemove = currentDraft.selectedCities[indexToRemove];
-    const nextCities = currentDraft.selectedCities.filter((_, idx) => idx !== indexToRemove);
+    const nextStops = currentStops.filter((_, idx) => idx !== indexToRemove);
 
-    const nextAlloc = { ...(currentDraft.cityNightAllocations || {}) };
-    // 삭제된 도시가 nextCities에 더 이상 존재하지 않는다면, unselected_city_allocated 검증 에러를 방지하기 위해 키 삭제
-    if (!nextCities.includes(cityToRemove)) {
-      delete nextAlloc[cityToRemove];
-    }
+    const cityCounts: Record<string, number> = {};
+    const totalOccurrences: Record<string, number> = {};
+    nextStops.forEach((s) => {
+      totalOccurrences[s.city] = (totalOccurrences[s.city] || 0) + 1;
+    });
+    const finalStops = nextStops.map((s) => {
+      cityCounts[s.city] = (cityCounts[s.city] || 0) + 1;
+      return {
+        ...s,
+        label: totalOccurrences[s.city] > 1 ? `${cityCounts[s.city]}차` : undefined,
+      };
+    });
 
-    let nextDraft: TripDraft = {
-      ...currentDraft,
-      selectedCities: nextCities,
-      cityNightAllocations: nextAlloc,
-    };
-
+    let nextDraft = syncDraftFromStops(currentDraft, finalStops);
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) {
       nextDraft = sanitizeTripDraft(nextDraft);
     }
 
-    saveTripDraft(nextDraft);
-    persistPreferences({}, nextDraft);
-    setState((prev) => (prev.status === "ready" ? { ...prev, draft: nextDraft } : prev));
+    const nextAcc = { ...(preferences.accommodationByCity || {}) };
+    if (stopToRemove) {
+      delete nextAcc[stopToRemove.id];
+    }
+    if (!nextDraft.selectedCities.includes(cityToRemove)) {
+      delete nextAcc[cityToRemove];
+    } else {
+      const remainingStopsForCity = finalStops.filter((s) => s.city === cityToRemove);
+      if (remainingStopsForCity.length === 1) {
+        const remainingStop = remainingStopsForCity[0];
+        if (nextAcc[remainingStop.id]) {
+          nextAcc[cityToRemove] = nextAcc[remainingStop.id];
+        } else if (nextAcc[cityToRemove] && typeof nextAcc[cityToRemove] === "object" && (nextAcc[cityToRemove] as any).kind === "SPLIT") {
+          const seg = (nextAcc[cityToRemove] as any).segments?.[0];
+          if (seg) {
+            nextAcc[cityToRemove] = {
+              kind: "TIER",
+              basketId: seg.basketId,
+            } as any;
+          }
+        }
+      }
+    }
 
-    if (selectedCityTab === cityToRemove && !nextCities.includes(cityToRemove)) {
-      setSelectedCityTab(nextCities[0]);
+    saveTripDraft(nextDraft);
+    persistPreferences({ accommodationByCity: nextAcc }, nextDraft);
+    setState((prev) =>
+      prev.status === "ready"
+        ? { ...prev, draft: nextDraft, preferences: { ...prev.preferences, accommodationByCity: nextAcc } }
+        : prev
+    );
+
+    const nextSafeIndex = Math.max(0, Math.min(indexToRemove, finalStops.length - 1));
+    setSelectedStopIndex(nextSafeIndex);
+    if (selectedCityTab === cityToRemove && !nextDraft.selectedCities.includes(cityToRemove)) {
+      setSelectedCityTab(finalStops[nextSafeIndex]?.city || "ALL");
     }
 
     setToastMessage(
@@ -1499,10 +1697,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const maxTotalNights = currentDraft.totalNights || 5;
     const freshAlloc = calculateDefaultNightAllocation(currentDraft.selectedCities, maxTotalNights);
 
-    const nextDraft: TripDraft = {
+    const draftWithoutStops: TripDraft = {
       ...currentDraft,
       cityNightAllocations: freshAlloc,
+      stops: undefined,
     };
+    const freshStops = ensureTripStops(draftWithoutStops);
+    const nextDraft = syncDraftFromStops(currentDraft, freshStops);
 
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) return;
@@ -1524,15 +1725,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleResetCityNightsZero = () => {
     if (state.status !== "ready") return;
     const currentDraft = state.draft;
-    const zeroAlloc = currentDraft.selectedCities.reduce(
-      (acc, c) => ({ ...acc, [c]: 0 }),
-      {}
-    );
-
-    const nextDraft: TripDraft = {
-      ...currentDraft,
-      cityNightAllocations: zeroAlloc,
-    };
+    const currentStops = ensureTripStops(currentDraft);
+    const zeroStops = currentStops.map((s) => ({ ...s, nights: 0 }));
+    const nextDraft = syncDraftFromStops(currentDraft, zeroStops);
 
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) return;
@@ -1754,6 +1949,174 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const isOverBudget = plan.grandTotalKrw > plan.targetBudgetKrw;
   const clampedUsage = Math.min(100, (plan.grandTotalKrw / plan.targetBudgetKrw) * 100);
+
+  const handleStopStayOverride = (
+    stop: TripStop,
+    selection: BudgetBasketId | AccommodationSelection
+  ) => {
+    const accSelectionObj: AccommodationSelection =
+      typeof selection === "string" ? { kind: "TIER", basketId: selection } : selection;
+
+    const currentStops = ensureTripStops(draft);
+    const sameCityStops = currentStops.filter((s) => s.city === stop.city);
+    const isRepeated = sameCityStops.length > 1;
+
+    const nextAcc = {
+      ...preferences.accommodationByCity,
+      [stop.id]: accSelectionObj,
+    };
+
+    if (isRepeated) {
+      const defaultBasket =
+        draft.budgetTier === "BUDGET"
+          ? "HOSTEL_GUESTHOUSE"
+          : draft.budgetTier === "PREMIUM"
+          ? "LUXURY_SKYLINE"
+          : "BUSINESS_HOTEL";
+
+      const segments: SplitStaySegment[] = sameCityStops.map((s) => {
+        const stopSelection =
+          s.id === stop.id
+            ? accSelectionObj
+            : nextAcc[s.id] || preferences.accommodationByCity?.[s.city];
+
+        const bId =
+          (typeof stopSelection === "string"
+            ? stopSelection
+            : (stopSelection as any)?.basketId) || defaultBasket;
+        const arch = STAY_ARCHETYPES.find((a) => a.id === bId);
+        const isPlace =
+          typeof stopSelection === "object" &&
+          stopSelection !== null &&
+          "kind" in stopSelection &&
+          (stopSelection as any).kind === "PLACE";
+
+        return {
+          segmentId: s.id,
+          basketId: bId as BudgetBasketId,
+          nights: s.nights,
+          nightlyPriceKrw: isPlace
+            ? (stopSelection as any).nightlyPriceKrw
+            : arch ? getStayArchetypePrice(s.city, arch.id) : 95000,
+          placeNameKo: isPlace ? (stopSelection as any).placeNameKo : arch?.titleKo,
+          placeNameEn: isPlace ? (stopSelection as any).placeNameEn : arch?.titleEn,
+        };
+      });
+
+      nextAcc[stop.city] = {
+        kind: "SPLIT",
+        segments,
+      };
+    } else {
+      nextAcc[stop.city] = accSelectionObj;
+    }
+
+    const saved = persistPreferences({
+      accommodationByCity: nextAcc,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            accommodationByCity: nextAcc,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
+
+  const handleResetStopStay = (stop: TripStop) => {
+    const currentStops = ensureTripStops(draft);
+    const sameCityStops = currentStops.filter((s) => s.city === stop.city);
+    const isRepeated = sameCityStops.length > 1;
+
+    const stopAcc = preferences.accommodationByCity?.[stop.id];
+    if (stopAcc && typeof stopAcc === "object" && "placeId" in stopAcc) {
+      const placeId = (stopAcc as any).placeId;
+      if (!isDefaultAccommodationSpot(placeId)) {
+        const customAcc = budgetPlaces.find((p) => p.id === placeId);
+        if (customAcc) {
+          toggleBudgetPlace(customAcc);
+        }
+      }
+    }
+
+    const nextAcc = { ...preferences.accommodationByCity };
+    delete nextAcc[stop.id];
+
+    if (isRepeated) {
+      const otherStopsHaveOverride = sameCityStops.some((s) => s.id !== stop.id && !!nextAcc[s.id]);
+      if (otherStopsHaveOverride) {
+        const defaultBasket =
+          draft.budgetTier === "BUDGET"
+            ? "HOSTEL_GUESTHOUSE"
+            : draft.budgetTier === "PREMIUM"
+            ? "LUXURY_SKYLINE"
+            : "BUSINESS_HOTEL";
+
+        const segments: SplitStaySegment[] = sameCityStops.map((s) => {
+          const stopSelection = nextAcc[s.id];
+          const bId = stopSelection
+            ? typeof stopSelection === "string"
+              ? stopSelection
+              : (stopSelection as any)?.basketId
+            : defaultBasket;
+          const arch = STAY_ARCHETYPES.find((a) => a.id === bId);
+          const isPlace =
+            typeof stopSelection === "object" &&
+            stopSelection !== null &&
+            "kind" in stopSelection &&
+            (stopSelection as any).kind === "PLACE";
+
+          return {
+            segmentId: s.id,
+            basketId: bId as BudgetBasketId,
+            nights: s.nights,
+            nightlyPriceKrw: isPlace
+              ? (stopSelection as any).nightlyPriceKrw
+              : arch ? getStayArchetypePrice(s.city, arch.id) : 95000,
+            placeNameKo: isPlace ? (stopSelection as any).placeNameKo : arch?.titleKo,
+            placeNameEn: isPlace ? (stopSelection as any).placeNameEn : arch?.titleEn,
+          };
+        });
+        nextAcc[stop.city] = {
+          kind: "SPLIT",
+          segments,
+        };
+      } else {
+        delete nextAcc[stop.city];
+      }
+    } else {
+      delete nextAcc[stop.city];
+    }
+
+    const saved = persistPreferences({
+      accommodationByCity: nextAcc,
+    });
+
+    if (saved) {
+      setSaveError(false);
+      setState((prev) => {
+        if (prev.status !== "ready") return prev;
+        return {
+          ...prev,
+          preferences: {
+            ...prev.preferences,
+            accommodationByCity: nextAcc,
+          },
+        };
+      });
+    } else {
+      setSaveError(true);
+    }
+  };
 
   const handleStayOverride = (city: SupportedCity, selection: BudgetBasketId | AccommodationSelection) => {
     const accSelectionObj: AccommodationSelection =
@@ -3245,20 +3608,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 aria-label="City route tabs"
               >
                 {(() => {
+                  const stops = ensureTripStops(draft);
                   const displayCityTabs = (dragCityIndex !== null && reorderCityTabs.length > 0) ? reorderCityTabs : (draft.selectedCities || []);
                   const isMultiCity = (draft.selectedCities || []).length > 1;
-                  const currentAllocatedSum = Object.values(draft.cityNightAllocations || {}).reduce((sum, n) => sum + (n || 0), 0);
+                  const currentAllocatedSum = stops.reduce((sum, s) => sum + (s.nights || 0), 0);
                   const maxNights = draft.totalNights || 5;
                   const unallocatedNights = maxNights - currentAllocatedSum;
 
                   return displayCityTabs.map((city, idx) => {
-                    const isActive = selectedCityTab === city;
+                    const currentStop = stops[idx] || { id: `stop_${idx + 1}_${city.toLowerCase()}`, city, nights: draft.cityNightAllocations[city] ?? 0 };
+                    const isRepeatedCity = (draft.selectedCities || []).filter((c) => c === city).length > 1;
+                    const isActive = selectedCityTab === city && (isRepeatedCity ? selectedStopIndex === idx : true);
                     const isDraggingThis = dragCityIndex === idx;
                     const label = locale === "ko"
                       ? CITY_KOREAN_NAMES[city] || city
                       : CITY_ENGLISH_NAMES[city] || city;
-                    const currentCityNights = draft.cityNightAllocations[city] ?? 0;
-                    const maxSelectable = currentCityNights + Math.max(0, unallocatedNights);
+                    const currentStopNights = isRepeatedCity ? currentStop.nights : (draft.cityNightAllocations[city] ?? 0);
+                    const maxSelectable = currentStopNights + Math.max(0, unallocatedNights);
                     const options = Array.from({ length: maxSelectable + 1 }, (_, i) => i);
 
                     return (
@@ -3276,6 +3642,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           onClick={() => {
                             if (isDraggingTabRef.current) return;
                             setSelectedCityTab(city);
+                            setSelectedStopIndex(idx);
                             if (activeCategory === "CITY_TRANSPORT") {
                               setActiveCategory("ACCOMMODATION");
                             }
@@ -3325,10 +3692,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             )}
                             <span className={`text-xs sm:text-[13px] font-black truncate max-w-[75px] sm:max-w-none ${isActive ? "text-[#e25c5c]" : "text-slate-800"}`}>
                               {(() => {
-                                const cityOccurrences = draft.selectedCities.filter((c) => c === city).length;
-                                if (cityOccurrences > 1) {
-                                  const visitCount = draft.selectedCities.slice(0, idx + 1).filter((c) => c === city).length;
-                                  return `${label} (${visitCount}차)`;
+                                if (currentStop.label) {
+                                  return `${label} (${currentStop.label})`;
                                 }
                                 return label;
                               })()}
@@ -3346,12 +3711,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             onClick={(e) => e.stopPropagation()}
                           >
                             <select
-                              value={currentCityNights}
+                              value={currentStopNights}
                               onChange={(e) => {
-                                handleSetCityNights(city, Number(e.target.value));
+                                if (isRepeatedCity) {
+                                  handleSetStopNights(idx, Number(e.target.value));
+                                } else {
+                                  handleSetCityNights(city, Number(e.target.value));
+                                }
                               }}
                               className={`w-full text-center appearance-none py-1 pl-2 pr-4 rounded-lg text-xs font-black cursor-pointer border transition-all focus:outline-none focus:ring-1 focus:ring-[#e25c5c] ${
-                                currentCityNights === 0
+                                currentStopNights === 0
                                   ? "bg-slate-100 text-slate-500 border-slate-300/80"
                                   : isActive
                                   ? "bg-white text-slate-900 border-rose-200 shadow-2xs hover:border-[#e25c5c]"
@@ -3953,12 +4322,41 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             {/* 2. Single City Tab Mode: City-Specific Category Options (도시별 바스켓 박스) */}
             {selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT" && (() => {
               const currentCity = selectedCityTab as SupportedCity;
+              const stops = ensureTripStops(draft);
+              const sameCityStops = stops.filter((s) => s.city === currentCity);
+              const isRepeatedCity = sameCityStops.length > 1;
+              const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === currentCity)
+                ? stops[selectedStopIndex]
+                : sameCityStops[0] || { id: `stop_1_${currentCity.toLowerCase()}`, city: currentCity, nights: draft.cityNightAllocations[currentCity] ?? 0 };
+
               const currentCityName = locale === "ko" ? (CITY_KOREAN_NAMES[currentCity] || currentCity) : (CITY_ENGLISH_NAMES[currentCity] || currentCity);
-              const cityNights = draft.cityNightAllocations[currentCity] ?? 0;
+              const cityNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[currentCity] ?? 0);
               const adultCount = draft.adultCount || 1;
 
-              // 1. 숙박 (해당 도시 선택 숙소 및 금액)
-              const accSelection = preferences.accommodationByCity?.[currentCity];
+              // 1. 숙박 (해당 도시/정차지 선택 숙소 및 금액)
+              let accSelection = preferences.accommodationByCity?.[activeStop.id];
+              if (!accSelection && isRepeatedCity) {
+                const cityAcc = preferences.accommodationByCity?.[currentCity];
+                if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
+                  const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
+                  if (foundSeg) {
+                    accSelection = {
+                      kind: "TIER",
+                      basketId: foundSeg.basketId,
+                      nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+                      placeNameKo: foundSeg.placeNameKo,
+                      placeNameEn: foundSeg.placeNameEn,
+                    } as any;
+                  }
+                }
+              }
+              if (!accSelection) {
+                accSelection = preferences.accommodationByCity?.[currentCity];
+                if (isRepeatedCity && accSelection && typeof accSelection === "object" && (accSelection as any).kind === "SPLIT") {
+                  accSelection = undefined;
+                }
+              }
+
               let cityAccTotal = 0;
               let cityAccStatus = locale === "ko" ? "미선택" : "Unselected";
               let isAccSelected = false;
@@ -3977,6 +4375,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 const roomCount = isSolo ? 1 : isPair ? sharedRoomCount : adultCount;
 
                 const isSplitStay =
+                  !isRepeatedCity &&
                   typeof accSelection === "object" &&
                   accSelection !== null &&
                   "kind" in accSelection &&
@@ -4147,7 +4546,39 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <div className="flex-1 p-4 sm:p-5 flex flex-col justify-center">
                         {/* 1. 숙소 바스켓 요약 */}
                         {((activeCategory === "ACCOMMODATION" || activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND")) && (() => {
-                          const accOverride = preferences.accommodationByCity?.[currentCity];
+                          const stops = ensureTripStops(draft);
+                          const sameCityStops = stops.filter((s) => s.city === currentCity);
+                          const isRepeatedCity = sameCityStops.length > 1;
+                          const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === currentCity)
+                            ? stops[selectedStopIndex]
+                            : sameCityStops[0] || { id: `stop_1_${currentCity.toLowerCase()}`, city: currentCity, nights: draft.cityNightAllocations[currentCity] ?? 0 };
+
+                          const effectiveNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[currentCity] ?? 0);
+                          const displayName = activeStop.label ? `${currentCityName} (${activeStop.label})` : currentCityName;
+
+                          let accOverride = preferences.accommodationByCity?.[activeStop.id];
+                          if (!accOverride && isRepeatedCity) {
+                            const cityAcc = preferences.accommodationByCity?.[currentCity];
+                            if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
+                              const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
+                              if (foundSeg) {
+                                accOverride = {
+                                  kind: "TIER",
+                                  basketId: foundSeg.basketId,
+                                  nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+                                  placeNameKo: foundSeg.placeNameKo,
+                                  placeNameEn: foundSeg.placeNameEn,
+                                } as any;
+                              }
+                            }
+                          }
+                          if (!accOverride) {
+                            accOverride = preferences.accommodationByCity?.[currentCity];
+                            if (isRepeatedCity && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
+                              accOverride = undefined;
+                            }
+                          }
+
                           const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
                           let selectedArch: StayArchetypeId | null = null;
                           if (accOverride) {
@@ -4168,7 +4599,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           const isPair = !isSolo && occupancyMode === "SHARED_PAIR";
                           const sharedRoomCount = Math.ceil(adultCount / 2);
                           const roomCount = isSolo ? 1 : isPair ? sharedRoomCount : adultCount;
-                          const isSplitStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
+
+                          const isSplitStay = !isRepeatedCity && typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
                           const splitSegments = isSplitStay ? ((accOverride as any).segments || []) : [];
                           let splitTotalCost = 0;
                           if (isSplitStay && splitSegments.length > 0) {
@@ -4177,7 +4609,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               splitTotalCost += p * roomCount * (seg.nights || 1);
                             });
                           }
-                          const totalStayCostKrw = isSplitStay ? splitTotalCost : (nightlyPrice * roomCount * cityNights);
+                          const totalStayCostKrw = isSplitStay ? splitTotalCost : (nightlyPrice * roomCount * effectiveNights);
                           const perPersonStayCostKrw = Math.round(totalStayCostKrw / adultCount);
                           const hasSelection = isSplitStay || isCustomStay || !!currentArchetype;
 
@@ -4186,7 +4618,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5 min-h-[56px]">
                                 <div className="space-y-0.5">
                                   <h3 className="text-base sm:text-[17px] font-black text-[#0f172a] tracking-tight leading-tight">
-                                    {currentCityName} {locale === "ko" ? "숙소 바스켓" : "Stay Basket"}
+                                    {displayName} {locale === "ko" ? "숙소 바스켓" : "Stay Basket"}
                                   </h3>
                                   <p className="text-xs text-slate-500 line-clamp-1 h-4">
                                     {!hasSelection
@@ -4209,8 +4641,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-0.5 shrink-0">
                                   <span className="text-[11px] font-bold text-slate-400 leading-none">
                                     {locale === "ko"
-                                      ? `${currentCityName} 총 숙소비 (${cityNights}박 · ${adultCount}인)`
-                                      : `Total Stay (${cityNights}N · ${adultCount}p)`}
+                                      ? `${displayName} 총 숙소비 (${effectiveNights}박 · ${adultCount}인)`
+                                      : `Total Stay (${effectiveNights}N · ${adultCount}p)`}
                                   </span>
                                   <span className="text-xl sm:text-2xl font-black text-[#e25c5c] tracking-tight leading-none mt-1 sm:mt-0">
                                     {formatKrw(totalStayCostKrw)}
@@ -4388,14 +4820,43 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   <div className="space-y-6">
                 {activeCategory === "ACCOMMODATION" && (() => {
                   const city = selectedCityTab as SupportedCity;
-                  const cityNights = draft.cityNightAllocations[city] ?? 0;
+                  const stops = ensureTripStops(draft);
+                  const sameCityStops = stops.filter((s) => s.city === city);
+                  const isRepeatedCity = sameCityStops.length > 1;
+                  const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === city)
+                    ? stops[selectedStopIndex]
+                    : sameCityStops[0] || { id: `stop_1_${city.toLowerCase()}`, city, nights: draft.cityNightAllocations[city] ?? 0 };
+
+                  const stopNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[city] ?? 0);
                   const totalNights = draft.totalNights || 5;
                   const totalAllocatedNights = Object.values(draft.cityNightAllocations || {}).reduce(
                     (sum, n) => sum + (n || 0),
                     0
                   );
 
-                  const accOverride = preferences.accommodationByCity?.[city];
+                  let accOverride = preferences.accommodationByCity?.[activeStop.id];
+                  if (!accOverride && isRepeatedCity) {
+                    const cityAcc = preferences.accommodationByCity?.[city];
+                    if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
+                      const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
+                      if (foundSeg) {
+                        accOverride = {
+                          kind: "TIER",
+                          basketId: foundSeg.basketId,
+                          nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+                          placeNameKo: foundSeg.placeNameKo,
+                          placeNameEn: foundSeg.placeNameEn,
+                        } as any;
+                      }
+                    }
+                  }
+                  if (!accOverride) {
+                    accOverride = preferences.accommodationByCity?.[city];
+                    if (isRepeatedCity && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
+                      accOverride = undefined;
+                    }
+                  }
+
                   const hasOverride = !!accOverride;
                   let selectedArchetypeId: StayArchetypeId | null = null;
                   if (accOverride) {
@@ -4406,12 +4867,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") selectedArchetypeId = "BUSINESS_HOTEL";
                     else selectedArchetypeId = null;
                   } else {
-                    // 미선택 상태: 0원 기본값
                     selectedArchetypeId = null;
                   }
 
                   const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
-                  const isSplitStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
+                  const isSplitStay = !isRepeatedCity && typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
                   const splitStayOverride = isSplitStay ? (accOverride as any).segments : null;
 
                   const customStayOverride = isCustomStay
@@ -4426,34 +4886,35 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   return (
                     <StaySelectorPanel
                       city={city}
+                      stopLabel={activeStop.label}
                       locale={locale}
                       dict={dict}
                       adultCount={adultCount}
                       totalNights={totalNights}
-                      cityNights={cityNights}
+                      cityNights={stopNights}
                       totalAllocatedNights={totalAllocatedNights}
-                      onCityNightsChange={handleDirectCityNightChange}
+                      onCityNightsChange={isRepeatedCity ? undefined : handleDirectCityNightChange}
                       selectedArchetypeId={selectedArchetypeId}
-                      onSelectArchetype={(c, archId) => handleStayOverride(c, archId as BudgetBasketId)}
+                      onSelectArchetype={(c, archId) => handleStopStayOverride(activeStop, archId as BudgetBasketId)}
                       occupancyMode={occupancyMode}
                       onSelectOccupancyMode={(c, mode) => {
                         setOccupancyModeByCity((prev) => ({ ...prev, [c]: mode }));
                       }}
-                      onResetToRecommended={handleResetStay}
+                      onResetToRecommended={() => handleResetStopStay(activeStop)}
                       hasCustomOverride={hasOverride}
                       customStayOverride={customStayOverride}
                       splitStayOverride={splitStayOverride}
                       onSaveSplitStay={(c, segments) => {
-                        handleStayOverride(c, {
+                        handleStopStayOverride(activeStop, {
                           kind: "SPLIT",
                           segments,
                         });
                       }}
-                      onResetSplitStay={(c) => {
-                        handleResetStay(c);
+                      onResetSplitStay={() => {
+                        handleResetStopStay(activeStop);
                       }}
                       onSaveCustomStay={(c, placeName, nightlyPriceKrw) => {
-                        handleStayOverride(c, {
+                        handleStopStayOverride(activeStop, {
                           kind: "PLACE",
                           placeId: `custom_stay_${Date.now()}`,
                           basketId: selectedArchetypeId as BudgetBasketId,
@@ -4464,8 +4925,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           snapshotAt: new Date().toISOString().slice(0, 10),
                         });
                       }}
-                      onResetCustomStay={(c) => {
-                        handleResetStay(c);
+                      onResetCustomStay={() => {
+                        handleResetStopStay(activeStop);
                       }}
                       hideHeader={true}
                     />

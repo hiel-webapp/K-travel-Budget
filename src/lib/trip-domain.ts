@@ -81,6 +81,7 @@ export interface TripStop {
   nights: number;
   label?: string; // "1차", "출국 전 마무리" 등
   staySegments?: CityStaySegment[];
+  isAdded?: boolean; // 사용자가 [+ 도시 추가]로 동선에 추가한 도시인지 여부
 }
 
 export interface TripDraft {
@@ -113,6 +114,9 @@ export function ensureTripStops(draft: TripDraft): TripStop[] {
   const cityVisitedCount: Record<string, number> = {};
   const cityRemainingNights: Record<string, number> = { ...(draft.cityNightAllocations || {}) };
 
+  // 기존 draft.stops가 있을 경우 해당 도시의 isAdded 등 메타데이터를 매칭하여 보존
+  const availableOldStops = draft.stops ? [...draft.stops] : [];
+
   return draft.selectedCities.map((city, idx) => {
     cityVisitedCount[city] = (cityVisitedCount[city] || 0) + 1;
     const isRepeated = cityTotalCount[city] > 1;
@@ -123,11 +127,19 @@ export function ensureTripStops(draft: TripDraft): TripStop[] {
       : currentCityTotal;
     cityRemainingNights[city] = Math.max(0, currentCityTotal - stopNights);
 
+    const oldStopIndex = availableOldStops.findIndex((s) => s.city === city);
+    let matchedOldStop: TripStop | undefined;
+    if (oldStopIndex !== -1) {
+      matchedOldStop = availableOldStops.splice(oldStopIndex, 1)[0];
+    }
+
     return {
-      id: `stop_${idx + 1}_${city.toLowerCase()}`,
+      id: matchedOldStop?.id || `stop_${idx + 1}_${city.toLowerCase()}`,
       city,
-      nights: stopNights,
+      nights: matchedOldStop?.nights ?? stopNights,
       label: isRepeated ? `${cityVisitedCount[city]}차` : undefined,
+      staySegments: matchedOldStop?.staySegments,
+      isAdded: matchedOldStop?.isAdded,
     };
   });
 }

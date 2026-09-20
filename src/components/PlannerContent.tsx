@@ -529,6 +529,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const dragIndexRef = useRef<number | null>(null);
   const isDropHandledRef = useRef(false);
   const [reorderCityTabs, setReorderCityTabs] = useState<SupportedCity[]>([]);
+  const [reorderStops, setReorderStops] = useState<TripStop[]>([]);
   const [showTabRouteInfo, setShowTabRouteInfo] = useState(false);
   const isDraggingTabRef = useRef(false);
 
@@ -614,6 +615,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
     return [];
   });
+
+  // 특정 stop/도시가 사용자에 의해 [+ 도시 추가]로 추가된 경유지인지 판별 (위치/인덱스에 귀속되지 않고 stop 고유 속성 기준)
+  const isStopAdded = (stop: TripStop | undefined, city: SupportedCity, idx: number, allStops: TripStop[]): boolean => {
+    if (stop?.isAdded !== undefined) return Boolean(stop.isAdded);
+    const baseCount = baseCities.filter((c) => c === city).length;
+    const currentOccurrencesBeforeAndAt = allStops.slice(0, idx + 1).filter((s) => s.city === city).length;
+    return currentOccurrencesBeforeAndAt > baseCount;
+  };
 
   const latestPrefsRef = useRef<PlannerPreferences | null>(null);
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -1066,7 +1075,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     });
   };
 
-  const handleReorderCities = (newCities: SupportedCity[]) => {
+  const handleReorderCities = (newCities: SupportedCity[], newStops?: TripStop[]) => {
     if (state.status !== "ready") return;
 
     // 1. 연속 중복 방지 (예: [SEOUL, SEOUL])
@@ -1079,17 +1088,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
     if (hasConsecutiveDuplicate || newCities.length === 0) {
       setReorderCityTabs([...state.draft.selectedCities]);
+      setReorderStops([]);
       return;
     }
 
-    // 2. Draft 검증 및 유효화
+    // 2. Draft 검증 및 유효화 (stops 정보 및 isAdded 메타데이터 함께 보존)
+    const finalStops = (newStops && newStops.length === newCities.length && newStops.every((s, i) => s.city === newCities[i]))
+      ? newStops
+      : ensureTripStops({ ...state.draft, selectedCities: newCities });
+
     const nextDraft: TripDraft = {
       ...state.draft,
       selectedCities: newCities,
+      stops: finalStops,
     };
     const validation = validateTripDraft(nextDraft);
     if (!validation.success) {
       setReorderCityTabs([...state.draft.selectedCities]);
+      setReorderStops([]);
       return;
     }
 
@@ -1112,7 +1128,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     isDropHandledRef.current = false;
     dragIndexRef.current = index;
     setDragCityIndex(index);
+    const currentStops = ensureTripStops(state.draft);
     setReorderCityTabs([...state.draft.selectedCities]);
+    setReorderStops([...currentStops]);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", `${index}`);
 
@@ -1164,6 +1182,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       currentList.splice(targetIndex, 0, movedItem);
       return currentList;
     });
+    setReorderStops((prev) => {
+      const currentStops = prev.length > 0 ? [...prev] : ensureTripStops(state.draft);
+      if (fromIndex < 0 || fromIndex >= currentStops.length || targetIndex < 0 || targetIndex >= currentStops.length) {
+        return currentStops;
+      }
+      const [movedStop] = currentStops.splice(fromIndex, 1);
+      currentStops.splice(targetIndex, 0, movedStop);
+      return currentStops;
+    });
   };
 
   const handleTabDrop = (e: React.DragEvent) => {
@@ -1172,9 +1199,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     isDropHandledRef.current = true;
 
     if (reorderCityTabs.length > 0) {
-      handleReorderCities(reorderCityTabs);
+      handleReorderCities(reorderCityTabs, reorderStops.length === reorderCityTabs.length ? reorderStops : undefined);
     }
     setReorderCityTabs([]);
+    setReorderStops([]);
     setDragCityIndex(null);
     dragIndexRef.current = null;
     setTimeout(() => {
@@ -1185,9 +1213,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleTabDragEnd = () => {
     if (!isDropHandledRef.current && reorderCityTabs.length > 0) {
       isDropHandledRef.current = true;
-      handleReorderCities(reorderCityTabs);
+      handleReorderCities(reorderCityTabs, reorderStops.length === reorderCityTabs.length ? reorderStops : undefined);
     }
     setReorderCityTabs([]);
+    setReorderStops([]);
     setDragCityIndex(null);
     dragIndexRef.current = null;
     setTimeout(() => {
@@ -1484,13 +1513,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const unallocated = Math.max(0, maxTotalNights - allocatedSum);
     const nightsForNew = unallocated > 0 ? 1 : 0;
 
-    const newStopId = `stop_${currentStops.length + 1}_${cityToAdd.toLowerCase()}`;
+    const newStopId = `stop_${Date.now()}_${cityToAdd.toLowerCase()}`;
     const nextStops: TripStop[] = [
       ...currentStops,
       {
         id: newStopId,
         city: cityToAdd,
         nights: nightsForNew,
+        isAdded: true,
       },
     ];
 
@@ -1567,9 +1597,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleRemoveStopCity = (indexToRemove: number) => {
     if (state.status !== "ready") return;
     const currentDraft = state.draft;
+    const currentStops = ensureTripStops(currentDraft);
+    const stopToRemove = currentStops[indexToRemove];
+    const cityToRemove = currentDraft.selectedCities[indexToRemove];
+    if (!stopToRemove) return;
 
     // 여행 목적지로 최초로 설정한 기준 도시는 삭제 불가 (여행 조건 수정에서만 변경 가능)
-    if (indexToRemove < baseCities.length) {
+    const isAdded = isStopAdded(stopToRemove, stopToRemove.city, indexToRemove, currentStops);
+    if (!isAdded) {
       alert(
         locale === "ko"
           ? "여행 목적지로 설정된 기준 도시는 '여행 조건 수정'에서만 변경할 수 있습니다."
@@ -1583,9 +1618,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return;
     }
 
-    const currentStops = ensureTripStops(currentDraft);
-    const stopToRemove = currentStops[indexToRemove];
-    const cityToRemove = currentDraft.selectedCities[indexToRemove];
     const nextStops = currentStops.filter((_, idx) => idx !== indexToRemove);
 
     const cityCounts: Record<string, number> = {};
@@ -3548,7 +3580,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 aria-label="City route tabs"
               >
                 {(() => {
-                  const stops = ensureTripStops(draft);
+                  const stops = (dragCityIndex !== null && reorderStops.length > 0) ? reorderStops : ensureTripStops(draft);
                   const displayCityTabs = (dragCityIndex !== null && reorderCityTabs.length > 0) ? reorderCityTabs : (draft.selectedCities || []);
                   const isMultiCity = (draft.selectedCities || []).length > 1;
                   const currentAllocatedSum = stops.reduce((sum, s) => sum + (s.nights || 0), 0);
@@ -3557,6 +3589,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   return displayCityTabs.map((city, idx) => {
                     const currentStop = stops[idx] || { id: `stop_${idx + 1}_${city.toLowerCase()}`, city, nights: draft.cityNightAllocations[city] ?? 0 };
+                    const isAddedStop = isStopAdded(currentStop, city, idx, stops);
                     const isRepeatedCity = (draft.selectedCities || []).filter((c) => c === city).length > 1;
                     const isActive = selectedCityTab === city && (isRepeatedCity ? selectedStopIndex === idx : true);
                     const isDraggingThis = dragCityIndex === idx;
@@ -3598,12 +3631,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             isDraggingThis
                               ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
                               : isActive
-                              ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
+                              ? isAddedStop
+                                ? "bg-[#fff8f8] border-dashed border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
+                                : "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
+                              : isAddedStop
+                              ? "bg-slate-50/70 border-dashed border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-100/70 shadow-2xs"
                               : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
                           }`}
                         >
-                          {/* 도시 삭제 (✕) 버튼: 사용자가 [+ 도시 추가]로 추가한 도시에만 표시 (최초 기준 목적지에는 x버튼 없음!) */}
-                          {idx >= baseCities.length && (
+                          {/* 도시 삭제 (✕) 버튼: 사용자가 [+ 도시 추가]로 추가한 도시에만 표시되며, 카드를 따라다님 */}
+                          {isAddedStop && (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -3617,7 +3654,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             </button>
                           )}
 
-                          {/* 1단: 드래그 핸들 힌트 + 순서 번호 + 도시명 (중복 방문 시 차수 표기) */}
+                          {/* 1단: 드래그 핸들 힌트 + 순서 번호 + 도시명 + 추가 뱃지 */}
                           <div className="flex items-center justify-center gap-1 min-w-0 pointer-events-none">
                             {isMultiCity && (
                               <span
@@ -3638,6 +3675,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 return label;
                               })()}
                             </span>
+                            {isAddedStop && (
+                              <span
+                                className={`text-[8px] sm:text-[8.5px] px-1 py-0.2 rounded font-extrabold tracking-tight shrink-0 transition-colors ${
+                                  isActive
+                                    ? "bg-rose-100/90 text-[#e25c5c] border border-rose-200/90"
+                                    : "bg-slate-100 text-slate-500 border border-slate-200/80"
+                                }`}
+                              >
+                                {locale === "ko" ? "+추가" : "+Added"}
+                              </span>
+                            )}
                             {isMultiCity && (
                               <span className="text-[9px] text-slate-300 select-none font-bold" title="드래그 가능">⠿</span>
                             )}

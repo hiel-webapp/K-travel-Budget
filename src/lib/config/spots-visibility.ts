@@ -4,4 +4,4 @@
  * - true: 전체 UI (K-스팟 및 플래너)에 '로컬' 뱃지와 함께 정상 노출
  * - 향후 관리자 페이지 연동 또는 사용자 지시 시 손쉽게 true/false 토글 가능
  */
-export const SHOW_LOCAL_SPOTS = false;
+export const SHOW_LOCAL_SPOTS = true;

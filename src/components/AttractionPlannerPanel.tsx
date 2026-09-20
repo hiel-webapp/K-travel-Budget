@@ -203,6 +203,9 @@ export default function AttractionPlannerPanel({
     if (effectiveCatFilter === "SAVED_ONLY") {
       return spotsForCity.filter((s) => selectedSpotKeys.has(normalizeSpotKey(s.id)));
     }
+    if (effectiveCatFilter === "FEATURED_ONLY") {
+      return spotsForCity.filter((s) => s.isFeatured);
+    }
     if (effectiveCatFilter === "ALL") {
       return spotsForCity;
     }
@@ -368,6 +371,7 @@ export default function AttractionPlannerPanel({
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
               {[
                 { key: "ALL", labelKo: "전체", labelEn: "All" },
+                { key: "FEATURED_ONLY", labelKo: "★ 추천", labelEn: "★ Must-Visit" },
                 ...(selectedSpotKeys.size > 0
                   ? [
                       {
@@ -384,6 +388,7 @@ export default function AttractionPlannerPanel({
               ].map((tab) => {
                 const isActive = effectiveCatFilter === tab.key;
                 const isSavedTab = tab.key === "SAVED_ONLY";
+                const isFeaturedTab = tab.key === "FEATURED_ONLY";
                 return (
                   <button
                     key={tab.key}
@@ -391,10 +396,14 @@ export default function AttractionPlannerPanel({
                     onClick={() => setCategoryFilter(tab.key)}
                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1 ${
                       isActive
-                        ? isSavedTab
+                        ? isFeaturedTab
+                          ? "bg-rose-600 text-white shadow-xs"
+                          : isSavedTab
                           ? "bg-rose-500 text-white shadow-xs"
                           : "bg-slate-900 text-white shadow-xs"
-                        : isSavedTab
+                        : isFeaturedTab
+                          ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
+                          : isSavedTab
                           ? "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100"
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
                     }`}
@@ -419,19 +428,19 @@ export default function AttractionPlannerPanel({
                 const spotKey = rawSpot.id.replace(/^kto_/, "");
                 const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
 
-                const name = locale === "ko" ? (bilingual?.nameKo || rawSpot.nameKo) : (bilingual?.nameEn || rawSpot.nameEn);
+                const name = locale === "ko" ? (rawSpot.nameKo || bilingual?.nameKo) : (rawSpot.nameEn || bilingual?.nameEn);
                 const desc = locale === "ko"
-                  ? (bilingual?.descKo || rawSpot.descKo || rawSpot.descEn)
-                  : (bilingual?.descEn || rawSpot.descEn || rawSpot.descKo);
+                  ? (rawSpot.descKo || bilingual?.descKo || rawSpot.descEn)
+                  : (rawSpot.descEn || bilingual?.descEn || rawSpot.descKo);
                 const subway = locale === "ko"
-                  ? (bilingual?.subwayKo || rawSpot.subwayInfoKo || rawSpot.subwayInfo)
-                  : (bilingual?.subwayEn || rawSpot.subwayInfoEn || rawSpot.subwayInfo);
+                  ? (rawSpot.subwayInfoKo || rawSpot.subwayInfo || bilingual?.subwayKo)
+                  : (rawSpot.subwayInfoEn || rawSpot.subwayInfo || bilingual?.subwayEn);
                 const hours = locale === "ko"
-                  ? (bilingual?.hoursKo || rawSpot.openingHoursKo || rawSpot.openingHours)
-                  : (bilingual?.hoursEn || rawSpot.openingHoursEn || rawSpot.openingHours);
+                  ? (rawSpot.openingHoursKo || rawSpot.openingHours || bilingual?.hoursKo)
+                  : (rawSpot.openingHoursEn || rawSpot.openingHours || bilingual?.hoursEn);
                 const closed = locale === "ko"
-                  ? (bilingual?.closedKo || rawSpot.closedDaysKo || rawSpot.closedDays)
-                  : (bilingual?.closedEn || rawSpot.closedDaysEn || rawSpot.closedDays);
+                  ? (rawSpot.closedDaysKo || rawSpot.closedDays || bilingual?.closedKo)
+                  : (rawSpot.closedDaysEn || rawSpot.closedDays || bilingual?.closedEn);
 
                 const isSpotSelected = individualSpotIds.some((sid) => isSameSpot(sid, rawSpot.id));
                 const isIncludedInCourse = selectedCourseIds.some((cid) => {
@@ -479,6 +488,15 @@ export default function AttractionPlannerPanel({
                             </div>
                           )}
 
+                          {/* 추천(Must-Visit) 배지 */}
+                          {rawSpot.isFeatured && !isSelected && (
+                            <div className="absolute top-2 left-2 z-10">
+                              <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black shadow-xs flex items-center gap-0.5">
+                                ★ {locale === "ko" ? "추천" : "Must-Visit"}
+                              </span>
+                            </div>
+                          )}
+
                           <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">
                             {(rawSpot as any).imageUrl?.includes("wikimedia")
                               ? "Wikimedia"
@@ -522,6 +540,11 @@ export default function AttractionPlannerPanel({
 
                       {/* 카테고리 뱃지 */}
                       <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                        {rawSpot.isFeatured && (
+                          <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-0.5">
+                            <span>★ {locale === "ko" ? "추천" : "Must-Visit"}</span>
+                          </span>
+                        )}
                         {rawSpot.isLocal && (
                           <span className="text-[11px] font-black px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-0.5">
                             <span>{locale === "ko" ? "로컬" : "Local"}</span>

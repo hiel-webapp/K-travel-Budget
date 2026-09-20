@@ -741,71 +741,32 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           ...prev,
           [city]: validData,
         }));
-      } else if (city === "SEOUL") {
-        // 서울만 Supabase 직접 조회 폴백 (area_code=1) 허용
+      } else {
+        // Supabase 실시간 최신 admin-store.json에서 직접 폴백 로드 시도
         try {
-          const sbUrl1 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/Hype_Catalog_Items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=id.asc&limit=50`;
-          const sbUrl2 = `https://aqfvmuytaukrkdmememh.supabase.co/rest/v1/hype_catalog_items?select=*&budget_partition=eq.CITY_SPECIFIC&area_code=eq.1&main_category=eq.Sightseeing&order=item_id.asc&limit=50`;
-          const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ2OTM0MzUsImV4cCI6MjEwMDI2OTQzNX0.he2Fy3OJ4RQEANKy2cuN2sb0BcfgQRhmZ9KJHTngaBs";
-          let directRes = await fetch(sbUrl1, {
-            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-          });
-          if (!directRes.ok) {
-            directRes = await fetch(sbUrl2, {
-              headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-            });
-          }
+          const directRes = await fetch("https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/admin-store.json");
           if (directRes.ok) {
-            const rows = await directRes.json();
-            if (Array.isArray(rows) && rows.length > 0) {
-              const gradients = [
-                "from-rose-500/15 to-pink-500/15",
-                "from-blue-500/15 to-indigo-500/15",
-                "from-emerald-500/15 to-teal-500/15",
-                "from-amber-500/15 to-orange-500/15",
-                "from-purple-500/15 to-fuchsia-500/15",
-              ];
-              const directSpots = rows.map((row: any, idx: number) => {
-                const match = (row.title_en || "").match(/^(.*?)\s*\((.*?)\)$/);
-                const nameEn = match ? match[1].trim() : row.title_en;
-                const nameKo = match ? match[2].trim() : row.title_en;
-                const meta = parseAttractionMetadata(row.desc_en || "");
-                const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[row.content_id];
-                return {
-                  id: `kto_${row.content_id || row.id}`,
-                  cityCode: "SEOUL" as SupportedCity,
-                  nameKo: bilingual?.nameKo || nameKo,
-                  nameEn: bilingual?.nameEn || nameEn,
-                  categoryType: bilingual?.categoryType,
-                  descKo: bilingual?.descKo || meta.cleanDesc || "한국관광공사 및 서울시 선정 추천 명소",
-                  descEn: bilingual?.descEn || meta.cleanDesc || "Popular sightseeing spot in Seoul",
-                  price: row.price_krw || 0,
-                  priceStatus: (row.price_krw || 0) > 0 ? ("PAID" as const) : ("FREE" as const),
-                  tag: row.sub_category || "Attraction",
-                  emoji: "",
-                  gradientBg: gradients[idx % gradients.length],
-                  isFeatured: true,
-                  imageUrl: bilingual?.imageUrl || row.image_url,
-                  deepLink: row.deep_link_template,
-                  subwayInfo: meta.subwayInfo || bilingual?.subwayKo,
-                  openingHours: meta.openingHours || bilingual?.hoursKo,
-                  closedDays: meta.closedDays || bilingual?.closedKo,
-                  officialUrl: meta.officialUrl || bilingual?.officialUrl,
-                };
-              });
-              registerCustomAttractionSpots(directSpots);
-              setDbAttractionsByCity((prev) => ({
-                ...prev,
-                SEOUL: directSpots,
-              }));
+            const adminStore = await directRes.json();
+            if (Array.isArray(adminStore.attractionSpots)) {
+              const citySpots = adminStore.attractionSpots.filter(
+                (s: any) => s.cityCode === city && s.isActive !== false && (s.targetScope === "BOTH" || s.targetScope === "CITY_PLANNER")
+              );
+              if (citySpots.length > 0) {
+                registerCustomAttractionSpots(citySpots);
+                setDbAttractionsByCity((prev) => ({
+                  ...prev,
+                  [city]: citySpots,
+                }));
+                return;
+              }
             }
           }
         } catch (directErr) {
-          console.warn("[Planner] Direct Supabase Fallback 실패:", directErr);
+          console.warn("[Planner] Direct Admin Store Fallback 실패:", directErr);
         }
-      } else {
-        // 타 도시(부산, 제주 등)는 기본 카탈로그로 바인딩
-        const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city && (SHOW_LOCAL_SPOTS || !s.isLocal));
+
+        // 최후의 폴백: 정적 카탈로그에서 활성 항목 로드
+        const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city && s.isActive !== false);
         setDbAttractionsByCity((prev) => ({
           ...prev,
           [city]: localSpots,
@@ -813,7 +774,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
     } catch (err) {
       console.warn("[Planner] DB 관광지 연동 오류:", err);
-      const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city && (SHOW_LOCAL_SPOTS || !s.isLocal));
+      const localSpots = ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city && s.isActive !== false);
       setDbAttractionsByCity((prev) => ({
         ...prev,
         [city]: localSpots,
@@ -5073,7 +5034,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   const validDbSpots = dbSpots?.filter((s) => s.cityCode === city);
                   const baseSpotsForCity = ((validDbSpots && validDbSpots.length > 0)
                     ? validDbSpots
-                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)).filter((s) => SHOW_LOCAL_SPOTS || !s.isLocal);
+                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)).filter((s) => s.isActive !== false);
 
                   // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합
                   const customAttractionPlaces = budgetPlaces
@@ -6467,19 +6428,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       {previewSpot && (() => {
         const spotKey = previewSpot.id.replace(/^kto_/, "");
         const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
-        const name = locale === "ko" ? (bilingual?.nameKo || previewSpot.nameKo) : (bilingual?.nameEn || previewSpot.nameEn);
+        const name = locale === "ko" ? (previewSpot.nameKo || bilingual?.nameKo) : (previewSpot.nameEn || bilingual?.nameEn);
         const desc = locale === "ko"
-          ? (bilingual?.descKo || previewSpot.descKo || previewSpot.descEn)
-          : (bilingual?.descEn || previewSpot.descEn || previewSpot.descKo);
+          ? (previewSpot.descKo || bilingual?.descKo || previewSpot.descEn)
+          : (previewSpot.descEn || bilingual?.descEn || previewSpot.descKo);
         const subway = locale === "ko"
-          ? (bilingual?.subwayKo || previewSpot.subwayInfoKo || previewSpot.subwayInfo)
-          : (bilingual?.subwayEn || previewSpot.subwayInfoEn || previewSpot.subwayInfo);
+          ? (previewSpot.subwayInfoKo || previewSpot.subwayInfo || bilingual?.subwayKo)
+          : (previewSpot.subwayInfoEn || previewSpot.subwayInfo || bilingual?.subwayEn);
         const hours = locale === "ko"
-          ? (bilingual?.hoursKo || previewSpot.openingHoursKo || previewSpot.openingHours)
-          : (bilingual?.hoursEn || previewSpot.openingHoursEn || previewSpot.openingHours);
+          ? (previewSpot.openingHoursKo || previewSpot.openingHours || bilingual?.hoursKo)
+          : (previewSpot.openingHoursEn || previewSpot.openingHours || bilingual?.hoursEn);
         const closed = locale === "ko"
-          ? (bilingual?.closedKo || previewSpot.closedDaysKo || previewSpot.closedDays)
-          : (bilingual?.closedEn || previewSpot.closedDaysEn || previewSpot.closedDays);
+          ? (previewSpot.closedDaysKo || previewSpot.closedDays || bilingual?.closedKo)
+          : (previewSpot.closedDaysEn || previewSpot.closedDays || bilingual?.closedEn);
 
         const spotCity = previewSpot.cityCode || selectedCityTab || "seoul";
         const citySel = preferences.attractionSelections?.[spotCity] || { selectedCourseIds: [], individualSpotIds: [] };
@@ -6548,6 +6509,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </span>
                     );
                   })()}
+
+                  {/* Must-Visit 추천 뱃지 */}
+                  {previewSpot.isFeatured && (
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-rose-600 text-white shadow-md flex items-center gap-1">
+                      <span>★ {locale === "ko" ? "추천 명소" : "Must-Visit"}</span>
+                    </span>
+                  )}
 
                   {/* 로컬 명소 뱃지 */}
                   {previewSpot.isLocal && (

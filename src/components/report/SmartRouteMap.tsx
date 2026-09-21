@@ -246,6 +246,7 @@ export default function SmartRouteMap({
         const map = new window.kakao.maps.Map(mapContainerRef.current, options);
         mapInstanceRef.current = map;
         setIsMapLoaded(true);
+        setMapLoadError(false);
 
         // 줌 컨트롤러 추가
         const zoomControl = new window.kakao.maps.ZoomControl();
@@ -264,22 +265,29 @@ export default function SmartRouteMap({
           bounds.extend(pos);
           pathCoords.push(pos);
 
+          // 넘버링 마커 커스텀 오버레이
+          const isSelected = selectedSpotId === spot.id;
+          const isCourse = viewMode === "COURSE";
+          const badgeBg = isSelected
+            ? "#e25c5c"
+            : isCourse
+            ? "#4f46e5"
+            : "#0f172a";
+
           const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
 
-          // 번호 뱃지 커스텀 HTML 오버레이
           const content = document.createElement("div");
-          content.className =
-            "relative group cursor-pointer transform -translate-x-1/2 -translate-y-full transition-transform duration-200 hover:scale-110";
+          content.className = "group cursor-pointer transform -translate-x-1/2 -translate-y-full transition-transform hover:scale-110";
           content.innerHTML = `
-            <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0f172a] text-white shadow-lg border-2 border-white">
-              <span class="w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="background-color: ${badgeBg}; color: white; border-radius: 9999px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 2px solid white;">
                 ${spot.routeOrder}
-              </span>
-              <span class="text-[11px] font-extrabold max-w-[90px] truncate">
+              </div>
+              <div style="background-color: rgba(15, 23, 42, 0.9); backdrop-filter: blur(4px); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 700; margin-top: 3px; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
                 ${spotName}
-              </span>
+              </div>
+              <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid ${badgeBg};"></div>
             </div>
-            <div class="w-0 h-0 border-x-4 border-x-transparent border-t-6 border-t-[#0f172a] mx-auto"></div>
           `;
 
           content.onclick = () => {
@@ -331,12 +339,14 @@ export default function SmartRouteMap({
       return;
     }
 
-    // 2.5초 이상 SDK 로드가 지연되거나 도메인 정책 등으로 막힐 경우 로딩 무한 대기를 방지하고 깔끔한 타임라인 폴백 모드로 자동 전환
+    // 4초 이상 SDK 로드가 지연되거나 도메인 정책 등으로 막힐 경우 로딩 무한 대기를 방지하고 깔끔한 타임라인 폴백 모드로 자동 전환
     const timer = setTimeout(() => {
-      if (!isMapLoaded) {
+      if (typeof window !== "undefined" && window.kakao && window.kakao.maps) {
+        initKakaoMap();
+      } else {
         setMapLoadError(true);
       }
-    }, 2500);
+    }, 4000);
 
     return () => clearTimeout(timer);
   }, [activeCity, viewMode, selectedCourseId, displayedSpots]);
@@ -362,6 +372,7 @@ export default function SmartRouteMap({
         src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoAppKey}&autoload=false`}
         strategy="afterInteractive"
         onLoad={() => {
+          setMapLoadError(false);
           initKakaoMap();
         }}
         onError={() => {

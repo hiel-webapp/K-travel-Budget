@@ -180,16 +180,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     travelDays,
   } = calculations;
 
-  // 개인화 트렌드 팁
-  const personalizedTrends = draft && preferences
-    ? getPersonalizedTrendRecommendations({
-        draft,
-        preferences,
-        savedPlaceIds,
-        locale,
-      })
-    : [];
-
   // 목표 예산 건강성 계산
   const targetBudget = basePlan.targetBudgetKrw || 0;
   const isOverBudget = targetBudget > 0 && grandTotalKrw > targetBudget;
@@ -295,44 +285,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             dict={dict}
             usdRate={usdRate}
           />
-
-          {/* Card: Personalized K-Trend Tips */}
-          {personalizedTrends.length > 0 && (
-            <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-3">
-              <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
-                <h2 className="text-sm font-black text-slate-900 tracking-tight">
-                  {dict.trendSection.personalizedTitle}
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                {personalizedTrends.slice(0, 2).map(({ trend, reason }, idx) => {
-                  const trans = trend.translations[locale === "en" ? "en" : "ko"];
-                  const cityName = trend.city === "ALL"
-                    ? (locale === "en" ? "All Cities" : "전체 도시")
-                    : (locale === "en" ? CITY_ENGLISH_NAMES[trend.city as SupportedCity] || trend.city : CITY_KOREAN_NAMES[trend.city as SupportedCity] || trend.city);
-
-                  return (
-                    <div
-                      key={trend.id || idx}
-                      className="p-3.5 rounded-2xl border border-neutral-200/70 bg-neutral-50/70 flex flex-col justify-between space-y-2 text-xs"
-                    >
-                      <div className="space-y-1">
-                        <span className="text-[9px] font-black text-neutral-700 bg-white border border-neutral-200/80 px-2 py-0.5 rounded-full inline-block">
-                          {cityName}
-                        </span>
-                        <h3 className="font-bold text-slate-900">{trans.title}</h3>
-                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{trans.overview}</p>
-                      </div>
-                      <div className="pt-1.5 border-t border-neutral-200/50 text-[10px] text-slate-500">
-                        <span className="font-semibold text-slate-700">{reason}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
           {/* Section E: 1330 Korea Travel Helpline Banner */}
           <TravelHelpline1330 locale={locale} />

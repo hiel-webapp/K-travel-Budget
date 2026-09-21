@@ -330,6 +330,15 @@ export default function SmartRouteMap({
       initKakaoMap();
       return;
     }
+
+    // 2.5초 이상 SDK 로드가 지연되거나 도메인 정책 등으로 막힐 경우 로딩 무한 대기를 방지하고 깔끔한 타임라인 폴백 모드로 자동 전환
+    const timer = setTimeout(() => {
+      if (!isMapLoaded) {
+        setMapLoadError(true);
+      }
+    }, 2500);
+
+    return () => clearTimeout(timer);
   }, [activeCity, viewMode, selectedCourseId, displayedSpots]);
 
   const fullRouteLink =
@@ -590,28 +599,48 @@ export default function SmartRouteMap({
             {/* 로딩 / 에러 폴백 */}
             {(!isMapLoaded || mapLoadError) && (
               <div className="absolute inset-0 bg-slate-50/95 flex flex-col items-center justify-center p-6 text-center space-y-3 z-20">
-                <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center shadow-2xs">
-                  <svg className="w-5 h-5 text-rose-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
+                <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center shadow-2xs">
+                  {mapLoadError ? (
+                    <span className="text-xl">🗺️</span>
+                  ) : (
+                    <svg className="w-5 h-5 text-rose-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  )}
                 </div>
                 <div className="space-y-1">
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-800">
+                  <h4 className="text-xs sm:text-sm font-black text-slate-800">
                     {mapLoadError
                       ? locale === "ko"
-                        ? "지도를 불러오는 중입니다 (타임라인 모드 활성화)"
-                        : "Map Loading (Timeline Mode Active)"
+                        ? "카카오맵 최적 경로 & 타임라인 모드"
+                        : "Kakao Map Route & Timeline Mode"
                       : locale === "ko"
-                      ? "카카오맵 인터랙티브 경로를 로딩 중입니다..."
+                      ? "카카오맵 인터랙티브 경로를 연결하는 중..."
                       : "Connecting Kakao Map Route..."}
                   </h4>
-                  <p className="text-[11px] text-slate-500 max-w-xs leading-relaxed">
-                    {locale === "ko"
+                  <p className="text-[11.5px] text-slate-500 max-w-sm leading-relaxed">
+                    {mapLoadError
+                      ? locale === "ko"
+                        ? "외부 도메인 보안 설정에 따라 아래 스마트 타임라인(1➔2➔3)과 카카오 공식 길찾기 바로가기로 안전하게 안내해 드립니다."
+                        : "Explore the optimized sequence (1➔2➔3) below and access direct Kakao Map directions."
+                      : locale === "ko"
                       ? "하단의 1, 2, 3 순번 타임라인에서 최적 동선과 개별 길찾기를 즉시 이용하실 수 있습니다."
                       : "You can view the optimal sequence and directions in the timeline below."}
                   </p>
                 </div>
+
+                {mapLoadError && displayedSpots.length > 0 && (
+                  <a
+                    href={fullRouteLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#fee500] hover:bg-[#fdd835] text-slate-900 text-xs font-black shadow-xs transition-colors"
+                  >
+                    <span>카카오맵에서 전체 코스 보기</span>
+                    <span>↗</span>
+                  </a>
+                )}
               </div>
             )}
           </div>

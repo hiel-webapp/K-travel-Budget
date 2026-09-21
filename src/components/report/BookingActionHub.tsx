@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import type { Locale } from "src/lib/i18n/locales";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { TripDraft, SupportedCity } from "src/lib/trip-domain";
@@ -8,6 +8,8 @@ import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import type { TripBudgetSummary } from "src/features/budget/calculations/trip-budget-calculator";
 import { formatKrw } from "src/features/budget/presentation/formatters";
 import { formatPriceByLocale } from "src/lib/currency/currency-converter";
+
+export type BookingFilterCategory = "ALL" | "TRANSIT" | "STAY" | "ATTRACTION" | "ESSENTIAL";
 
 export interface BookingVoucherItem {
   id: string;
@@ -41,6 +43,7 @@ export default function BookingActionHub({
   usdRate = 1387,
 }: BookingActionHubProps) {
   const isKo = locale === "ko";
+  const [activeCategory, setActiveCategory] = useState<BookingFilterCategory>("ALL");
 
   // 사용자의 실제 영수증 및 선택 내역과 1:1 매핑되는 바우처 아이템 생성
   const voucherList = useMemo<BookingVoucherItem[]>(() => {
@@ -235,66 +238,120 @@ export default function BookingActionHub({
         </span>
       </div>
 
-      {/* Vouchers Grid (반응형 2열 카드) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-        {voucherList.map((voucher) => {
-          const categoryLabel = isKo
-            ? voucher.categoryLabelKo
-            : voucher.categoryLabelEn;
-          const title = isKo ? voucher.titleKo : voucher.titleEn;
-          const subtitle = isKo ? voucher.subtitleKo : voucher.subtitleEn;
-          const badge = isKo ? voucher.badgeKo : voucher.badgeEn;
-
-          return (
-            <div
-              key={voucher.id}
-              className="p-4 rounded-2xl bg-neutral-50/60 hover:bg-white border border-neutral-200/70 hover:border-neutral-900/40 hover:shadow-xs transition-all duration-200 flex flex-col justify-between space-y-3 group"
-            >
-              {/* Card Top: Category & Badge */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span
-                    className={`text-[9px] font-black px-2 py-0.5 rounded-md border uppercase ${voucher.accentColor}`}
-                  >
-                    {categoryLabel}
-                  </span>
-                  {voucher.priceText && (
-                    <span className="text-xs font-black text-neutral-900 tabular-nums">
-                      {voucher.priceText}
-                    </span>
-                  )}
-                </div>
-
-                {/* Card Title & Description */}
-                <h3 className="text-xs sm:text-sm font-extrabold text-neutral-900 group-hover:text-rose-600 transition-colors line-clamp-1">
-                  {title}
-                </h3>
-                <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
-                  {subtitle}
-                </p>
-              </div>
-
-              {/* Card Bottom Action */}
-              <div className="pt-2 border-t border-neutral-200/60 flex items-center justify-between">
-                <div className="flex items-center gap-1 text-[10px] font-bold text-neutral-400">
-                  <span>{voucher.isOfficial ? "🔒" : "⚡"}</span>
-                  <span>{voucher.isOfficial ? (isKo ? "공식 파트너" : "Official") : (isKo ? "다이렉트 예약" : "Direct Link")}</span>
-                </div>
-
-                <a
-                  href={voucher.targetUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] font-black text-neutral-900 group-hover:text-rose-600 group-hover:translate-x-0.5 transition-all"
+      {/* Category Filter Tabs Bar */}
+      <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
+        {[
+          { key: "ALL" as const, labelKo: "전체", labelEn: "All", emoji: "✨", count: voucherList.length },
+          { key: "TRANSIT" as const, labelKo: "교통 (KTX·버스·택시)", labelEn: "Transit", emoji: "🚆", count: voucherList.filter((v) => v.category === "TRANSIT").length },
+          { key: "STAY" as const, labelKo: "숙소", labelEn: "Stays", emoji: "🏨", count: voucherList.filter((v) => v.category === "STAY").length },
+          { key: "ATTRACTION" as const, labelKo: "관광·입장권", labelEn: "Attractions", emoji: "🎫", count: voucherList.filter((v) => v.category === "ATTRACTION").length },
+          { key: "ESSENTIAL" as const, labelKo: "여행 필수품", labelEn: "Essentials", emoji: "📱", count: voucherList.filter((v) => v.category === "ESSENTIAL").length },
+        ]
+          .filter((tab) => tab.key === "ALL" || tab.count > 0)
+          .map((tab) => {
+            const isActive = activeCategory === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveCategory(tab.key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer shrink-0 border ${
+                  isActive
+                    ? "bg-neutral-900 text-white border-neutral-900 shadow-xs"
+                    : "bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border-neutral-200/80 hover:text-neutral-900"
+                }`}
+              >
+                <span>{tab.emoji}</span>
+                <span>{isKo ? tab.labelKo : tab.labelEn}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums ${
+                    isActive ? "bg-white/20 text-white" : "bg-neutral-200/70 text-neutral-600"
+                  }`}
                 >
-                  <span>{badge}</span>
-                  <span className="text-xs">↗</span>
-                </a>
-              </div>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+      </div>
+
+      {/* Vouchers Grid (반응형 2열 카드) */}
+      {(() => {
+        const filteredList =
+          activeCategory === "ALL"
+            ? voucherList
+            : voucherList.filter((v) => v.category === activeCategory);
+
+        if (filteredList.length === 0) {
+          return (
+            <div className="py-12 text-center text-xs text-neutral-400">
+              {isKo ? "해당 카테고리의 예약 바우처가 없습니다." : "No vouchers in this category."}
             </div>
           );
-        })}
-      </div>
+        }
+
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {filteredList.map((voucher) => {
+              const categoryLabel = isKo
+                ? voucher.categoryLabelKo
+                : voucher.categoryLabelEn;
+              const title = isKo ? voucher.titleKo : voucher.titleEn;
+              const subtitle = isKo ? voucher.subtitleKo : voucher.subtitleEn;
+              const badge = isKo ? voucher.badgeKo : voucher.badgeEn;
+
+              return (
+                <div
+                  key={voucher.id}
+                  className="p-4 rounded-2xl bg-neutral-50/60 hover:bg-white border border-neutral-200/70 hover:border-neutral-900/40 hover:shadow-xs transition-all duration-200 flex flex-col justify-between space-y-3 group"
+                >
+                  {/* Card Top: Category & Badge */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`text-[9px] font-black px-2 py-0.5 rounded-md border uppercase ${voucher.accentColor}`}
+                      >
+                        {categoryLabel}
+                      </span>
+                      {voucher.priceText && (
+                        <span className="text-xs font-black text-neutral-900 tabular-nums">
+                          {voucher.priceText}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Card Title & Description */}
+                    <h3 className="text-xs sm:text-sm font-extrabold text-neutral-900 group-hover:text-rose-600 transition-colors line-clamp-1">
+                      {title}
+                    </h3>
+                    <p className="text-[11px] text-neutral-500 line-clamp-2 leading-relaxed">
+                      {subtitle}
+                    </p>
+                  </div>
+
+                  {/* Card Bottom Action */}
+                  <div className="pt-2 border-t border-neutral-200/60 flex items-center justify-between">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-neutral-400">
+                      <span>{voucher.isOfficial ? "🔒" : "⚡"}</span>
+                      <span>{voucher.isOfficial ? (isKo ? "공식 파트너" : "Official") : (isKo ? "다이렉트 예약" : "Direct Link")}</span>
+                    </div>
+
+                    <a
+                      href={voucher.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[11px] font-black text-neutral-900 group-hover:text-rose-600 group-hover:translate-x-0.5 transition-all"
+                    >
+                      <span>{badge}</span>
+                      <span className="text-xs">↗</span>
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Helper Footer Notice */}
       <div className="p-3 rounded-2xl bg-neutral-50 border border-neutral-100 flex items-center justify-between gap-2 text-xs text-neutral-500">

@@ -348,6 +348,7 @@ export default function ThemeActivityCatalogPanel() {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-700 bg-slate-800/90 text-slate-100 font-bold uppercase tracking-wider">
                 <tr>
+                  <th className="p-3.5 w-14">사진</th>
                   <th className="p-3.5">체험명 / ID</th>
                   <th className="p-3.5">상태</th>
                   <th className="p-3.5">연계 관광지 (트리거)</th>
@@ -369,6 +370,22 @@ export default function ThemeActivityCatalogPanel() {
                           : "hover:bg-slate-900/80 bg-slate-950/50 opacity-60"
                       }`}
                     >
+                      <td className="p-3.5">
+                        {act.imageUrl ? (
+                          <img
+                            src={act.imageUrl}
+                            alt={act.nameKo}
+                            className="h-10 w-10 rounded-lg object-cover border border-slate-600 shadow-2xs"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-lg bg-slate-800 flex items-center justify-center text-base border border-slate-700 shadow-2xs">
+                            🎭
+                          </div>
+                        )}
+                      </td>
                       <td className="p-3.5">
                         <div className="font-bold text-white text-sm">
                           {act.nameKo}
@@ -627,6 +644,62 @@ export default function ThemeActivityCatalogPanel() {
                   </div>
                 </div>
 
+                <div className="sm:col-span-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-slate-200">
+                      대표 사진 URL 및 실시간 미리보기
+                    </label>
+                    {imageUrl && (
+                      <a
+                        href={imageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 hover:underline flex items-center gap-1"
+                      >
+                        원본 사진 새 탭 열기 ↗
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start gap-3 mt-1">
+                    <div className="w-full flex-1">
+                      <input
+                        type="text"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        placeholder="https://images.unsplash.com/..."
+                        className="w-full rounded-xl border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-medium text-white focus:border-rose-400 focus:outline-none"
+                      />
+                      <p className="mt-1 text-[11px] text-slate-400">
+                        연계 체험 카드의 가운데 대표 사진으로 표시될 이미지 URL을 입력하세요.
+                      </p>
+                    </div>
+                    {/* 실시간 이미지 미리보기 박스 */}
+                    <div className="h-20 w-28 sm:w-32 flex-shrink-0 overflow-hidden rounded-xl border border-slate-600 bg-slate-950 flex items-center justify-center shadow-inner relative group">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt="미리보기"
+                          className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = "none";
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector(".fallback-text")) {
+                              const fallback = document.createElement("div");
+                              fallback.className = "fallback-text p-1 text-center text-[10px] text-rose-400 font-bold";
+                              fallback.innerText = "URL 오류";
+                              parent.appendChild(fallback);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="text-center p-2 text-slate-500 text-[10px]">
+                          사진 없음
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="sm:col-span-2">
                   <label className="font-bold text-slate-200">체험 설명 (한국어)</label>

@@ -801,11 +801,20 @@ export default function AttractionPlannerPanel({
                               src={act.imageUrl}
                               alt={locale === "ko" ? act.nameKo : act.nameEn}
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                target.style.display = "none";
+                                const fallback = target.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = "flex";
+                              }}
                             />
+                            <div className="hidden w-full h-full bg-purple-100/60 items-center justify-center text-3xl">
+                              {isHanbokActivityId(act.id) ? "👘" : act.categoryType === "자연" ? "⛵" : act.categoryType === "쇼핑" ? "🛍️" : "🎭"}
+                            </div>
                           </div>
                         ) : (
                           <div className="w-full h-20 sm:h-24 rounded-xl bg-purple-100/60 border border-purple-200/60 flex items-center justify-center text-3xl shadow-2xs">
-                            👘
+                            {isHanbokActivityId(act.id) ? "👘" : act.categoryType === "자연" ? "⛵" : act.categoryType === "쇼핑" ? "🛍️" : "🎭"}
                           </div>
                         )}
 

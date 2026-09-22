@@ -160,6 +160,16 @@ export async function loadAdminStore(): Promise<AdminStoreData> {
   if (remote) {
     if (!remote.themeActivities || remote.themeActivities.length === 0) {
       remote.themeActivities = [...THEME_ACTIVITIES_CATALOG];
+    } else {
+      remote.themeActivities = remote.themeActivities.map((act) => {
+        if (!act.imageUrl) {
+          const defaultAct = THEME_ACTIVITIES_CATALOG.find((d) => d.id === act.id);
+          if (defaultAct?.imageUrl) {
+            return { ...act, imageUrl: defaultAct.imageUrl };
+          }
+        }
+        return act;
+      });
     }
     memoryCache = remote;
     lastCacheFetchTime = now;
@@ -184,6 +194,20 @@ export async function loadAdminStore(): Promise<AdminStoreData> {
     try {
       const raw = fs.readFileSync(STORE_FILE, "utf-8");
       const parsed = JSON.parse(raw) as AdminStoreData;
+      if (!parsed.themeActivities || parsed.themeActivities.length === 0) {
+        parsed.themeActivities = [...THEME_ACTIVITIES_CATALOG];
+      } else {
+        parsed.themeActivities = parsed.themeActivities.map((act) => {
+          if (!act.imageUrl) {
+            const defaultAct = THEME_ACTIVITIES_CATALOG.find((d) => d.id === act.id);
+            if (defaultAct?.imageUrl) {
+              return { ...act, imageUrl: defaultAct.imageUrl };
+            }
+          }
+          return act;
+        });
+      }
+      registerCustomThemeActivities(parsed.themeActivities);
       memoryCache = parsed;
       lastCacheFetchTime = now;
       setDynamicPresets(parsed.presets);

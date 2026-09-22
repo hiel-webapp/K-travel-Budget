@@ -6134,32 +6134,27 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   {/* 5) 최종 예상 총액 */}
                   <div className="pt-1">
-                    <div className="flex items-baseline justify-between">
-                      <div>
-                        <span className="text-sm font-extrabold text-[#0f172a] block">{dict.planner.estimatedTotal}</span>
-                        <span className="text-[11px] font-medium text-slate-400">
+                    <div className="flex items-start justify-between">
+                      <span className="text-sm font-extrabold text-[#0f172a]">{dict.planner.estimatedTotal}</span>
+                      <div className="text-right">
+                        <span className="text-2xl font-extrabold tracking-tight text-[#0f172a] block">
+                          {formatPriceByLocale(finalGrandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
+                        </span>
+                        <span className="text-[11px] font-medium text-slate-400 block mt-0.5">
                           ({locale === "ko"
                             ? `1인당 ${formatKrw(finalPerTravelerTotalKrw)}`
                             : `${formatPriceByLocale(finalPerTravelerTotalKrw, "en", usdRate)} / person`})
                         </span>
                       </div>
-                      <span className="text-2xl font-extrabold tracking-tight text-[#0f172a]">
-                        {formatPriceByLocale(finalGrandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
-                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center space-y-1">
+                <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
                   <p className="text-[11px] text-slate-500 font-medium">
                     {locale === "ko"
                       ? "상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
                       : "Detailed analytics & report are in [Generate Budget Report]."}
-                  </p>
-                  <p className="text-[10px] text-slate-400 font-medium border-t border-slate-200/60 pt-1">
-                    {locale === "ko"
-                      ? `* 실시간 고시 환율($1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}) 기준으로 자동 환산된 금액입니다.`
-                      : `* Converted at live exchange rate ($1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")}, updated daily).`}
                   </p>
                 </div>
 

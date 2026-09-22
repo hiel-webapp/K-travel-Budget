@@ -666,11 +666,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   ? "본 리포트는 플래너에서 직접 담은 바스켓 데이터를 기반으로 산출된 공식 예산 내역입니다."
                   : "Certified travel budget plan calculated from your actual planner selections."}
               </p>
-              <p className="text-[10px] text-slate-400 border-t border-slate-200/60 pt-1">
-                {locale === "ko"
-                  ? `* 실시간 고시 환율($1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}) 기준으로 자동 환산된 금액입니다.`
-                  : `* Converted at live exchange rate ($1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")}, updated daily).`}
-              </p>
             </div>
           </div>
         </div>

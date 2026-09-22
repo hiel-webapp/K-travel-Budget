@@ -6219,24 +6219,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       </button>
                     );
                   })()}
-                  {[
-                    { label: dict.planner.shareReceipt, key: "share" }
-                  ].map((btn) => (
-                    <button
-                      key={btn.key}
-                      disabled
-                      aria-describedby="future-features-info"
-                      className="w-full h-10 px-4 rounded-xl border border-slate-200 text-slate-400 bg-slate-50 font-bold text-sm text-center relative cursor-not-allowed hover:bg-slate-50 transition-colors"
-                    >
-                      <span>{btn.label}</span>
-                      <span className="absolute -top-1.5 right-2 bg-slate-200 text-slate-500 text-[8px] font-bold px-1 py-0.5 rounded scale-90">
-                        Coming Soon
-                      </span>
-                    </button>
-                  ))}
-                  <span id="future-features-info" className="sr-only">
-                    {dict.planner.notYetAvailable}
-                  </span>
                 </div>
               </div>
             </div>

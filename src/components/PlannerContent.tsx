@@ -3993,18 +3993,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {/* 2-2. Optional Shopping & Souvenirs Selector Card */}
                       {(() => {
                         const adultCount = draft.adultCount || 1;
-                        const shoppingAmountKrw = (() => {
-                          if (shoppingOption === "NONE") return 0;
-                          if (shoppingOption === "BEAUTY") return 200000 * adultCount;
-                          if (shoppingOption === "FASHION") return 300000 * adultCount;
-                          if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
-                          if (shoppingOption === "CUSTOM") {
-                            const rawNum = parseInt(shoppingCustomInput.replace(/[^0-9]/g, ""), 10) || 0;
-                            const perPerson = locale === "ko" ? rawNum : Math.round(rawNum * usdRate);
-                            return perPerson * adultCount;
-                          }
-                          return 0;
-                        })();
+                        const isShoppingCustomActive = shoppingOption === "CUSTOM";
+                        const currentShoppingPerPersonKrw = Math.round((shoppingAmountKrw || preferences.shoppingAmountKrw || 0) / adultCount);
+
+                        const displayShoppingInputValue = shoppingCustomInput !== ""
+                          ? shoppingCustomInput
+                          : (isShoppingCustomActive && currentShoppingPerPersonKrw > 0
+                              ? (locale === "ko"
+                                  ? currentShoppingPerPersonKrw.toLocaleString("ko-KR")
+                                  : Math.round(currentShoppingPerPersonKrw / usdRate).toLocaleString("en-US"))
+                              : "");
 
                         const presets = [
                           { id: "SOUVENIR", title: locale === "ko" ? "가벼운 쇼핑" : "Light Shopping", perPerson: 100000 },
@@ -4029,7 +4027,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                               {presets.map((opt) => {
-                                const isSelected = shoppingOption === opt.id && shoppingCustomInput === "";
+                                const isSelected = !isShoppingCustomActive && shoppingOption === opt.id;
                                 return (
                                   <button
                                     key={opt.id}
@@ -4041,6 +4039,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         persistPreferences({
                                           shoppingOption: "NONE",
                                           shoppingCustomInput: "",
+                                          shoppingAmountKrw: 0,
                                         });
                                       } else {
                                         setShoppingOption(opt.id as ShoppingOption);
@@ -4048,6 +4047,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         persistPreferences({
                                           shoppingOption: opt.id as ShoppingOption,
                                           shoppingCustomInput: "",
+                                          shoppingAmountKrw: opt.perPerson * adultCount,
                                         });
                                       }
                                     }}
@@ -4061,7 +4061,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 );
                               })}
 
-                              <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
+                              <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${isShoppingCustomActive
                                   ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                   : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                 }`}>
@@ -4073,15 +4073,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   inputMode="numeric"
                                   className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
                                   placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                                  value={shoppingCustomInput}
+                                  value={displayShoppingInputValue}
                                   onChange={(e) => {
                                     const rawDigits = e.target.value.replace(/[^0-9]/g, "");
                                     if (!rawDigits) {
                                       setShoppingCustomInput("");
-                                      setShoppingOption("CUSTOM");
+                                      setShoppingOption("NONE");
                                       persistPreferences({
-                                        shoppingOption: "CUSTOM",
+                                        shoppingOption: "NONE",
                                         shoppingCustomInput: "",
+                                        shoppingAmountKrw: 0,
                                       });
                                       return;
                                     }
@@ -4089,9 +4090,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     const formatted = valNum.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
                                     setShoppingCustomInput(formatted);
                                     setShoppingOption("CUSTOM");
+                                    const perPersonKrw = locale === "ko" ? valNum : Math.round(valNum * usdRate);
                                     persistPreferences({
                                       shoppingOption: "CUSTOM",
                                       shoppingCustomInput: formatted,
+                                      shoppingAmountKrw: perPersonKrw * adultCount,
                                     });
                                   }}
                                 />
@@ -4160,7 +4163,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             ].map((preset) => {
                               const firstCity = draft.selectedCities[0];
                               const currentBasket = preferences.attractionByCity?.[firstCity] ?? "BALANCED";
-                              const isSelected = currentBasket === preset.id && !preferences.attractionCustomDailyKrw && activityManualInput === "";
+                              const isActivityCustomActive = (activityManualInput !== "" && activityManualInput !== "0") || (preferences.attractionCustomDailyKrw !== undefined && preferences.attractionCustomDailyKrw > 0);
+                              const isSelected = !isActivityCustomActive && currentBasket === preset.id;
 
                               return (
                                 <button
@@ -4185,7 +4189,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               );
                             })}
 
-                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${(preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
+                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${((preferences.attractionCustomDailyKrw !== undefined && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0"))
                                 ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                 : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                               }`}>
@@ -4266,7 +4270,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             ].map((preset) => {
                               const basePerPerson = Math.round(baseEmergencyGrandTotal / adultCount);
                               const calcValPerPerson = Math.round((basePerPerson * preset.pct) / 1000) * 1000;
-                              const isSelected = activeEmergencyPct === preset.pct && emergencyManualInput === "";
+                              const isEmergencyCustomActive = (emergencyManualInput !== "" && emergencyManualInput !== "0") || (preferences.emergencyFundKrw !== undefined && preferences.emergencyFundKrw > 0);
+                              const isSelected = !isEmergencyCustomActive && activeEmergencyPct === preset.pct;
 
                               return (
                                 <button
@@ -4292,7 +4297,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               );
                             })}
 
-                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${emergencyManualInput !== "" && emergencyManualInput !== "0"
+                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${((preferences.emergencyFundKrw !== undefined && preferences.emergencyFundKrw > 0) || (emergencyManualInput !== "" && emergencyManualInput !== "0"))
                                 ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                 : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                               }`}>
@@ -4321,11 +4326,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           {(() => {
                             const basePerPerson = Math.round(baseEmergencyGrandTotal / adultCount);
                             const pctPct = Math.round((activeEmergencyPct || 0.10) * 100);
+                            const isEmergencyActive = ((preferences.emergencyFundKrw !== undefined && preferences.emergencyFundKrw > 0) || (emergencyManualInput !== "" && emergencyManualInput !== "0"));
+                            const currentCustomPerPerson = preferences.emergencyFundKrw || (emergencyManualInput ? (locale === "ko" ? parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) : Math.round(parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) * usdRate)) : 0);
 
-                            const formulaText = emergencyManualInput !== "" && emergencyManualInput !== "0"
+                            const formulaText = isEmergencyActive && currentCustomPerPerson > 0
                               ? (locale === "ko"
-                                ? `직접 입력 ${formatPriceByLocale(parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) || 0, locale, usdRate)} × ${adultCount}명`
-                                : `Custom ${formatPriceByLocale((parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) || 0) * usdRate, locale, usdRate)} × ${adultCount} travelers`)
+                                ? `직접 입력 ${formatPriceByLocale(currentCustomPerPerson, locale, usdRate)} × ${adultCount}명`
+                                : `Custom ${formatPriceByLocale(currentCustomPerPerson, locale, usdRate)} × ${adultCount} travelers`)
                               : (activeEmergencyPct || 0) === 0
                                 ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
                                 : (locale === "ko"

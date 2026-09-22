@@ -5465,28 +5465,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         })
                         .join(" · ")}
                     </span>
-                    <span
-                      className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-tight shadow-2xs"
-                      title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
-                    >
-                      <span className="text-[10px]">💱</span>
-                      <span>
-                        {locale === "ko"
-                          ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
-                          : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
-                      </span>
-                    </span>
                   </div>
                 </div>
 
                 <div className="py-4 border-b border-slate-100 space-y-3.5">
-                  <div className="text-xs font-bold text-slate-500">
+                  <div className="text-xs font-bold text-slate-500 flex items-center justify-between">
                     <div>
                       <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
                         {dict.planner.targetBudget}
                       </span>
                       <span className="mt-0.5 block text-slate-700 text-sm">{formatPriceByLocale(plan.targetBudgetKrw, locale, usdRate)}</span>
                     </div>
+                    <span
+                      className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-tight shadow-2xs"
+                      title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
+                    >
+                      {locale === "ko"
+                        ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
+                        : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
+                    </span>
                   </div>
 
                   <div className="space-y-1.5">

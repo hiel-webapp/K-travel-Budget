@@ -200,15 +200,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                 {totalNights}{locale === "ko" ? "박 " : "N "}{travelDays}{locale === "ko" ? "일" : "D"} · {adultCount}{locale === "ko" ? "인 성인" : " Adults"}
               </span>
               <span
-                className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-tight shadow-2xs"
+                className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-tight shadow-2xs"
                 title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
               >
-                <span className="text-[9px]">💱</span>
-                <span>
-                  {locale === "ko"
-                    ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
-                    : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
-                </span>
+                {locale === "ko"
+                  ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
+                  : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
@@ -314,15 +311,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     ITEMIZED EXPENSE AUDIT
                   </span>
                   <span
-                    className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-tight"
+                    className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-tight"
                     title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
                   >
-                    <span className="text-[9px]">💱</span>
-                    <span>
-                      {locale === "ko"
-                        ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
-                        : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
-                    </span>
+                    {locale === "ko"
+                      ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
+                      : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
                   </span>
                 </div>
                 <h2 className="text-base font-black tracking-tight text-slate-900 mt-0.5">

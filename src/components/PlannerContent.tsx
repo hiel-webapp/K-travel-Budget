@@ -5474,7 +5474,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <span className="block text-[11px] uppercase tracking-wider text-slate-400 font-bold">
                         {dict.planner.targetBudget}
                       </span>
-                      <span className="mt-0.5 block text-slate-700 text-sm">{formatKrw(plan.targetBudgetKrw)}</span>
+                      <span className="mt-0.5 block text-slate-700 text-sm">{formatPriceByLocale(plan.targetBudgetKrw, locale, usdRate)}</span>
                     </div>
                   </div>
 
@@ -5500,12 +5500,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       {isOverBudget ? (
                         <>
                           <span className="text-red-500">{dict.planner.overBudget}</span>
-                          <span className="text-red-500 tabular-nums">+{formatKrw(overBudgetAmountKrw)}</span>
+                          <span className="text-red-500 tabular-nums">+{formatPriceByLocale(overBudgetAmountKrw, locale, usdRate)}</span>
                         </>
                       ) : (
                         <>
                           <span className="text-slate-400">{dict.planner.remainingBudget}</span>
-                          <span className="text-[#4d7c67] tabular-nums">{formatKrw(remainingBudgetKrw)}</span>
+                          <span className="text-[#4d7c67] tabular-nums">{formatPriceByLocale(remainingBudgetKrw, locale, usdRate)}</span>
                         </>
                       )}
                     </div>
@@ -5620,7 +5620,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               )}
                             </div>
                             <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-[11px] pl-1.5 border-l border-slate-300/70">
-                              {formatKrw(entryItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
+                              {formatPriceByLocale(entryItems.reduce((sum, item) => sum + item.lineTotalKrw, 0), locale, usdRate)}
                             </span>
                           </div>
                         </div>
@@ -5735,7 +5735,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-black text-slate-900 tabular-nums">
-                                    {formatKrw(cityTotal)}
+                                    {formatPriceByLocale(cityTotal, locale, usdRate)}
                                   </span>
                                   <span className="text-slate-400 font-bold text-[10px]">
                                     {isExpanded ? "▲" : "▼"}
@@ -5753,7 +5753,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         <span>{getCategoryLabel("ACCOMMODATION", dict)}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
-                                        {formatKrw(accTotal)}
+                                        {formatPriceByLocale(accTotal, locale, usdRate)}
                                       </span>
                                     </div>
                                     {(() => {
@@ -5770,7 +5770,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                               <div key={item.id} className="space-y-1 pl-5">
                                                 <div className="flex justify-between items-start text-[11px] font-bold text-slate-700">
                                                   <span>{locale === "ko" ? "[분할 숙박]" : "[Split Stay]"}</span>
-                                                  <span className="tabular-nums font-bold text-slate-800">{formatKrw(item.lineTotalKrw)}</span>
+                                                  <span className="tabular-nums font-bold text-slate-800">{formatPriceByLocale(item.lineTotalKrw, locale, usdRate)}</span>
                                                 </div>
                                                 <div className="space-y-0.5 border-l-2 border-rose-300 pl-2">
                                                   {segments.map((seg: any, sIdx: number) => {
@@ -5802,7 +5802,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                       <div key={sIdx} className="flex justify-between text-[10.5px] text-slate-600">
                                                         <span className="truncate pr-1">• {segName} ({segNightText})</span>
                                                         <span className="tabular-nums text-slate-500 shrink-0">
-                                                          {segTotal > 0 ? formatKrw(segTotal) : ""}
+                                                          {segTotal > 0 ? formatPriceByLocale(segTotal, locale, usdRate) : ""}
                                                         </span>
                                                       </div>
                                                     );
@@ -5833,7 +5833,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                           return (
                                             <div key={item.id} className="flex justify-between items-start text-[11px] text-slate-600 pl-5">
                                               <span className="truncate pr-2">{stayLabel}</span>
-                                              <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(item.lineTotalKrw)}</span>
+                                              <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatPriceByLocale(item.lineTotalKrw, locale, usdRate)}</span>
                                             </div>
                                           );
                                         });
@@ -5854,7 +5854,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         <span>{getCategoryLabel("FOOD", dict)}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
-                                        {formatKrw(foodTotal)}
+                                        {formatPriceByLocale(foodTotal, locale, usdRate)}
                                       </span>
                                     </div>
                                     {/* 음식 품목 리스트 (선택된 음식이 없을 때 통일된 '미선택' 표시) */}
@@ -5890,7 +5890,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                   <div key={item.food.id} className="flex justify-between items-center text-[11px] text-slate-600">
                                                     <span className="truncate pr-2">{name}{personText}</span>
                                                     <span className="tabular-nums font-medium text-slate-700 shrink-0">
-                                                      {formatKrw(item.subtotalKrw)}
+                                                      {formatPriceByLocale(item.subtotalKrw, locale, usdRate)}
                                                     </span>
                                                   </div>
                                                 );
@@ -5912,7 +5912,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                 return (
                                                   <div key={fp.id} className="flex justify-between items-center text-[10px] text-slate-500">
                                                     <span className="truncate pr-2">{fName}{customPersonText}</span>
-                                                    <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatKrw(iTotal)}</span>
+                                                    <span className="tabular-nums font-medium text-slate-700 shrink-0">{formatPriceByLocale(iTotal, locale, usdRate)}</span>
                                                   </div>
                                                 );
                                               })}
@@ -5930,7 +5930,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         <span>{getCategoryLabel("CITY_TRANSPORT", dict)}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
-                                        {formatKrw(transportTotal)}
+                                        {formatPriceByLocale(transportTotal, locale, usdRate)}
                                       </span>
                                     </div>
                                     {transportItems.length > 0 ? (
@@ -5972,7 +5972,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         <span>{locale === "ko" ? "관광" : "Attractions"}</span>
                                       </span>
                                       <span className="font-sans tabular-nums font-bold text-slate-800">
-                                        {formatKrw(cityAttractionTotal)}
+                                        {formatPriceByLocale(cityAttractionTotal, locale, usdRate)}
                                       </span>
                                     </div>
                                     {addedSpotsList.length > 0 ? (
@@ -5994,7 +5994,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                                     <span>{locale === "ko" ? "₩0 (한복 무료)" : "Free (Hanbok)"}</span>
                                                   </span>
                                                 ) : sTotal > 0 ? (
-                                                  <span className="text-slate-700">{formatKrw(sTotal)}</span>
+                                                  <span className="text-slate-700">{formatPriceByLocale(sTotal, locale, usdRate)}</span>
                                                 ) : (
                                                   <span className="text-emerald-600">{locale === "ko" ? "무료" : "Free"}</span>
                                                 )}
@@ -6033,7 +6033,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       )}
                                     </div>
                                     <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-[11px] pl-1.5 border-l border-slate-300/70">
-                                      {formatKrw(transitToNext.lineTotalKrw)}
+                                      {formatPriceByLocale(transitToNext.lineTotalKrw, locale, usdRate)}
                                     </span>
                                   </div>
                                 </div>
@@ -6061,7 +6061,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               )}
                             </div>
                             <span className="font-sans tabular-nums font-black text-slate-900 shrink-0 text-[11px] pl-1.5 border-l border-slate-300/70">
-                              {formatKrw(exitItems.reduce((sum, item) => sum + item.lineTotalKrw, 0))}
+                              {formatPriceByLocale(exitItems.reduce((sum, item) => sum + item.lineTotalKrw, 0), locale, usdRate)}
                             </span>
                           </div>
                         </div>

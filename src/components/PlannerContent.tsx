@@ -639,14 +639,37 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     return "BEAUTY";
   });
   const [shoppingCustomInput, setShoppingCustomInput] = useState<string>(() => {
-    if (state.status === "ready" && state.preferences.shoppingCustomInput) {
-      return state.preferences.shoppingCustomInput;
+    if (state.status === "ready") {
+      if (state.preferences.shoppingOption === "CUSTOM" && state.preferences.shoppingAmountKrw) {
+        const adultCount = state.draft.adultCount || 1;
+        const perPersonKrw = Math.round(state.preferences.shoppingAmountKrw / adultCount);
+        return locale === "ko"
+          ? perPersonKrw.toLocaleString("ko-KR")
+          : Math.round(perPersonKrw / usdRate).toLocaleString("en-US");
+      }
+      if (state.preferences.shoppingCustomInput) {
+        return state.preferences.shoppingCustomInput;
+      }
     }
     return "";
   });
 
-  const [emergencyManualInput, setEmergencyManualInput] = useState<string>("");
-  const [activityManualInput, setActivityManualInput] = useState<string>("");
+  const [emergencyManualInput, setEmergencyManualInput] = useState<string>(() => {
+    if (state.status === "ready" && state.preferences.emergencyFundKrw && state.preferences.emergencyFundKrw > 0) {
+      return locale === "ko"
+        ? state.preferences.emergencyFundKrw.toLocaleString("ko-KR")
+        : Math.round(state.preferences.emergencyFundKrw / usdRate).toLocaleString("en-US");
+    }
+    return "";
+  });
+  const [activityManualInput, setActivityManualInput] = useState<string>(() => {
+    if (state.status === "ready" && state.preferences.attractionCustomDailyKrw && state.preferences.attractionCustomDailyKrw > 0) {
+      return locale === "ko"
+        ? state.preferences.attractionCustomDailyKrw.toLocaleString("ko-KR")
+        : Math.round(state.preferences.attractionCustomDailyKrw / usdRate).toLocaleString("en-US");
+    }
+    return "";
+  });
   const [visibleAttractionsCountByCity, setVisibleAttractionsCountByCity] = useState<Record<string, number>>({});
   const [attractionCategoryFilterByCity, setAttractionCategoryFilterByCity] = useState<Record<string, string>>({});
   const [visibleAccommodationsCountByCity, setVisibleAccommodationsCountByCity] = useState<Record<string, number>>({});
@@ -663,6 +686,43 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
     return initial;
   });
+
+  // 언어(locale) 변경 시 커스텀 입력 필드(쇼핑, 일일 용돈, 비상금)를 현재 통화(₩ / $) 및 환율로 실시간 상호 변환
+  const prevLocaleRef = useRef<Locale>(locale);
+  useEffect(() => {
+    if (prevLocaleRef.current !== locale && state.status === "ready") {
+      const prefs = latestPrefsRef.current || state.preferences;
+      const adultCount = state.draft.adultCount || 1;
+
+      // 1. 쇼핑 예산 커스텀 환산
+      if (prefs.shoppingOption === "CUSTOM" && prefs.shoppingAmountKrw && prefs.shoppingAmountKrw > 0) {
+        const perPersonKrw = Math.round(prefs.shoppingAmountKrw / adultCount);
+        const nextShoppingStr = locale === "ko"
+          ? perPersonKrw.toLocaleString("ko-KR")
+          : Math.round(perPersonKrw / usdRate).toLocaleString("en-US");
+        setShoppingCustomInput(nextShoppingStr);
+      }
+
+      // 2. 일일 용돈 커스텀 환산
+      if (prefs.attractionCustomDailyKrw && prefs.attractionCustomDailyKrw > 0) {
+        const nextActivityStr = locale === "ko"
+          ? prefs.attractionCustomDailyKrw.toLocaleString("ko-KR")
+          : Math.round(prefs.attractionCustomDailyKrw / usdRate).toLocaleString("en-US");
+        setActivityManualInput(nextActivityStr);
+      }
+
+      // 3. 비상금 커스텀 환산
+      if (prefs.emergencyFundKrw && prefs.emergencyFundKrw > 0) {
+        const nextEmergencyStr = locale === "ko"
+          ? prefs.emergencyFundKrw.toLocaleString("ko-KR")
+          : Math.round(prefs.emergencyFundKrw / usdRate).toLocaleString("en-US");
+        setEmergencyManualInput(nextEmergencyStr);
+      }
+
+      prevLocaleRef.current = locale;
+    }
+  }, [locale, state, usdRate]);
+
   const [openOverviewInfoKey, setOpenOverviewInfoKey] = useState<string | null>(null);
   const [expandedReceiptCities, setExpandedReceiptCities] = useState<Record<string, boolean>>({});
   const [previewSpot, setPreviewSpot] = useState<(AttractionSpot & { imageUrl?: string; deepLink?: string }) | null>(null);
@@ -2261,6 +2321,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       attractionCustomDailyKrw: preferences.attractionCustomDailyKrw,
       emergencyFundKrw: preferences.emergencyFundKrw,
       emergencyFundPct: preferences.emergencyFundPct,
+      shoppingOption: preferences.shoppingOption,
+      shoppingCustomInput: preferences.shoppingCustomInput,
+      shoppingAmountKrw: preferences.shoppingAmountKrw,
+      occupancyModeByCity: preferences.occupancyModeByCity,
       draft,
     });
 
@@ -2937,6 +3001,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       localTransitStyle: nextPrefs.localTransitStyle,
       cityTransitStyles: nextPrefs.cityTransitStyles,
       isKobusPassApplied: nextPrefs.isKobusPassApplied,
+      shoppingOption: nextPrefs.shoppingOption,
+      shoppingCustomInput: nextPrefs.shoppingCustomInput,
+      shoppingAmountKrw: nextPrefs.shoppingAmountKrw,
+      occupancyModeByCity: nextPrefs.occupancyModeByCity,
     });
 
     if (saved) {
@@ -3008,6 +3076,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       localTransitStyle: nextPrefs.localTransitStyle,
       cityTransitStyles: nextPrefs.cityTransitStyles,
       isKobusPassApplied: nextPrefs.isKobusPassApplied,
+      shoppingOption: nextPrefs.shoppingOption,
+      shoppingCustomInput: nextPrefs.shoppingCustomInput,
+      shoppingAmountKrw: nextPrefs.shoppingAmountKrw,
+      occupancyModeByCity: nextPrefs.occupancyModeByCity,
     });
 
     if (saved) {
@@ -3060,6 +3132,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       localTransitStyle: nextPrefs.localTransitStyle,
       cityTransitStyles: nextPrefs.cityTransitStyles,
       isKobusPassApplied: nextPrefs.isKobusPassApplied,
+      shoppingOption: nextPrefs.shoppingOption,
+      shoppingCustomInput: nextPrefs.shoppingCustomInput,
+      shoppingAmountKrw: nextPrefs.shoppingAmountKrw,
+      occupancyModeByCity: nextPrefs.occupancyModeByCity,
     });
 
     if (saved) {
@@ -3094,6 +3170,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       attractionSelections: latestPrefsRef.current.attractionSelections,
       emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
+      shoppingOption: latestPrefsRef.current.shoppingOption,
+      shoppingCustomInput: latestPrefsRef.current.shoppingCustomInput,
+      shoppingAmountKrw: latestPrefsRef.current.shoppingAmountKrw,
+      occupancyModeByCity: latestPrefsRef.current.occupancyModeByCity,
+      attractionCustomDailyKrw: latestPrefsRef.current.attractionCustomDailyKrw,
       draft,
     });
 
@@ -3130,6 +3211,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       attractionSelections: latestPrefsRef.current.attractionSelections,
       emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
+      shoppingOption: latestPrefsRef.current.shoppingOption,
+      shoppingCustomInput: latestPrefsRef.current.shoppingCustomInput,
+      shoppingAmountKrw: latestPrefsRef.current.shoppingAmountKrw,
+      occupancyModeByCity: latestPrefsRef.current.occupancyModeByCity,
+      attractionCustomDailyKrw: latestPrefsRef.current.attractionCustomDailyKrw,
       draft,
     });
 
@@ -3172,6 +3258,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       attractionSelections: latestPrefsRef.current.attractionSelections,
       emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
+      shoppingOption: latestPrefsRef.current.shoppingOption,
+      shoppingCustomInput: latestPrefsRef.current.shoppingCustomInput,
+      shoppingAmountKrw: latestPrefsRef.current.shoppingAmountKrw,
+      occupancyModeByCity: latestPrefsRef.current.occupancyModeByCity,
+      attractionCustomDailyKrw: latestPrefsRef.current.attractionCustomDailyKrw,
       draft,
     });
 
@@ -3216,6 +3307,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       attractionSelections: latestPrefsRef.current.attractionSelections,
       emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
       emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
+      shoppingOption: latestPrefsRef.current.shoppingOption,
+      shoppingCustomInput: latestPrefsRef.current.shoppingCustomInput,
+      shoppingAmountKrw: latestPrefsRef.current.shoppingAmountKrw,
+      occupancyModeByCity: latestPrefsRef.current.occupancyModeByCity,
+      attractionCustomDailyKrw: latestPrefsRef.current.attractionCustomDailyKrw,
       draft,
     });
 
@@ -3257,6 +3353,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       attractionByCity: latestPrefsRef.current.attractionByCity,
       attractionSelections: latestPrefsRef.current.attractionSelections,
       emergencyFundKrw: latestPrefsRef.current.emergencyFundKrw,
+      emergencyFundPct: latestPrefsRef.current.emergencyFundPct,
+      shoppingOption: latestPrefsRef.current.shoppingOption,
+      shoppingCustomInput: latestPrefsRef.current.shoppingCustomInput,
+      shoppingAmountKrw: latestPrefsRef.current.shoppingAmountKrw,
+      occupancyModeByCity: latestPrefsRef.current.occupancyModeByCity,
+      attractionCustomDailyKrw: latestPrefsRef.current.attractionCustomDailyKrw,
       draft,
     });
 
@@ -3279,29 +3381,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   const handleEmergencyFundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!latestPrefsRef.current) return;
-
     const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+    const currentPrefs = latestPrefsRef.current || (state.status === "ready" ? state.preferences : null);
+    if (!currentPrefs) return;
+
     if (!rawDigits) {
       setEmergencyManualInput("");
-      const saved = savePlannerPreferences({
-        accommodationByCity: latestPrefsRef.current.accommodationByCity,
-        foodOverrides: latestPrefsRef.current.foodOverrides,
-        foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
-        attractionByCity: latestPrefsRef.current.attractionByCity,
-        attractionSelections: latestPrefsRef.current.attractionSelections,
+      const nextPrefs: PlannerPreferences = {
+        ...currentPrefs,
         emergencyFundKrw: undefined,
         emergencyFundPct: undefined,
-        draft,
+      };
+      latestPrefsRef.current = nextPrefs;
+      persistPreferences({
+        emergencyFundKrw: undefined,
+        emergencyFundPct: undefined,
       });
-      if (saved) {
-        latestPrefsRef.current = {
-          ...latestPrefsRef.current,
-          emergencyFundKrw: undefined,
-          emergencyFundPct: undefined,
-        };
-        setState((prev) => (prev.status === "ready" ? { ...prev, preferences: latestPrefsRef.current! } : prev));
-      }
+      setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
       return;
     }
 
@@ -3310,32 +3406,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     setEmergencyManualInput(formatted);
 
     const valKrw = locale === "ko" ? rawNum : Math.round(rawNum * usdRate);
-
-    const saved = savePlannerPreferences({
-      accommodationByCity: latestPrefsRef.current.accommodationByCity,
-      foodOverrides: latestPrefsRef.current.foodOverrides,
-      foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
-      attractionByCity: latestPrefsRef.current.attractionByCity,
-      attractionSelections: latestPrefsRef.current.attractionSelections,
+    const nextPrefs: PlannerPreferences = {
+      ...currentPrefs,
       emergencyFundKrw: valKrw,
       emergencyFundPct: undefined,
-      draft,
+    };
+    latestPrefsRef.current = nextPrefs;
+    const saved = persistPreferences({
+      emergencyFundKrw: valKrw,
+      emergencyFundPct: undefined,
     });
 
     if (saved) {
       setSaveError(false);
-      latestPrefsRef.current = {
-        ...latestPrefsRef.current,
-        emergencyFundKrw: valKrw,
-        emergencyFundPct: undefined,
-      };
-      setState((prev) => {
-        if (prev.status !== "ready") return prev;
-        return {
-          ...prev,
-          preferences: latestPrefsRef.current!,
-        };
-      });
+      setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
     } else {
       setSaveError(true);
     }
@@ -3343,19 +3427,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
   const handleActivityManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+    const currentPrefs = latestPrefsRef.current || (state.status === "ready" ? state.preferences : null);
+    if (!currentPrefs) return;
+
     if (!rawDigits) {
       setActivityManualInput("");
-      if (!latestPrefsRef.current) return;
-      const saved = persistPreferences({
+      const nextPrefs: PlannerPreferences = {
+        ...currentPrefs,
+        attractionCustomDailyKrw: undefined,
+      };
+      latestPrefsRef.current = nextPrefs;
+      persistPreferences({
         attractionCustomDailyKrw: undefined,
       });
-      if (saved) {
-        latestPrefsRef.current = {
-          ...latestPrefsRef.current,
-          attractionCustomDailyKrw: undefined,
-        };
-        setState((prev) => (prev.status === "ready" ? { ...prev, preferences: latestPrefsRef.current! } : prev));
-      }
+      setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
       return;
     }
 
@@ -3364,24 +3449,18 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     setActivityManualInput(formatted);
 
     const rawKrw = locale === "ko" ? rawNum : Math.round(rawNum * usdRate);
-    if (!latestPrefsRef.current) return;
+    const nextPrefs: PlannerPreferences = {
+      ...currentPrefs,
+      attractionCustomDailyKrw: rawKrw,
+    };
+    latestPrefsRef.current = nextPrefs;
     const saved = persistPreferences({
       attractionCustomDailyKrw: rawKrw,
     });
 
     if (saved) {
       setSaveError(false);
-      latestPrefsRef.current = {
-        ...latestPrefsRef.current,
-        attractionCustomDailyKrw: rawKrw,
-      };
-      setState((prev) => {
-        if (prev.status !== "ready") return prev;
-        return {
-          ...prev,
-          preferences: latestPrefsRef.current!,
-        };
-      });
+      setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
     } else {
       setSaveError(true);
     }
@@ -4035,25 +4114,36 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <button
                                     key={opt.id}
                                     type="button"
-                                    onClick={() => {
-                                      if (isSelected) {
-                                        setShoppingOption("NONE");
-                                        setShoppingCustomInput("");
-                                        persistPreferences({
-                                          shoppingOption: "NONE",
-                                          shoppingCustomInput: "",
-                                          shoppingAmountKrw: 0,
-                                        });
-                                      } else {
-                                        setShoppingOption(opt.id as ShoppingOption);
-                                        setShoppingCustomInput("");
-                                        persistPreferences({
-                                          shoppingOption: opt.id as ShoppingOption,
-                                          shoppingCustomInput: "",
-                                          shoppingAmountKrw: opt.perPerson * adultCount,
-                                        });
-                                      }
-                                    }}
+                                      onClick={() => {
+                                        const currentPrefs = latestPrefsRef.current || (state.status === "ready" ? state.preferences : null);
+                                        if (!currentPrefs) return;
+
+                                        if (isSelected) {
+                                          setShoppingOption("NONE");
+                                          setShoppingCustomInput("");
+                                          const nextPrefs: PlannerPreferences = {
+                                            ...currentPrefs,
+                                            shoppingOption: "NONE",
+                                            shoppingCustomInput: "",
+                                            shoppingAmountKrw: 0,
+                                          };
+                                          latestPrefsRef.current = nextPrefs;
+                                          persistPreferences(nextPrefs);
+                                          setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
+                                        } else {
+                                          setShoppingOption(opt.id as ShoppingOption);
+                                          setShoppingCustomInput("");
+                                          const nextPrefs: PlannerPreferences = {
+                                            ...currentPrefs,
+                                            shoppingOption: opt.id as ShoppingOption,
+                                            shoppingCustomInput: "",
+                                            shoppingAmountKrw: opt.perPerson * adultCount,
+                                          };
+                                          latestPrefsRef.current = nextPrefs;
+                                          persistPreferences(nextPrefs);
+                                          setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
+                                        }
+                                      }}
                                     className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isSelected
                                         ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                         : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
@@ -4077,29 +4167,41 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
                                   placeholder={locale === "ko" ? "직접 입력" : "Custom"}
                                   value={displayShoppingInputValue}
-                                  onChange={(e) => {
-                                    const rawDigits = e.target.value.replace(/[^0-9]/g, "");
-                                    if (!rawDigits) {
-                                      setShoppingCustomInput("");
-                                      setShoppingOption("NONE");
-                                      persistPreferences({
-                                        shoppingOption: "NONE",
-                                        shoppingCustomInput: "",
-                                        shoppingAmountKrw: 0,
-                                      });
-                                      return;
-                                    }
-                                    const valNum = parseInt(rawDigits, 10);
-                                    const formatted = valNum.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
-                                    setShoppingCustomInput(formatted);
-                                    setShoppingOption("CUSTOM");
-                                    const perPersonKrw = locale === "ko" ? valNum : Math.round(valNum * usdRate);
-                                    persistPreferences({
-                                      shoppingOption: "CUSTOM",
-                                      shoppingCustomInput: formatted,
-                                      shoppingAmountKrw: perPersonKrw * adultCount,
-                                    });
-                                  }}
+                                    onChange={(e) => {
+                                      const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+                                      const currentPrefs = latestPrefsRef.current || (state.status === "ready" ? state.preferences : null);
+                                      if (!currentPrefs) return;
+
+                                      if (!rawDigits) {
+                                        setShoppingCustomInput("");
+                                        setShoppingOption("NONE");
+                                        const nextPrefs: PlannerPreferences = {
+                                          ...currentPrefs,
+                                          shoppingOption: "NONE",
+                                          shoppingCustomInput: "",
+                                          shoppingAmountKrw: 0,
+                                        };
+                                        latestPrefsRef.current = nextPrefs;
+                                        persistPreferences(nextPrefs);
+                                        setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
+                                        return;
+                                      }
+                                      const valNum = parseInt(rawDigits, 10);
+                                      const formatted = valNum.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
+                                      setShoppingCustomInput(formatted);
+                                      setShoppingOption("CUSTOM");
+                                      const perPersonKrw = locale === "ko" ? valNum : Math.round(valNum * usdRate);
+                                      const totalKrw = perPersonKrw * adultCount;
+                                      const nextPrefs: PlannerPreferences = {
+                                        ...currentPrefs,
+                                        shoppingOption: "CUSTOM",
+                                        shoppingCustomInput: formatted,
+                                        shoppingAmountKrw: totalKrw,
+                                      };
+                                      latestPrefsRef.current = nextPrefs;
+                                      persistPreferences(nextPrefs);
+                                      setState((prev) => (prev.status === "ready" ? { ...prev, preferences: nextPrefs } : prev));
+                                    }}
                                 />
                               </div>
                             </div>

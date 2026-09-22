@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 
-// Fallback 환율 (네트워크 장애 또는 쿼터 초과 시 안전망)
+// Fallback 환율 (네트워크 장애 시 안전망)
 const FALLBACK_USD_KRW_RATE = 1350;
-const API_KEY = process.env.EXCHANGERATE_API_KEY || "cd9e88beb29973365f9df6ca";
-const API_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`;
+
+// 키가 필요 없는 공식 오픈 엔드포인트 (영구 무료/무제한)
+const OPEN_API_URL = "https://open.er-api.com/v6/latest/USD";
 
 export async function GET() {
   try {
-    // 12시간(43,200초) 캐싱 적용 -> 월 60회 내외로 호출되어 무료 쿼터(1,500회)의 약 4%만 사용
-    const response = await fetch(API_URL, {
+    // 12시간(43,200초) 캐싱 적용 -> 백그라운드 자동 갱신
+    const response = await fetch(OPEN_API_URL, {
       next: { revalidate: 43200 },
       headers: {
         Accept: "application/json",
@@ -27,9 +28,11 @@ export async function GET() {
     }
 
     const data = await response.json();
+    const rawRate = data.rates?.KRW ?? data.conversion_rates?.KRW;
 
-    if (data.result === "success" && data.conversion_rates && typeof data.conversion_rates.KRW === "number") {
-      const rateKrw = data.conversion_rates.KRW;
+    if (data.result === "success" && typeof rawRate === "number") {
+      // 소수점 2자리로 깔끔하게 반올림 처리
+      const rateKrw = Math.round(rawRate * 100) / 100;
       return NextResponse.json({
         success: true,
         base: "USD",

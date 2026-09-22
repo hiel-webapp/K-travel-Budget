@@ -26,10 +26,10 @@ export default async function LocalePage({ params }: PageProps) {
         <h1 className="text-[28px] sm:text-[36px] md:text-[42px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#1d1d1f]">
           {locale === "ko" ? "내 한국 여행 예산 만들기" : "Build My Korea Travel Budget"}
         </h1>
-        <p className="text-[13px] sm:text-[14px] text-[#86868b] font-normal max-w-xl mx-auto">
+        <p className="text-[14px] sm:text-[15px] text-[#86868b] font-normal max-w-xl mx-auto leading-relaxed">
           {locale === "ko"
-            ? "나만의 맞춤 여행 예산을 완성해 보세요."
-            : "Create your personalized Korea travel budget."}
+            ? "아래 3가지 필수 항목(기간, 인원, 목적지)을 선택하여 나만의 맞춤 여행 문장과 예산을 완성해 보세요."
+            : "Select the 3 required items (duration, travelers, destinations) below to complete your personalized statement and budget."}
         </p>
       </div>
 

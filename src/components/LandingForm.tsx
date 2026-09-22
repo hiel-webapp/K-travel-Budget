@@ -602,14 +602,6 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                   <span>{dict.landing.cta}</span>
                   <span className="text-xl">→</span>
                 </button>
-
-                {!isFormComplete && (
-                  <span className="text-sm text-[#666b73] font-normal">
-                    {isKo
-                      ? "3가지 필수 여행 항목(기간, 인원, 목적지)을 모두 선택해 주세요."
-                      : "Please select all 3 required travel items (duration, travelers, destinations)."}
-                  </span>
-                )}
               </div>
 
               {(totalNights !== null || adultCount !== null || draft.selectedCities.length > 0) && (

@@ -97,7 +97,7 @@ const ALL_CITY_OPTIONS: { key: SupportedCity; nameKo: string; nameEn: string }[]
   { key: "SOKCHO", nameKo: "속초", nameEn: "Sokcho" },
   { key: "YEOSU", nameKo: "여수", nameEn: "Yeosu" },
 ];
- 
+
 function placeToAttractionSpot(p: PlaceItem): AttractionSpot {
   const categoryTypeMap: Record<string, "명소" | "자연" | "엔터" | "쇼핑"> = {
     NATURE: "자연",
@@ -191,8 +191,8 @@ function placeToAccommodationSpot(p: PlaceItem): AccommodationCandidateSpot {
     price < 60000
       ? "BUDGET_STAY"
       : price > 180000
-      ? "PREMIUM_HERITAGE"
-      : "STANDARD_HOTEL";
+        ? "PREMIUM_HERITAGE"
+        : "STANDARD_HOTEL";
 
   const locKo = p.translations?.ko?.address || "도심";
   const locEn = p.translations?.en?.address || "City Center";
@@ -303,9 +303,8 @@ function SpotCardImage({
         onError={() => {
           setHasError(true);
         }}
-        className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${
-          isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
-        }`}
+        className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-500 ${isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
+          }`}
       />
     </div>
   );
@@ -373,9 +372,8 @@ function AccSpotHeaderVisual({
           decoding="async"
           onLoad={() => setIsLoaded(true)}
           onError={() => setHasError(true)}
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
-          }`}
+          className={`w-full h-full object-cover transition-all duration-500 ${isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-98"
+            }`}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
         <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-black/60 backdrop-blur-md text-white font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
@@ -500,7 +498,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           const parsed = parseInt(urlStop, 10);
           if (!isNaN(parsed) && parsed >= 0) return parsed;
         }
-      } catch {}
+      } catch { }
     }
     return 0;
   });
@@ -550,7 +548,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           url.searchParams.set("stop", String(selectedStopIndex));
         }
         window.history.replaceState(null, "", url.toString());
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [selectedCityTab, selectedStopIndex]);
 
@@ -566,7 +564,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           url.searchParams.set("cat", activeCategory);
         }
         window.history.replaceState(null, "", url.toString());
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [activeCategory]);
 
@@ -868,11 +866,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
             {badgeText && (
               <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border shadow-2xs ${
-                  badgeType === "daily"
+                className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border shadow-2xs ${badgeType === "daily"
                     ? "bg-rose-50 text-[#e25c5c] border-rose-200/90"
                     : "bg-slate-100/90 text-slate-600 border-slate-200"
-                }`}
+                  }`}
               >
                 {badgeText}
               </span>
@@ -882,11 +879,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             <button
               type="button"
               onClick={() => setOpenOverviewInfoKey(isOpen ? null : key)}
-              className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
-                isOpen
+              className={`inline-flex items-center px-2 py-0.5 rounded-md border text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${isOpen
                   ? "bg-[#0f172a] text-white border-[#0f172a]"
                   : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-400"
-              }`}
+                }`}
               title={locale === "ko" ? "설명 보기" : "View explanation"}
             >
               <span>Info</span>
@@ -1413,8 +1409,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         nextDraft.budgetTier === "BUDGET"
           ? "HOSTEL_GUESTHOUSE"
           : nextDraft.budgetTier === "PREMIUM"
-          ? "LUXURY_SKYLINE"
-          : "BUSINESS_HOTEL";
+            ? "LUXURY_SKYLINE"
+            : "BUSINESS_HOTEL";
 
       const segments: SplitStaySegment[] = sameCityStops.map((s) => {
         const stopAcc = nextAcc[s.id] || nextAcc[s.city];
@@ -1441,10 +1437,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     setState((prev) =>
       prev.status === "ready"
         ? {
-            ...prev,
-            draft: nextDraft,
-            preferences: { ...prev.preferences, accommodationByCity: nextAcc },
-          }
+          ...prev,
+          draft: nextDraft,
+          preferences: { ...prev.preferences, accommodationByCity: nextAcc },
+        }
         : prev
     );
 
@@ -1582,8 +1578,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         nextDraft.budgetTier === "BUDGET"
           ? "HOSTEL_GUESTHOUSE"
           : nextDraft.budgetTier === "PREMIUM"
-          ? "LUXURY_SKYLINE"
-          : "BUSINESS_HOTEL";
+            ? "LUXURY_SKYLINE"
+            : "BUSINESS_HOTEL";
 
       const segments: SplitStaySegment[] = sameCityStops.map((s) => {
         const stopAcc = nextAcc[s.id] || (s.id === newStopId ? defaultBasket : nextAcc[s.city]);
@@ -1917,14 +1913,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     attractionCustomDailyKrw:
       activityManualInput !== "" && activityManualInput !== "0"
         ? (locale === "ko"
-            ? (parseInt(activityManualInput, 10) || 0)
-            : Math.round((parseFloat(activityManualInput) || 0) * usdRate))
+          ? (parseInt(activityManualInput, 10) || 0)
+          : Math.round((parseFloat(activityManualInput) || 0) * usdRate))
         : preferences.attractionCustomDailyKrw,
     emergencyFundKrw:
       emergencyManualInput !== "" && emergencyManualInput !== "0"
         ? (locale === "ko"
-            ? (parseInt(emergencyManualInput, 10) || 0)
-            : Math.round((parseFloat(emergencyManualInput) || 0) * usdRate))
+          ? (parseInt(emergencyManualInput, 10) || 0)
+          : Math.round((parseFloat(emergencyManualInput) || 0) * usdRate))
         : preferences.emergencyFundKrw,
   }), [preferences, shoppingOption, shoppingCustomInput, occupancyModeByCity, emergencyManualInput, activityManualInput, locale, usdRate, adultCount]);
 
@@ -1995,8 +1991,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         draft.budgetTier === "BUDGET"
           ? "HOSTEL_GUESTHOUSE"
           : draft.budgetTier === "PREMIUM"
-          ? "LUXURY_SKYLINE"
-          : "BUSINESS_HOTEL";
+            ? "LUXURY_SKYLINE"
+            : "BUSINESS_HOTEL";
 
       const segments: SplitStaySegment[] = sameCityStops.map((s) => {
         const stopSelection =
@@ -2082,8 +2078,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           draft.budgetTier === "BUDGET"
             ? "HOSTEL_GUESTHOUSE"
             : draft.budgetTier === "PREMIUM"
-            ? "LUXURY_SKYLINE"
-            : "BUSINESS_HOTEL";
+              ? "LUXURY_SKYLINE"
+              : "BUSINESS_HOTEL";
 
         const segments: SplitStaySegment[] = sameCityStops.map((s) => {
           const stopSelection = nextAcc[s.id];
@@ -3434,11 +3430,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   id="city-tab-ALL"
                   aria-controls="city-panel-ALL"
                   onClick={() => setSelectedCityTab("ALL")}
-                  className={`h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs ${
-                    selectedCityTab === "ALL"
+                  className={`h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs ${selectedCityTab === "ALL"
                       ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs"
                       : "bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:border-slate-300"
-                  }`}
+                    }`}
                 >
                   <span>{dict.planner.summaryTab || (locale === "ko" ? "여행 개요" : "Trip Overview")}</span>
                 </button>
@@ -3449,11 +3444,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   id="city-tab-TRANSPORT"
                   aria-controls="city-panel-TRANSPORT"
                   onClick={() => setSelectedCityTab("TRANSPORT")}
-                  className={`h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs ${
-                    selectedCityTab === "TRANSPORT"
+                  className={`h-8 px-3 rounded-xl text-[12px] sm:text-[13px] font-extrabold border transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer flex items-center justify-center whitespace-nowrap shadow-2xs ${selectedCityTab === "TRANSPORT"
                       ? "bg-[#0f172a] text-white border-[#0f172a] shadow-xs"
                       : "bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 hover:border-slate-300"
-                  }`}
+                    }`}
                 >
                   <span>{locale === "ko" ? "교통" : "Transport"}</span>
                 </button>
@@ -3477,11 +3471,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       <button
                         type="button"
                         onClick={() => setShowTabRouteInfo(!showTabRouteInfo)}
-                        className={`inline-flex items-center px-2 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer shadow-2xs ${
-                          showTabRouteInfo
+                        className={`inline-flex items-center px-2 py-1 rounded-lg border text-[10px] font-bold transition-all cursor-pointer shadow-2xs ${showTabRouteInfo
                             ? "bg-[#0f172a] text-white border-[#0f172a]"
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900"
-                        }`}
+                          }`}
                         title={locale === "ko" ? "동선 안내 보기" : "Route Info"}
                       >
                         Info
@@ -3534,17 +3527,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         {locale === "ko" ? "방문 동선 & 체류 기간:" : "Route & Stay Nights:"}
                       </span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10.5px] sm:text-[11px] font-extrabold transition-colors ${
-                          isFull
+                        className={`px-2 py-0.5 rounded-full text-[10.5px] sm:text-[11px] font-extrabold transition-colors ${isFull
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : "bg-amber-50 text-amber-800 border border-amber-200"
-                        }`}
+                          }`}
                       >
                         {isFull
                           ? (locale === "ko" ? `전체 ${maxNights}박 배분 완료 (여유 0박)` : `All ${maxNights}N allocated (0N left)`)
                           : (locale === "ko"
-                              ? `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`
-                              : `${currentAllocatedSum}/${maxNights}N allocated (${unallocatedNights}N left)`)}
+                            ? `총 ${maxNights}박 중 ${currentAllocatedSum}박 배분 (${unallocatedNights}박 여유)`
+                            : `${currentAllocatedSum}/${maxNights}N allocated (${unallocatedNights}N left)`)}
                       </span>
                       <span className="text-[10.5px] text-slate-400 font-medium hidden sm:inline">
                         {locale === "ko" ? "• 카드를 좌우로 끌어 방문 순서 변경" : "• Drag cards to reorder route"}
@@ -3655,15 +3647,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               ? (locale === "ko" ? `방문 순서 ${idx + 1}번째 · 좌우로 끌어 순서 변경 가능` : `Stop #${idx + 1} · Drag left/right to reorder`)
                               : label
                           }
-                          className={`relative flex-1 min-w-[80px] sm:min-w-[104px] py-1.5 px-2 sm:px-2.5 rounded-2xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none flex flex-col items-center justify-center gap-1 shrink-0 ${
-                            isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
-                          } ${
-                            isDraggingThis
+                          className={`relative flex-1 min-w-[80px] sm:min-w-[104px] py-1.5 px-2 sm:px-2.5 rounded-2xl border text-center transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] select-none flex flex-col items-center justify-center gap-1 shrink-0 ${isMultiCity ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                            } ${isDraggingThis
                               ? "opacity-40 border-dashed border-[#e25c5c] bg-rose-50"
                               : isActive
-                              ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
-                              : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
-                          }`}
+                                ? "bg-[#fff7f7] border-[#e25c5c] ring-1 ring-[#e25c5c] shadow-xs text-slate-900"
+                                : "bg-white border-slate-200/90 text-slate-700 hover:border-slate-300 hover:bg-slate-50/70 shadow-2xs"
+                            }`}
                         >
                           {/* 도시 삭제 (✕) 버튼: 사용자가 [+ 도시 추가]로 추가한 도시에만 표시되며, 명확한 빨간색 강조 */}
                           {isAddedStop && (
@@ -3684,11 +3674,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           <div className="flex items-center justify-center gap-1 min-w-0 pointer-events-none">
                             {isMultiCity && (
                               <span
-                                className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 transition-colors ${
-                                  isActive
+                                className={`w-3.5 h-3.5 rounded-full text-[9px] font-black flex items-center justify-center shrink-0 transition-colors ${isActive
                                     ? "bg-[#e25c5c] text-white"
                                     : "bg-rose-100 text-[#e25c5c]"
-                                }`}
+                                  }`}
                               >
                                 {idx + 1}
                               </span>
@@ -3703,11 +3692,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             </span>
                             {isAddedStop && (
                               <span
-                                className={`text-[8px] sm:text-[8.5px] px-1 py-0.2 rounded font-extrabold tracking-tight shrink-0 transition-colors ${
-                                  isActive
+                                className={`text-[8px] sm:text-[8.5px] px-1 py-0.2 rounded font-extrabold tracking-tight shrink-0 transition-colors ${isActive
                                     ? "bg-rose-100/90 text-[#e25c5c] border border-rose-200/90"
                                     : "bg-slate-100 text-slate-500 border border-slate-200/80"
-                                }`}
+                                  }`}
                               >
                                 {locale === "ko" ? "+추가" : "+Added"}
                               </span>
@@ -3729,13 +3717,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               onChange={(e) => {
                                 handleSetStopNights(idx, Number(e.target.value));
                               }}
-                              className={`w-full text-center appearance-none py-1 pl-2 pr-4 rounded-lg text-xs font-black cursor-pointer border transition-all focus:outline-none focus:ring-1 focus:ring-[#e25c5c] ${
-                                currentStopNights === 0
+                              className={`w-full text-center appearance-none py-1 pl-2 pr-4 rounded-lg text-xs font-black cursor-pointer border transition-all focus:outline-none focus:ring-1 focus:ring-[#e25c5c] ${currentStopNights === 0
                                   ? "bg-slate-100 text-slate-500 border-slate-300/80"
                                   : isActive
-                                  ? "bg-white text-slate-900 border-rose-200 shadow-2xs hover:border-[#e25c5c]"
-                                  : "bg-slate-50 text-slate-900 border-slate-200 shadow-2xs hover:border-[#e25c5c]"
-                              }`}
+                                    ? "bg-white text-slate-900 border-rose-200 shadow-2xs hover:border-[#e25c5c]"
+                                    : "bg-slate-50 text-slate-900 border-slate-200 shadow-2xs hover:border-[#e25c5c]"
+                                }`}
                             >
                               {options.map((opt) => (
                                 <option key={opt} value={opt}>
@@ -3839,9 +3826,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   pct: Math.max(
                     0,
                     100 -
-                      Math.round((summary.categoryTotals.stay / grandTotal) * 100) -
-                      Math.round((summary.categoryTotals.food / grandTotal) * 100) -
-                      Math.round((summary.categoryTotals.transport / grandTotal) * 100)
+                    Math.round((summary.categoryTotals.stay / grandTotal) * 100) -
+                    Math.round((summary.categoryTotals.food / grandTotal) * 100) -
+                    Math.round((summary.categoryTotals.transport / grandTotal) * 100)
                   ),
                   colorBg: "bg-amber-500",
                 },
@@ -3909,11 +3896,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         setCustomTargetBudgetInput("");
                                         handleTargetBudgetTierChange(tierOpt.key as BudgetTier);
                                       }}
-                                      className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
-                                        isSelected
+                                      className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isSelected
                                           ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                           : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                                      }`}
+                                        }`}
                                     >
                                       <span className="text-xs font-bold">{tierOpt.label}</span>
                                     </button>
@@ -3922,11 +3908,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                 {/* 4th Card: Integrated Direct Custom Input Card */}
                                 <div
-                                  className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                                    isCustomActive
+                                  className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${isCustomActive
                                       ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                       : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                                  }`}
+                                    }`}
                                 >
                                   <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
                                   <input
@@ -4032,22 +4017,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                         });
                                       }
                                     }}
-                                    className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
-                                      isSelected
+                                    className={`py-2.5 px-2 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center ${isSelected
                                         ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                         : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                                    }`}
+                                      }`}
                                   >
                                     <span className="text-xs font-bold">{formatPriceByLocale(opt.perPerson, locale, usdRate)}</span>
                                   </button>
                                 );
                               })}
 
-                              <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                                shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
+                              <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
                                   ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                   : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                              }`}>
+                                }`}>
                                 <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
                                 <input
                                   type="number"
@@ -4075,8 +4058,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   {shoppingOption === "CUSTOM" || shoppingCustomInput !== ""
                                     ? (locale === "ko" ? "사용자 설정 쇼핑 예산" : "Custom Shopping Budget")
                                     : shoppingAmountKrw === 0
-                                    ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
-                                    : `${formatPriceByLocale(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000, locale, usdRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
+                                      ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
+                                      : `${formatPriceByLocale(shoppingOption === "SOUVENIR" ? 100000 : shoppingOption === "BEAUTY" ? 200000 : 300000, locale, usdRate)} × ${adultCount}${locale === "ko" ? "명" : " travelers"}`}
                                 </strong>
                               </span>
                               <span>
@@ -4146,22 +4129,20 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       handleSetAllCitiesAttractionBasket(preset.id);
                                     }
                                   }}
-                                  className={`py-2.5 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer flex items-center justify-center ${
-                                    isSelected
+                                  className={`py-2.5 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer flex items-center justify-center ${isSelected
                                       ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                       : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                                  }`}
+                                    }`}
                                 >
                                   <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
                                 </button>
                               );
                             })}
 
-                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                              (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
+                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${(preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0) || (activityManualInput !== "" && activityManualInput !== "0")
                                 ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                 : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                            }`}>
+                              }`}>
                               <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
                               <input
                                 type="number"
@@ -4245,11 +4226,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       setEmergencyManualInput("");
                                     }
                                   }}
-                                  className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${
-                                    isSelected
+                                  className={`py-2 px-2.5 rounded-xl border text-center text-xs transition-all cursor-pointer ${isSelected
                                       ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                       : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                                  }`}
+                                    }`}
                                 >
                                   <div className={isSelected ? "font-extrabold text-[#0f172a]" : "font-semibold text-slate-700"}>{preset.label}</div>
                                   <div className={`text-[10px] mt-0.5 ${isSelected ? "font-extrabold text-[#e25c5c]" : "opacity-80 text-slate-500"}`}>{formatPriceByLocale(calcValPerPerson, locale, usdRate)}</div>
@@ -4257,11 +4237,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               );
                             })}
 
-                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${
-                              emergencyManualInput !== "" && emergencyManualInput !== "0"
+                            <div className={`py-2 px-3 rounded-xl border text-center transition-all flex items-center justify-center relative ${emergencyManualInput !== "" && emergencyManualInput !== "0"
                                 ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                 : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
-                            }`}>
+                              }`}>
                               <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
                               <input
                                 type="number"
@@ -4281,11 +4260,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                             const formulaText = emergencyManualInput !== "" && emergencyManualInput !== "0"
                               ? (locale === "ko"
-                                  ? `직접 입력 ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount}명`
-                                  : `Custom ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount} travelers`)
+                                ? `직접 입력 ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount}명`
+                                : `Custom ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount} travelers`)
                               : (activeEmergencyPct || 0) === 0
-                              ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
-                              : (locale === "ko"
+                                ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
+                                : (locale === "ko"
                                   ? `기본 예산 ${formatPriceByLocale(basePerPerson, locale, usdRate)} × ${pctPct}% × ${adultCount}명`
                                   : `Base Budget ${formatPriceByLocale(basePerPerson, locale, usdRate)} × ${pctPct}% × ${adultCount} travelers`);
 
@@ -4525,11 +4504,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 aria-selected={isActive}
                                 id={`cat-tab-${cat}`}
                                 onClick={() => setActiveCategory(cat)}
-                                className={`group relative flex flex-col sm:flex-row items-center justify-between min-h-[40px] p-2 sm:px-3 sm:py-2.5 rounded-xl border text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${
-                                  isActive
+                                className={`group relative flex flex-col sm:flex-row items-center justify-between min-h-[40px] p-2 sm:px-3 sm:py-2.5 rounded-xl border text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${isActive
                                     ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
                                     : "bg-white/80 border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-white"
-                                }`}
+                                  }`}
                               >
                                 {isActive && (
                                   <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#e25c5c] rounded-r-full" />
@@ -4538,11 +4516,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   {data.label}
                                 </span>
                                 <span
-                                  className={`inline-block text-[9.5px] px-1.5 py-0.5 rounded-full transition-colors truncate max-w-[65px] sm:max-w-[70px] leading-tight shrink-0 mt-0.5 sm:mt-0 ${
-                                    data.isSelected
+                                  className={`inline-block text-[9.5px] px-1.5 py-0.5 rounded-full transition-colors truncate max-w-[65px] sm:max-w-[70px] leading-tight shrink-0 mt-0.5 sm:mt-0 ${data.isSelected
                                       ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
                                       : "bg-slate-100 text-slate-400 font-medium"
-                                  }`}
+                                    }`}
                                 >
                                   {data.statusText}
                                 </span>
@@ -4602,8 +4579,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           const nightlyPrice = isCustomStay
                             ? ((accOverride as any).nightlyPriceKrw || 0)
                             : currentArchetype
-                            ? getStayArchetypePrice(currentCity, currentArchetype.id)
-                            : 0;
+                              ? getStayArchetypePrice(currentCity, currentArchetype.id)
+                              : 0;
                           const isSolo = adultCount <= 1;
                           const occupancyMode = occupancyModeByCity[currentCity] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
                           const isPair = !isSolo && occupancyMode === "SHARED_PAIR";
@@ -4633,19 +4610,19 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   <p className="text-xs text-slate-500 line-clamp-1 h-4">
                                     {!hasSelection
                                       ? (locale === "ko"
-                                          ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
-                                          : "Select a stay archetype or enter your custom booked stay.")
+                                        ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
+                                        : "Select a stay archetype or enter your custom booked stay.")
                                       : isSplitStay
-                                      ? (locale === "ko"
-                                           ? `숙소 분할 적용: ${splitSegments.map((s: any, idx: number) => `${idx + 1}차 ${s?.nights || 0}박(${STAY_ARCHETYPES.find((a: any) => a.id === s?.basketId)?.titleKo || s?.placeNameKo || "숙소"})`).join(" + ")}`
-                                           : `Split Stay: ${splitSegments.map((s: any, idx: number) => `Leg ${idx + 1} ${s?.nights || 0}N(${STAY_ARCHETYPES.find((a: any) => a.id === s?.basketId)?.titleEn || s?.placeNameEn || "Stay"})`).join(" + ")}`)
-                                      : isCustomStay
-                                      ? (locale === "ko"
-                                          ? `직접 입력 숙소: "${(accOverride as any).placeNameKo || (accOverride as any).placeNameEn}" (1박 ${formatKrw(nightlyPrice)})`
-                                          : `Custom stay: "${(accOverride as any).placeNameKo || (accOverride as any).placeNameEn}" (${formatKrw(nightlyPrice)}/nt)`)
-                                      : (locale === "ko"
-                                          ? `선택된 숙소: ${locale === "ko" ? currentArchetype?.titleKo : currentArchetype?.titleEn} (1박 평균 ${formatKrw(nightlyPrice)})`
-                                          : `Selected: ${currentArchetype?.titleEn} (${formatKrw(nightlyPrice)}/nt)`)}
+                                        ? (locale === "ko"
+                                          ? `숙소 분할 적용: ${splitSegments.map((s: any, idx: number) => `${idx + 1}차 ${s?.nights || 0}박(${STAY_ARCHETYPES.find((a: any) => a.id === s?.basketId)?.titleKo || s?.placeNameKo || "숙소"})`).join(" + ")}`
+                                          : `Split Stay: ${splitSegments.map((s: any, idx: number) => `Leg ${idx + 1} ${s?.nights || 0}N(${STAY_ARCHETYPES.find((a: any) => a.id === s?.basketId)?.titleEn || s?.placeNameEn || "Stay"})`).join(" + ")}`)
+                                        : isCustomStay
+                                          ? (locale === "ko"
+                                            ? `직접 입력 숙소: "${(accOverride as any).placeNameKo || (accOverride as any).placeNameEn}" (1박 ${formatKrw(nightlyPrice)})`
+                                            : `Custom stay: "${(accOverride as any).placeNameKo || (accOverride as any).placeNameEn}" (${formatKrw(nightlyPrice)}/nt)`)
+                                          : (locale === "ko"
+                                            ? `선택된 숙소: ${locale === "ko" ? currentArchetype?.titleKo : currentArchetype?.titleEn} (1박 평균 ${formatKrw(nightlyPrice)})`
+                                            : `Selected: ${currentArchetype?.titleEn} (${formatKrw(nightlyPrice)}/nt)`)}
                                   </p>
                                 </div>
                                 <div className="text-right flex items-baseline sm:flex-col sm:items-end justify-between gap-0.5 shrink-0">
@@ -4672,8 +4649,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                     {isSolo
                                       ? (locale === "ko" ? "1인 1실 단독" : "1 Room")
                                       : isPair
-                                      ? (locale === "ko" ? `2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `2-in-1 Room (${sharedRoomCount} rms)`)
-                                      : (locale === "ko" ? `전원 1인 1실 (${adultCount}개 객실)` : `1 Room each (${adultCount} rms)`)}
+                                        ? (locale === "ko" ? `2인 1실 (${sharedRoomCount}개 객실 · 1/2 분할)` : `2-in-1 Room (${sharedRoomCount} rms)`)
+                                        : (locale === "ko" ? `전원 1인 1실 (${adultCount}개 객실)` : `1 Room each (${adultCount} rms)`)}
                                   </span>
                                 </div>
                               </div>
@@ -4724,13 +4701,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
                                   <div
-                                    className={`h-full transition-all duration-300 rounded-full ${
-                                      isExceeded
+                                    className={`h-full transition-all duration-300 rounded-full ${isExceeded
                                         ? "bg-rose-500 shadow-xs shadow-rose-200"
                                         : cityFoodBasket.totalSelectedQuantity === 0
-                                        ? "bg-slate-300"
-                                        : "bg-emerald-500"
-                                    }`}
+                                          ? "bg-slate-300"
+                                          : "bg-emerald-500"
+                                      }`}
                                     style={{
                                       width: `${Math.min(100, Math.round((cityFoodBasket.totalSelectedQuantity / Math.max(1, cityFoodBasket.expectedMealsCount)) * 100))}%`,
                                     }}
@@ -4810,9 +4786,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
                                   <div
-                                    className={`h-full transition-all duration-300 rounded-full ${
-                                      selectedSpotsCount === 0 ? "bg-slate-300" : "bg-emerald-500"
-                                    }`}
+                                    className={`h-full transition-all duration-300 rounded-full ${selectedSpotsCount === 0 ? "bg-slate-300" : "bg-emerald-500"
+                                      }`}
                                     style={{
                                       width: `${Math.min(100, selectedSpotsCount > 0 ? Math.max(15, selectedSpotsCount * 20) : 0)}%`,
                                     }}
@@ -4828,410 +4803,410 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                   {/* 선택된 카테고리 상세 컨텐츠 */}
                   <div className="space-y-6">
-                {activeCategory === "ACCOMMODATION" && (() => {
-                  const city = selectedCityTab as SupportedCity;
-                  const stops = ensureTripStops(draft);
-                  const sameCityStops = stops.filter((s) => s.city === city);
-                  const isRepeatedCity = sameCityStops.length > 1;
-                  const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === city)
-                    ? stops[selectedStopIndex]
-                    : sameCityStops[0] || { id: `stop_1_${city.toLowerCase()}`, city, nights: draft.cityNightAllocations[city] ?? 0 };
+                    {activeCategory === "ACCOMMODATION" && (() => {
+                      const city = selectedCityTab as SupportedCity;
+                      const stops = ensureTripStops(draft);
+                      const sameCityStops = stops.filter((s) => s.city === city);
+                      const isRepeatedCity = sameCityStops.length > 1;
+                      const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === city)
+                        ? stops[selectedStopIndex]
+                        : sameCityStops[0] || { id: `stop_1_${city.toLowerCase()}`, city, nights: draft.cityNightAllocations[city] ?? 0 };
 
-                  const stopNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[city] ?? 0);
-                  const totalNights = draft.totalNights || 5;
-                  const totalAllocatedNights = Object.values(draft.cityNightAllocations || {}).reduce(
-                    (sum, n) => sum + (n || 0),
-                    0
-                  );
+                      const stopNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[city] ?? 0);
+                      const totalNights = draft.totalNights || 5;
+                      const totalAllocatedNights = Object.values(draft.cityNightAllocations || {}).reduce(
+                        (sum, n) => sum + (n || 0),
+                        0
+                      );
 
-                  let accOverride = preferences.accommodationByCity?.[activeStop.id];
-                  if (!accOverride && isRepeatedCity) {
-                    const cityAcc = preferences.accommodationByCity?.[city];
-                    if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
-                      const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
-                      if (foundSeg) {
-                        accOverride = {
-                          kind: "TIER",
-                          basketId: foundSeg.basketId,
-                          nightlyPriceKrw: foundSeg.nightlyPriceKrw,
-                          placeNameKo: foundSeg.placeNameKo,
-                          placeNameEn: foundSeg.placeNameEn,
-                        } as any;
-                      }
-                    }
-                  }
-                  if (!accOverride) {
-                    accOverride = preferences.accommodationByCity?.[city];
-                    if (isRepeatedCity && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
-                      accOverride = undefined;
-                    }
-                  }
-
-                  const hasOverride = !!accOverride;
-                  let selectedArchetypeId: StayArchetypeId | null = null;
-                  if (accOverride) {
-                    const bId = typeof accOverride === "string" ? accOverride : (accOverride as any).basketId;
-                    if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") selectedArchetypeId = "HOSTEL_GUESTHOUSE";
-                    else if (bId === "HANOK_BOUTIQUE") selectedArchetypeId = "HANOK_BOUTIQUE";
-                    else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") selectedArchetypeId = "LUXURY_SKYLINE";
-                    else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") selectedArchetypeId = "BUSINESS_HOTEL";
-                    else selectedArchetypeId = null;
-                  } else {
-                    selectedArchetypeId = null;
-                  }
-
-                  const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
-                  const isSplitStay = !isRepeatedCity && typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
-                  const splitStayOverride = isSplitStay ? (accOverride as any).segments : null;
-
-                  const customStayOverride = isCustomStay
-                    ? {
-                        placeName: (accOverride as any).placeNameKo || (accOverride as any).placeNameEn || "직접 입력 숙소",
-                        nightlyPriceKrw: (accOverride as any).nightlyPriceKrw || 0,
-                      }
-                    : null;
-
-                  const occupancyMode = occupancyModeByCity[city] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
-
-                  return (
-                    <StaySelectorPanel
-                      city={city}
-                      stopLabel={activeStop.label}
-                      locale={locale}
-                      dict={dict}
-                      adultCount={adultCount}
-                      totalNights={totalNights}
-                      cityNights={stopNights}
-                      totalAllocatedNights={totalAllocatedNights}
-                      onCityNightsChange={isRepeatedCity ? undefined : handleDirectCityNightChange}
-                      selectedArchetypeId={selectedArchetypeId}
-                      onSelectArchetype={(c, archId) => handleStopStayOverride(activeStop, archId as BudgetBasketId)}
-                      occupancyMode={occupancyMode}
-                      onSelectOccupancyMode={(c, mode) => {
-                        const nextOcc = { ...occupancyModeByCity, [c]: mode };
-                        setOccupancyModeByCity(nextOcc);
-                        persistPreferences({ occupancyModeByCity: nextOcc });
-                        setState((prev) =>
-                          prev.status === "ready"
-                            ? {
-                                ...prev,
-                                preferences: { ...prev.preferences, occupancyModeByCity: nextOcc },
-                              }
-                            : prev
-                        );
-                      }}
-                      onResetToRecommended={() => handleResetStopStay(activeStop)}
-                      hasCustomOverride={hasOverride}
-                      customStayOverride={customStayOverride}
-                      splitStayOverride={splitStayOverride}
-                      onSaveSplitStay={(c, segments) => {
-                        handleStopStayOverride(activeStop, {
-                          kind: "SPLIT",
-                          segments,
-                        });
-                      }}
-                      onResetSplitStay={() => {
-                        handleResetStopStay(activeStop);
-                      }}
-                      allCitiesSplitInfo={(draft.selectedCities || []).map((c) => {
-                        const n = draft.cityNightAllocations?.[c] ?? 0;
-                        const cName = locale === "ko" ? (CITY_KOREAN_NAMES[c] || c) : (CITY_ENGLISH_NAMES[c] || c);
-                        const cAcc = preferences.accommodationByCity?.[c];
-                        const isSpl = cAcc && typeof cAcc === "object" && (cAcc as any).kind === "SPLIT";
-                        
-                        let cityArchId: StayArchetypeId = "BUSINESS_HOTEL";
-                        if (typeof cAcc === "string") {
-                          if (STAY_ARCHETYPES.some((a) => a.id === cAcc)) {
-                            cityArchId = cAcc as StayArchetypeId;
-                          } else if (cAcc === "BUDGET_STAY") cityArchId = "HOSTEL_GUESTHOUSE";
-                          else if (cAcc === "STANDARD_HOTEL") cityArchId = "BUSINESS_HOTEL";
-                          else if (cAcc === "PREMIUM_HERITAGE") cityArchId = "HANOK_BOUTIQUE";
-                        } else if (cAcc && typeof cAcc === "object" && (cAcc as any).basketId) {
-                          const b = (cAcc as any).basketId;
-                          if (STAY_ARCHETYPES.some((a) => a.id === b)) {
-                            cityArchId = b;
-                          } else if (b === "BUDGET_STAY") cityArchId = "HOSTEL_GUESTHOUSE";
-                          else if (b === "STANDARD_HOTEL") cityArchId = "BUSINESS_HOTEL";
-                          else if (b === "PREMIUM_HERITAGE") cityArchId = "HANOK_BOUTIQUE";
-                        } else {
-                          cityArchId = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
+                      let accOverride = preferences.accommodationByCity?.[activeStop.id];
+                      if (!accOverride && isRepeatedCity) {
+                        const cityAcc = preferences.accommodationByCity?.[city];
+                        if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
+                          const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
+                          if (foundSeg) {
+                            accOverride = {
+                              kind: "TIER",
+                              basketId: foundSeg.basketId,
+                              nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+                              placeNameKo: foundSeg.placeNameKo,
+                              placeNameEn: foundSeg.placeNameEn,
+                            } as any;
+                          }
                         }
+                      }
+                      if (!accOverride) {
+                        accOverride = preferences.accommodationByCity?.[city];
+                        if (isRepeatedCity && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
+                          accOverride = undefined;
+                        }
+                      }
 
-                        return {
-                          city: c,
-                          cityName: cName,
-                          cityNights: n,
-                          initialSegments: isSpl ? (cAcc as any).segments : null,
-                          defaultArchetypeId: cityArchId,
-                        };
-                      })}
-                      onSaveSplitStayForCity={(targetCity, segments) => {
-                        const targetStop = stops.find((s) => s.city === targetCity) || {
-                          id: `stop_${targetCity.toLowerCase()}`,
-                          city: targetCity,
-                          nights: draft.cityNightAllocations?.[targetCity] ?? 2,
-                        };
-                        handleStopStayOverride(targetStop, {
-                          kind: "SPLIT",
-                          segments,
-                        });
-                      }}
-                      onResetSplitStayForCity={(targetCity) => {
-                        const targetStop = stops.find((s) => s.city === targetCity) || {
-                          id: `stop_${targetCity.toLowerCase()}`,
-                          city: targetCity,
-                          nights: draft.cityNightAllocations?.[targetCity] ?? 2,
-                        };
-                        const tierArch = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
-                        handleStopStayOverride(targetStop, tierArch as BudgetBasketId);
-                      }}
-                      onBatchApplySplit={(batch) => {
-                        const nextAcc = { ...preferences.accommodationByCity };
-                        Object.entries(batch).forEach(([cKey, segs]) => {
-                          nextAcc[cKey] = {
-                            kind: "SPLIT",
-                            segments: segs,
-                          };
-                        });
-                        persistPreferences({ accommodationByCity: nextAcc });
-                        setState((prev) =>
-                          prev.status === "ready"
-                            ? {
-                                ...prev,
-                                preferences: { ...prev.preferences, accommodationByCity: nextAcc },
-                              }
-                            : prev
-                        );
-                      }}
-                      onBatchResetSplit={(cities) => {
-                        const nextAcc = { ...preferences.accommodationByCity };
-                        const tierArch = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
-                        cities.forEach((c) => {
-                          nextAcc[c] = tierArch;
-                        });
-                        persistPreferences({ accommodationByCity: nextAcc });
-                        setState((prev) =>
-                          prev.status === "ready"
-                            ? {
-                                ...prev,
-                                preferences: { ...prev.preferences, accommodationByCity: nextAcc },
-                              }
-                            : prev
-                        );
-                      }}
-                      onSaveCustomStay={(c, placeName, nightlyPriceKrw) => {
-                        handleStopStayOverride(activeStop, {
-                          kind: "PLACE",
-                          placeId: `custom_stay_${Date.now()}`,
-                          basketId: selectedArchetypeId as BudgetBasketId,
-                          nightlyPriceKrw,
-                          priceSource: "MOCK",
-                          placeNameKo: placeName,
-                          placeNameEn: placeName,
-                          snapshotAt: new Date().toISOString().slice(0, 10),
-                        });
-                      }}
-                      onResetCustomStay={() => {
-                        handleResetStopStay(activeStop);
-                      }}
-                      hideHeader={true}
-                    />
-                  );
-                })()}
+                      const hasOverride = !!accOverride;
+                      let selectedArchetypeId: StayArchetypeId | null = null;
+                      if (accOverride) {
+                        const bId = typeof accOverride === "string" ? accOverride : (accOverride as any).basketId;
+                        if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") selectedArchetypeId = "HOSTEL_GUESTHOUSE";
+                        else if (bId === "HANOK_BOUTIQUE") selectedArchetypeId = "HANOK_BOUTIQUE";
+                        else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") selectedArchetypeId = "LUXURY_SKYLINE";
+                        else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") selectedArchetypeId = "BUSINESS_HOTEL";
+                        else selectedArchetypeId = null;
+                      } else {
+                        selectedArchetypeId = null;
+                      }
 
-                {activeCategory === "FOOD" && (() => {
-                  const city = selectedCityTab;
-                  const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
-                  const activeFoodTier = preferences.foodTier || draft.budgetTier || "STANDARD";
-                  const foodBasketOptions: BudgetBasketId[] = ["BUDGET_MEAL_PLAN", "STANDARD_MEAL_PLAN", "PREMIUM_MEAL_PLAN"];
+                      const isCustomStay = typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "PLACE";
+                      const isSplitStay = !isRepeatedCity && typeof accOverride === "object" && accOverride !== null && "kind" in accOverride && (accOverride as any).kind === "SPLIT";
+                      const splitStayOverride = isSplitStay ? (accOverride as any).segments : null;
 
-                  return (
-                    <div className="space-y-6">
-                      {saveError && (
-                        <div role="alert" className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-100">
-                          {dict.planner.saveFailedNotice}
-                        </div>
-                      )}
+                      const customStayOverride = isCustomStay
+                        ? {
+                          placeName: (accOverride as any).placeNameKo || (accOverride as any).placeNameEn || "직접 입력 숙소",
+                          nightlyPriceKrw: (accOverride as any).nightlyPriceKrw || 0,
+                        }
+                        : null;
 
-                      {/* Food Basket Gourmet Planner Panel */}
-                      <FoodPlannerPanel
-                        locale={locale}
-                        dict={dict}
-                        currentCity={city}
-                        cityNights={foodLine?.durationCount ?? Math.max(1, Math.floor((draft.totalNights || 3) / Math.max(1, draft.selectedCities.length)))}
-                        selectedCities={draft.selectedCities}
-                        travelNights={draft.totalNights || 3}
-                        adultCount={draft.adultCount || 1}
-                        basketSelections={preferences.foodBasketSelections || []}
-                        foodBasketPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan.foodBasketPlan : undefined}
-                        onUpdateQuantity={handleFoodBasketUpdateQuantity}
-                        onSetQuantity={handleFoodBasketSetQuantity}
-                        onClearBasket={handleFoodBasketClear}
-                        hideHeader={true}
-                      />
+                      const occupancyMode = occupancyModeByCity[city] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
 
-                      {/* 3. K-Spot Gourmet & Cafe Candidates added by user */}
-                      {(() => {
-                        const customFoodPlaces = budgetPlaces.filter(
-                          (p) => p.city === city && (p.category === "RESTAURANT" || p.category === "CAFE")
-                        );
-                        if (customFoodPlaces.length === 0) return null;
+                      return (
+                        <StaySelectorPanel
+                          city={city}
+                          stopLabel={activeStop.label}
+                          locale={locale}
+                          dict={dict}
+                          adultCount={adultCount}
+                          totalNights={totalNights}
+                          cityNights={stopNights}
+                          totalAllocatedNights={totalAllocatedNights}
+                          onCityNightsChange={isRepeatedCity ? undefined : handleDirectCityNightChange}
+                          selectedArchetypeId={selectedArchetypeId}
+                          onSelectArchetype={(c, archId) => handleStopStayOverride(activeStop, archId as BudgetBasketId)}
+                          occupancyMode={occupancyMode}
+                          onSelectOccupancyMode={(c, mode) => {
+                            const nextOcc = { ...occupancyModeByCity, [c]: mode };
+                            setOccupancyModeByCity(nextOcc);
+                            persistPreferences({ occupancyModeByCity: nextOcc });
+                            setState((prev) =>
+                              prev.status === "ready"
+                                ? {
+                                  ...prev,
+                                  preferences: { ...prev.preferences, occupancyModeByCity: nextOcc },
+                                }
+                                : prev
+                            );
+                          }}
+                          onResetToRecommended={() => handleResetStopStay(activeStop)}
+                          hasCustomOverride={hasOverride}
+                          customStayOverride={customStayOverride}
+                          splitStayOverride={splitStayOverride}
+                          onSaveSplitStay={(c, segments) => {
+                            handleStopStayOverride(activeStop, {
+                              kind: "SPLIT",
+                              segments,
+                            });
+                          }}
+                          onResetSplitStay={() => {
+                            handleResetStopStay(activeStop);
+                          }}
+                          allCitiesSplitInfo={(draft.selectedCities || []).map((c) => {
+                            const n = draft.cityNightAllocations?.[c] ?? 0;
+                            const cName = locale === "ko" ? (CITY_KOREAN_NAMES[c] || c) : (CITY_ENGLISH_NAMES[c] || c);
+                            const cAcc = preferences.accommodationByCity?.[c];
+                            const isSpl = cAcc && typeof cAcc === "object" && (cAcc as any).kind === "SPLIT";
 
-                        return (
-                          <div className="space-y-3 pt-4 border-t border-slate-100">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                                {locale === "ko"
-                                  ? `K-스팟에서 담은 추천 맛집 & 카페 (${customFoodPlaces.length})`
-                                  : `Selected K-Gourmet & Cafes (${customFoodPlaces.length})`}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-medium">
-                                {locale === "ko" ? "취소 시 목록 및 예산에서 즉시 제외됩니다" : "Removing excludes from budget"}
-                              </span>
+                            let cityArchId: StayArchetypeId = "BUSINESS_HOTEL";
+                            if (typeof cAcc === "string") {
+                              if (STAY_ARCHETYPES.some((a) => a.id === cAcc)) {
+                                cityArchId = cAcc as StayArchetypeId;
+                              } else if (cAcc === "BUDGET_STAY") cityArchId = "HOSTEL_GUESTHOUSE";
+                              else if (cAcc === "STANDARD_HOTEL") cityArchId = "BUSINESS_HOTEL";
+                              else if (cAcc === "PREMIUM_HERITAGE") cityArchId = "HANOK_BOUTIQUE";
+                            } else if (cAcc && typeof cAcc === "object" && (cAcc as any).basketId) {
+                              const b = (cAcc as any).basketId;
+                              if (STAY_ARCHETYPES.some((a) => a.id === b)) {
+                                cityArchId = b;
+                              } else if (b === "BUDGET_STAY") cityArchId = "HOSTEL_GUESTHOUSE";
+                              else if (b === "STANDARD_HOTEL") cityArchId = "BUSINESS_HOTEL";
+                              else if (b === "PREMIUM_HERITAGE") cityArchId = "HANOK_BOUTIQUE";
+                            } else {
+                              cityArchId = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
+                            }
+
+                            return {
+                              city: c,
+                              cityName: cName,
+                              cityNights: n,
+                              initialSegments: isSpl ? (cAcc as any).segments : null,
+                              defaultArchetypeId: cityArchId,
+                            };
+                          })}
+                          onSaveSplitStayForCity={(targetCity, segments) => {
+                            const targetStop = stops.find((s) => s.city === targetCity) || {
+                              id: `stop_${targetCity.toLowerCase()}`,
+                              city: targetCity,
+                              nights: draft.cityNightAllocations?.[targetCity] ?? 2,
+                            };
+                            handleStopStayOverride(targetStop, {
+                              kind: "SPLIT",
+                              segments,
+                            });
+                          }}
+                          onResetSplitStayForCity={(targetCity) => {
+                            const targetStop = stops.find((s) => s.city === targetCity) || {
+                              id: `stop_${targetCity.toLowerCase()}`,
+                              city: targetCity,
+                              nights: draft.cityNightAllocations?.[targetCity] ?? 2,
+                            };
+                            const tierArch = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
+                            handleStopStayOverride(targetStop, tierArch as BudgetBasketId);
+                          }}
+                          onBatchApplySplit={(batch) => {
+                            const nextAcc = { ...preferences.accommodationByCity };
+                            Object.entries(batch).forEach(([cKey, segs]) => {
+                              nextAcc[cKey] = {
+                                kind: "SPLIT",
+                                segments: segs,
+                              };
+                            });
+                            persistPreferences({ accommodationByCity: nextAcc });
+                            setState((prev) =>
+                              prev.status === "ready"
+                                ? {
+                                  ...prev,
+                                  preferences: { ...prev.preferences, accommodationByCity: nextAcc },
+                                }
+                                : prev
+                            );
+                          }}
+                          onBatchResetSplit={(cities) => {
+                            const nextAcc = { ...preferences.accommodationByCity };
+                            const tierArch = draft.budgetTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : draft.budgetTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
+                            cities.forEach((c) => {
+                              nextAcc[c] = tierArch;
+                            });
+                            persistPreferences({ accommodationByCity: nextAcc });
+                            setState((prev) =>
+                              prev.status === "ready"
+                                ? {
+                                  ...prev,
+                                  preferences: { ...prev.preferences, accommodationByCity: nextAcc },
+                                }
+                                : prev
+                            );
+                          }}
+                          onSaveCustomStay={(c, placeName, nightlyPriceKrw) => {
+                            handleStopStayOverride(activeStop, {
+                              kind: "PLACE",
+                              placeId: `custom_stay_${Date.now()}`,
+                              basketId: selectedArchetypeId as BudgetBasketId,
+                              nightlyPriceKrw,
+                              priceSource: "MOCK",
+                              placeNameKo: placeName,
+                              placeNameEn: placeName,
+                              snapshotAt: new Date().toISOString().slice(0, 10),
+                            });
+                          }}
+                          onResetCustomStay={() => {
+                            handleResetStopStay(activeStop);
+                          }}
+                          hideHeader={true}
+                        />
+                      );
+                    })()}
+
+                    {activeCategory === "FOOD" && (() => {
+                      const city = selectedCityTab;
+                      const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
+                      const activeFoodTier = preferences.foodTier || draft.budgetTier || "STANDARD";
+                      const foodBasketOptions: BudgetBasketId[] = ["BUDGET_MEAL_PLAN", "STANDARD_MEAL_PLAN", "PREMIUM_MEAL_PLAN"];
+
+                      return (
+                        <div className="space-y-6">
+                          {saveError && (
+                            <div role="alert" className="p-3 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-100">
+                              {dict.planner.saveFailedNotice}
                             </div>
+                          )}
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {customFoodPlaces.map((foodPlace) => {
-                                const unitPrice = foodPlace.priceKrw ?? (foodPlace as any).estimatedPriceKrw ?? (foodPlace.category === "CAFE" ? 8000 : 18000);
-                                const totalFoodItemPrice = unitPrice * (draft.adultCount || 1);
-                                const title = locale === "ko"
-                                  ? (foodPlace.translations?.ko?.title || (foodPlace as any).title)
-                                  : (foodPlace.translations?.en?.title || foodPlace.translations?.ko?.title || (foodPlace as any).title);
-                                const desc = locale === "ko"
-                                  ? (foodPlace.translations?.ko?.description || (foodPlace as any).descriptionKo)
-                                  : (foodPlace.translations?.en?.description || foodPlace.translations?.ko?.description || (foodPlace as any).descriptionKo);
-                                const address = foodPlace.translations?.ko?.address || (foodPlace as any).area || foodPlace.city;
+                          {/* Food Basket Gourmet Planner Panel */}
+                          <FoodPlannerPanel
+                            locale={locale}
+                            dict={dict}
+                            currentCity={city}
+                            cityNights={foodLine?.durationCount ?? Math.max(1, Math.floor((draft.totalNights || 3) / Math.max(1, draft.selectedCities.length)))}
+                            selectedCities={draft.selectedCities}
+                            travelNights={draft.totalNights || 3}
+                            adultCount={draft.adultCount || 1}
+                            basketSelections={preferences.foodBasketSelections || []}
+                            foodBasketPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan.foodBasketPlan : undefined}
+                            onUpdateQuantity={handleFoodBasketUpdateQuantity}
+                            onSetQuantity={handleFoodBasketSetQuantity}
+                            onClearBasket={handleFoodBasketClear}
+                            hideHeader={true}
+                          />
 
-                                return (
-                                  <div
-                                    key={foodPlace.id}
-                                    className="p-3.5 rounded-2xl border border-rose-300 ring-1 ring-rose-200 bg-rose-50/20 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all"
-                                  >
-                                    <div className="space-y-2">
-                                      <div className="flex items-start justify-between gap-2">
-                                        <div className="flex items-center gap-2">
-                                          <div>
-                                            <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
-                                              {title}
-                                            </h5>
-                                            <span className="text-[10px] text-slate-400">
-                                              {foodPlace.category === "CAFE" ? (locale === "ko" ? "디저트·카페" : "Cafe") : (locale === "ko" ? "맛집·식당" : "Restaurant")} · {address}
+                          {/* 3. K-Spot Gourmet & Cafe Candidates added by user */}
+                          {(() => {
+                            const customFoodPlaces = budgetPlaces.filter(
+                              (p) => p.city === city && (p.category === "RESTAURANT" || p.category === "CAFE")
+                            );
+                            if (customFoodPlaces.length === 0) return null;
+
+                            return (
+                              <div className="space-y-3 pt-4 border-t border-slate-100">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                                    {locale === "ko"
+                                      ? `K-스팟에서 담은 추천 맛집 & 카페 (${customFoodPlaces.length})`
+                                      : `Selected K-Gourmet & Cafes (${customFoodPlaces.length})`}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-medium">
+                                    {locale === "ko" ? "취소 시 목록 및 예산에서 즉시 제외됩니다" : "Removing excludes from budget"}
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  {customFoodPlaces.map((foodPlace) => {
+                                    const unitPrice = foodPlace.priceKrw ?? (foodPlace as any).estimatedPriceKrw ?? (foodPlace.category === "CAFE" ? 8000 : 18000);
+                                    const totalFoodItemPrice = unitPrice * (draft.adultCount || 1);
+                                    const title = locale === "ko"
+                                      ? (foodPlace.translations?.ko?.title || (foodPlace as any).title)
+                                      : (foodPlace.translations?.en?.title || foodPlace.translations?.ko?.title || (foodPlace as any).title);
+                                    const desc = locale === "ko"
+                                      ? (foodPlace.translations?.ko?.description || (foodPlace as any).descriptionKo)
+                                      : (foodPlace.translations?.en?.description || foodPlace.translations?.ko?.description || (foodPlace as any).descriptionKo);
+                                    const address = foodPlace.translations?.ko?.address || (foodPlace as any).area || foodPlace.city;
+
+                                    return (
+                                      <div
+                                        key={foodPlace.id}
+                                        className="p-3.5 rounded-2xl border border-rose-300 ring-1 ring-rose-200 bg-rose-50/20 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all"
+                                      >
+                                        <div className="space-y-2">
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div className="flex items-center gap-2">
+                                              <div>
+                                                <h5 className="text-xs font-bold text-[#0f172a] line-clamp-1">
+                                                  {title}
+                                                </h5>
+                                                <span className="text-[10px] text-slate-400">
+                                                  {foodPlace.category === "CAFE" ? (locale === "ko" ? "디저트·카페" : "Cafe") : (locale === "ko" ? "맛집·식당" : "Restaurant")} · {address}
+                                                </span>
+                                              </div>
+                                            </div>
+                                            <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-800 border-amber-200">
+                                              {locale === "ko" ? `${formatKrw(unitPrice)}/인` : `${formatPriceByLocale(unitPrice, locale, usdRate)}/p`}
                                             </span>
                                           </div>
+
+                                          {desc && (
+                                            <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                                              {desc}
+                                            </p>
+                                          )}
                                         </div>
-                                        <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md border bg-amber-50 text-amber-800 border-amber-200">
-                                          {locale === "ko" ? `${formatKrw(unitPrice)}/인` : `${formatPriceByLocale(unitPrice, locale, usdRate)}/p`}
-                                        </span>
+
+                                        <div className="mt-3 pt-2 border-t border-rose-100 flex items-center justify-between text-xs">
+                                          <span className="text-[11px] font-bold text-[#e25c5c]">
+                                            {formatPriceByLocale(totalFoodItemPrice, locale, usdRate)} <span className="text-[10px] text-slate-400 font-normal">({draft.adultCount || 1}{locale === "ko" ? "명 기준" : " travelers"})</span>
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              toggleBudgetPlace(foodPlace);
+                                              setToastMessage(locale === "ko" ? "맛집 담기가 취소되어 목록에서 제외되었습니다." : "Removed from budget.");
+                                              setTimeout(() => setToastMessage(null), 2500);
+                                            }}
+                                            className="px-3 py-1 rounded-lg text-xs font-black bg-rose-500 text-white hover:bg-rose-600 shadow-2xs cursor-pointer transition-colors"
+                                          >
+                                            {locale === "ko" ? "✓ 담김 (취소)" : "✓ Added"}
+                                          </button>
+                                        </div>
                                       </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })()}
 
-                                      {desc && (
-                                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
-                                          {desc}
-                                        </p>
-                                      )}
-                                    </div>
+                    {activeCategory === "ATTRACTION" && (() => {
+                      const city = selectedCityTab;
+                      const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+                      const selectedCourseIds = citySel.selectedCourseIds || [];
+                      const individualSpotIds = citySel.individualSpotIds || [];
 
-                                    <div className="mt-3 pt-2 border-t border-rose-100 flex items-center justify-between text-xs">
-                                      <span className="text-[11px] font-bold text-[#e25c5c]">
-                                        {formatPriceByLocale(totalFoodItemPrice, locale, usdRate)} <span className="text-[10px] text-slate-400 font-normal">({draft.adultCount || 1}{locale === "ko" ? "명 기준" : " travelers"})</span>
-                                      </span>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          toggleBudgetPlace(foodPlace);
-                                          setToastMessage(locale === "ko" ? "맛집 담기가 취소되어 목록에서 제외되었습니다." : "Removed from budget.");
-                                          setTimeout(() => setToastMessage(null), 2500);
-                                        }}
-                                        className="px-3 py-1 rounded-lg text-xs font-black bg-rose-500 text-white hover:bg-rose-600 shadow-2xs cursor-pointer transition-colors"
-                                      >
-                                        {locale === "ko" ? "✓ 담김 (취소)" : "✓ Added"}
-                                      </button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  );
-                })()}
+                      const hasOverride =
+                        !!preferences.attractionByCity?.[city] ||
+                        selectedCourseIds.length > 0 ||
+                        individualSpotIds.length > 0;
 
-                {activeCategory === "ATTRACTION" && (() => {
-                  const city = selectedCityTab;
-                  const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
-                  const selectedCourseIds = citySel.selectedCourseIds || [];
-                  const individualSpotIds = citySel.individualSpotIds || [];
+                      const activeBasketId =
+                        preferences.attractionByCity?.[city] ||
+                        plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId ||
+                        "BALANCED";
 
-                  const hasOverride =
-                    !!preferences.attractionByCity?.[city] ||
-                    selectedCourseIds.length > 0 ||
-                    individualSpotIds.length > 0;
+                      const coursesForCity = TOUR_COURSE_PRESETS.filter((c) => c.cityCode === city);
+                      const dbSpots = dbAttractionsByCity[city];
+                      const validDbSpots = dbSpots?.filter((s) => s.cityCode === city);
+                      const baseSpotsForCity = ((validDbSpots && validDbSpots.length > 0)
+                        ? validDbSpots
+                        : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city))
+                        .filter((s) => s.isActive !== false)
+                        .sort((a, b) => {
+                          const aFeat = !!a.isFeatured;
+                          const bFeat = !!b.isFeatured;
+                          if (aFeat && !bFeat) return -1;
+                          if (!aFeat && bFeat) return 1;
+                          return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
+                        });
 
-                  const activeBasketId =
-                    preferences.attractionByCity?.[city] ||
-                    plan.citySections[city]?.lineItems.find((i) => i.category === "ATTRACTION")?.basketId ||
-                    "BALANCED";
+                      // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합
+                      const customAttractionPlaces = budgetPlaces
+                        .filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
+                        .map(placeToAttractionSpot)
+                        .filter((cs) => {
+                          if (isDefaultAttractionSpot(cs.id)) return false;
+                          return !baseSpotsForCity.some((bs) => isSameSpot(bs.id, cs.id));
+                        });
 
-                  const coursesForCity = TOUR_COURSE_PRESETS.filter((c) => c.cityCode === city);
-                  const dbSpots = dbAttractionsByCity[city];
-                  const validDbSpots = dbSpots?.filter((s) => s.cityCode === city);
-                  const baseSpotsForCity = ((validDbSpots && validDbSpots.length > 0)
-                    ? validDbSpots
-                    : ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city))
-                    .filter((s) => s.isActive !== false)
-                    .sort((a, b) => {
-                      const aFeat = !!a.isFeatured;
-                      const bFeat = !!b.isFeatured;
-                      if (aFeat && !bFeat) return -1;
-                      if (!aFeat && bFeat) return 1;
-                      return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
-                    });
+                      const spotsForCity = [...customAttractionPlaces, ...baseSpotsForCity];
 
-                  // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합
-                  const customAttractionPlaces = budgetPlaces
-                    .filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
-                    .map(placeToAttractionSpot)
-                    .filter((cs) => {
-                      if (isDefaultAttractionSpot(cs.id)) return false;
-                      return !baseSpotsForCity.some((bs) => isSameSpot(bs.id, cs.id));
-                    });
+                      // 수집된 중복 제거 유료 Spot 계산
+                      const selectedSpotKeys = new Set<string>();
+                      selectedCourseIds.forEach((cid) => {
+                        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                        if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+                      });
+                      individualSpotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
 
-                  const spotsForCity = [...customAttractionPlaces, ...baseSpotsForCity];
-
-                  // 수집된 중복 제거 유료 Spot 계산
-                  const selectedSpotKeys = new Set<string>();
-                  selectedCourseIds.forEach((cid) => {
-                    const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
-                    if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-                  });
-                  individualSpotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
-
-                  return (
-                    <AttractionPlannerPanel
-                      city={city}
-                      locale={locale}
-                      dict={dict}
-                      adultCount={adultCount}
-                      selectedSpotKeys={selectedSpotKeys}
-                      selectedCourseIds={selectedCourseIds}
-                      individualSpotIds={individualSpotIds}
-                      onToggleSpot={handleToggleSpot}
-                      onClearCitySpots={handleClearCitySpots}
-                      onPreviewSpot={setPreviewSpot}
-                      baseSpotsForCity={baseSpotsForCity}
-                      customAttractionPlaces={customAttractionPlaces}
-                      isLoading={isFetchingCityAttractions[city] && (!dbAttractionsByCity[city] || dbAttractionsByCity[city].length === 0)}
-                      onAddCustomSpot={handleAddCustomSpot}
-                      hideHeader={true}
-                    />
-                  );
-                })()}
-              </div>
-            </div>
-          );
-        })()}
+                      return (
+                        <AttractionPlannerPanel
+                          city={city}
+                          locale={locale}
+                          dict={dict}
+                          adultCount={adultCount}
+                          selectedSpotKeys={selectedSpotKeys}
+                          selectedCourseIds={selectedCourseIds}
+                          individualSpotIds={individualSpotIds}
+                          onToggleSpot={handleToggleSpot}
+                          onClearCitySpots={handleClearCitySpots}
+                          onPreviewSpot={setPreviewSpot}
+                          baseSpotsForCity={baseSpotsForCity}
+                          customAttractionPlaces={customAttractionPlaces}
+                          isLoading={isFetchingCityAttractions[city] && (!dbAttractionsByCity[city] || dbAttractionsByCity[city].length === 0)}
+                          onAddCustomSpot={handleAddCustomSpot}
+                          hideHeader={true}
+                        />
+                      );
+                    })()}
+                  </div>
+                </div>
+              );
+            })()}
 
             {(() => {
               const activeNotice =
@@ -5534,11 +5509,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             const isPalaceFree = city === "SEOUL" && hasHanbokRental && isPalaceFreeSpot(spot.id, spot.nameKo);
                             const calculatedSpot = isPalaceFree
                               ? {
-                                  ...spot,
-                                  price: 0,
-                                  priceStatus: "FREE" as const,
-                                  isPalaceFree: true,
-                                }
+                                ...spot,
+                                price: 0,
+                                priceStatus: "FREE" as const,
+                                isPalaceFree: true,
+                              }
                               : { ...spot, isPalaceFree: false };
 
                             addedSpotsList.push(calculatedSpot);
@@ -5991,91 +5966,91 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
                 </div>
 
-              <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
-                <p className="text-[11px] text-slate-500 font-medium">
-                  {locale === "ko"
-                    ? "상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
-                    : "Detailed analytics & report are in [Generate Budget Report]."}
-                </p>
-              </div>
-
-              <div className="space-y-2 pt-1">
-                {/* 1열: 예산 리포트 만들기 (메인) & 계획 초기화 (우측 작은 버튼) */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      saveTripDraft(state.draft);
-                      persistPreferences({
-                        shoppingOption,
-                        shoppingCustomInput,
-                        occupancyModeByCity,
-                      }, state.draft);
-                      router.push(`/${locale}/report`);
-                    }}
-                    className="flex-1 h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span>{dict.planner.generateReport}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsResetPlanModalOpen(true)}
-                    className="h-11 px-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 font-bold text-xs text-center transition-colors cursor-pointer flex items-center justify-center gap-1 shrink-0 shadow-2xs"
-                    title={locale === "ko" ? "선택한 숙소, 음식, 관광, 교통 바스켓 초기화" : "Reset budget plan baskets"}
-                  >
-                    <span className="text-xs">↺</span>
-                    <span>{locale === "ko" ? "계획 초기화" : "Reset Plan"}</span>
-                  </button>
+                <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
+                  <p className="text-[11px] text-slate-500 font-medium">
+                    {locale === "ko"
+                      ? "상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
+                      : "Detailed analytics & report are in [Generate Budget Report]."}
+                  </p>
                 </div>
-                {/* 여행 저장 버튼 (1열 풀 너비) */}
-                <button
-                  onClick={handleSaveTripClick}
-                  className="w-full h-10 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
-                >
-                  <span>💾</span>
-                  <span>{dict.planner.saveTrip}</span>
-                </button>
 
-                {/* 저장된 여행 불러오기 버튼 (저장된 여행이 있을 때만 노출) */}
-                {savedTripItem && (
+                <div className="space-y-2 pt-1">
+                  {/* 1열: 예산 리포트 만들기 (메인) & 계획 초기화 (우측 작은 버튼) */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        saveTripDraft(state.draft);
+                        persistPreferences({
+                          shoppingOption,
+                          shoppingCustomInput,
+                          occupancyModeByCity,
+                        }, state.draft);
+                        router.push(`/${locale}/report`);
+                      }}
+                      className="flex-1 h-11 px-4 rounded-xl bg-[#e25c5c] text-white hover:bg-[#d14b4b] active:bg-[#c03a3a] font-extrabold text-sm text-center shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <span>{dict.planner.generateReport}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsResetPlanModalOpen(true)}
+                      className="h-11 px-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 font-bold text-xs text-center transition-colors cursor-pointer flex items-center justify-center gap-1 shrink-0 shadow-2xs"
+                      title={locale === "ko" ? "선택한 숙소, 음식, 관광, 교통 바스켓 초기화" : "Reset budget plan baskets"}
+                    >
+                      <span className="text-xs">↺</span>
+                      <span>{locale === "ko" ? "계획 초기화" : "Reset Plan"}</span>
+                    </button>
+                  </div>
+                  {/* 여행 저장 버튼 (1열 풀 너비) */}
                   <button
-                    type="button"
-                    onClick={() => setIsRestoreModalOpen(true)}
-                    className="w-full h-10 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 text-xs font-bold transition-all flex items-center justify-between cursor-pointer group shadow-2xs"
-                    title={locale === "ko" ? "저장된 여행 불러오기" : "Load saved trip"}
+                    onClick={handleSaveTripClick}
+                    className="w-full h-10 px-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold text-xs text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                   >
-                    <span className="flex items-center gap-1.5 min-w-0 truncate">
-                      <span className="text-emerald-600 font-black text-sm">↺</span>
-                      <span className="truncate text-slate-800 font-extrabold">{savedTripItem.title}</span>
-                    </span>
-                    <span className="text-[10.5px] text-emerald-700 font-bold shrink-0 ml-1.5 px-2 py-0.5 rounded-md bg-white border border-emerald-200 group-hover:bg-emerald-50">
-                      {locale === "ko" ? "불러오기" : "Load"}
-                    </span>
+                    <span>💾</span>
+                    <span>{dict.planner.saveTrip}</span>
                   </button>
-                )}
-                {[
-                  { label: dict.planner.shareReceipt, key: "share" }
-                ].map((btn) => (
-                  <button
-                    key={btn.key}
-                    disabled
-                    aria-describedby="future-features-info"
-                    className="w-full h-10 px-4 rounded-xl border border-slate-200 text-slate-400 bg-slate-50 font-bold text-sm text-center relative cursor-not-allowed hover:bg-slate-50 transition-colors"
-                  >
-                    <span>{btn.label}</span>
-                    <span className="absolute -top-1.5 right-2 bg-slate-200 text-slate-500 text-[8px] font-bold px-1 py-0.5 rounded scale-90">
-                      Coming Soon
-                    </span>
-                  </button>
-                ))}
-                <span id="future-features-info" className="sr-only">
-                  {dict.planner.notYetAvailable}
-                </span>
+
+                  {/* 저장된 여행 불러오기 버튼 (저장된 여행이 있을 때만 노출) */}
+                  {savedTripItem && (
+                    <button
+                      type="button"
+                      onClick={() => setIsRestoreModalOpen(true)}
+                      className="w-full h-10 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 text-xs font-bold transition-all flex items-center justify-between cursor-pointer group shadow-2xs"
+                      title={locale === "ko" ? "저장된 여행 불러오기" : "Load saved trip"}
+                    >
+                      <span className="flex items-center gap-1.5 min-w-0 truncate">
+                        <span className="text-emerald-600 font-black text-sm">↺</span>
+                        <span className="truncate text-slate-800 font-extrabold">{savedTripItem.title}</span>
+                      </span>
+                      <span className="text-[10.5px] text-emerald-700 font-bold shrink-0 ml-1.5 px-2 py-0.5 rounded-md bg-white border border-emerald-200 group-hover:bg-emerald-50">
+                        {locale === "ko" ? "불러오기" : "Load"}
+                      </span>
+                    </button>
+                  )}
+                  {[
+                    { label: dict.planner.shareReceipt, key: "share" }
+                  ].map((btn) => (
+                    <button
+                      key={btn.key}
+                      disabled
+                      aria-describedby="future-features-info"
+                      className="w-full h-10 px-4 rounded-xl border border-slate-200 text-slate-400 bg-slate-50 font-bold text-sm text-center relative cursor-not-allowed hover:bg-slate-50 transition-colors"
+                    >
+                      <span>{btn.label}</span>
+                      <span className="absolute -top-1.5 right-2 bg-slate-200 text-slate-500 text-[8px] font-bold px-1 py-0.5 rounded scale-90">
+                        Coming Soon
+                      </span>
+                    </button>
+                  ))}
+                  <span id="future-features-info" className="sr-only">
+                    {dict.planner.notYetAvailable}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
-    </div>
+          );
+        })()}
+      </div>
 
       {/* Toast Alert Feedback */}
       {toastMessage && (
@@ -6299,11 +6274,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <button
                 type="button"
                 onClick={() => setEditTab("NIGHTS")}
-                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
-                  editTab === "NIGHTS"
+                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${editTab === "NIGHTS"
                     ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
-                }`}
+                  }`}
               >
                 1단계: 기간 ({editDraft.totalNights ? `${editDraft.totalNights}박` : "미선택"})
               </button>
@@ -6311,11 +6285,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <button
                 type="button"
                 onClick={() => setEditTab("ADULTS")}
-                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
-                  editTab === "ADULTS"
+                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${editTab === "ADULTS"
                     ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
-                }`}
+                  }`}
               >
                 2단계: 인원 ({editDraft.adultCount ? `${editDraft.adultCount}명` : "미선택"})
               </button>
@@ -6323,11 +6296,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               <button
                 type="button"
                 onClick={() => setEditTab("CITIES")}
-                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${
-                  editTab === "CITIES"
+                className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center whitespace-nowrap ${editTab === "CITIES"
                     ? "bg-white text-[#e25c5c] shadow-xs border border-slate-200 font-extrabold"
                     : "text-slate-600 hover:text-slate-900"
-                }`}
+                  }`}
               >
                 3단계: 목적지 ({editDraft.selectedCities.length}곳)
               </button>
@@ -6385,11 +6357,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               key={preset}
                               type="button"
                               onClick={() => handleModalNightsChange(preset)}
-                              className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                                editDraft.totalNights === preset
+                              className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${editDraft.totalNights === preset
                                   ? "bg-[#e25c5c] border-[#e25c5c] text-white font-extrabold"
                                   : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
-                              }`}
+                                }`}
                             >
                               {preset}박
                             </button>
@@ -6443,11 +6414,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           key={preset}
                           type="button"
                           onClick={() => handleModalAdultsChange(preset)}
-                          className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                            editDraft.adultCount === preset
+                          className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${editDraft.adultCount === preset
                               ? "bg-[#e25c5c] border-[#e25c5c] text-white"
                               : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
-                          }`}
+                            }`}
                         >
                           {preset}명
                         </button>
@@ -6473,11 +6443,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           key={cityOpt.key}
                           type="button"
                           onClick={() => handleModalToggleCity(cityOpt.key)}
-                          className={`min-h-[44px] px-2 py-2 rounded-xl border text-xs transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${
-                            isSelected
+                          className={`min-h-[44px] px-2 py-2 rounded-xl border text-xs transition-all cursor-pointer flex items-center justify-center gap-1 text-center ${isSelected
                               ? "bg-[#fdf2f2] border-2 border-[#e25c5c] text-slate-900 font-bold shadow-2xs"
                               : "bg-white border-slate-200 text-slate-600 font-semibold hover:border-slate-300"
-                          }`}
+                            }`}
                         >
                           {isSelected && <span className="text-[#e25c5c] font-bold">✓</span>}
                           <span>{cityOpt.nameKo}</span>
@@ -6567,11 +6536,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     type="button"
                     disabled={isConsecutive}
                     onClick={() => handleAddStopCity(c)}
-                    className={`p-3 rounded-2xl text-left border transition-all flex flex-col justify-between gap-1.5 cursor-pointer ${
-                      isConsecutive
+                    className={`p-3 rounded-2xl text-left border transition-all flex flex-col justify-between gap-1.5 cursor-pointer ${isConsecutive
                         ? "bg-slate-50 border-slate-200 opacity-35 cursor-not-allowed"
                         : "bg-white border-slate-200/90 hover:border-[#e25c5c] hover:bg-rose-50/50 hover:shadow-xs group"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-black text-slate-900 group-hover:text-[#e25c5c] transition-colors">
@@ -6810,11 +6778,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     onClick={() => {
                       handleToggleSpot(spotCity, previewSpot.id);
                     }}
-                    className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shadow-xs ${
-                      isSpotSelected || isIncludedInCourse
+                    className={`px-5 py-2 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer shadow-xs ${isSpotSelected || isIncludedInCourse
                         ? "bg-rose-500 text-white hover:bg-rose-600"
                         : "bg-[#0f172a] text-white hover:bg-slate-800"
-                    }`}
+                      }`}
                   >
                     {isSpotSelected || isIncludedInCourse
                       ? (locale === "ko" ? "✓ 예산에 담김" : "✓ In Budget")

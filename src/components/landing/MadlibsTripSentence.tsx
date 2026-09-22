@@ -267,14 +267,6 @@ export default function MadlibsTripSentence({
           </>
         )}
       </div>
-
-      {!isAllFilled && (
-        <div className="mt-2.5 text-xs sm:text-[13px] text-neutral-500 font-normal text-center">
-          {isKo
-            ? "아래 1~3단계를 선택하여 나만의 여행 문장을 완성해 보세요!"
-            : "Select Steps 1~3 below to complete your travel statement!"}
-        </div>
-      )}
     </div>
   );
 }

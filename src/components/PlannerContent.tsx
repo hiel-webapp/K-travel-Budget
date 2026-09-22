@@ -1904,7 +1904,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       if (shoppingOption === "FASHION") return 300000 * adultCount;
       if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
       if (shoppingOption === "CUSTOM") {
-        const val = parseFloat(shoppingCustomInput) || 0;
+        const val = parseInt(shoppingCustomInput.replace(/[^0-9]/g, ""), 10) || 0;
         const perPerson = locale === "ko" ? val : Math.round(val * usdRate);
         return perPerson * adultCount;
       }
@@ -1913,14 +1913,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     attractionCustomDailyKrw:
       activityManualInput !== "" && activityManualInput !== "0"
         ? (locale === "ko"
-          ? (parseInt(activityManualInput, 10) || 0)
-          : Math.round((parseFloat(activityManualInput) || 0) * usdRate))
+          ? (parseInt(activityManualInput.replace(/[^0-9]/g, ""), 10) || 0)
+          : Math.round((parseInt(activityManualInput.replace(/[^0-9]/g, ""), 10) || 0) * usdRate))
         : preferences.attractionCustomDailyKrw,
     emergencyFundKrw:
       emergencyManualInput !== "" && emergencyManualInput !== "0"
         ? (locale === "ko"
-          ? (parseInt(emergencyManualInput, 10) || 0)
-          : Math.round((parseFloat(emergencyManualInput) || 0) * usdRate))
+          ? (parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) || 0)
+          : Math.round((parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) || 0) * usdRate))
         : preferences.emergencyFundKrw,
   }), [preferences, shoppingOption, shoppingCustomInput, occupancyModeByCity, emergencyManualInput, activityManualInput, locale, usdRate, adultCount]);
 
@@ -2773,10 +2773,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         };
       });
       setIsRestoreModalOpen(false);
+      const restoredTitle = savedTripItem.draft ? getAutoTripTitle(savedTripItem.draft) : savedTripItem.title;
       setToastMessage(
         locale === "ko"
-          ? `저장된 "${savedTripItem.title}" 일정을 성공적으로 불러왔습니다.`
-          : `Loaded saved trip "${savedTripItem.title}".`
+          ? `저장된 "${restoredTitle}" 일정을 성공적으로 불러왔습니다.`
+          : `Loaded saved trip "${restoredTitle}".`
       );
       setTimeout(() => setToastMessage(null), 3000);
     }
@@ -3277,22 +3278,35 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleEmergencyFundChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!latestPrefsRef.current) return;
 
-    const valStr = e.target.value;
-    setEmergencyManualInput(valStr);
-
-    const raw = valStr === "" ? 0 : Number(valStr);
-
-    const isValValid = (v: unknown): v is number => {
-      return typeof v === "number" && !isNaN(v) && isFinite(v) && v >= 0 && Number.isInteger(v);
-    };
-
-    // 1만원 단위로 스냅
-    const val = isValValid(raw) ? Math.round(raw / 10000) * 10000 : raw;
-
-    if (!isValValid(val)) {
-      setSaveError(true);
+    const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+    if (!rawDigits) {
+      setEmergencyManualInput("");
+      const saved = savePlannerPreferences({
+        accommodationByCity: latestPrefsRef.current.accommodationByCity,
+        foodOverrides: latestPrefsRef.current.foodOverrides,
+        foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
+        attractionByCity: latestPrefsRef.current.attractionByCity,
+        attractionSelections: latestPrefsRef.current.attractionSelections,
+        emergencyFundKrw: undefined,
+        emergencyFundPct: undefined,
+        draft,
+      });
+      if (saved) {
+        latestPrefsRef.current = {
+          ...latestPrefsRef.current,
+          emergencyFundKrw: undefined,
+          emergencyFundPct: undefined,
+        };
+        setState((prev) => (prev.status === "ready" ? { ...prev, preferences: latestPrefsRef.current! } : prev));
+      }
       return;
     }
+
+    const rawNum = parseInt(rawDigits, 10);
+    const formatted = rawNum.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
+    setEmergencyManualInput(formatted);
+
+    const valKrw = locale === "ko" ? rawNum : Math.round(rawNum * usdRate);
 
     const saved = savePlannerPreferences({
       accommodationByCity: latestPrefsRef.current.accommodationByCity,
@@ -3300,7 +3314,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       foodAddOnOverrides: latestPrefsRef.current.addOnSelections,
       attractionByCity: latestPrefsRef.current.attractionByCity,
       attractionSelections: latestPrefsRef.current.attractionSelections,
-      emergencyFundKrw: val,
+      emergencyFundKrw: valKrw,
       emergencyFundPct: undefined,
       draft,
     });
@@ -3309,7 +3323,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       setSaveError(false);
       latestPrefsRef.current = {
         ...latestPrefsRef.current,
-        emergencyFundKrw: val,
+        emergencyFundKrw: valKrw,
         emergencyFundPct: undefined,
       };
       setState((prev) => {
@@ -3325,15 +3339,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   const handleActivityManualInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valStr = e.target.value;
-    setActivityManualInput(valStr);
-
-    const raw = valStr === "" ? 0 : Number(valStr);
-    const isValValid = (v: unknown): v is number => {
-      return typeof v === "number" && !isNaN(v) && isFinite(v) && v >= 0 && Number.isInteger(v);
-    };
-
-    if (!isValValid(raw) || raw === 0) {
+    const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+    if (!rawDigits) {
+      setActivityManualInput("");
       if (!latestPrefsRef.current) return;
       const saved = persistPreferences({
         attractionCustomDailyKrw: undefined,
@@ -3348,16 +3356,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return;
     }
 
+    const rawNum = parseInt(rawDigits, 10);
+    const formatted = rawNum.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
+    setActivityManualInput(formatted);
+
+    const rawKrw = locale === "ko" ? rawNum : Math.round(rawNum * usdRate);
     if (!latestPrefsRef.current) return;
     const saved = persistPreferences({
-      attractionCustomDailyKrw: raw,
+      attractionCustomDailyKrw: rawKrw,
     });
 
     if (saved) {
       setSaveError(false);
       latestPrefsRef.current = {
         ...latestPrefsRef.current,
-        attractionCustomDailyKrw: raw,
+        attractionCustomDailyKrw: rawKrw,
       };
       setState((prev) => {
         if (prev.status !== "ready") return prev;
@@ -3876,7 +3889,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                           const displayInputValue = customTargetBudgetInput !== ""
                             ? customTargetBudgetInput
-                            : (isCustomTargetBudget ? "" : (!isPresetMatch ? String(currentPerPerson) : ""));
+                            : (isCustomActive
+                                ? (locale === "ko"
+                                    ? currentPerPerson.toLocaleString("ko-KR")
+                                    : Math.round(currentPerPerson / usdRate).toLocaleString("en-US"))
+                                : "");
 
                           return (
                             <div className="space-y-3">
@@ -3913,26 +3930,39 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                       : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                     }`}
                                 >
-                                  <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                                  <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">
+                                    {locale === "ko" ? "₩" : "$"}
+                                  </span>
                                   <input
-                                    type="number"
-                                    step="10000"
+                                    type="text"
+                                    inputMode="numeric"
                                     value={displayInputValue}
                                     onFocus={() => {
                                       setIsCustomTargetBudget(true);
                                       if (isPresetMatch) {
                                         setCustomTargetBudgetInput("");
                                       } else if (!customTargetBudgetInput) {
-                                        setCustomTargetBudgetInput(String(currentPerPerson));
+                                        setCustomTargetBudgetInput(
+                                          locale === "ko"
+                                            ? currentPerPerson.toLocaleString("ko-KR")
+                                            : Math.round(currentPerPerson / usdRate).toLocaleString("en-US")
+                                        );
                                       }
                                     }}
                                     onChange={(e) => {
-                                      const valStr = e.target.value;
-                                      setCustomTargetBudgetInput(valStr);
+                                      const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+                                      if (!rawDigits) {
+                                        setCustomTargetBudgetInput("");
+                                        setIsCustomTargetBudget(true);
+                                        return;
+                                      }
+                                      const valNum = parseInt(rawDigits, 10);
+                                      const formatted = valNum.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
+                                      setCustomTargetBudgetInput(formatted);
                                       setIsCustomTargetBudget(true);
-                                      const valNum = parseInt(valStr, 10);
-                                      if (!isNaN(valNum) && valNum > 0) {
-                                        handleCustomTargetBudgetSubmit(valNum);
+                                      if (valNum > 0) {
+                                        const krwAmount = locale === "ko" ? valNum : Math.round(valNum * usdRate);
+                                        handleCustomTargetBudgetSubmit(krwAmount);
                                       }
                                     }}
                                     placeholder={locale === "ko" ? "직접 입력" : "Custom"}
@@ -3968,7 +3998,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           if (shoppingOption === "BEAUTY") return 200000 * adultCount;
                           if (shoppingOption === "FASHION") return 300000 * adultCount;
                           if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
-                          if (shoppingOption === "CUSTOM") return (parseInt(shoppingCustomInput, 10) || 0);
+                          if (shoppingOption === "CUSTOM") {
+                            const rawNum = parseInt(shoppingCustomInput.replace(/[^0-9]/g, ""), 10) || 0;
+                            const perPerson = locale === "ko" ? rawNum : Math.round(rawNum * usdRate);
+                            return perPerson * adultCount;
+                          }
                           return 0;
                         })();
 
@@ -4031,21 +4065,33 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                   ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                   : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                                 }`}>
-                                <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                                <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">
+                                  {locale === "ko" ? "₩" : "$"}
+                                </span>
                                 <input
-                                  type="number"
-                                  min="0"
-                                  step="10000"
+                                  type="text"
+                                  inputMode="numeric"
                                   className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
                                   placeholder={locale === "ko" ? "직접 입력" : "Custom"}
                                   value={shoppingCustomInput}
                                   onChange={(e) => {
-                                    const val = e.target.value;
-                                    setShoppingCustomInput(val);
+                                    const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+                                    if (!rawDigits) {
+                                      setShoppingCustomInput("");
+                                      setShoppingOption("CUSTOM");
+                                      persistPreferences({
+                                        shoppingOption: "CUSTOM",
+                                        shoppingCustomInput: "",
+                                      });
+                                      return;
+                                    }
+                                    const valNum = parseInt(rawDigits, 10);
+                                    const formatted = valNum.toLocaleString(locale === "ko" ? "ko-KR" : "en-US");
+                                    setShoppingCustomInput(formatted);
                                     setShoppingOption("CUSTOM");
                                     persistPreferences({
                                       shoppingOption: "CUSTOM",
-                                      shoppingCustomInput: val,
+                                      shoppingCustomInput: formatted,
                                     });
                                   }}
                                 />
@@ -4143,14 +4189,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                 : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                               }`}>
-                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">
+                                {locale === "ko" ? "₩" : "$"}
+                              </span>
                               <input
-                                type="number"
-                                min="0"
-                                step="10000"
+                                type="text"
+                                inputMode="numeric"
                                 className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
                                 placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                                value={activityManualInput === "0" ? "" : activityManualInput}
+                                value={
+                                  activityManualInput !== "" && activityManualInput !== "0"
+                                    ? activityManualInput
+                                    : (preferences.attractionCustomDailyKrw && preferences.attractionCustomDailyKrw > 0
+                                        ? (locale === "ko"
+                                            ? preferences.attractionCustomDailyKrw.toLocaleString("ko-KR")
+                                            : Math.round(preferences.attractionCustomDailyKrw / usdRate).toLocaleString("en-US"))
+                                        : "")
+                                }
                                 onChange={handleActivityManualInputChange}
                               />
                             </div>
@@ -4241,14 +4296,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 ? "bg-[#fdf2f2] border border-[#e25c5c] ring-1 ring-[#e25c5c] text-[#0f172a] font-extrabold shadow-2xs"
                                 : "bg-white border border-slate-200 text-slate-600 font-semibold hover:bg-slate-100"
                               }`}>
-                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">₩</span>
+                              <span className="text-xs font-bold text-slate-400 mr-1.5 shrink-0">
+                                {locale === "ko" ? "₩" : "$"}
+                              </span>
                               <input
-                                type="number"
-                                min="0"
-                                step="10000"
+                                type="text"
+                                inputMode="numeric"
                                 className="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none placeholder:text-slate-400 placeholder:font-medium text-center"
                                 placeholder={locale === "ko" ? "직접 입력" : "Custom"}
-                                value={emergencyManualInput === "0" ? "" : emergencyManualInput}
+                                value={
+                                  emergencyManualInput !== "" && emergencyManualInput !== "0"
+                                    ? emergencyManualInput
+                                    : (preferences.emergencyFundKrw && preferences.emergencyFundKrw > 0
+                                        ? (locale === "ko"
+                                            ? preferences.emergencyFundKrw.toLocaleString("ko-KR")
+                                            : Math.round(preferences.emergencyFundKrw / usdRate).toLocaleString("en-US"))
+                                        : "")
+                                }
                                 onChange={handleEmergencyFundChange}
                               />
                             </div>
@@ -4260,8 +4324,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                             const formulaText = emergencyManualInput !== "" && emergencyManualInput !== "0"
                               ? (locale === "ko"
-                                ? `직접 입력 ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount}명`
-                                : `Custom ${formatPriceByLocale(parseInt(emergencyManualInput, 10) || 0, locale, usdRate)} × ${adultCount} travelers`)
+                                ? `직접 입력 ${formatPriceByLocale(parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) || 0, locale, usdRate)} × ${adultCount}명`
+                                : `Custom ${formatPriceByLocale((parseInt(emergencyManualInput.replace(/[^0-9]/g, ""), 10) || 0) * usdRate, locale, usdRate)} × ${adultCount} travelers`)
                               : (activeEmergencyPct || 0) === 0
                                 ? (locale === "ko" ? "선택 안함 (₩0)" : "No Selection ($0)")
                                 : (locale === "ko"
@@ -6011,22 +6075,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </button>
 
                   {/* 저장된 여행 불러오기 버튼 (저장된 여행이 있을 때만 노출) */}
-                  {savedTripItem && (
-                    <button
-                      type="button"
-                      onClick={() => setIsRestoreModalOpen(true)}
-                      className="w-full h-10 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 text-xs font-bold transition-all flex items-center justify-between cursor-pointer group shadow-2xs"
-                      title={locale === "ko" ? "저장된 여행 불러오기" : "Load saved trip"}
-                    >
-                      <span className="flex items-center gap-1.5 min-w-0 truncate">
-                        <span className="text-emerald-600 font-black text-sm">↺</span>
-                        <span className="truncate text-slate-800 font-extrabold">{savedTripItem.title}</span>
-                      </span>
-                      <span className="text-[10.5px] text-emerald-700 font-bold shrink-0 ml-1.5 px-2 py-0.5 rounded-md bg-white border border-emerald-200 group-hover:bg-emerald-50">
-                        {locale === "ko" ? "불러오기" : "Load"}
-                      </span>
-                    </button>
-                  )}
+                  {savedTripItem && (() => {
+                    const displaySavedTitle = savedTripItem.draft ? getAutoTripTitle(savedTripItem.draft) : savedTripItem.title;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => setIsRestoreModalOpen(true)}
+                        className="w-full h-10 px-3.5 rounded-xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/70 text-emerald-900 text-xs font-bold transition-all flex items-center justify-between cursor-pointer group shadow-2xs"
+                        title={locale === "ko" ? "저장된 여행 불러오기" : "Load saved trip"}
+                      >
+                        <span className="flex items-center gap-1.5 min-w-0 truncate">
+                          <span className="text-emerald-600 font-black text-sm">↺</span>
+                          <span className="truncate text-slate-800 font-extrabold">{displaySavedTitle}</span>
+                        </span>
+                        <span className="text-[10.5px] text-emerald-700 font-bold shrink-0 ml-1.5 px-2 py-0.5 rounded-md bg-white border border-emerald-200 group-hover:bg-emerald-50">
+                          {locale === "ko" ? "불러오기" : "Load"}
+                        </span>
+                      </button>
+                    );
+                  })()}
                   {[
                     { label: dict.planner.shareReceipt, key: "share" }
                   ].map((btn) => (
@@ -6112,7 +6179,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               </span>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-black text-slate-800 truncate">
-                  {savedTripItem.title}
+                  {savedTripItem.draft ? getAutoTripTitle(savedTripItem.draft) : savedTripItem.title}
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono shrink-0">
                   {new Date(savedTripItem.savedAt).toLocaleDateString()}

@@ -1904,9 +1904,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       if (shoppingOption === "FASHION") return 300000 * adultCount;
       if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
       if (shoppingOption === "CUSTOM") {
-        const val = parseInt(shoppingCustomInput.replace(/[^0-9]/g, ""), 10) || 0;
-        const perPerson = locale === "ko" ? val : Math.round(val * usdRate);
-        return perPerson * adultCount;
+        if (shoppingCustomInput !== "") {
+          const val = parseInt(shoppingCustomInput.replace(/[^0-9]/g, ""), 10) || 0;
+          const perPerson = locale === "ko" ? val : Math.round(val * usdRate);
+          return perPerson * adultCount;
+        }
+        return preferences.shoppingAmountKrw ?? 0;
       }
       return preferences.shoppingAmountKrw;
     })(),

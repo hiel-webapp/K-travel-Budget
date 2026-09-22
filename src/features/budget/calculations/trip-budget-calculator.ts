@@ -302,12 +302,19 @@ export function calculateTripBudgetSummary(
     if (shoppingOption === "FASHION") return 300000 * adultCount;
     if (shoppingOption === "SOUVENIR") return 100000 * adultCount;
     if (shoppingOption === "CUSTOM") {
-      if (preferences.shoppingCustomInput !== undefined && preferences.shoppingCustomInput !== "") {
-        return parseInt(preferences.shoppingCustomInput, 10) || 0;
+      // 1순위: UI/플래너에서 이미 원화(KRW) 총액으로 정밀하게 산출된 값 우선 반영
+      if (typeof preferences.shoppingAmountKrw === "number" && !isNaN(preferences.shoppingAmountKrw)) {
+        return preferences.shoppingAmountKrw;
       }
-      return preferences.shoppingAmountKrw || 0;
+      // 2순위: shoppingCustomInput이 전달된 경우 언어(locale)에 맞게 원화 환산
+      if (preferences.shoppingCustomInput !== undefined && preferences.shoppingCustomInput !== "") {
+        const rawDigits = parseInt(String(preferences.shoppingCustomInput).replace(/[^0-9]/g, ""), 10) || 0;
+        const perPersonKrw = locale === "ko" ? rawDigits : Math.round(rawDigits * 1350);
+        return perPersonKrw * adultCount;
+      }
+      return 0;
     }
-    return preferences.shoppingAmountKrw || 0;
+    return typeof preferences.shoppingAmountKrw === "number" ? preferences.shoppingAmountKrw : 0;
   })();
 
   // 7. 일일 용돈

@@ -39,7 +39,7 @@ const STORE_FILE = path.join(DATA_DIR, "admin-store.json");
 
 const SUPABASE_STORAGE_URL = "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/admin_data/admin-store.json";
 const SUPABASE_PUBLIC_URL = "https://aqfvmuytaukrkdmememh.supabase.co/storage/v1/object/public/admin_data/admin-store.json";
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxZnZtdXl0YXVrcmtkbWVtZW1oIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDY5MzQzNSwiZXhwIjoyMTAwMjY5NDM1fQ.p6Dqme9d0QdKyg5ijvvmeEwT0BJ5fdi8vATCc_IkW7Q";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
 let memoryCache: AdminStoreData | null = null;
 let lastCacheFetchTime = 0;

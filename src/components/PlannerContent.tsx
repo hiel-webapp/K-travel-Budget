@@ -5465,6 +5465,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         })
                         .join(" · ")}
                     </span>
+                    <span
+                      className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 rounded-lg text-[11px] font-extrabold tracking-tight shadow-2xs"
+                      title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
+                    >
+                      <span className="text-[10px]">💱</span>
+                      <span>
+                        {locale === "ko"
+                          ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
+                          : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
+                      </span>
+                    </span>
                   </div>
                 </div>
 
@@ -6142,11 +6153,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   </div>
                 </div>
 
-                <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center">
+                <div className="p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-center space-y-1">
                   <p className="text-[11px] text-slate-500 font-medium">
                     {locale === "ko"
                       ? "상세 분석 및 리포트는 [예산 리포트 만들기]에서 확인하세요."
                       : "Detailed analytics & report are in [Generate Budget Report]."}
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-medium border-t border-slate-200/60 pt-1">
+                    {locale === "ko"
+                      ? `* 실시간 고시 환율($1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}) 기준으로 자동 환산된 금액입니다.`
+                      : `* Converted at live exchange rate ($1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")}, updated daily).`}
                   </p>
                 </div>
 

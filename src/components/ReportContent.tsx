@@ -192,12 +192,23 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
       <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] print:border-b-2 print:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-neutral-100 pb-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[11px] font-extrabold tracking-tight text-teal-800 uppercase bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
                 HypeHeritage Travel Report
               </span>
               <span className="text-xs font-semibold text-neutral-500">
                 {totalNights}{locale === "ko" ? "박 " : "N "}{travelDays}{locale === "ko" ? "일" : "D"} · {adultCount}{locale === "ko" ? "인 성인" : " Adults"}
+              </span>
+              <span
+                className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-tight shadow-2xs"
+                title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
+              >
+                <span className="text-[9px]">💱</span>
+                <span>
+                  {locale === "ko"
+                    ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
+                    : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
+                </span>
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
@@ -298,9 +309,22 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             {/* Receipt Header */}
             <div className="bg-neutral-50/80 border-b border-neutral-200/70 p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <span className="text-[10px] tracking-widest text-slate-400 block uppercase font-bold">
-                  ITEMIZED EXPENSE AUDIT
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] tracking-widest text-slate-400 block uppercase font-bold">
+                    ITEMIZED EXPENSE AUDIT
+                  </span>
+                  <span
+                    className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-tight"
+                    title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
+                  >
+                    <span className="text-[9px]">💱</span>
+                    <span>
+                      {locale === "ko"
+                        ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
+                        : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
+                    </span>
+                  </span>
+                </div>
                 <h2 className="text-base font-black tracking-tight text-slate-900 mt-0.5">
                   {locale === "ko" ? "스마트 예산 영수증 세부 내역" : "Smart Budget Receipt"}
                 </h2>
@@ -647,6 +671,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                 {locale === "ko"
                   ? "본 리포트는 플래너에서 직접 담은 바스켓 데이터를 기반으로 산출된 공식 예산 내역입니다."
                   : "Certified travel budget plan calculated from your actual planner selections."}
+              </p>
+              <p className="text-[10px] text-slate-400 border-t border-slate-200/60 pt-1">
+                {locale === "ko"
+                  ? `* 실시간 고시 환율($1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}) 기준으로 자동 환산된 금액입니다.`
+                  : `* Converted at live exchange rate ($1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")}, updated daily).`}
               </p>
             </div>
           </div>

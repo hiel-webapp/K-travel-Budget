@@ -389,8 +389,8 @@ export default function SmartRouteMap({
           </h2>
           <p className="text-xs text-slate-500 mt-1 font-medium">
             {locale === "ko"
-              ? `${cityName}의 엄선 투어 코스와 최단 동선(1➔2➔3)을 카카오지도와 함께 확인하세요.`
-              : `Explore curated tour courses and optimized visiting sequences in ${cityName} via Kakao Map.`}
+              ? "도시별 추천 여행 코스와 최적 이동 동선을 지도에서 한눈에 확인하세요."
+              : "Explore curated tour routes and optimized travel sequences on the map."}
           </p>
         </div>
 

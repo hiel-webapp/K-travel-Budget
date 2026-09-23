@@ -183,8 +183,8 @@ export const ko = {
     copySummarySuccess: "예산 요약을 복사했습니다.",
     copySummaryError: "예산 요약 복사에 실패했습니다.",
 
-    reportTitle: "여행 예산 레포트",
-    reportSubtitle: "작성하신 계획을 바탕으로 생성된 기본 예산 레포트입니다.",
+    reportTitle: "여행 예산 리포트",
+    reportSubtitle: "플래너에서 직접 담은 숙소, 식비, 교통, 명소 및 비상금이 100% 반영된 종합 실비 리포트입니다.",
     reportBackToPlanner: "플래너로 돌아가기",
     reportTotalBudget: "목표 예산",
     reportDiffUnder: "예산 남음",

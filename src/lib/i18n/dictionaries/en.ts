@@ -185,7 +185,7 @@ export const en: Dictionary = {
     copySummaryError: "Failed to copy budget summary.",
 
     reportTitle: "Trip Budget Report",
-    reportSubtitle: "This is a basic budget report generated based on your trip plan.",
+    reportSubtitle: "A 100% comprehensive travel expense report reflecting your chosen stays, meals, transit, attractions, and emergency funds.",
     reportBackToPlanner: "Back to Planner",
     reportTotalBudget: "Target Budget",
     reportDiffUnder: "Under Budget",

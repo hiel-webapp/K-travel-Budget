@@ -74,15 +74,17 @@ export default function ReportBentoDashboard({
         {/* Left: Total Estimated Budget (KRW & USD) */}
         <div className="flex flex-col justify-between space-y-3">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 block">
                 TOTAL ESTIMATED BUDGET
               </span>
-              <span className="text-[10px] font-bold text-neutral-400">·</span>
-              <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">
+              <span
+                className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-tight shadow-2xs"
+                title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
+              >
                 {locale === "ko"
-                  ? `≈ $${usdGrandTotal.toLocaleString()} USD`
-                  : `≈ ₩${grandTotalKrw.toLocaleString()} KRW`}
+                  ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
+                  : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")}`}
               </span>
             </div>
 
@@ -96,13 +98,15 @@ export default function ReportBentoDashboard({
                   : `${formatUsd(animatedPerTravelerUsd)} / person (₩${(Math.round(grandTotalKrw / adults)).toLocaleString()})`}
               </span>
             </div>
-          </div>
 
-          <p className="text-xs text-neutral-400 font-medium leading-relaxed">
-            {locale === "ko"
-              ? "플래너에서 직접 담은 숙소, 식비, 교통, 명소 및 비상금이 100% 반영된 종합 실비입니다."
-              : "Comprehensive actual expenditure based on your selected stays, meals, transit, and activities."}
-          </p>
+            <div className="pt-1.5">
+              <span className="text-xs sm:text-sm font-bold text-neutral-500 tabular-nums">
+                {locale === "ko"
+                  ? `≈ $${usdGrandTotal.toLocaleString()} USD`
+                  : `≈ ₩${grandTotalKrw.toLocaleString()} KRW`}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Right: Daily Expense Insight & Target Budget Pacing */}
@@ -118,7 +122,7 @@ export default function ReportBentoDashboard({
               </span>
             </div>
 
-            {/* Price & Target Status */}
+            {/* Price & 1인당 금액 (TOTAL ESTIMATED BUDGET과 동일한 스타일) */}
             <div className="flex items-baseline justify-between gap-3">
               <div className="flex items-baseline gap-2">
                 <span className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-neutral-900 tabular-nums">
@@ -129,33 +133,34 @@ export default function ReportBentoDashboard({
                 </span>
               </div>
 
-              {targetBudget > 0 ? (
-                <span
-                  className={`text-[11px] font-extrabold px-3 py-1 rounded-full border shrink-0 ${
-                    isOverBudget
-                      ? "bg-rose-50 text-rose-600 border-rose-200"
-                      : "bg-teal-50 text-teal-700 border-teal-200"
-                  }`}
-                >
-                  {isOverBudget ? (locale === "ko" ? "예산 초과" : "Over Budget") : (locale === "ko" ? "안전 권역" : "Within Target")}
-                </span>
-              ) : (
-                <span className="bg-teal-50 text-teal-700 border border-teal-200/80 text-[11px] px-3 py-1 rounded-full font-bold shadow-2xs shrink-0">
-                  {locale === "ko" ? "합리적인 여행가" : "Smart Traveler"}
-                </span>
-              )}
+              <span className="text-xs sm:text-sm font-semibold text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200/60 whitespace-nowrap shrink-0">
+                {locale === "ko"
+                  ? `1인당 ${formatKrw(Math.round(animatedDailyAverageKrw / adults))} (≈ $${Math.round(dailyAverageKrw / adults / usdRate)})`
+                  : `${formatUsd(Math.round(dailyAverageKrw / adults / usdRate))} / person (₩${(Math.round(dailyAverageKrw / adults)).toLocaleString()})`}
+              </span>
             </div>
 
-            {/* Target Budget Comparison Progress */}
-            {targetBudget > 0 && (
+            {/* Target Budget Comparison Progress + 안전 권역 표기 (하단 금액 뒤로 이동) */}
+            {targetBudget > 0 ? (
               <div className="space-y-1 pt-1">
                 <div className="flex items-center justify-between text-xs font-bold tabular-nums">
                   <span className="text-neutral-500">{formatPercentage(targetUsagePercent)}</span>
-                  <span className={isOverBudget ? "text-rose-600" : "text-teal-700"}>
-                    {isOverBudget
-                      ? (locale === "ko" ? `+ ${formatKrw(diffAmount)}` : `+ ${formatUsd(diffAmountUsd)}`)
-                      : (locale === "ko" ? `- ${formatKrw(diffAmount)}` : `- ${formatUsd(diffAmountUsd)}`)}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={isOverBudget ? "text-rose-600" : "text-teal-700"}>
+                      {isOverBudget
+                        ? (locale === "ko" ? `+ ${formatKrw(diffAmount)}` : `+ ${formatUsd(diffAmountUsd)}`)
+                        : (locale === "ko" ? `- ${formatKrw(diffAmount)}` : `- ${formatUsd(diffAmountUsd)}`)}
+                    </span>
+                    <span
+                      className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border shrink-0 ${
+                        isOverBudget
+                          ? "bg-rose-50 text-rose-600 border-rose-200"
+                          : "bg-teal-50 text-teal-700 border-teal-200"
+                      }`}
+                    >
+                      {isOverBudget ? (locale === "ko" ? "예산 초과" : "Over Budget") : (locale === "ko" ? "안전 권역" : "Within Target")}
+                    </span>
+                  </div>
                 </div>
                 <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
                   <div
@@ -166,13 +171,20 @@ export default function ReportBentoDashboard({
                   />
                 </div>
               </div>
+            ) : (
+              <div className="flex items-center justify-between text-xs font-bold pt-1">
+                <span className="text-neutral-400">{locale === "ko" ? "목표 예산 미설정" : "No Target Set"}</span>
+                <span className="bg-teal-50 text-teal-700 border border-teal-200/80 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-2xs shrink-0">
+                  {locale === "ko" ? "합리적인 여행가" : "Smart Traveler"}
+                </span>
+              </div>
             )}
           </div>
 
           <p className="text-xs text-neutral-400 leading-relaxed font-medium">
             {locale === "ko"
-              ? `1인당 1일 약 ${formatKrw(Math.round(dailyAverageKrw / adults))} (≈ $${Math.round(dailyAverageKrw / adults / usdRate)})으로 계획된 균형 잡힌 일정입니다.`
-              : `Comfortable daily pacing of approx. ${formatUsd(Math.round(dailyAverageKrw / adults / usdRate))} (₩${Math.round(dailyAverageKrw / adults).toLocaleString()}) per traveler.`}
+              ? `전체 ${travelDays}일간의 지출 흐름과 페이싱을 반영한 균형 잡힌 일정입니다.`
+              : `Balanced pacing reflecting overall daily expenditure flow across ${travelDays} days.`}
           </p>
         </div>
 

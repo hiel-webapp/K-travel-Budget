@@ -199,14 +199,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               <span className="text-xs font-semibold text-neutral-500">
                 {totalNights}{locale === "ko" ? "박 " : "N "}{travelDays}{locale === "ko" ? "일" : "D"} · {adultCount}{locale === "ko" ? "인 성인" : " Adults"}
               </span>
-              <span
-                className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-tight shadow-2xs"
-                title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
-              >
-                {locale === "ko"
-                  ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
-                  : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
-              </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
               {dict.planner.reportTitle}

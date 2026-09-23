@@ -112,13 +112,10 @@ export default function ReportBentoDashboard({
         {/* Right: Daily Expense Insight & Target Budget Pacing */}
         <div className="border-t pt-6 lg:pt-0 lg:border-t-0 lg:border-l lg:border-neutral-100 lg:pl-8 flex flex-col justify-between space-y-3">
           <div className="space-y-2.5">
-            {/* Header: Title + Pacing Badge */}
-            <div className="flex items-center justify-between">
+            {/* Header: Title */}
+            <div>
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 block">
                 DAILY EXPENSE INSIGHT
-              </span>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-neutral-100 text-neutral-600 border border-neutral-200/70 shadow-2xs">
-                {travelDays}{locale === "ko" ? "일간 페이싱" : " Days Pacing"}
               </span>
             </div>
 
@@ -180,12 +177,6 @@ export default function ReportBentoDashboard({
               </div>
             )}
           </div>
-
-          <p className="text-xs text-neutral-400 leading-relaxed font-medium">
-            {locale === "ko"
-              ? `전체 ${travelDays}일간의 지출 흐름과 페이싱을 반영한 균형 잡힌 일정입니다.`
-              : `Balanced pacing reflecting overall daily expenditure flow across ${travelDays} days.`}
-          </p>
         </div>
 
       </div>

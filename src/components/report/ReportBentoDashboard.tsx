@@ -76,7 +76,7 @@ export default function ReportBentoDashboard({
           <div>
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 block">
-                TOTAL ESTIMATED BUDGET
+                {locale === "ko" ? "총 예상 경비" : "TOTAL ESTIMATED BUDGET"}
               </span>
               <span
                 className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-tight shadow-2xs"
@@ -115,7 +115,7 @@ export default function ReportBentoDashboard({
             {/* Header: Title */}
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 block">
-                DAILY EXPENSE INSIGHT
+                {locale === "ko" ? "1일 예상 지출 분석" : "DAILY EXPENSE INSIGHT"}
               </span>
             </div>
 

@@ -5375,6 +5375,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           customAttractionPlaces={customAttractionPlaces}
                           isLoading={isFetchingCityAttractions[city] && (!dbAttractionsByCity[city] || dbAttractionsByCity[city].length === 0)}
                           onAddCustomSpot={handleAddCustomSpot}
+                          onToggleCourse={handleToggleCourse}
                           hideHeader={true}
                         />
                       );

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import type { Locale } from "../lib/i18n/locales";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import { SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
 import {
   AttractionSpot,
   TOUR_COURSE_PRESETS,
+  ATTRACTION_SPOTS_CATALOG,
   SEOUL_LANDMARK_BILINGUAL_MAP,
   isSameSpot,
   normalizeSpotKey,
@@ -41,6 +42,7 @@ export interface AttractionPlannerPanelProps {
   customAttractionPlaces: AttractionSpot[];
   isLoading?: boolean;
   onAddCustomSpot?: (city: SupportedCity, name: string, priceKrw: number) => void;
+  onToggleCourse?: (city: SupportedCity, courseId: string) => void;
   hideHeader?: boolean;
 }
 
@@ -59,10 +61,11 @@ export default function AttractionPlannerPanel({
   customAttractionPlaces,
   isLoading = false,
   onAddCustomSpot,
+  onToggleCourse,
   hideHeader = false,
 }: AttractionPlannerPanelProps) {
   const { usdRate } = useExchangeRate();
-  const [activeSubTab, setActiveSubTab] = useState<"CITY" | "BASKET">("CITY");
+  const [activeSubTab, setActiveSubTab] = useState<"CITY" | "BASKET" | "COURSE">("CITY");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [visibleCount, setVisibleCount] = useState<number>(8);
 
@@ -175,6 +178,57 @@ export default function AttractionPlannerPanel({
         spot: themeActivityToAttractionSpot(act),
       }));
   }, [city, dynamicActivities]);
+
+  // 2-B. 현재 도시의 추천 투어 코스 목록 및 스팟 조회용 룩업 맵
+  const coursesForCity = useMemo(() => {
+    return TOUR_COURSE_PRESETS.filter(
+      (c) => (c.cityCode || "").toLowerCase() === (city || "").toLowerCase() && c.isActive !== false
+    );
+  }, [city]);
+
+  const allSpotsLookup = useMemo(() => {
+    const map = new Map<string, AttractionSpot>();
+    [...ATTRACTION_SPOTS_CATALOG, ...baseSpotsForCity, ...customAttractionPlaces].forEach((s) => {
+      map.set(normalizeSpotKey(s.id), s);
+      map.set(s.id, s);
+    });
+    themeActivitiesForCity.forEach(({ spot }) => {
+      map.set(normalizeSpotKey(spot.id), spot);
+      map.set(spot.id, spot);
+    });
+    return map;
+  }, [baseSpotsForCity, customAttractionPlaces, themeActivitiesForCity]);
+
+  const isCourseSelected = useCallback(
+    (courseId: string) => {
+      if (selectedCourseIds.includes(courseId)) return true;
+      const course = coursesForCity.find((c) => c.id === courseId);
+      if (!course || course.spotIds.length === 0) return false;
+      return course.spotIds.every(
+        (sid) =>
+          selectedSpotKeys.has(normalizeSpotKey(sid)) ||
+          individualSpotIds.some((id) => isSameSpot(id, sid))
+      );
+    },
+    [coursesForCity, selectedCourseIds, selectedSpotKeys, individualSpotIds]
+  );
+
+  const getCourseCost = useCallback(
+    (courseSpotIds: string[]) => {
+      let perPerson = 0;
+      courseSpotIds.forEach((sid) => {
+        const spot = allSpotsLookup.get(normalizeSpotKey(sid)) || allSpotsLookup.get(sid);
+        if (spot && spot.priceStatus === "PAID" && spot.price > 0) {
+          perPerson += spot.price;
+        }
+      });
+      return {
+        perPerson,
+        total: perPerson * adultCount,
+      };
+    },
+    [allSpotsLookup, adultCount]
+  );
 
   // 3. 현재 도시에서 선택된 모든 스팟 목록 (바스켓 아이템)
   const selectedSpotsInCity = useMemo(() => {
@@ -399,6 +453,30 @@ export default function AttractionPlannerPanel({
             >
               {basketSummary.totalCount}
             </span>
+          </button>
+
+          {/* 추천 투어 코스 탭 */}
+          <button
+            type="button"
+            onClick={() => setActiveSubTab("COURSE")}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeSubTab === "COURSE"
+                ? "bg-[#0f172a] text-white shadow-xs"
+                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>{locale === "ko" ? "추천 투어 코스" : "Tour Courses"}</span>
+            {coursesForCity.length > 0 && (
+              <span
+                className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                  activeSubTab === "COURSE"
+                    ? "bg-white/25 text-white"
+                    : "bg-indigo-50 text-indigo-600 border border-indigo-200"
+                }`}
+              >
+                {coursesForCity.length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -1072,6 +1150,181 @@ export default function AttractionPlannerPanel({
                   </span>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ================= SUBTAB 3: 추천 투어 코스 ================= */}
+      {activeSubTab === "COURSE" && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+                {cityName} {locale === "ko" ? "테마별 추천 투어 코스" : "Recommended Tour Courses"}
+              </h4>
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                {coursesForCity.length}{locale === "ko" ? "개 코스" : " Courses"}
+              </span>
+            </div>
+            <span className="text-xs text-slate-400">
+              {locale === "ko" ? "원클릭으로 코스 내 모든 명소를 예산에 일괄 반영합니다" : "One-click to add all route spots to your budget"}
+            </span>
+          </div>
+
+          {coursesForCity.length === 0 ? (
+            <div className="bg-slate-50 border border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-2">
+              <div className="text-sm font-bold text-slate-700">
+                {locale === "ko" ? "준비된 추천 투어 코스가 없습니다." : "No tour course presets available for this city."}
+              </div>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                {locale === "ko" ? "대표 명소 리스트에서 원하는 여행지를 자유롭게 담아보세요." : "Please explore the attractions list and add your favorite spots."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {coursesForCity.map((course) => {
+                const selected = isCourseSelected(course.id);
+                const title = locale === "ko" ? course.nameKo : course.nameEn;
+                const desc = locale === "ko" ? course.descKo : course.descEn;
+                const cost = getCourseCost(course.spotIds);
+
+                return (
+                  <div
+                    key={course.id}
+                    className={`rounded-2xl border transition-all duration-200 p-4 sm:p-5 flex flex-col justify-between gap-4 ${
+                      selected
+                        ? "bg-rose-50/40 border-rose-300 ring-1 ring-rose-400 shadow-xs"
+                        : "bg-white border-slate-200 hover:border-slate-300 shadow-2xs hover:shadow-xs"
+                    }`}
+                  >
+                    {/* 상단: 코스 뱃지 & 타이틀 & 설명 */}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-slate-900 text-white">
+                            COURSE
+                          </span>
+                          {course.estimatedHours && (
+                            <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                              <span>⏱️</span>
+                              <span>{locale === "ko" ? `약 ${course.estimatedHours}시간 코스` : `~${course.estimatedHours} hrs`}</span>
+                            </span>
+                          )}
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-600">
+                            {locale === "ko" ? `${course.spotIds.length}개 명소` : `${course.spotIds.length} spots`}
+                          </span>
+                        </div>
+
+                        {/* 가격 뱃지 */}
+                        <div className="text-right">
+                          <div className="text-xs font-black text-slate-900">
+                            {cost.perPerson === 0 ? (
+                              <span className="text-emerald-600 font-extrabold">{locale === "ko" ? "입장료 무료 코스" : "Free Admission"}</span>
+                            ) : (
+                              <span>
+                                {locale === "ko" ? "1인 " : ""}
+                                {formatPriceByLocale(cost.perPerson, locale, usdRate)}
+                                {adultCount > 1 && (
+                                  <span className="text-[11px] font-medium text-slate-500 ml-1">
+                                    ({locale === "ko" ? `성인 ${adultCount}인 ` : `${adultCount}p `}
+                                    {formatPriceByLocale(cost.total, locale, usdRate)})
+                                  </span>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h5 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                          {title}
+                        </h5>
+                        {desc && (
+                          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mt-1">
+                            {desc}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 중단: 코스 동선 흐름 (Spot Sequencer) */}
+                    <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-100">
+                      <div className="text-[11px] font-extrabold text-slate-400 mb-2 flex items-center gap-1">
+                        <span>🗺️</span>
+                        <span>{locale === "ko" ? "코스 이동 순서 (클릭 시 명소 상세정보)" : "Tour Sequence (Click for spot info)"}</span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        {course.spotIds.map((sid, idx) => {
+                          const spot = allSpotsLookup.get(normalizeSpotKey(sid)) || allSpotsLookup.get(sid);
+                          const spotName = spot
+                            ? (locale === "ko" ? spot.nameKo : spot.nameEn)
+                            : sid;
+                          const isSpotInBasket = selectedSpotKeys.has(normalizeSpotKey(sid)) || individualSpotIds.some(id => isSameSpot(id, sid));
+
+                          return (
+                            <React.Fragment key={sid}>
+                              <button
+                                type="button"
+                                onClick={() => spot && onPreviewSpot(spot)}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer border ${
+                                  isSpotInBasket
+                                    ? "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
+                                    : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                                }`}
+                                title={locale === "ko" ? "명소 상세 미리보기" : "Preview spot info"}
+                              >
+                                <span className={`w-4 h-4 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 ${
+                                  isSpotInBasket ? "bg-rose-500 text-white" : "bg-slate-200 text-slate-700"
+                                }`}>
+                                  {idx + 1}
+                                </span>
+                                <span>{spotName}</span>
+                              </button>
+
+                              {idx < course.spotIds.length - 1 && (
+                                <span className="text-slate-300 font-bold text-xs select-none">➔</span>
+                              )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 하단: 원클릭 담기 액션 버튼 */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <div className="text-xs text-slate-400">
+                        {selected
+                          ? (locale === "ko" ? "✓ 코스 내 명소들이 바스켓에 담겨 있습니다" : "✓ Course spots are currently in your basket")
+                          : (locale === "ko" ? "코스를 담으면 리포트 동선 지도 및 예산에 자동 연결됩니다" : "Adding this course auto-syncs with your report map and budget")}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onToggleCourse?.(city, course.id)}
+                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                          selected
+                            ? "bg-rose-500 text-white hover:bg-rose-600 shadow-xs"
+                            : "bg-[#0f172a] text-white hover:bg-rose-500 shadow-xs"
+                        }`}
+                      >
+                        {selected ? (
+                          <>
+                            <span>✓</span>
+                            <span>{locale === "ko" ? "코스 담김 (해제)" : "Course Added (Remove)"}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>+</span>
+                            <span>{locale === "ko" ? "코스 전체 담기" : "Add Full Course"}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

@@ -158,25 +158,36 @@ export default function SmartRouteMap({
         const bounds = new window.kakao.maps.LatLngBounds();
         const pathCoords: any[] = [];
 
-        // 커스텀 핀 오버레이 생성 (산뜻한 로즈-코랄 컬러 + 관광지명 앞 소형 숫자)
+        // 커스텀 핀 오버레이 생성 (기본: 깔끔한 화이트/슬레이트 핀, 선택 시: 돋보이는 볼드 로즈 핀)
         displayedSpots.forEach((spot) => {
           const pos = new window.kakao.maps.LatLng(spot.lat, spot.lng);
           bounds.extend(pos);
           pathCoords.push(pos);
 
           const isSelected = selectedSpotId === spot.id;
-          const badgeBg = isSelected ? "#be123c" : "#f43f5e";
           const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
 
           const content = document.createElement("div");
-          content.className = "group cursor-pointer transform -translate-x-1/2 -translate-y-full transition-transform hover:scale-105";
+          content.setAttribute("data-spot-marker", "true");
+          content.setAttribute("data-spot-id", spot.id);
+          content.className = "cursor-pointer transform -translate-x-1/2 -translate-y-full transition-transform duration-150 hover:scale-110";
           content.innerHTML = `
-            <div style="display: flex; flex-direction: column; align-items: center;">
-              <div style="display: flex; align-items: center; gap: 4px; background-color: ${badgeBg}; color: white; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 11px; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35); border: 1.5px solid white; white-space: nowrap;">
-                <span style="background: rgba(255,255,255,0.25); width: 16px; height: 16px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900;">${spot.routeOrder}</span>
-                <span>${spotName}</span>
+            <!-- 비선택 기본 핀 (단정하고 깔끔한 화이트/슬레이트 스타일) -->
+            <div class="pin-normal" style="display: ${isSelected ? "none" : "flex"}; flex-direction: column; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 4px; background-color: #ffffff; color: #1e293b; padding: 2.5px 7px; border-radius: 9999px; font-weight: 700; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.14); border: 1.5px solid #cbd5e1; white-space: nowrap;">
+                <span style="background: #f1f5f9; color: #475569; width: 15px; height: 15px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800;">${spot.routeOrder}</span>
+                <span style="font-weight: 600;">${spotName}</span>
               </div>
-              <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid ${badgeBg};"></div>
+              <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #cbd5e1;"></div>
+            </div>
+
+            <!-- 선택된 강조 핀 (선명한 로즈-코랄 그라데이션 + 링 글로우) -->
+            <div class="pin-active" style="display: ${isSelected ? "flex" : "none"}; flex-direction: column; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 5px; background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); color: #ffffff; padding: 4px 10px; border-radius: 9999px; font-weight: 900; font-size: 12px; box-shadow: 0 0 0 3px rgba(244,63,94,0.35), 0 6px 16px rgba(225,29,72,0.45); border: 2px solid #ffffff; white-space: nowrap;">
+                <span style="background: #ffffff; color: #e11d48; width: 17px; height: 17px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900;">${spot.routeOrder}</span>
+                <span style="font-weight: 900; letter-spacing: -0.2px;">${spotName}</span>
+              </div>
+              <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #e11d48;"></div>
             </div>
           `;
 
@@ -189,7 +200,7 @@ export default function SmartRouteMap({
             position: pos,
             content,
             yAnchor: 1,
-            zIndex: 10,
+            zIndex: isSelected ? 30 : 10,
           });
 
           overlay.setMap(map);
@@ -240,6 +251,22 @@ export default function SmartRouteMap({
 
     return () => clearTimeout(timer);
   }, [activeCity, displayedSpots]);
+
+  // 선택된 장소(selectedSpotId) 변경 시 지도 위의 핀 스타일을 즉시 동기화
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const markerElements = mapContainerRef.current.querySelectorAll<HTMLElement>("[data-spot-marker]");
+    markerElements.forEach((el) => {
+      const isSel = el.getAttribute("data-spot-id") === selectedSpotId;
+      const normalPin = el.querySelector<HTMLElement>(".pin-normal");
+      const activePin = el.querySelector<HTMLElement>(".pin-active");
+      if (normalPin && activePin) {
+        normalPin.style.display = isSel ? "none" : "flex";
+        activePin.style.display = isSel ? "flex" : "none";
+      }
+      el.style.zIndex = isSel ? "30" : "10";
+    });
+  }, [selectedSpotId]);
 
   const fullRouteLink =
     displayedSpots.length > 0
@@ -401,13 +428,11 @@ export default function SmartRouteMap({
         {/* 5. Optimized Sequence Timeline List (스팟별 카드) */}
         {displayedSpots.length > 0 ? (
           <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
-                <span>🚩</span>
-                <span>{locale === "ko" ? "순번별 방문 타임라인 & 길찾기" : "VISITING SEQUENCE & DIRECTIONS"}</span>
-              </span>
-              <span className="text-[11px] font-bold text-slate-400">
-                {locale === "ko" ? "카드를 클릭하면 지도 해당 위치로 이동합니다." : "Click a card to focus on map."}
+            <div className="text-left">
+              <span className="text-xs font-bold text-slate-500">
+                {locale === "ko"
+                  ? "카드를 클릭하면 지도에서 해당 위치로 이동합니다."
+                  : "Click a card to focus on the map location."}
               </span>
             </div>
 
@@ -431,23 +456,43 @@ export default function SmartRouteMap({
                     }}
                     className={`p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 ${
                       isSelected
-                        ? "bg-indigo-50/70 border-indigo-400 ring-2 ring-indigo-200 shadow-xs"
+                        ? "bg-rose-50/70 border-rose-500 ring-2 ring-rose-400/50 shadow-md shadow-rose-500/10 -translate-y-0.5"
                         : "bg-white hover:bg-slate-50/80 border-slate-200/80 hover:border-slate-300 hover:shadow-2xs"
                     }`}
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] font-black flex items-center justify-center shrink-0 shadow-2xs">
+                          <span
+                            className={`w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 transition-colors ${
+                              isSelected
+                                ? "bg-rose-500 text-white shadow-xs ring-2 ring-rose-200"
+                                : "bg-slate-100 text-slate-600 border border-slate-200"
+                            }`}
+                          >
                             {spot.routeOrder}
                           </span>
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900 truncate" title={spotName}>
+                          <h4
+                            className={`text-xs sm:text-sm truncate transition-colors ${
+                              isSelected
+                                ? "font-black text-rose-950"
+                                : "font-bold text-slate-800"
+                            }`}
+                            title={spotName}
+                          >
                             {spotName}
                           </h4>
                         </div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 shrink-0">
-                          {spot.categoryType || (locale === "ko" ? "명소" : "Spot")}
-                        </span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {isSelected && (
+                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-500 text-white shadow-2xs">
+                              {locale === "ko" ? "선택됨" : "Focused"}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                            {spot.categoryType || (locale === "ko" ? "명소" : "Spot")}
+                          </span>
+                        </div>
                       </div>
 
                       {spot.subwayInfo && (
@@ -458,7 +503,11 @@ export default function SmartRouteMap({
                       )}
 
                       {spotDesc && (
-                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                        <p
+                          className={`text-[11px] line-clamp-2 leading-relaxed ${
+                            isSelected ? "text-slate-600 font-medium" : "text-slate-500"
+                          }`}
+                        >
                           {spotDesc}
                         </p>
                       )}
@@ -466,7 +515,11 @@ export default function SmartRouteMap({
 
                     {/* Bottom Action */}
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                      <span className="font-extrabold text-slate-700 tabular-nums">
+                      <span
+                        className={`font-extrabold tabular-nums ${
+                          isSelected ? "text-rose-900" : "text-slate-700"
+                        }`}
+                      >
                         {spot.price > 0
                           ? formatPriceByLocale(spot.price, locale, usdRate)
                           : (locale === "ko" ? "무료 입장" : "Free Entry")}
@@ -477,7 +530,11 @@ export default function SmartRouteMap({
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 font-extrabold text-indigo-600 hover:text-indigo-800 transition-colors"
+                        className={`inline-flex items-center gap-1 font-extrabold transition-colors ${
+                          isSelected
+                            ? "text-rose-600 hover:text-rose-800"
+                            : "text-slate-500 hover:text-slate-800"
+                        }`}
                       >
                         <span>{locale === "ko" ? "카카오맵 길찾기" : "Directions"}</span>
                         <span>↗</span>

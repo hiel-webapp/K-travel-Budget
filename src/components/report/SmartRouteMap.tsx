@@ -394,88 +394,91 @@ export default function SmartRouteMap({
           </p>
         </div>
 
-        {/* 2. City Switcher Tabs (크고 선명한 도시 전환 탭) */}
-        {selectedCities.length > 1 && (
-          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-100/90 border border-neutral-200/70 w-fit">
-            {selectedCities.map((c) => {
-              const cName =
-                locale === "ko"
-                  ? CITY_KOREAN_NAMES[c] || c
-                  : CITY_ENGLISH_NAMES[c] || c;
-              const isCurrent = c === activeCity;
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => {
-                    setActiveCity(c);
-                    setSelectedSpotId(null);
-                  }}
-                  className={`px-4 py-2 rounded-xl text-sm font-black transition-all cursor-pointer ${
-                    isCurrent
-                      ? "bg-neutral-900 text-white shadow-sm"
-                      : "text-neutral-500 hover:text-neutral-900 hover:bg-white/60"
-                  }`}
-                >
-                  {cName}
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {/* 2. City Switcher (Left Column) & Map Viewport (Right Column) */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
+          {/* 좌측 세로 도시 전환 탭 */}
+          {selectedCities.length > 1 && (
+            <div className="flex sm:flex-col gap-1.5 p-1.5 rounded-2xl bg-neutral-100/90 border border-neutral-200/70 w-full sm:w-32 md:w-36 lg:w-40 shrink-0 self-start">
+              {selectedCities.map((c) => {
+                const cName =
+                  locale === "ko"
+                    ? CITY_KOREAN_NAMES[c] || c
+                    : CITY_ENGLISH_NAMES[c] || c;
+                const isCurrent = c === activeCity;
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      setActiveCity(c);
+                      setSelectedSpotId(null);
+                    }}
+                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left ${
+                      isCurrent
+                        ? "bg-neutral-900 text-white shadow-sm"
+                        : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+                    }`}
+                  >
+                    {cName}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-        {/* 3. 카카오맵 뷰포트 */}
-        <div className="space-y-2">
-          <div className="relative w-full h-80 sm:h-96 md:h-[420px] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-inner">
-            <div ref={mapContainerRef} className="w-full h-full" />
+          {/* 우측 컴팩트 카카오맵 뷰포트 (지도의 크기를 줄임) */}
+          <div className="flex-1 min-w-0">
+            <div className="relative w-full h-72 sm:h-80 md:h-[350px] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-inner">
+              <div ref={mapContainerRef} className="w-full h-full" />
 
-            {/* 로딩 / 에러 폴백 */}
-            {(!isMapLoaded || mapLoadError) && (
-              <div className="absolute inset-0 bg-slate-50/95 flex flex-col items-center justify-center p-6 text-center space-y-3 z-20">
-                <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center shadow-2xs">
-                  {mapLoadError ? (
-                    <span className="text-xl">🗺️</span>
-                  ) : (
-                    <svg className="w-5 h-5 text-rose-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+              {/* 로딩 / 에러 폴백 */}
+              {(!isMapLoaded || mapLoadError) && (
+                <div className="absolute inset-0 bg-slate-50/95 flex flex-col items-center justify-center p-6 text-center space-y-3 z-20">
+                  <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center shadow-2xs">
+                    {mapLoadError ? (
+                      <span className="text-xl">🗺️</span>
+                    ) : (
+                      <svg className="w-5 h-5 text-rose-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xs sm:text-sm font-black text-slate-800">
+                      {mapLoadError
+                        ? locale === "ko"
+                          ? "카카오맵 최적 경로 & 타임라인 모드"
+                          : "Kakao Map Route & Timeline Mode"
+                        : locale === "ko"
+                        ? "카카오맵 인터랙티브 경로를 연결하는 중..."
+                        : "Connecting Kakao Map Route..."}
+                    </h4>
+                    <p className="text-[11.5px] text-slate-500 max-w-sm leading-relaxed">
+                      {mapLoadError
+                        ? locale === "ko"
+                          ? "외부 도메인 보안 설정에 따라 아래 스마트 타임라인(1➔2➔3)과 카카오 공식 길찾기 바로가기로 안전하게 안내해 드립니다."
+                          : "Explore the optimized sequence (1➔2➔3) below and access direct Kakao Map directions."
+                        : locale === "ko"
+                        ? "하단의 1, 2, 3 순번 타임라인에서 최적 동선과 개별 길찾기를 즉시 이용하실 수 있습니다."
+                        : "You can view the optimal sequence and directions in the timeline below."}
+                    </p>
+                  </div>
+
+                  {mapLoadError && displayedSpots.length > 0 && (
+                    <a
+                      href={fullRouteLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#fee500] hover:bg-[#fdd835] text-slate-900 text-xs font-black shadow-xs transition-colors"
+                    >
+                      <span>카카오맵에서 전체 코스 보기</span>
+                      <span>↗</span>
+                    </a>
                   )}
                 </div>
-                <div className="space-y-1">
-                  <h4 className="text-xs sm:text-sm font-black text-slate-800">
-                    {mapLoadError
-                      ? locale === "ko"
-                        ? "카카오맵 최적 경로 & 타임라인 모드"
-                        : "Kakao Map Route & Timeline Mode"
-                      : locale === "ko"
-                      ? "카카오맵 인터랙티브 경로를 연결하는 중..."
-                      : "Connecting Kakao Map Route..."}
-                  </h4>
-                  <p className="text-[11.5px] text-slate-500 max-w-sm leading-relaxed">
-                    {mapLoadError
-                      ? locale === "ko"
-                        ? "외부 도메인 보안 설정에 따라 아래 스마트 타임라인(1➔2➔3)과 카카오 공식 길찾기 바로가기로 안전하게 안내해 드립니다."
-                        : "Explore the optimized sequence (1➔2➔3) below and access direct Kakao Map directions."
-                      : locale === "ko"
-                      ? "하단의 1, 2, 3 순번 타임라인에서 최적 동선과 개별 길찾기를 즉시 이용하실 수 있습니다."
-                      : "You can view the optimal sequence and directions in the timeline below."}
-                  </p>
-                </div>
-
-                {mapLoadError && displayedSpots.length > 0 && (
-                  <a
-                    href={fullRouteLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#fee500] hover:bg-[#fdd835] text-slate-900 text-xs font-black shadow-xs transition-colors"
-                  >
-                    <span>카카오맵에서 전체 코스 보기</span>
-                    <span>↗</span>
-                  </a>
-                )}
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 

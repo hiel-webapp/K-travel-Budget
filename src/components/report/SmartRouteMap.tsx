@@ -7,16 +7,13 @@ import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { SupportedCity } from "src/lib/trip-domain";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import {
-  TOUR_COURSE_PRESETS,
   ATTRACTION_SPOTS_CATALOG,
   type AttractionSpot,
-  type TourCoursePreset,
 } from "src/features/budget/catalog/attraction-spots";
 import {
   getSpotCoordinates,
   optimizeSpotSequence,
   getKakaoMapDirectLink,
-  calculateDistanceKm,
   LatLng,
 } from "src/lib/map/spot-coordinates";
 import { formatPriceByLocale } from "src/lib/currency/currency-converter";
@@ -62,45 +59,10 @@ export default function SmartRouteMap({
     selectedCities[0] || "SEOUL"
   );
 
-  // 현재 도시의 추천 투어 코스 목록
-  const cityCourses = useMemo(() => {
-    return TOUR_COURSE_PRESETS.filter((c) => c.cityCode === activeCity);
-  }, [activeCity]);
-
-  // 선택된 추천 코스 ID (기본값: 해당 도시의 첫 번째 코스)
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-
-  // 도시가 바뀔 때 선택 코스 초기화
-  useEffect(() => {
-    const firstCourse = TOUR_COURSE_PRESETS.find((c) => c.cityCode === activeCity);
-    setSelectedCourseId(firstCourse ? firstCourse.id : null);
-  }, [activeCity]);
-
-  const activeCourse: TourCoursePreset | null = useMemo(() => {
-    if (!cityCourses || cityCourses.length === 0) return null;
-    if (selectedCourseId) {
-      const found = cityCourses.find((c) => c.id === selectedCourseId);
-      if (found) return found;
-    }
-    return cityCourses[0] || null;
-  }, [cityCourses, selectedCourseId]);
-
-  // 사용자가 바스켓에 담은 스팟 여부
+  // 사용자가 바스켓에 담은 스팟
   const userRawSpots = useMemo(() => {
     return cityBreakdown[activeCity]?.selectedSpots || [];
   }, [cityBreakdown, activeCity]);
-
-  // 지도 뷰 모드: 'USER' (내 바스켓 스팟) vs 'COURSE' (추천 코스 스팟)
-  const [viewMode, setViewMode] = useState<"USER" | "COURSE">("COURSE");
-
-  // 바스켓에 담은 스팟이 있으면 기본을 'USER'로, 없으면 'COURSE'로 설정
-  useEffect(() => {
-    if (userRawSpots.length > 0) {
-      setViewMode("USER");
-    } else {
-      setViewMode("COURSE");
-    }
-  }, [activeCity, userRawSpots.length]);
 
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
@@ -114,61 +76,8 @@ export default function SmartRouteMap({
   const kakaoAppKey =
     process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || "0fd19b94d6a6dffb2c23e0879fcab8ca";
 
-  // 2. 현재 뷰 모드에 따라 지도에 표시할 스팟 리스트 추출
+  // 2. 현재 도시에서 사용자가 선택한 스팟 리스트 추출 및 최적 동선 계산
   const displayedSpots: RouteSpotItem[] = useMemo(() => {
-    if (viewMode === "COURSE" && activeCourse) {
-      // 추천 코스의 스팟들을 순서대로 매핑
-      const mapped: RouteSpotItem[] = [];
-      activeCourse.spotIds.forEach((sid, idx) => {
-        const spot: AttractionSpot =
-          ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid) || {
-            id: sid,
-            cityCode: activeCity,
-            nameKo: sid,
-            nameEn: sid,
-            descKo: "",
-            descEn: "",
-            price: 0,
-            priceStatus: "FREE",
-            tag: "Attraction",
-            emoji: "📍",
-            gradientBg: "from-slate-700 to-slate-900",
-            isFeatured: false,
-            subwayInfo: "",
-            categoryType: "명소",
-            officialUrl: "",
-          };
-
-        const coords = getSpotCoordinates(
-          spot.nameKo,
-          spot.nameEn,
-          activeCity,
-          (spot as any).latitude,
-          (spot as any).longitude,
-          idx
-        );
-
-        mapped.push({
-          id: spot.id,
-          originalIndex: idx,
-          routeOrder: idx + 1,
-          nameKo: spot.nameKo,
-          nameEn: spot.nameEn,
-          descKo: spot.descKo,
-          descEn: spot.descEn,
-          price: spot.price || 0,
-          subwayInfo: spot.subwayInfo,
-          categoryType: spot.categoryType || "명소",
-          officialUrl: spot.officialUrl,
-          cityCode: activeCity,
-          lat: coords.lat,
-          lng: coords.lng,
-        });
-      });
-      return mapped;
-    }
-
-    // USER 모드: 사용자가 선택한 스팟
     if (userRawSpots.length === 0) return [];
 
     const mapped = userRawSpots.map((spot, idx) => {
@@ -202,17 +111,7 @@ export default function SmartRouteMap({
       ...item,
       routeOrder: seqIdx + 1,
     }));
-  }, [viewMode, activeCourse, userRawSpots, activeCity]);
-
-  // 총 이동거리 추산
-  const totalRouteDistKm = useMemo(() => {
-    if (displayedSpots.length < 2) return 0;
-    let dist = 0;
-    for (let i = 0; i < displayedSpots.length - 1; i++) {
-      dist += calculateDistanceKm(displayedSpots[i], displayedSpots[i + 1]);
-    }
-    return Math.round(dist * 10) / 10;
-  }, [displayedSpots]);
+  }, [userRawSpots, activeCity]);
 
   // 3. 카카오맵 렌더링 함수
   const initKakaoMap = () => {
@@ -259,34 +158,25 @@ export default function SmartRouteMap({
         const bounds = new window.kakao.maps.LatLngBounds();
         const pathCoords: any[] = [];
 
-        // 커스텀 핀 오버레이 생성
+        // 커스텀 핀 오버레이 생성 (산뜻한 로즈-코랄 컬러 + 관광지명 앞 소형 숫자)
         displayedSpots.forEach((spot) => {
           const pos = new window.kakao.maps.LatLng(spot.lat, spot.lng);
           bounds.extend(pos);
           pathCoords.push(pos);
 
-          // 넘버링 마커 커스텀 오버레이
           const isSelected = selectedSpotId === spot.id;
-          const isCourse = viewMode === "COURSE";
-          const badgeBg = isSelected
-            ? "#e25c5c"
-            : isCourse
-            ? "#4f46e5"
-            : "#0f172a";
-
+          const badgeBg = isSelected ? "#be123c" : "#f43f5e";
           const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
 
           const content = document.createElement("div");
-          content.className = "group cursor-pointer transform -translate-x-1/2 -translate-y-full transition-transform hover:scale-110";
+          content.className = "group cursor-pointer transform -translate-x-1/2 -translate-y-full transition-transform hover:scale-105";
           content.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center;">
-              <div style="background-color: ${badgeBg}; color: white; border-radius: 9999px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 2px solid white;">
-                ${spot.routeOrder}
+              <div style="display: flex; align-items: center; gap: 4px; background-color: ${badgeBg}; color: white; padding: 3px 8px; border-radius: 9999px; font-weight: 800; font-size: 11px; box-shadow: 0 4px 12px rgba(244, 63, 94, 0.35); border: 1.5px solid white; white-space: nowrap;">
+                <span style="background: rgba(255,255,255,0.25); width: 16px; height: 16px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900;">${spot.routeOrder}</span>
+                <span>${spotName}</span>
               </div>
-              <div style="background-color: rgba(15, 23, 42, 0.9); backdrop-filter: blur(4px); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 700; margin-top: 3px; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 5px rgba(0,0,0,0.15);">
-                ${spotName}
-              </div>
-              <div style="width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 5px solid ${badgeBg};"></div>
+              <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid ${badgeBg};"></div>
             </div>
           `;
 
@@ -310,8 +200,8 @@ export default function SmartRouteMap({
         if (pathCoords.length > 1) {
           const polyline = new window.kakao.maps.Polyline({
             path: pathCoords,
-            strokeWeight: 4,
-            strokeColor: viewMode === "COURSE" ? "#6366f1" : "#e25c5c",
+            strokeWeight: 3.5,
+            strokeColor: "#f43f5e",
             strokeOpacity: 0.85,
             strokeStyle: "shortdash",
           });
@@ -349,7 +239,7 @@ export default function SmartRouteMap({
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [activeCity, viewMode, selectedCourseId, displayedSpots]);
+  }, [activeCity, displayedSpots]);
 
   const fullRouteLink =
     displayedSpots.length > 0
@@ -394,37 +284,63 @@ export default function SmartRouteMap({
           </p>
         </div>
 
-        {/* 2. City Switcher (Left Column) & Map Viewport (Right Column) */}
+        {/* 2. City Switcher & Route Action (Left Column) & Map Viewport (Right Column) */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
-          {/* 좌측 세로 도시 전환 탭 */}
-          {selectedCities.length > 1 && (
-            <div className="flex sm:flex-col gap-1.5 p-1.5 rounded-2xl bg-neutral-100/90 border border-neutral-200/70 w-full sm:w-32 md:w-36 lg:w-40 shrink-0 self-start">
-              {selectedCities.map((c) => {
-                const cName =
-                  locale === "ko"
-                    ? CITY_KOREAN_NAMES[c] || c
-                    : CITY_ENGLISH_NAMES[c] || c;
-                const isCurrent = c === activeCity;
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => {
-                      setActiveCity(c);
-                      setSelectedSpotId(null);
-                    }}
-                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left ${
-                      isCurrent
-                        ? "bg-neutral-900 text-white shadow-sm"
-                        : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
-                    }`}
-                  >
-                    {cName}
-                  </button>
-                );
-              })}
+          {/* 좌측 사이드바: 도시 전환 탭 + 경로 스팟 수 + 카카오맵 길찾기 버튼 (2줄) */}
+          <div className="flex sm:flex-col gap-2 p-2 sm:p-2.5 rounded-2xl bg-neutral-100/90 border border-neutral-200/70 w-full sm:w-36 md:w-44 shrink-0 justify-between sm:justify-start">
+            {/* 도시 탭 리스트 */}
+            {selectedCities.length > 1 && (
+              <div className="flex sm:flex-col gap-1.5 w-full">
+                {selectedCities.map((c) => {
+                  const cName =
+                    locale === "ko"
+                      ? CITY_KOREAN_NAMES[c] || c
+                      : CITY_ENGLISH_NAMES[c] || c;
+                  const isCurrent = c === activeCity;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        setActiveCity(c);
+                        setSelectedSpotId(null);
+                      }}
+                      className={`w-full py-2.5 px-3.5 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left ${
+                        isCurrent
+                          ? "bg-neutral-900 text-white shadow-sm"
+                          : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+                      }`}
+                    >
+                      {cName}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* 지도 왼편 하단: 경로 스팟 n개소 + 카카오맵 길찾기 버튼 (2줄) */}
+            <div className="pt-2 sm:mt-auto sm:border-t sm:border-neutral-200/80 flex flex-col gap-2 w-full">
+              <div className="text-xs font-bold text-neutral-600">
+                <span>{locale === "ko" ? "경로 스팟" : "Spots"}: </span>
+                <strong className="text-neutral-900 font-black">{displayedSpots.length}개소</strong>
+              </div>
+
+              {displayedSpots.length > 0 && (
+                <a
+                  href={fullRouteLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-xs transition-all shadow-2xs cursor-pointer text-center"
+                >
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.558 1.708 4.8 4.27 6.054l-.865 3.186c-.078.287.213.522.46.368l3.77-2.35c.446.04.9.057 1.365.057 4.97 0 9-3.185 9-7.115S16.97 3 12 3z" />
+                  </svg>
+                  <span>{locale === "ko" ? "카카오맵 길찾기" : "Kakao Map"}</span>
+                  <span className="text-[10px]">↗</span>
+                </a>
+              )}
             </div>
-          )}
+          </div>
 
           {/* 우측 컴팩트 카카오맵 뷰포트 (지도의 크기를 줄임) */}
           <div className="flex-1 min-w-0">
@@ -481,161 +397,6 @@ export default function SmartRouteMap({
             </div>
           </div>
         </div>
-
-        {/* 4. 동선 제어 바 (지도 아래로 이동: 모드 토글 + 거리/스팟 정보 + 길찾기) */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-neutral-50 p-2.5 rounded-2xl border border-neutral-200/70">
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setViewMode("COURSE")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === "COURSE"
-                  ? "bg-indigo-600 text-white shadow-xs"
-                  : "bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200/70"
-              }`}
-            >
-              <span>🧭</span>
-              <span>{locale === "ko" ? "추천 투어 코스" : "Curated Courses"}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${viewMode === "COURSE" ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"}`}>
-                {cityCourses.length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode("USER")}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
-                viewMode === "USER"
-                  ? "bg-rose-600 text-white shadow-xs"
-                  : "bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200/70"
-              }`}
-            >
-              <span>📍</span>
-              <span>{locale === "ko" ? "내가 담은 여행지 동선" : "My Selected Route"}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${viewMode === "USER" ? "bg-white/20 text-white" : "bg-neutral-100 text-neutral-500"}`}>
-                {userRawSpots.length}
-              </span>
-            </button>
-          </div>
-
-          {/* 거리, 스팟 수 & 카카오맵 길찾기 */}
-          <div className="flex items-center gap-3 text-xs font-bold text-neutral-600 flex-wrap">
-            <span>
-              {locale === "ko" ? "경로 스팟" : "Spots"}: <strong className="text-neutral-900">{displayedSpots.length}개소</strong>
-            </span>
-            <span className="text-neutral-300">|</span>
-            <span>
-              {locale === "ko" ? "예상 이동거리" : "Distance"}:{" "}
-              <strong className="text-neutral-900">
-                {totalRouteDistKm > 0 ? `약 ${totalRouteDistKm} km` : (locale === "ko" ? "인접 도보권" : "Adjacent")}
-              </strong>
-            </span>
-
-            {displayedSpots.length > 0 && (
-              <a
-                href={fullRouteLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-xs transition-all shadow-2xs shrink-0 cursor-pointer ml-1"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.558 1.708 4.8 4.27 6.054l-.865 3.186c-.078.287.213.522.46.368l3.77-2.35c.446.04.9.057 1.365.057 4.97 0 9-3.185 9-7.115S16.97 3 12 3z" />
-                </svg>
-                <span>{locale === "ko" ? "카카오맵 길찾기" : "Kakao Map"}</span>
-                <span className="text-[10px]">↗</span>
-              </a>
-            )}
-          </div>
-        </div>
-
-        {/* 5. 추천 코스 탭 스위처 (viewMode === 'COURSE' 일 때 표시) */}
-        {viewMode === "COURSE" && cityCourses.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-              {cityCourses.map((c, idx) => {
-                const isSelected = (activeCourse?.id === c.id);
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCourseId(c.id);
-                      setSelectedSpotId(null);
-                    }}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                      isSelected
-                        ? "bg-slate-900 text-white shadow-xs scale-[1.02]"
-                        : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/80"
-                    }`}
-                  >
-                    <span className="w-4 h-4 rounded-full bg-white/20 text-xs font-black flex items-center justify-center">
-                      {idx + 1}
-                    </span>
-                    <span>{locale === "ko" ? c.nameKo : c.nameEn}</span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* 선택된 추천 코스 상세 카드 (프리미엄 디자인) */}
-            {activeCourse && (
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white space-y-3 shadow-sm border border-slate-700/60">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-wider bg-rose-500 text-white px-2 py-0.5 rounded-md shrink-0">
-                      {locale === "ko" ? "엄선 추천 코스" : "Curated Course"}
-                    </span>
-                    <h3 className="text-sm sm:text-base font-extrabold text-white truncate">
-                      {locale === "ko" ? activeCourse.nameKo : activeCourse.nameEn}
-                    </h3>
-                  </div>
-
-                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                    <span className="text-[11px] font-extrabold text-amber-300 bg-white/10 px-2.5 py-1 rounded-lg border border-white/10 tabular-nums">
-                      ⏱ {locale === "ko" ? `약 ${activeCourse.estimatedHours}시간 코스` : `~${activeCourse.estimatedHours}h Course`}
-                    </span>
-                    <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-lg border border-emerald-400/30">
-                      📍 {locale === "ko" ? "최단 근접 동선" : "Optimal Route"}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed font-normal">
-                  {locale === "ko" ? activeCourse.descKo : activeCourse.descEn}
-                </p>
-
-                {/* 동선 스팟 체인 (➔) */}
-                <div className="pt-2 border-t border-white/10 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                  <span className="text-[10px] font-extrabold text-slate-400 shrink-0 mr-1">
-                    {locale === "ko" ? "추천 순서:" : "Sequence:"}
-                  </span>
-                  {activeCourse.spotIds.map((sid, sIdx) => {
-                    const spot = ATTRACTION_SPOTS_CATALOG.find((s) => s.id === sid);
-                    const spotName = spot
-                      ? locale === "ko"
-                        ? spot.nameKo
-                        : spot.nameEn
-                      : sid;
-
-                    return (
-                      <React.Fragment key={sid}>
-                        <span className="text-[11px] font-bold bg-white/15 text-white px-2.5 py-1 rounded-lg border border-white/15 whitespace-nowrap shrink-0 flex items-center gap-1">
-                          <span className="w-3.5 h-3.5 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center">
-                            {sIdx + 1}
-                          </span>
-                          <span>{spotName}</span>
-                        </span>
-                        {sIdx < activeCourse.spotIds.length - 1 && (
-                          <span className="text-rose-400 text-xs font-black shrink-0">➔</span>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* 5. Optimized Sequence Timeline List (스팟별 카드) */}
         {displayedSpots.length > 0 ? (

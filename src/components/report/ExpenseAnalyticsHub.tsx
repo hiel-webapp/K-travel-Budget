@@ -288,13 +288,10 @@ export default function ExpenseAnalyticsHub({
           </h2>
           <p className="text-xs text-neutral-500 mt-1 font-medium">
             {isKo
-              ? "도시별 실질 이동비와 체류 기간 비례 기타 경비가 완벽히 산입된 종합 회계 집계표입니다."
-              : "Cross-examine itemized city expenditures with transit legs and duration-proportioned flex expenses."}
+              ? "도시별 이동 교통비와 머무는 일정에 맞춘 모든 여행 경비를 한눈에 보기 쉽게 정리한 내역입니다."
+              : "A clear, itemized breakdown of transit costs between cities and essential expenses tailored to your stay."}
           </p>
         </div>
-        <span className="text-[11px] font-bold text-slate-400 self-start sm:self-auto tabular-nums">
-          {isKo ? `총 ${draft.selectedCities.length}개 도시 분석` : `${draft.selectedCities.length} Cities Audited`}
-        </span>
       </div>
 
       {/* Main Unified Layout: 도시별 집계표(8열) + 세로 막대그래프 2개(4열) */}

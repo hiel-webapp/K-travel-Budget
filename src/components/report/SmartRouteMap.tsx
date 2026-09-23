@@ -13,7 +13,12 @@ import {
   isSameSpot,
   normalizeSpotKey,
 } from "src/features/budget/catalog/attraction-spots";
-import { THEME_ACTIVITIES_CATALOG } from "src/features/budget/catalog/theme-activities";
+import {
+  THEME_ACTIVITIES_CATALOG,
+  getRelatedThemeActivity,
+  getAllThemeActivities,
+  type ThemeActivityItem,
+} from "src/features/budget/catalog/theme-activities";
 import {
   getSpotCoordinates,
   optimizeSpotSequence,
@@ -22,6 +27,22 @@ import {
 } from "src/lib/map/spot-coordinates";
 import { formatPriceByLocale } from "src/lib/currency/currency-converter";
 import { formatTransitInfo } from "src/lib/places/place-localization";
+
+function getActivityEmoji(actId?: string, nameKo?: string): string {
+  if (!actId && !nameKo) return "✨";
+  const id = (actId || "").toLowerCase();
+  const name = (nameKo || "").toLowerCase();
+  if (id.includes("hanbok") || name.includes("한복")) return "👘";
+  if (id.includes("gyobok") || name.includes("교복")) return "🎒";
+  if (id.includes("cruise") || id.includes("yacht") || name.includes("요트") || name.includes("크루즈")) return "⛵";
+  if (id.includes("tea") || name.includes("다도")) return "🍵";
+  if (id.includes("tower") || id.includes("cable") || name.includes("케이블카")) return "🚡";
+  if (id.includes("color") || name.includes("퍼스널컬러")) return "🎨";
+  if (id.includes("cooking") || name.includes("쿠킹") || name.includes("요리")) return "🍳";
+  if (id.includes("beauty") || id.includes("spa") || name.includes("스파")) return "💆";
+  if (id.includes("surf") || name.includes("서핑")) return "🏄";
+  return "✨";
+}
 
 declare global {
   interface Window {
@@ -79,6 +100,15 @@ export default function SmartRouteMap({
     const list = cityBreakdown[activeCity]?.selectedSpots || [];
     return list.filter(
       (s) => !s.id.startsWith("act_") && !THEME_ACTIVITIES_CATALOG.some((a) => isSameSpot(a.id, s.id))
+    );
+  }, [cityBreakdown, activeCity]);
+
+  // 사용자가 신청한 연계 K-체험 목록 (도시별)
+  const selectedThemeActivities = useMemo(() => {
+    const allSelected = cityBreakdown[activeCity]?.selectedSpots || [];
+    const actCatalog = getAllThemeActivities();
+    return allSelected.filter(
+      (s) => s.id.startsWith("act_") || actCatalog.some((a) => isSameSpot(a.id, s.id))
     );
   }, [cityBreakdown, activeCity]);
 
@@ -624,24 +654,55 @@ export default function SmartRouteMap({
                 groupSpotIds.every((id) => selectedSpotIds.includes(id)) &&
                 selectedSpotIds.length === groupSpotIds.length;
               const title = locale === "ko" ? group.courseTitleKo : group.courseTitleEn;
-              const desc = locale === "ko" ? group.courseDescKo : group.courseDescEn;
+              // 이 코스에 속한 장소들 중 사용자가 신청한 연계 체험 추출 (중복 제거)
+              const courseLinkedActivities: ThemeActivityItem[] = [];
+              const seenActIds = new Set<string>();
+              if (group.isCourse) {
+                group.spots.forEach((sp) => {
+                  const act = getRelatedThemeActivity(sp.id, sp.nameKo);
+                  if (act && !seenActIds.has(act.id) && selectedThemeActivities.some((a) => isSameSpot(a.id, act.id))) {
+                    seenActIds.add(act.id);
+                    courseLinkedActivities.push(act);
+                  }
+                });
+              }
 
               return (
                 <div key={group.id} className="space-y-3">
-                  {/* 코스 타이틀 헤더 바 (코스 명만 남기고 모두 제거) */}
+                  {/* 코스 타이틀 헤더 바 (코스명 + 우측 연계 체험 뱃지) */}
                   {title && (
-                    <div
-                      onClick={() => handleCourseTitleClick(group)}
-                      className={`w-fit py-1.5 px-3 rounded-xl border transition-all cursor-pointer select-none ${
-                        isGroupActive
-                          ? "bg-rose-50/90 border-rose-400 text-rose-950 ring-2 ring-rose-300/60 shadow-xs"
-                          : "bg-slate-50/90 border-slate-200/90 text-slate-800 hover:bg-slate-100 hover:border-slate-300"
-                      }`}
-                      title={locale === "ko" ? "클릭 시 지도에서 코스 전체 강조 / 해제" : "Click to toggle course highlight on map"}
-                    >
-                      <h4 className="text-sm sm:text-base font-black tracking-tight">
-                        {title}
-                      </h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div
+                        onClick={() => handleCourseTitleClick(group)}
+                        className={`w-fit py-1.5 px-3 rounded-xl border transition-all cursor-pointer select-none ${
+                          isGroupActive
+                            ? "bg-rose-50/90 border-rose-400 text-rose-950 ring-2 ring-rose-300/60 shadow-xs"
+                            : "bg-slate-50/90 border-slate-200/90 text-slate-800 hover:bg-slate-100 hover:border-slate-300"
+                        }`}
+                        title={locale === "ko" ? "클릭 시 지도에서 코스 전체 강조 / 해제" : "Click to toggle course highlight on map"}
+                      >
+                        <h4 className="text-sm sm:text-base font-black tracking-tight">
+                          {title}
+                        </h4>
+                      </div>
+
+                      {/* 연계 체험 뱃지 (코스명 우측) */}
+                      {courseLinkedActivities.map((act) => {
+                        const actEmoji = getActivityEmoji(act.id, act.nameKo);
+                        const actName = locale === "ko" ? act.nameKo : act.nameEn;
+                        return (
+                          <div
+                            key={act.id}
+                            className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-xl border border-purple-200/80 bg-purple-50/90 text-purple-900 shadow-2xs select-none"
+                            title={locale === "ko" ? `${actName} 신청 포함` : `${actName} Included`}
+                          >
+                            <span className="text-xs">{actEmoji}</span>
+                            <span className="text-xs font-black tracking-tight">
+                              {locale === "ko" ? `연계 체험: ${actName} 포함` : `Linked: ${actName}`}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -653,6 +714,12 @@ export default function SmartRouteMap({
                       const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
                       const spotDesc = locale === "ko" ? spot.descKo : spot.descEn;
                       const directLink = getKakaoMapDirectLink(spotName, spot.lat, spot.lng);
+
+                      // 이 개별 관광지에 신청된 연계 K-체험 확인
+                      const spotLinkedAct = getRelatedThemeActivity(spot.id, spot.nameKo);
+                      const isActApplied = Boolean(
+                        spotLinkedAct && selectedThemeActivities.some((a) => isSameSpot(a.id, spotLinkedAct.id))
+                      );
 
                       return (
                         <div
@@ -677,14 +744,22 @@ export default function SmartRouteMap({
                                   {spot.routeOrder}
                                 </span>
                                 <h4
-                                  className={`text-xs sm:text-sm truncate transition-colors ${
+                                  className={`text-xs sm:text-sm truncate transition-colors flex items-center gap-1.5 ${
                                     isSelected
                                       ? "font-black text-rose-950"
                                       : "font-bold text-slate-800"
                                   }`}
                                   title={spotName}
                                 >
-                                  {spotName}
+                                  <span className="truncate">{spotName}</span>
+                                  {isActApplied && spotLinkedAct && (
+                                    <span
+                                      className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-purple-100/90 text-[13px] leading-none shrink-0 shadow-2xs border border-purple-200/60 cursor-help"
+                                      title={locale === "ko" ? `${spotLinkedAct.nameKo} 신청됨` : `${spotLinkedAct.nameEn} Applied`}
+                                    >
+                                      {getActivityEmoji(spotLinkedAct.id, spotLinkedAct.nameKo)}
+                                    </span>
+                                  )}
                                 </h4>
                               </div>
                               <div className="flex items-center gap-1 shrink-0">

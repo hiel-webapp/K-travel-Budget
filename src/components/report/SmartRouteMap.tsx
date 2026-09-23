@@ -143,19 +143,26 @@ export default function SmartRouteMap({
     const remainingSpots = [...displayedSpots];
     const groups: RouteSpotGroup[] = [];
 
-    // 1) 각 코스별로 매칭되는 스팟들을 추출
+    // 1) 각 코스별로 모든 스팟이 100% 온전히 포함되어 있는지 검사 (완전한 코스만 타이틀로 묶음)
     cityCourses.forEach((course) => {
-      const matchedSpots: RouteSpotItem[] = [];
-      course.spotIds.forEach((csId) => {
-        const foundIdx = remainingSpots.findIndex((s) => isSameSpot(s.id, csId));
-        if (foundIdx !== -1) {
-          matchedSpots.push(remainingSpots[foundIdx]);
-          remainingSpots.splice(foundIdx, 1);
-        }
-      });
+      if (!course.spotIds || course.spotIds.length === 0) return;
 
-      // 2개 이상의 스팟이 매칭되었을 경우 코스 타이틀로 묶음
-      if (matchedSpots.length >= 2) {
+      // 이 코스의 모든 spotId가 remainingSpots에 빠짐없이 존재하는지 확인
+      const hasAllSpots = course.spotIds.every((csId) =>
+        remainingSpots.some((s) => isSameSpot(s.id, csId))
+      );
+
+      // 코스에 속한 모든 장소가 100% 완전히 갖춰진 경우에만 코스명으로 묶음
+      if (hasAllSpots) {
+        const matchedSpots: RouteSpotItem[] = [];
+        course.spotIds.forEach((csId) => {
+          const foundIdx = remainingSpots.findIndex((s) => isSameSpot(s.id, csId));
+          if (foundIdx !== -1) {
+            matchedSpots.push(remainingSpots[foundIdx]);
+            remainingSpots.splice(foundIdx, 1);
+          }
+        });
+
         matchedSpots.sort((a, b) => a.routeOrder - b.routeOrder);
         groups.push({
           id: course.id,
@@ -167,35 +174,19 @@ export default function SmartRouteMap({
           estimatedHours: course.estimatedHours,
           spots: matchedSpots,
         });
-      } else if (matchedSpots.length === 1) {
-        // 1개만 매칭된 경우 남은 스팟으로 복원
-        remainingSpots.push(...matchedSpots);
       }
     });
 
-    // 2) 어느 코스에도 묶이지 않은 개별 스팟들
+    // 2) 불완전한 코스 스팟이거나 개별 스팟들은 코스명 없이 각각의 카드로 표시
     if (remainingSpots.length > 0) {
       remainingSpots.sort((a, b) => a.routeOrder - b.routeOrder);
-      if (groups.length > 0) {
-        groups.push({
-          id: "custom_spots",
-          isCourse: false,
-          courseTitleKo: "개별 맞춤 여행지",
-          courseTitleEn: "Individual Custom Spots",
-          courseDescKo: "사용자가 자유롭게 추가한 개별 명소 리스트입니다.",
-          courseDescEn: "Custom attractions added individually.",
-          spots: remainingSpots,
-        });
-      } else {
-        // 코스로 결합된 그룹이 전혀 없다면 타이틀 없이 단일 그룹으로 노출
-        groups.push({
-          id: "all_spots",
-          isCourse: false,
-          courseTitleKo: "",
-          courseTitleEn: "",
-          spots: remainingSpots,
-        });
-      }
+      groups.push({
+        id: "individual_spots",
+        isCourse: false,
+        courseTitleKo: "",
+        courseTitleEn: "",
+        spots: remainingSpots,
+      });
     }
 
     return groups;
@@ -612,9 +603,13 @@ export default function SmartRouteMap({
           <div className="space-y-6 pt-2">
             <div className="text-left">
               <span className="text-xs font-bold text-slate-500">
-                {locale === "ko"
-                  ? "코스 타이틀을 클릭하면 코스 전체가, 카드를 클릭하면 해당 장소가 지도에서 강조됩니다."
-                  : "Click a course title to highlight the entire route, or click a card to focus on a spot."}
+                {spotGroups.some((g) => g.isCourse)
+                  ? (locale === "ko"
+                    ? "코스 타이틀을 클릭하면 코스 전체가, 카드를 클릭하면 해당 장소가 지도에서 강조됩니다."
+                    : "Click a course title to highlight the entire route, or click a card to focus on a spot.")
+                  : (locale === "ko"
+                    ? "카드를 클릭하면 지도에서 해당 위치로 이동합니다."
+                    : "Click a card to focus on the map location.")}
               </span>
             </div>
 

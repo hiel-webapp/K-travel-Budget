@@ -192,11 +192,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
       <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] print:border-b-2 print:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-neutral-100 pb-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-extrabold tracking-tight text-teal-800 uppercase bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
-                HypeHeritage Travel Report
-              </span>
-            </div>
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
               {dict.planner.reportTitle}
             </h1>

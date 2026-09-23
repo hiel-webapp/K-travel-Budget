@@ -214,16 +214,11 @@ export default function BookingActionHub({
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-neutral-100 pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
-              One-Stop Booking & Voucher Hub
-            </span>
-            <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight">
-              {isKo
-                ? "원스톱 예약 & 공식 안내 링크 허브"
-                : "One-Stop Booking & Action Hub"}
-            </h2>
-          </div>
+          <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight">
+            {isKo
+              ? "원스톱 예약 & 공식 안내 링크 허브"
+              : "One-Stop Booking & Action Hub"}
+          </h2>
           <p className="text-xs text-neutral-500 mt-1 font-medium">
             {isKo
               ? "영수증에 포함된 항목별 공식 예매 사이트와 다이렉트 예약 링크를 바우처 형태로 1:1 제공합니다."

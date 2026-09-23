@@ -385,14 +385,9 @@ export default function SmartRouteMap({
         {/* 1. Header with City Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider text-rose-600 bg-rose-50 border border-rose-200/60 px-2.5 py-0.5 rounded-full">
-                Interactive Smart Route
-              </span>
-              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                {locale === "ko" ? "스마트 투어 코스 & 카카오맵 동선" : "Smart Tour Route & Kakao Map"}
-              </h2>
-            </div>
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+              {locale === "ko" ? "스마트 투어 코스 & 카카오맵 동선" : "Smart Tour Route & Kakao Map"}
+            </h2>
             <p className="text-xs text-slate-500 mt-1 font-medium">
               {locale === "ko"
                 ? `${cityName}의 엄선 투어 코스와 최단 동선(1➔2➔3)을 카카오지도와 함께 확인하세요.`

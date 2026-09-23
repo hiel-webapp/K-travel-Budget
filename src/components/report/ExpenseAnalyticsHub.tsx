@@ -283,14 +283,9 @@ export default function ExpenseAnalyticsHub({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-neutral-100 pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold tracking-wider uppercase text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-100">
-              Integrated Financial Audit
-            </span>
-            <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight">
-              {isKo ? "원스톱 예산 분석 허브" : "Integrated Expense Audit"}
-            </h2>
-          </div>
+          <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight">
+            {isKo ? "원스톱 예산 분석 허브" : "Integrated Expense Audit"}
+          </h2>
           <p className="text-xs text-neutral-500 mt-1 font-medium">
             {isKo
               ? "도시별 실질 이동비와 체류 기간 비례 기타 경비가 완벽히 산입된 종합 회계 집계표입니다."

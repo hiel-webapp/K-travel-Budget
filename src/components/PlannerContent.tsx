@@ -24,6 +24,7 @@ import {
   themeActivityToAttractionSpot,
   isPalaceFreeSpot,
   isHanbokActivityId,
+  getAllThemeActivities,
 } from "../features/budget/catalog/theme-activities";
 import { StaySelectorPanel } from "../features/budget/components/StaySelectorPanel";
 import {
@@ -2484,49 +2485,38 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
     const courseTitle = locale === "ko" ? course.nameKo : course.nameEn;
 
-    // [상황 1] 완전 선택 또는 일부 담김 상태에서 클릭 시 -> 코스 및 관련 장소 + 연계 K-체험 전부 일괄 해제
+    // [상황 1] 완전 선택 또는 일부 담김 상태에서 클릭 시 -> 코스 및 관련 장소 일괄 해제
     if (hasAnySpotInCourse) {
-      const allCourseKeys = new Set<string>();
-      const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
-      course.spotIds.forEach((sid) => {
-        allCourseKeys.add(normalizeSpotKey(sid));
-        const sp = allSpots.find((s) => isSameSpot(s.id, sid));
-        const relatedAct = getRelatedThemeActivity(sid, sp?.nameKo);
-        if (relatedAct) {
-          allCourseKeys.add(normalizeSpotKey(relatedAct.id));
-        }
-      });
-
       nextIndividualSpotIds = nextIndividualSpotIds.filter(
-        (id) => !allCourseKeys.has(normalizeSpotKey(id))
+        (id) => !course.spotIds.some((sid) => isSameSpot(sid, id))
       );
 
       setToastMessage(
         locale === "ko"
-          ? `[${courseTitle}]의 모든 장소 및 연계 체험이 예산에서 제외되었습니다.`
-          : `All spots and linked activities in [${courseTitle}] removed from budget.`
+          ? `[${courseTitle}]의 모든 장소가 예산에서 제외되었습니다.`
+          : `All spots in [${courseTitle}] removed from budget.`
       );
       setTimeout(() => setToastMessage(null), 2500);
 
-      // K-스팟 budgetPlaces에서도 해당 코스 장소 및 연계 체험 일괄 제거
+      // K-스팟 budgetPlaces에서도 해당 코스 장소 일괄 제거
       const currentBudget = loadBudgetPlaces();
       const nextBudget = currentBudget.filter(
-        (p) => !allCourseKeys.has(normalizeSpotKey(p.id)) && !allCourseKeys.has(normalizeSpotKey(p.contentId))
+        (p) => !course.spotIds.some((sid) => isSameSpot(sid, p.id) || isSameSpot(sid, p.contentId))
       );
       saveBudgetPlaces(nextBudget);
     }
-    // [상황 2] 미선택(표시 없음) 상태에서 클릭 시 -> 코스 전체 + 각 명소별 연계 체험까지 일괄 담기
+    // [상황 2] 미선택(표시 없음) 상태에서 클릭 시 -> 코스 전체 장소 일괄 담기
     else {
       nextCourseIds.push(courseId);
 
       setToastMessage(
         locale === "ko"
-          ? `[${courseTitle}]의 장소들과 연계 K-체험이 예산에 담겼습니다.`
-          : `[${courseTitle}] spots and linked activities added to budget.`
+          ? `[${courseTitle}]의 장소들이 예산에 담겼습니다.`
+          : `[${courseTitle}] spots added to budget.`
       );
       setTimeout(() => setToastMessage(null), 2500);
 
-      // K-스팟 budgetPlaces에 해당 코스 장소 및 연계 K-체험 추가
+      // K-스팟 budgetPlaces에 해당 코스 장소 추가
       const currentBudget = loadBudgetPlaces();
       const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
       const newItems: PlaceItem[] = [];
@@ -2543,21 +2533,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           !newItems.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid))
         ) {
           newItems.push(spotToPlaceItem(sp));
-        }
-
-        // 추천 투어 코스 선택 시 연계 K-체험(한복 대여 등)도 함께 포함
-        const relatedAct = getRelatedThemeActivity(sid, sp?.nameKo);
-        if (relatedAct) {
-          if (!nextIndividualSpotIds.some((id) => isSameSpot(id, relatedAct.id))) {
-            nextIndividualSpotIds.push(relatedAct.id);
-          }
-          const actSpot = themeActivityToAttractionSpot(relatedAct);
-          if (
-            !currentBudget.some((p) => isSameSpot(p.id, relatedAct.id) || isSameSpot(p.contentId, relatedAct.id)) &&
-            !newItems.some((p) => isSameSpot(p.id, relatedAct.id) || isSameSpot(p.contentId, relatedAct.id))
-          ) {
-            newItems.push(spotToPlaceItem(actSpot));
-          }
         }
       });
 
@@ -2610,7 +2585,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const isCurrentlyActive = isIndividualSelected || isIncludedInSelectedCourse;
 
     const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
-    const targetSpot = allSpots.find((s) => isSameSpot(s.id, spotId));
+    const themeAct = getAllThemeActivities().find((a) => isSameSpot(a.id, spotId));
+    const targetSpot = allSpots.find((s) => isSameSpot(s.id, spotId)) || (themeAct ? themeActivityToAttractionSpot(themeAct) : undefined);
     const spotName = locale === "ko" ? (targetSpot?.nameKo || "관광지") : (targetSpot?.nameEn || "Attraction");
 
     let nextCourseIds = [...(currentCitySel.selectedCourseIds || [])];
@@ -2713,10 +2689,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       });
 
       // K-스팟 budgetPlaces 스토리지와 즉시 양방향 동기화
+      const isActivity = Boolean(themeAct || spotId.startsWith("act_"));
       const currentBudget = loadBudgetPlaces();
       if (!isCurrentlyActive) {
-        // 새로 추가됨 -> budgetPlaces에도 장소 추가
-        if (targetSpot && !currentBudget.some((p) => isSameSpot(p.id, spotId) || isSameSpot(p.contentId, spotId))) {
+        // 새로 추가됨 -> 일반 관광지인 경우에만 budgetPlaces에 장소 추가 (체험은 individualSpotIds로만 관리)
+        if (!isActivity && targetSpot && !currentBudget.some((p) => isSameSpot(p.id, spotId) || isSameSpot(p.contentId, spotId))) {
           const placeItem = spotToPlaceItem(targetSpot);
           saveBudgetPlaces([...currentBudget, placeItem]);
         }
@@ -5373,9 +5350,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
                         });
 
-                      // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합
+                      // K-스팟에서 추가된 커스텀 관광지 중 기본 목록에 없는 장소들을 변환하여 상단에 병합 (테마 액티비티는 별도 관광 카드로 노출 제외)
                       const customAttractionPlaces = budgetPlaces
                         .filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category))
+                        .filter((p) => !p.id.startsWith("act_") && !getAllThemeActivities().some((act) => isSameSpot(act.id, p.id) || isSameSpot(act.id, p.contentId)))
                         .map(placeToAttractionSpot)
                         .filter((cs) => {
                           if (isDefaultAttractionSpot(cs.id)) return false;

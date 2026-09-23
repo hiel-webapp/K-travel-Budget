@@ -13,6 +13,7 @@ import {
   isSameSpot,
   normalizeSpotKey,
 } from "src/features/budget/catalog/attraction-spots";
+import { THEME_ACTIVITIES_CATALOG } from "src/features/budget/catalog/theme-activities";
 import {
   getSpotCoordinates,
   optimizeSpotSequence,
@@ -73,9 +74,12 @@ export default function SmartRouteMap({
     selectedCities[0] || "SEOUL"
   );
 
-  // 사용자가 바스켓에 담은 스팟
+  // 사용자가 바스켓에 담은 스팟 (테마 액티비티/체험은 지리적 명소 경로 지도에서 제외)
   const userRawSpots = useMemo(() => {
-    return cityBreakdown[activeCity]?.selectedSpots || [];
+    const list = cityBreakdown[activeCity]?.selectedSpots || [];
+    return list.filter(
+      (s) => !s.id.startsWith("act_") && !THEME_ACTIVITIES_CATALOG.some((a) => isSameSpot(a.id, s.id))
+    );
   }, [cityBreakdown, activeCity]);
 
   const [selectedSpotIds, setSelectedSpotIds] = useState<string[]>([]);

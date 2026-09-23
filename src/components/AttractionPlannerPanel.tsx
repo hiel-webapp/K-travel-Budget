@@ -158,8 +158,12 @@ export default function AttractionPlannerPanel({
 
   // 1. 도시 대표 명소 목록 병합 및 추천(isFeatured) 우선 정렬
   // 추천 항목은 최상단에 위치하며, 추천 해제 시 본래 순서(sortOrder / ㄱㄴㄷ 순)로 복귀합니다.
+  // (연계 K-체험은 관광 카드의 3D 뒷면 플립으로만 유도되므로, 대표 명소 목록 그리드에서 별도 카드로 노출 제외)
   const spotsForCity = useMemo(() => {
-    const combined = [...customAttractionPlaces, ...baseSpotsForCity];
+    const themeActIds = new Set(dynamicActivities.map((a) => normalizeSpotKey(a.id)));
+    const combined = [...customAttractionPlaces, ...baseSpotsForCity].filter(
+      (s) => !themeActIds.has(normalizeSpotKey(s.id)) && !s.id.startsWith("act_")
+    );
     return combined.sort((a, b) => {
       const aFeat = !!a.isFeatured;
       const bFeat = !!b.isFeatured;
@@ -167,7 +171,7 @@ export default function AttractionPlannerPanel({
       if (!aFeat && bFeat) return 1;
       return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
     });
-  }, [customAttractionPlaces, baseSpotsForCity]);
+  }, [customAttractionPlaces, baseSpotsForCity, dynamicActivities]);
 
   // 2. 현재 도시의 K-테마 액티비티 목록
   const themeActivitiesForCity = useMemo(() => {

@@ -7,8 +7,11 @@ import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { SupportedCity } from "src/lib/trip-domain";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import {
+  TOUR_COURSE_PRESETS,
   ATTRACTION_SPOTS_CATALOG,
   type AttractionSpot,
+  isSameSpot,
+  normalizeSpotKey,
 } from "src/features/budget/catalog/attraction-spots";
 import {
   getSpotCoordinates,
@@ -40,6 +43,17 @@ export interface RouteSpotItem extends LatLng {
   cityCode: SupportedCity;
 }
 
+export interface RouteSpotGroup {
+  id: string;
+  isCourse: boolean;
+  courseTitleKo: string;
+  courseTitleEn: string;
+  courseDescKo?: string;
+  courseDescEn?: string;
+  estimatedHours?: number;
+  spots: RouteSpotItem[];
+}
+
 export interface SmartRouteMapProps {
   selectedCities: SupportedCity[];
   cityBreakdown: Record<string, { selectedSpots?: AttractionSpot[] }>;
@@ -64,7 +78,7 @@ export default function SmartRouteMap({
     return cityBreakdown[activeCity]?.selectedSpots || [];
   }, [cityBreakdown, activeCity]);
 
-  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
+  const [selectedSpotIds, setSelectedSpotIds] = useState<string[]>([]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapLoadError, setMapLoadError] = useState(false);
 
@@ -75,6 +89,11 @@ export default function SmartRouteMap({
 
   const kakaoAppKey =
     process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || "0fd19b94d6a6dffb2c23e0879fcab8ca";
+
+  // 도시 전환 시 선택 상태 초기화
+  useEffect(() => {
+    setSelectedSpotIds([]);
+  }, [activeCity]);
 
   // 2. 현재 도시에서 사용자가 선택한 스팟 리스트 추출 및 최적 동선 계산
   const displayedSpots: RouteSpotItem[] = useMemo(() => {
@@ -112,6 +131,115 @@ export default function SmartRouteMap({
       routeOrder: seqIdx + 1,
     }));
   }, [userRawSpots, activeCity]);
+
+  // 2-B. 추천 투어 코스 결합 및 그룹화 로직 (사용자가 담은 스팟들이 추천 코스에 부합할 경우 타이틀로 묶음)
+  const spotGroups = useMemo<RouteSpotGroup[]>(() => {
+    if (displayedSpots.length === 0) return [];
+
+    const cityCourses = TOUR_COURSE_PRESETS.filter(
+      (c) => (c.cityCode || "").toLowerCase() === (activeCity || "").toLowerCase() && c.isActive !== false
+    );
+
+    const remainingSpots = [...displayedSpots];
+    const groups: RouteSpotGroup[] = [];
+
+    // 1) 각 코스별로 매칭되는 스팟들을 추출
+    cityCourses.forEach((course) => {
+      const matchedSpots: RouteSpotItem[] = [];
+      course.spotIds.forEach((csId) => {
+        const foundIdx = remainingSpots.findIndex((s) => isSameSpot(s.id, csId));
+        if (foundIdx !== -1) {
+          matchedSpots.push(remainingSpots[foundIdx]);
+          remainingSpots.splice(foundIdx, 1);
+        }
+      });
+
+      // 2개 이상의 스팟이 매칭되었을 경우 코스 타이틀로 묶음
+      if (matchedSpots.length >= 2) {
+        matchedSpots.sort((a, b) => a.routeOrder - b.routeOrder);
+        groups.push({
+          id: course.id,
+          isCourse: true,
+          courseTitleKo: course.nameKo,
+          courseTitleEn: course.nameEn,
+          courseDescKo: course.descKo,
+          courseDescEn: course.descEn,
+          estimatedHours: course.estimatedHours,
+          spots: matchedSpots,
+        });
+      } else if (matchedSpots.length === 1) {
+        // 1개만 매칭된 경우 남은 스팟으로 복원
+        remainingSpots.push(...matchedSpots);
+      }
+    });
+
+    // 2) 어느 코스에도 묶이지 않은 개별 스팟들
+    if (remainingSpots.length > 0) {
+      remainingSpots.sort((a, b) => a.routeOrder - b.routeOrder);
+      if (groups.length > 0) {
+        groups.push({
+          id: "custom_spots",
+          isCourse: false,
+          courseTitleKo: "개별 맞춤 여행지",
+          courseTitleEn: "Individual Custom Spots",
+          courseDescKo: "사용자가 자유롭게 추가한 개별 명소 리스트입니다.",
+          courseDescEn: "Custom attractions added individually.",
+          spots: remainingSpots,
+        });
+      } else {
+        // 코스로 결합된 그룹이 전혀 없다면 타이틀 없이 단일 그룹으로 노출
+        groups.push({
+          id: "all_spots",
+          isCourse: false,
+          courseTitleKo: "",
+          courseTitleEn: "",
+          spots: remainingSpots,
+        });
+      }
+    }
+
+    return groups;
+  }, [displayedSpots, activeCity]);
+
+  // 개별 카드 클릭 핸들러 (단일 스팟만 지도 강조 + panTo)
+  const handleSpotCardClick = (spot: RouteSpotItem) => {
+    setSelectedSpotIds([spot.id]);
+    if (mapInstanceRef.current && window.kakao) {
+      mapInstanceRef.current.panTo(new window.kakao.maps.LatLng(spot.lat, spot.lng));
+    }
+  };
+
+  // 코스 타이틀 클릭 핸들러 (코스 내 모든 관광지 일괄 강조 + 지도 Bounds 자동 조정)
+  const handleCourseTitleClick = (group: RouteSpotGroup) => {
+    const groupSpotIds = group.spots.map((s) => s.id);
+    const isAllGroupSelected =
+      groupSpotIds.length > 0 &&
+      groupSpotIds.every((id) => selectedSpotIds.includes(id)) &&
+      selectedSpotIds.length === groupSpotIds.length;
+
+    if (isAllGroupSelected) {
+      // 이미 해당 코스의 모든 스팟이 선택되어 있다면 전체 해제
+      setSelectedSpotIds([]);
+    } else {
+      // 해당 코스에 속한 모든 스팟을 일괄 선택 및 강조
+      setSelectedSpotIds(groupSpotIds);
+
+      // 지도 포커스: 해당 코스 스팟들의 좌표 영역(Bounds)으로 부드럽게 맞춤
+      if (mapInstanceRef.current && window.kakao && group.spots.length > 0) {
+        if (group.spots.length === 1) {
+          mapInstanceRef.current.panTo(
+            new window.kakao.maps.LatLng(group.spots[0].lat, group.spots[0].lng)
+          );
+        } else {
+          const bounds = new window.kakao.maps.LatLngBounds();
+          group.spots.forEach((s) => {
+            bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng));
+          });
+          mapInstanceRef.current.setBounds(bounds);
+        }
+      }
+    }
+  };
 
   // 3. 카카오맵 렌더링 함수
   const initKakaoMap = () => {
@@ -164,7 +292,7 @@ export default function SmartRouteMap({
           bounds.extend(pos);
           pathCoords.push(pos);
 
-          const isSelected = selectedSpotId === spot.id;
+          const isSelected = selectedSpotIds.includes(spot.id);
           const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
 
           const content = document.createElement("div");
@@ -192,7 +320,7 @@ export default function SmartRouteMap({
           `;
 
           content.onclick = () => {
-            setSelectedSpotId(spot.id);
+            setSelectedSpotIds([spot.id]);
             map.panTo(pos);
           };
 
@@ -252,12 +380,13 @@ export default function SmartRouteMap({
     return () => clearTimeout(timer);
   }, [activeCity, displayedSpots]);
 
-  // 선택된 장소(selectedSpotId) 변경 시 지도 위의 핀 스타일을 즉시 동기화
+  // 선택된 장소들(selectedSpotIds) 변경 시 지도 위의 핀 스타일을 즉시 동기화
   useEffect(() => {
     if (!mapContainerRef.current) return;
     const markerElements = mapContainerRef.current.querySelectorAll<HTMLElement>("[data-spot-marker]");
     markerElements.forEach((el) => {
-      const isSel = el.getAttribute("data-spot-id") === selectedSpotId;
+      const spotId = el.getAttribute("data-spot-id");
+      const isSel = spotId ? selectedSpotIds.includes(spotId) : false;
       const normalPin = el.querySelector<HTMLElement>(".pin-normal");
       const activePin = el.querySelector<HTMLElement>(".pin-active");
       if (normalPin && activePin) {
@@ -266,7 +395,7 @@ export default function SmartRouteMap({
       }
       el.style.zIndex = isSel ? "30" : "10";
     });
-  }, [selectedSpotId]);
+  }, [selectedSpotIds]);
 
   const fullRouteLink =
     displayedSpots.length > 0
@@ -330,7 +459,7 @@ export default function SmartRouteMap({
                       type="button"
                       onClick={() => {
                         setActiveCity(c);
-                        setSelectedSpotId(null);
+                        setSelectedSpotIds([]);
                       }}
                       className={`w-full py-2.5 px-3.5 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left ${
                         isCurrent
@@ -425,125 +554,205 @@ export default function SmartRouteMap({
           </div>
         </div>
 
-        {/* 5. Optimized Sequence Timeline List (스팟별 카드) */}
+        {/* 5. Optimized Sequence Timeline List (스팟별 카드 - 추천 코스별 타이틀 결합) */}
         {displayedSpots.length > 0 ? (
-          <div className="space-y-3 pt-2">
+          <div className="space-y-6 pt-2">
             <div className="text-left">
               <span className="text-xs font-bold text-slate-500">
                 {locale === "ko"
-                  ? "카드를 클릭하면 지도에서 해당 위치로 이동합니다."
-                  : "Click a card to focus on the map location."}
+                  ? "코스 타이틀을 클릭하면 코스 전체가, 카드를 클릭하면 해당 장소가 지도에서 강조됩니다."
+                  : "Click a course title to highlight the entire route, or click a card to focus on a spot."}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {displayedSpots.map((spot) => {
-                const isSelected = selectedSpotId === spot.id;
-                const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
-                const spotDesc = locale === "ko" ? spot.descKo : spot.descEn;
-                const directLink = getKakaoMapDirectLink(spotName, spot.lat, spot.lng);
+            {spotGroups.map((group) => {
+              const groupSpotIds = group.spots.map((s) => s.id);
+              const isGroupActive =
+                groupSpotIds.length > 0 &&
+                groupSpotIds.every((id) => selectedSpotIds.includes(id)) &&
+                selectedSpotIds.length === groupSpotIds.length;
+              const title = locale === "ko" ? group.courseTitleKo : group.courseTitleEn;
+              const desc = locale === "ko" ? group.courseDescKo : group.courseDescEn;
 
-                return (
-                  <div
-                    key={spot.id}
-                    onClick={() => {
-                      setSelectedSpotId(spot.id);
-                      if (mapInstanceRef.current && window.kakao) {
-                        mapInstanceRef.current.panTo(
-                          new window.kakao.maps.LatLng(spot.lat, spot.lng)
-                        );
-                      }
-                    }}
-                    className={`p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 ${
-                      isSelected
-                        ? "bg-rose-50/70 border-rose-500 ring-2 ring-rose-400/50 shadow-md shadow-rose-500/10 -translate-y-0.5"
-                        : "bg-white hover:bg-slate-50/80 border-slate-200/80 hover:border-slate-300 hover:shadow-2xs"
-                    }`}
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className={`w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 transition-colors ${
-                              isSelected
-                                ? "bg-rose-500 text-white shadow-xs ring-2 ring-rose-200"
-                                : "bg-slate-100 text-slate-600 border border-slate-200"
-                            }`}
-                          >
-                            {spot.routeOrder}
-                          </span>
-                          <h4
-                            className={`text-xs sm:text-sm truncate transition-colors ${
-                              isSelected
-                                ? "font-black text-rose-950"
-                                : "font-bold text-slate-800"
-                            }`}
-                            title={spotName}
-                          >
-                            {spotName}
-                          </h4>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {isSelected && (
-                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-500 text-white shadow-2xs">
-                              {locale === "ko" ? "선택됨" : "Focused"}
+              return (
+                <div key={group.id} className="space-y-3">
+                  {/* 코스 타이틀 헤더 바 (코스 또는 개별 그룹 헤더) */}
+                  {title && (
+                    <div
+                      onClick={() => handleCourseTitleClick(group)}
+                      className={`group/header flex flex-wrap items-center justify-between gap-2.5 p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
+                        isGroupActive
+                          ? "bg-rose-50/90 border-rose-400 ring-2 ring-rose-300/60 shadow-xs"
+                          : "bg-slate-50/90 border-slate-200/90 hover:bg-slate-100 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0 transition-colors ${
+                            isGroupActive
+                              ? "bg-rose-500 text-white shadow-xs"
+                              : group.isCourse
+                              ? "bg-slate-900 text-white"
+                              : "bg-slate-200 text-slate-700"
+                          }`}
+                        >
+                          {group.isCourse ? "🧭" : "📍"}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4
+                              className={`text-sm sm:text-base font-black truncate transition-colors ${
+                                isGroupActive ? "text-rose-950" : "text-slate-900"
+                              }`}
+                            >
+                              {title}
+                            </h4>
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
+                                isGroupActive
+                                  ? "bg-rose-200 text-rose-800"
+                                  : "bg-slate-200/80 text-slate-700"
+                              }`}
+                            >
+                              {group.spots.length}{locale === "ko" ? "개소" : " spots"}
                             </span>
+                            {group.estimatedHours && (
+                              <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 flex items-center gap-1">
+                                <span>⏱️</span>
+                                <span>{locale === "ko" ? `약 ${group.estimatedHours}시간` : `~${group.estimatedHours}h`}</span>
+                              </span>
+                            )}
+                          </div>
+                          {desc && (
+                            <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+                              {desc}
+                            </p>
                           )}
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                            {spot.categoryType || (locale === "ko" ? "명소" : "Spot")}
-                          </span>
                         </div>
                       </div>
 
-                      {spot.subwayInfo && (
-                        <p className="text-[11px] text-slate-600 flex items-center gap-1">
-                          <span className="text-[10px]">🚇</span>
-                          <span className="truncate">{formatTransitInfo(spot.subwayInfo, locale)}</span>
-                        </p>
-                      )}
-
-                      {spotDesc && (
-                        <p
-                          className={`text-[11px] line-clamp-2 leading-relaxed ${
-                            isSelected ? "text-slate-600 font-medium" : "text-slate-500"
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span
+                          className={`text-[11px] font-bold px-3 py-1 rounded-xl transition-all border ${
+                            isGroupActive
+                              ? "bg-rose-500 text-white border-rose-500 shadow-xs"
+                              : "bg-white text-slate-700 border-slate-200 group-hover/header:border-rose-300 group-hover/header:text-rose-600 shadow-2xs"
                           }`}
                         >
-                          {spotDesc}
-                        </p>
-                      )}
+                          {isGroupActive
+                            ? (locale === "ko" ? "✓ 코스 전체 강조 해제" : "✓ Course Focused (Clear)")
+                            : (locale === "ko" ? "코스 전체 지도 강조 👆" : "Focus Course on Map 👆")}
+                        </span>
+                      </div>
                     </div>
+                  )}
 
-                    {/* Bottom Action */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                      <span
-                        className={`font-extrabold tabular-nums ${
-                          isSelected ? "text-rose-900" : "text-slate-700"
-                        }`}
-                      >
-                        {spot.price > 0
-                          ? formatPriceByLocale(spot.price, locale, usdRate)
-                          : (locale === "ko" ? "무료 입장" : "Free Entry")}
-                      </span>
+                  {/* 카드 그리드 */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {group.spots.map((spot) => {
+                      const isSelected = selectedSpotIds.includes(spot.id);
+                      const isSingleSelected = isSelected && selectedSpotIds.length === 1;
+                      const spotName = locale === "ko" ? spot.nameKo : spot.nameEn;
+                      const spotDesc = locale === "ko" ? spot.descKo : spot.descEn;
+                      const directLink = getKakaoMapDirectLink(spotName, spot.lat, spot.lng);
 
-                      <a
-                        href={directLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className={`inline-flex items-center gap-1 font-extrabold transition-colors ${
-                          isSelected
-                            ? "text-rose-600 hover:text-rose-800"
-                            : "text-slate-500 hover:text-slate-800"
-                        }`}
-                      >
-                        <span>{locale === "ko" ? "카카오맵 길찾기" : "Directions"}</span>
-                        <span>↗</span>
-                      </a>
-                    </div>
+                      return (
+                        <div
+                          key={spot.id}
+                          onClick={() => handleSpotCardClick(spot)}
+                          className={`p-3.5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-2.5 ${
+                            isSelected
+                              ? "bg-rose-50/70 border-rose-500 ring-2 ring-rose-400/50 shadow-md shadow-rose-500/10 -translate-y-0.5"
+                              : "bg-white hover:bg-slate-50/80 border-slate-200/80 hover:border-slate-300 hover:shadow-2xs"
+                          }`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span
+                                  className={`w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center shrink-0 transition-colors ${
+                                    isSelected
+                                      ? "bg-rose-500 text-white shadow-xs ring-2 ring-rose-200"
+                                      : "bg-slate-100 text-slate-600 border border-slate-200"
+                                  }`}
+                                >
+                                  {spot.routeOrder}
+                                </span>
+                                <h4
+                                  className={`text-xs sm:text-sm truncate transition-colors ${
+                                    isSelected
+                                      ? "font-black text-rose-950"
+                                      : "font-bold text-slate-800"
+                                  }`}
+                                  title={spotName}
+                                >
+                                  {spotName}
+                                </h4>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {isSingleSelected && (
+                                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-500 text-white shadow-2xs">
+                                    {locale === "ko" ? "선택됨" : "Focused"}
+                                  </span>
+                                )}
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                                  {spot.categoryType || (locale === "ko" ? "명소" : "Spot")}
+                                </span>
+                              </div>
+                            </div>
+
+                            {spot.subwayInfo && (
+                              <p className="text-[11px] text-slate-600 flex items-center gap-1">
+                                <span className="text-[10px]">🚇</span>
+                                <span className="truncate">{formatTransitInfo(spot.subwayInfo, locale)}</span>
+                              </p>
+                            )}
+
+                            {spotDesc && (
+                              <p
+                                className={`text-[11px] line-clamp-2 leading-relaxed ${
+                                  isSelected ? "text-slate-600 font-medium" : "text-slate-500"
+                                }`}
+                              >
+                                {spotDesc}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Bottom Action */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                            <span
+                              className={`font-extrabold tabular-nums ${
+                                isSelected ? "text-rose-900" : "text-slate-700"
+                              }`}
+                            >
+                              {spot.price > 0
+                                ? formatPriceByLocale(spot.price, locale, usdRate)
+                                : (locale === "ko" ? "무료 입장" : "Free Entry")}
+                            </span>
+
+                            <a
+                              href={directLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className={`inline-flex items-center gap-1 font-extrabold transition-colors ${
+                                isSelected
+                                  ? "text-rose-600 hover:text-rose-800"
+                                  : "text-slate-500 hover:text-slate-800"
+                              }`}
+                            >
+                              <span>{locale === "ko" ? "카카오맵 길찾기" : "Directions"}</span>
+                              <span>↗</span>
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200/80 text-center space-y-1.5">

@@ -417,16 +417,16 @@ export default function ExpenseAnalyticsHub({
                         }`}
                       >
                         {isLeft && (
-                          <div className="text-right leading-none">
+                          <div className="flex flex-col items-center text-center leading-none">
                             <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{cat.label}</span>
-                            <span className={`block text-xs font-black tabular-nums ${cat.textColor}`}>{cat.pct}%</span>
+                            <span className={`block text-[10px] font-extrabold tabular-nums ${cat.textColor}`}>{cat.pct}%</span>
                           </div>
                         )}
                         <span className="w-2.5 sm:w-3.5 h-[1.5px] bg-neutral-300 rounded-full shrink-0" />
                         {!isLeft && (
-                          <div className="text-left leading-none">
+                          <div className="flex flex-col items-center text-center leading-none">
                             <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{cat.label}</span>
-                            <span className={`block text-xs font-black tabular-nums ${cat.textColor}`}>{cat.pct}%</span>
+                            <span className={`block text-[10px] font-extrabold tabular-nums ${cat.textColor}`}>{cat.pct}%</span>
                           </div>
                         )}
                       </div>
@@ -477,16 +477,16 @@ export default function ExpenseAnalyticsHub({
                         }`}
                       >
                         {isLeft && (
-                          <div className="text-right leading-none">
+                          <div className="flex flex-col items-center text-center leading-none">
                             <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{c.cityName}</span>
-                            <span className={`block text-xs font-black tabular-nums ${c.textColor}`}>{c.pct}%</span>
+                            <span className={`block text-[10px] font-extrabold tabular-nums ${c.textColor}`}>{c.pct}%</span>
                           </div>
                         )}
                         <span className="w-2.5 sm:w-3.5 h-[1.5px] bg-neutral-300 rounded-full shrink-0" />
                         {!isLeft && (
-                          <div className="text-left leading-none">
+                          <div className="flex flex-col items-center text-center leading-none">
                             <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{c.cityName}</span>
-                            <span className={`block text-xs font-black tabular-nums ${c.textColor}`}>{c.pct}%</span>
+                            <span className={`block text-[10px] font-extrabold tabular-nums ${c.textColor}`}>{c.pct}%</span>
                           </div>
                         )}
                       </div>

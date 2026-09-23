@@ -12,6 +12,7 @@ import {
   type AttractionSpot,
   isSameSpot,
   normalizeSpotKey,
+  SEOUL_LANDMARK_BILINGUAL_MAP,
 } from "src/features/budget/catalog/attraction-spots";
 import {
   THEME_ACTIVITIES_CATALOG,
@@ -113,6 +114,7 @@ export default function SmartRouteMap({
   }, [cityBreakdown, activeCity]);
 
   const [selectedSpotIds, setSelectedSpotIds] = useState<string[]>([]);
+  const [previewSpot, setPreviewSpot] = useState<RouteSpotItem | null>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapLoadError, setMapLoadError] = useState(false);
 
@@ -484,6 +486,33 @@ export default function SmartRouteMap({
         )
       : `https://map.kakao.com`;
 
+  // 단일 선택된 스팟 정보 (있을 경우 해당 스팟으로 길찾기 동적 연결)
+  const singleSelectedSpot = useMemo(() => {
+    if (selectedSpotIds.length === 1) {
+      return displayedSpots.find((s) => s.id === selectedSpotIds[0]);
+    }
+    return null;
+  }, [selectedSpotIds, displayedSpots]);
+
+  const activeKakaoRouteLink = useMemo(() => {
+    if (singleSelectedSpot) {
+      return getKakaoMapDirectLink(
+        locale === "ko" ? singleSelectedSpot.nameKo : singleSelectedSpot.nameEn,
+        singleSelectedSpot.lat,
+        singleSelectedSpot.lng
+      );
+    }
+    return fullRouteLink;
+  }, [singleSelectedSpot, fullRouteLink, locale]);
+
+  const activeKakaoButtonText = useMemo(() => {
+    if (singleSelectedSpot) {
+      const name = locale === "ko" ? singleSelectedSpot.nameKo : singleSelectedSpot.nameEn;
+      return locale === "ko" ? `${name} 길찾기` : `${name} Route`;
+    }
+    return locale === "ko" ? "카카오맵 길찾기" : "Kakao Map Route";
+  }, [singleSelectedSpot, locale]);
+
   const cityName =
     locale === "ko"
       ? CITY_KOREAN_NAMES[activeCity] || activeCity
@@ -561,16 +590,17 @@ export default function SmartRouteMap({
 
               {displayedSpots.length > 0 && (
                 <a
-                  href={fullRouteLink}
+                  href={activeKakaoRouteLink}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-xs transition-all shadow-2xs cursor-pointer text-center"
+                  title={activeKakaoButtonText}
                 >
                   <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.558 1.708 4.8 4.27 6.054l-.865 3.186c-.078.287.213.522.46.368l3.77-2.35c.446.04.9.057 1.365.057 4.97 0 9-3.185 9-7.115S16.97 3 12 3z" />
                   </svg>
-                  <span>{locale === "ko" ? "카카오맵 길찾기" : "Kakao Map"}</span>
-                  <span className="text-[10px]">↗</span>
+                  <span className="truncate">{activeKakaoButtonText}</span>
+                  <span className="text-[10px] shrink-0">↗</span>
                 </a>
               )}
             </div>
@@ -762,16 +792,9 @@ export default function SmartRouteMap({
                                   )}
                                 </h4>
                               </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                {isSingleSelected && (
-                                  <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-rose-500 text-white shadow-2xs">
-                                    {locale === "ko" ? "선택됨" : "Focused"}
-                                  </span>
-                                )}
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                                  {spot.categoryType || (locale === "ko" ? "명소" : "Spot")}
-                                </span>
-                              </div>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                                {spot.categoryType || (locale === "ko" ? "명소" : "Spot")}
+                              </span>
                             </div>
 
                             {spot.subwayInfo && (
@@ -780,44 +803,34 @@ export default function SmartRouteMap({
                                 <span className="truncate">{formatTransitInfo(spot.subwayInfo, locale)}</span>
                               </p>
                             )}
-
-                            {spotDesc && (
-                              <p
-                                className={`text-[11px] line-clamp-2 leading-relaxed ${
-                                  isSelected ? "text-slate-600 font-medium" : "text-slate-500"
-                                }`}
-                              >
-                                {spotDesc}
-                              </p>
-                            )}
                           </div>
 
-                          {/* Bottom Action */}
-                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                          {/* 하단 영역: [상세보기] (좌측)                무료 입장 / 요금 (우측) */}
+                          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewSpot(spot);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors border border-slate-200/80 cursor-pointer shadow-2xs"
+                            >
+                              <span>{locale === "ko" ? "상세보기" : "Details"}</span>
+                            </button>
+
                             <span
-                              className={`font-extrabold tabular-nums ${
-                                isSelected ? "text-rose-900" : "text-slate-700"
+                              className={`font-black tabular-nums whitespace-nowrap text-right ${
+                                spot.price === 0
+                                  ? "text-emerald-600"
+                                  : isSelected
+                                  ? "text-rose-900"
+                                  : "text-slate-900"
                               }`}
                             >
                               {spot.price > 0
                                 ? formatPriceByLocale(spot.price, locale, usdRate)
                                 : (locale === "ko" ? "무료 입장" : "Free Entry")}
                             </span>
-
-                            <a
-                              href={directLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className={`inline-flex items-center gap-1 font-extrabold transition-colors ${
-                                isSelected
-                                  ? "text-rose-600 hover:text-rose-800"
-                                  : "text-slate-500 hover:text-slate-800"
-                              }`}
-                            >
-                              <span>{locale === "ko" ? "카카오맵 길찾기" : "Directions"}</span>
-                              <span>↗</span>
-                            </a>
                           </div>
                         </div>
                       );
@@ -842,6 +855,190 @@ export default function SmartRouteMap({
           </div>
         )}
       </div>
+
+      {/* 6. 관광지 상세 정보 팝업 모달 (플래너와 동일 규격) */}
+      {previewSpot && (() => {
+        const spotKey = previewSpot.id.replace(/^kto_/, "");
+        const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
+        const catalogSpot = ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, previewSpot.id));
+
+        const name = locale === "ko" ? (previewSpot.nameKo || bilingual?.nameKo) : (previewSpot.nameEn || bilingual?.nameEn);
+        const desc = locale === "ko"
+          ? (catalogSpot?.descKo || previewSpot.descKo || bilingual?.descKo || previewSpot.descEn)
+          : (catalogSpot?.descEn || previewSpot.descEn || bilingual?.descEn || previewSpot.descKo);
+        const subway = locale === "ko"
+          ? (catalogSpot?.subwayInfoKo || previewSpot.subwayInfo || bilingual?.subwayKo)
+          : (catalogSpot?.subwayInfoEn || previewSpot.subwayInfo || bilingual?.subwayEn);
+        const hours = locale === "ko"
+          ? (catalogSpot?.openingHoursKo || bilingual?.hoursKo)
+          : (catalogSpot?.openingHoursEn || bilingual?.hoursEn);
+        const closed = locale === "ko"
+          ? (catalogSpot?.closedDaysKo || bilingual?.closedKo)
+          : (catalogSpot?.closedDaysEn || bilingual?.closedEn);
+
+        const hasImage = Boolean(catalogSpot?.imageUrl && catalogSpot.imageUrl !== "/assets/default-place.jpg");
+        const imageUrl = catalogSpot?.imageUrl;
+        const directKakaoLink = getKakaoMapDirectLink(name, previewSpot.lat, previewSpot.lng);
+
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={() => setPreviewSpot(null)}
+          >
+            <div
+              className="relative w-full max-w-xl max-h-[90vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Image Header with Gradient & Title */}
+              <div className="relative w-full h-56 sm:h-64 bg-slate-900 shrink-0">
+                {hasImage && imageUrl ? (
+                  <img
+                    src={imageUrl}
+                    alt={name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1548115184-bc6544d06a58?auto=format&fit=crop&w=800&q=80";
+                    }}
+                  />
+                ) : (
+                  <div className="h-full w-full bg-gradient-to-r from-slate-800 to-indigo-900 flex items-center justify-center">
+                    <span className="text-xl font-black text-white/40 tracking-wider">SPOT</span>
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/30 pointer-events-none" />
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setPreviewSpot(null)}
+                  className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer text-lg font-bold z-10 shadow-sm"
+                  title={locale === "ko" ? "닫기" : "Close"}
+                >
+                  ✕
+                </button>
+
+                {/* Price & Category badges */}
+                <div className="absolute top-4 left-4 z-10 flex items-center gap-2 flex-wrap">
+                  {(() => {
+                    const cat = previewSpot.categoryType || catalogSpot?.categoryType || bilingual?.categoryType;
+                    if (!cat) return null;
+                    const badgeConfig = {
+                      명소: { bg: "bg-blue-600/90 text-white", labelKo: "명소", labelEn: "Landmark" },
+                      자연: { bg: "bg-emerald-600/90 text-white", labelKo: "자연", labelEn: "Nature" },
+                      엔터: { bg: "bg-purple-600/90 text-white", labelKo: "엔터", labelEn: "Enter" },
+                      쇼핑: { bg: "bg-amber-600/90 text-white", labelKo: "쇼핑", labelEn: "Shopping" },
+                    }[cat as "명소" | "자연" | "엔터" | "쇼핑"];
+                    if (!badgeConfig) return null;
+                    return (
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-black shadow-md backdrop-blur-md flex items-center gap-1 ${badgeConfig.bg}`}>
+                        <span>{locale === "ko" ? badgeConfig.labelKo : badgeConfig.labelEn}</span>
+                      </span>
+                    );
+                  })()}
+
+                  {catalogSpot?.isFeatured && (
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-rose-600 text-white shadow-md flex items-center gap-1">
+                      <span>★ {locale === "ko" ? "추천 명소" : "Must-Visit"}</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Title on bottom of image */}
+                <div className="absolute bottom-4 left-5 right-5 text-white z-10">
+                  <h3 className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-md">
+                    {name}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Modal Body Content (Scrollable) */}
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+                {desc && (
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                      {locale === "ko" ? "관광지 소개" : "About"}
+                    </h4>
+                    <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                      {desc}
+                    </p>
+                  </div>
+                )}
+
+                {/* Key Visitor Info Box */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+                  <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                    <div>
+                      <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                        {locale === "ko" ? "입장료 / 요금" : "Admission Fee"}
+                      </span>
+                      <span className="text-[#e25c5c] font-black">
+                        {previewSpot.price > 0
+                          ? formatPriceByLocale(previewSpot.price, locale, usdRate)
+                          : (locale === "ko" ? "무료 입장" : "Free Admission")}
+                      </span>
+                    </div>
+                  </div>
+                  {subway && (
+                    <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                      <div>
+                        <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                          {locale === "ko" ? "지하철 / 대중교통" : "Transit"}
+                        </span>
+                        <span className="text-slate-600">{subway}</span>
+                      </div>
+                    </div>
+                  )}
+                  {closed && (
+                    <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                      <div>
+                        <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                          {locale === "ko" ? "휴무일" : "Closed Days"}
+                        </span>
+                        <span className="text-slate-600">{closed}</span>
+                      </div>
+                    </div>
+                  )}
+                  {hours && (
+                    <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 sm:col-span-2">
+                      <div>
+                        <span className="font-bold text-slate-900 block text-[11px] sm:text-xs">
+                          {locale === "ko" ? "운영시간" : "Opening Hours"}
+                        </span>
+                        <span className="text-slate-600">{hours}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3 shrink-0">
+                <a
+                  href={directKakaoLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 py-2 px-3.5 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-xs transition-all shadow-2xs cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.558 1.708 4.8 4.27 6.054l-.865 3.186c-.078.287.213.522.46.368l3.77-2.35c.446.04.9.057 1.365.057 4.97 0 9-3.185 9-7.115S16.97 3 12 3z" />
+                  </svg>
+                  <span>{locale === "ko" ? "카카오맵 길찾기" : "Kakao Map"}</span>
+                  <span className="text-[10px]">↗</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setPreviewSpot(null)}
+                  className="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:bg-slate-200/80 transition-colors cursor-pointer"
+                >
+                  {locale === "ko" ? "닫기" : "Close"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </>
   );
 }

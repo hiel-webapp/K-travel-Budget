@@ -275,8 +275,7 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
           ],
           "individualSpotIds": [
             "jeonju_hanok_village",
-            "jeonju_gyeonggijeon",
-            "act_jeonju_bibimbap_class"
+            "jeonju_gyeonggijeon"
           ]
         },
         "GYEONGJU": {
@@ -288,8 +287,7 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
             "gyeongju_daereungwon",
             "gyeongju_hwangridan",
             "gyeongju_donggung_wolji",
-            "gyeongju_bulguksa",
-            "act_gyeongju_hanbok"
+            "gyeongju_bulguksa"
           ]
         }
       },
@@ -401,8 +399,7 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
             "gangneung_anmok",
             "gangneung_bts_busstop",
             "gangneung_arte",
-            "gangneung_gyeongpo",
-            "act_gangneung_coffee_class"
+            "gangneung_gyeongpo"
           ]
         }
       },
@@ -672,8 +669,7 @@ export const TRAVEL_PRESETS: TravelPreset[] = [
           ],
           "individualSpotIds": [
             "jeonju_nambu_market",
-            "jeonju_hanok_village",
-            "act_jeonju_bibimbap_class"
+            "jeonju_hanok_village"
           ]
         },
         "BUSAN": {

@@ -26,9 +26,6 @@ export interface ThemeActivityItem {
  * 관광지 입장료와 중복되지 않는 순수 부가 체험 목록 (입장권 중복 과금 방지)
  */
 export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
-  // ========================================================
-  // 1. 서울 (SEOUL)
-  // ========================================================
   {
     id: "act_seoul_hanbok",
     cityCode: "SEOUL",
@@ -42,9 +39,10 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 25000,
     tag: "K-컬처/인기",
     categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/d5d6385b-9f49-44cf-a3c8-f29ab8482079/it11",
     durationTextKo: "2시간",
     durationTextEn: "2 hours",
+    isActive: true,
   },
   {
     id: "act_seoul_gyobok",
@@ -59,9 +57,10 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 20000,
     tag: "K-패션/체험",
     categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://adventure.lotteworld.com/api/upload/202509/09/202509091992d4d41d550",
     durationTextKo: "종일",
     durationTextEn: "Full day",
+    isActive: true,
   },
   {
     id: "act_seoul_han_river_cruise",
@@ -76,9 +75,10 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 28000,
     tag: "야경/요트",
     categoryType: "자연",
-    imageUrl: "https://images.unsplash.com/photo-1538485399081-7191377e8241?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/34/4109634_image2_1.jpg",
     durationTextKo: "60분",
     durationTextEn: "60 mins",
+    isActive: true,
   },
   {
     id: "act_seoul_tea_class",
@@ -93,9 +93,10 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 35000,
     tag: "전통/힐링",
     categoryType: "명소",
-    imageUrl: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/534832fc-4146-4bc5-8ada-6aaa96b4448e/it11",
     durationTextKo: "90분",
     durationTextEn: "90 mins",
+    isActive: true,
   },
   {
     id: "act_seoul_n_tower",
@@ -110,31 +111,11 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 15000,
     tag: "케이블카",
     categoryType: "명소",
-    imageUrl: "https://images.unsplash.com/photo-1538669715315-15509e51c888?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/0f19678f-494a-42c6-8920-32d1e00cc39d/it11",
     durationTextKo: "왕복",
     durationTextEn: "Round-trip",
+    isActive: true,
   },
-  {
-    id: "act_seoul_personal_color",
-    cityCode: "SEOUL",
-    relatedSpotKey: "seoul_hongdae",
-    relatedSpotNameKo: "홍대 거리",
-    relatedSpotNameEn: "Hongdae Street",
-    nameKo: "홍대 퍼스널 컬러 진단",
-    nameEn: "Hongdae Personal Color Analysis",
-    descKo: "홍대 전문 뷰티 스튜디오에서 웜/쿨톤 세부 진단 및 맞춤 화장품 추천.",
-    descEn: "Comprehensive personal color diagnosis and Korean makeup cosmetics recommendation.",
-    priceKrw: 85000,
-    tag: "K-뷰티",
-    categoryType: "쇼핑",
-    imageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
-    durationTextKo: "60분",
-    durationTextEn: "60 mins",
-  },
-
-  // ========================================================
-  // 2. 부산 (BUSAN)
-  // ========================================================
   {
     id: "act_busan_yacht",
     cityCode: "BUSAN",
@@ -148,31 +129,11 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 30000,
     tag: "야경/요트",
     categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1569263979104-865ab7cd8d17?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/29a5a4a2-4229-4210-abbd-ca19079c8844/it11",
     durationTextKo: "60분",
     durationTextEn: "60 mins",
+    isActive: true,
   },
-  {
-    id: "act_busan_spaland",
-    cityCode: "BUSAN",
-    relatedSpotKey: "busan_centum_spaland",
-    relatedSpotNameKo: "신세계 센텀시티 & 스파랜드",
-    relatedSpotNameEn: "Centum City Spaland",
-    nameKo: "센텀 스파랜드 찜질스파 이용권",
-    nameEn: "Centum City Spaland Admission",
-    descKo: "18개 테마 온천과 13개 찜질방을 갖춘 한국 최대 규모 프리미엄 K-스파 4시간 이용권.",
-    descEn: "4-hour pass to world-class Korean spa facility with 18 thermal baths and 13 themed saunas.",
-    priceKrw: 23000,
-    tag: "K-스파/힐링",
-    categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80",
-    durationTextKo: "4시간",
-    durationTextEn: "4 hours",
-  },
-
-  // ========================================================
-  // 3. 제주 (JEJU)
-  // ========================================================
   {
     id: "act_jeju_submarine",
     cityCode: "JEJU",
@@ -186,9 +147,10 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 65000,
     tag: "해양탐험",
     categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/59c59e4a-55bd-407c-8b35-9692ffbbe356/it11",
     durationTextKo: "70분",
     durationTextEn: "70 mins",
+    isActive: true,
   },
   {
     id: "act_jeju_soesokkak",
@@ -203,9 +165,10 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 10000,
     tag: "카약/자연",
     categoryType: "자연",
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/51230d71-a4be-4d0c-a699-8aa048df9536/it11",
     durationTextKo: "20분",
     durationTextEn: "20 mins",
+    isActive: true,
   },
   {
     id: "act_jeju_udo_bike",
@@ -220,14 +183,11 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 30000,
     tag: "전기차투어",
     categoryType: "자연",
-    imageUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://tong.visitkorea.or.kr/cms/resource/56/3411156_image2_1.jpg",
     durationTextKo: "2시간",
     durationTextEn: "2 hours",
+    isActive: true,
   },
-
-  // ========================================================
-  // 4. 인천 (INCHEON)
-  // ========================================================
   {
     id: "act_incheon_wolmido",
     cityCode: "INCHEON",
@@ -241,98 +201,11 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 18000,
     tag: "테마파크/놀이기구",
     categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/a139e369-3f43-4de9-909d-5084516d4d87/it11",
     durationTextKo: "60분",
     durationTextEn: "60 mins",
+    isActive: true,
   },
-
-  // ========================================================
-  // 5. 수원 (SUWON)
-  // ========================================================
-  {
-    id: "act_suwon_hanbok",
-    cityCode: "SUWON",
-    relatedSpotKey: "suwon_haenggung",
-    relatedSpotNameKo: "화성행궁",
-    relatedSpotNameEn: "Hwaseong Haenggung Palace",
-    nameKo: "화성행궁 전통 한복 대여",
-    nameEn: "Suwon Hwaseong Palace Hanbok Rental",
-    descKo: "정조대왕의 화성행궁과 행리단길 산책을 위한 단아한 전통 및 퓨전 한복 대여.",
-    descEn: "Traditional hanbok rental for historic palace walks and trendy Haengnidan-gil street tours.",
-    priceKrw: 20000,
-    tag: "한복체험",
-    categoryType: "명소",
-    imageUrl: "https://images.unsplash.com/photo-1617478755490-e21232a5eeaf?auto=format&fit=crop&w=800&q=80",
-    durationTextKo: "2시간",
-    durationTextEn: "2 hours",
-  },
-
-  // ========================================================
-  // 6. 경주 (GYEONGJU)
-  // ========================================================
-  {
-    id: "act_gyeongju_hanbok",
-    cityCode: "GYEONGJU",
-    relatedSpotKey: "gyeongju_hwangridan",
-    relatedSpotNameKo: "황리단길",
-    relatedSpotNameEn: "Hwangnidan-gil",
-    nameKo: "황리단길 신라복 & 한복 대여",
-    nameEn: "Hwangnidan-gil Silla Hanbok Rental",
-    descKo: "천년고도 경주 대릉원과 황리단길에서 특별한 신라 귀족 복식 및 한복 대여.",
-    descEn: "Ancient Silla kingdom royal costume and hanbok rental for historic park strolling.",
-    priceKrw: 20000,
-    tag: "신라복식/전통",
-    categoryType: "명소",
-    imageUrl: "https://images.unsplash.com/photo-1582233479366-6d38bc390a08?auto=format&fit=crop&w=800&q=80",
-    durationTextKo: "2시간",
-    durationTextEn: "2 hours",
-  },
-
-  // ========================================================
-  // 7. 전주 (JEONJU)
-  // ========================================================
-  {
-    id: "act_jeonju_bibimbap_class",
-    cityCode: "JEONJU",
-    relatedSpotKey: "jeonju_hanok_village",
-    relatedSpotNameKo: "전주 한옥마을",
-    relatedSpotNameEn: "Jeonju Hanok Village",
-    nameKo: "전주 전통비빔밥 만들기 체험",
-    nameEn: "Jeonju Bibimbap Cooking Class",
-    descKo: "전통 장류와 제철 나물로 만드는 명품 전주비빔밥 조리 및 한약재 발효 모주 시음.",
-    descEn: "Hands-on culinary class preparing authentic Jeonju bibimbap and herbal moju wine.",
-    priceKrw: 35000,
-    tag: "쿠킹클래스/미식",
-    categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1553163147-622ab57be1c7?auto=format&fit=crop&w=800&q=80",
-    durationTextKo: "90분",
-    durationTextEn: "90 mins",
-  },
-
-  // ========================================================
-  // 8. 강릉 (GANGNEUNG)
-  // ========================================================
-  {
-    id: "act_gangneung_coffee_class",
-    cityCode: "GANGNEUNG",
-    relatedSpotKey: "gangneung_anmok",
-    relatedSpotNameKo: "안목해변 커피거리",
-    relatedSpotNameEn: "Anmok Beach Coffee Street",
-    nameKo: "안목해변 커피 드립 클래스",
-    nameEn: "Anmok Beach Hand-Drip Coffee Class",
-    descKo: "한국 커피의 성지 안목해변에서 전문 바리스타에게 배우는 핸드드립 추출과 원두 테이스팅.",
-    descEn: "Specialty coffee brewing and tasting session guided by artisan baristas on Gangneung coast.",
-    priceKrw: 25000,
-    tag: "커피체험",
-    categoryType: "엔터",
-    imageUrl: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
-    durationTextKo: "60분",
-    durationTextEn: "60 mins",
-  },
-
-  // ========================================================
-  // 9. 속초 (SOKCHO)
-  // ========================================================
   {
     id: "act_sokcho_abai_boat",
     cityCode: "SOKCHO",
@@ -346,10 +219,11 @@ export const THEME_ACTIVITIES_CATALOG: ThemeActivityItem[] = [
     priceKrw: 1000,
     tag: "전통갯배",
     categoryType: "명소",
-    imageUrl: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80",
+    imageUrl: "https://conlab.visitkorea.or.kr/api/depot/public/depot-flow/query/download-image/38baihrb-usjm-z68c-189s-d4p2ejmhs6f/it11",
     durationTextKo: "왕복",
     durationTextEn: "Round-trip",
-  },
+    isActive: true,
+  }
 ];
 
 let dynamicActivitiesCache: ThemeActivityItem[] | null = null;

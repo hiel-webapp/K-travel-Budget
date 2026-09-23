@@ -45,6 +45,36 @@ function getActivityEmoji(actId?: string, nameKo?: string): string {
   return "✨";
 }
 
+/**
+ * 관광 카드의 선택 상태 및 코스 순번(routeOrder)에 따른 동적 Z-Index 계산
+ * - 단일 스팟 선택 시: 999 (무조건 모든 마커 중 최상단)
+ * - 코스 전체/다중 선택 시: 200 - routeOrder (1번이 2번보다 위, 순서대로 차례차례 노출)
+ * - 기본 미선택 상태: 100 - routeOrder (기본 순번대로 자연스럽게 위계 형성)
+ * - 기타 비활성 마커: 10 (가장 아래)
+ */
+function getSpotZIndex(spotId: string, routeOrder: number, selectedSpotIds: string[]): number {
+  const isSelected = selectedSpotIds.includes(spotId);
+  const isSingle = selectedSpotIds.length === 1 && selectedSpotIds[0] === spotId;
+
+  // 1. 단일 스팟이 강조된 경우 -> 무조건 최상단 999
+  if (isSingle) {
+    return 999;
+  }
+
+  // 2. 코스 전체가 선택되었거나 다중 선택된 경우 -> 선택된 것들은 순번대로 (1번이 가장 위: 200 - routeOrder)
+  if (selectedSpotIds.length > 1 && isSelected) {
+    return 200 - routeOrder;
+  }
+
+  // 3. 아무것도 선택되지 않았을 때도 기본적으로 1번부터 차례대로 위에 정돈 (100 - routeOrder)
+  if (selectedSpotIds.length === 0) {
+    return 100 - routeOrder;
+  }
+
+  // 4. 다른 것이 선택되어 비활성화된 스팟 -> 가장 아래 10
+  return 10;
+}
+
 declare global {
   interface Window {
     kakao: any;
@@ -368,6 +398,7 @@ export default function SmartRouteMap({
           const content = document.createElement("div");
           content.setAttribute("data-spot-marker", "true");
           content.setAttribute("data-spot-id", spot.id);
+          content.setAttribute("data-route-order", String(spot.routeOrder));
           content.className = "cursor-pointer transform -translate-x-1/2 -translate-y-full transition-transform duration-150 hover:scale-110";
           content.innerHTML = `
             <!-- 비선택 기본 핀 (단정하고 깔끔한 화이트/슬레이트 스타일) -->
@@ -399,12 +430,17 @@ export default function SmartRouteMap({
             map.panTo(pos);
           };
 
+          const calculatedZ = getSpotZIndex(spot.id, spot.routeOrder, selectedSpotIds);
+
           const overlay = new window.kakao.maps.CustomOverlay({
             position: pos,
             content,
             yAnchor: 1,
-            zIndex: isSelected ? 30 : 10,
+            zIndex: calculatedZ,
           });
+
+          (overlay as any).spotId = spot.id;
+          (overlay as any).routeOrder = spot.routeOrder;
 
           overlay.setMap(map);
           overlaysRef.current.push(overlay);
@@ -460,12 +496,26 @@ export default function SmartRouteMap({
     return () => clearTimeout(timer);
   }, [activeCity, displayedSpots]);
 
-  // 선택된 장소들(selectedSpotIds) 변경 시 지도 위의 핀 스타일을 즉시 동기화
+  // 선택된 장소들(selectedSpotIds) 변경 시 지도 위의 핀 스타일 및 zIndex를 즉시 동기화
   useEffect(() => {
+    // 1. 카카오맵 SDK CustomOverlay 객체의 zIndex 업데이트
+    if (overlaysRef.current && overlaysRef.current.length > 0) {
+      overlaysRef.current.forEach((overlay) => {
+        const spotId = (overlay as any).spotId;
+        const routeOrder = (overlay as any).routeOrder || 1;
+        if (spotId && typeof overlay.setZIndex === "function") {
+          const z = getSpotZIndex(spotId, routeOrder, selectedSpotIds);
+          overlay.setZIndex(z);
+        }
+      });
+    }
+
+    // 2. DOM 요소의 핀 스타일(normal vs active) 및 zIndex & 부모 래퍼 zIndex 업데이트
     if (!mapContainerRef.current) return;
     const markerElements = mapContainerRef.current.querySelectorAll<HTMLElement>("[data-spot-marker]");
     markerElements.forEach((el) => {
       const spotId = el.getAttribute("data-spot-id");
+      const routeOrder = parseInt(el.getAttribute("data-route-order") || "1", 10);
       const isSel = spotId ? selectedSpotIds.includes(spotId) : false;
       const normalPin = el.querySelector<HTMLElement>(".pin-normal");
       const activePin = el.querySelector<HTMLElement>(".pin-active");
@@ -473,7 +523,14 @@ export default function SmartRouteMap({
         normalPin.style.display = isSel ? "none" : "flex";
         activePin.style.display = isSel ? "flex" : "none";
       }
-      el.style.zIndex = isSel ? "30" : "10";
+
+      if (spotId) {
+        const z = getSpotZIndex(spotId, routeOrder, selectedSpotIds);
+        el.style.zIndex = String(z);
+        if (el.parentElement) {
+          el.parentElement.style.zIndex = String(z);
+        }
+      }
     });
   }, [selectedSpotIds]);
 

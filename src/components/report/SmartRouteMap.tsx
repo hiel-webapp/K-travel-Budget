@@ -214,6 +214,38 @@ export default function SmartRouteMap({
     }
   };
 
+  // 마커 캡슐(텍스트)이 지도 외곽으로 잘리지 않도록 상하좌우 안전 여백을 포함한 Bounds 계산
+  const getPaddedBounds = (spots: RouteSpotItem[], paddingRatio = 0.35) => {
+    if (typeof window === "undefined" || !window.kakao || !window.kakao.maps || spots.length === 0) {
+      return null;
+    }
+
+    let minLat = spots[0].lat;
+    let maxLat = spots[0].lat;
+    let minLng = spots[0].lng;
+    let maxLng = spots[0].lng;
+
+    spots.forEach((s) => {
+      if (s.lat < minLat) minLat = s.lat;
+      if (s.lat > maxLat) maxLat = s.lat;
+      if (s.lng < minLng) minLng = s.lng;
+      if (s.lng > maxLng) maxLng = s.lng;
+    });
+
+    // 위경도 차이 계산 (스팟들이 너무 가까울 경우를 대비한 최소 안전 범위 보정)
+    const latDiff = Math.max(maxLat - minLat, 0.008);
+    const lngDiff = Math.max(maxLng - minLng, 0.008);
+
+    // 상하좌우 패딩 (가로 텍스트 말풍선 길이를 고려하여 좌우 padLng에 더 넉넉한 패딩 적용)
+    const padLat = latDiff * paddingRatio;
+    const padLng = lngDiff * (paddingRatio * 1.45);
+
+    return new window.kakao.maps.LatLngBounds(
+      new window.kakao.maps.LatLng(minLat - padLat, minLng - padLng),
+      new window.kakao.maps.LatLng(maxLat + padLat, maxLng + padLng)
+    );
+  };
+
   // 코스 타이틀 클릭 핸들러 (코스 내 모든 관광지 일괄 강조 + 지도 Bounds 자동 조정)
   const handleCourseTitleClick = (group: RouteSpotGroup) => {
     const groupSpotIds = group.spots.map((s) => s.id);
@@ -223,24 +255,30 @@ export default function SmartRouteMap({
       selectedSpotIds.length === groupSpotIds.length;
 
     if (isAllGroupSelected) {
-      // 이미 해당 코스의 모든 스팟이 선택되어 있다면 전체 해제
+      // 이미 해당 코스의 모든 스팟이 선택되어 있다면 전체 해제 및 전체 뷰 복귀
       setSelectedSpotIds([]);
+      if (mapInstanceRef.current && window.kakao && displayedSpots.length > 0) {
+        const allBounds = getPaddedBounds(displayedSpots, 0.28);
+        if (allBounds) {
+          mapInstanceRef.current.setBounds(allBounds);
+        }
+      }
     } else {
       // 해당 코스에 속한 모든 스팟을 일괄 선택 및 강조
       setSelectedSpotIds(groupSpotIds);
 
-      // 지도 포커스: 해당 코스 스팟들의 좌표 영역(Bounds)으로 부드럽게 맞춤
+      // 지도 포커스: 마커 텍스트가 화면 밖으로 잘리지 않도록 안전 여백이 포함된 영역으로 맞춤
       if (mapInstanceRef.current && window.kakao && group.spots.length > 0) {
         if (group.spots.length === 1) {
           mapInstanceRef.current.panTo(
             new window.kakao.maps.LatLng(group.spots[0].lat, group.spots[0].lng)
           );
+          mapInstanceRef.current.setLevel(5);
         } else {
-          const bounds = new window.kakao.maps.LatLngBounds();
-          group.spots.forEach((s) => {
-            bounds.extend(new window.kakao.maps.LatLng(s.lat, s.lng));
-          });
-          mapInstanceRef.current.setBounds(bounds);
+          const paddedBounds = getPaddedBounds(group.spots, 0.38);
+          if (paddedBounds) {
+            mapInstanceRef.current.setBounds(paddedBounds);
+          }
         }
       }
     }
@@ -358,12 +396,17 @@ export default function SmartRouteMap({
           polylineRef.current = polyline;
         }
 
-        // 영역 자동 조정
+        // 영역 자동 조정 (마커 텍스트가 잘리지 않도록 안전 여백 Padded Bounds 적용)
         if (displayedSpots.length === 1) {
           map.setCenter(new window.kakao.maps.LatLng(displayedSpots[0].lat, displayedSpots[0].lng));
           map.setLevel(5);
         } else {
-          map.setBounds(bounds);
+          const paddedBounds = getPaddedBounds(displayedSpots, 0.28);
+          if (paddedBounds) {
+            map.setBounds(paddedBounds);
+          } else {
+            map.setBounds(bounds);
+          }
         }
       } catch (e) {
         console.error("Failed to render Kakao Map:", e);
@@ -508,9 +551,9 @@ export default function SmartRouteMap({
             </div>
           </div>
 
-          {/* 우측 컴팩트 카카오맵 뷰포트 (지도의 크기를 줄임) */}
+          {/* 우측 컴팩트 카카오맵 뷰포트 */}
           <div className="flex-1 min-w-0">
-            <div className="relative w-full h-72 sm:h-80 md:h-[350px] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-inner">
+            <div className="relative w-full h-80 sm:h-96 md:h-[410px] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-inner">
               <div ref={mapContainerRef} className="w-full h-full" />
 
               {/* 로딩 / 에러 폴백 */}

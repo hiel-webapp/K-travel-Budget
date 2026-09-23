@@ -75,9 +75,9 @@ export default function ReportBentoDashboard({
         <div className="flex flex-col justify-between space-y-3">
           <div>
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 block">
+              <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight">
                 {locale === "ko" ? "총 예상 경비" : "TOTAL ESTIMATED BUDGET"}
-              </span>
+              </h2>
               <span
                 className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-tight shadow-2xs"
                 title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
@@ -114,9 +114,9 @@ export default function ReportBentoDashboard({
           <div className="space-y-2.5">
             {/* Header: Title */}
             <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-neutral-400 block">
+              <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight">
                 {locale === "ko" ? "1일 예상 지출 분석" : "DAILY EXPENSE INSIGHT"}
-              </span>
+              </h2>
             </div>
 
             {/* Price & 1인당 금액 (TOTAL ESTIMATED BUDGET과 동일한 스타일) */}

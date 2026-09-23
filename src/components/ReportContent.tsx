@@ -196,9 +196,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               <span className="text-[11px] font-extrabold tracking-tight text-teal-800 uppercase bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/60">
                 HypeHeritage Travel Report
               </span>
-              <span className="text-xs font-semibold text-neutral-500">
-                {totalNights}{locale === "ko" ? "박 " : "N "}{travelDays}{locale === "ko" ? "일" : "D"} · {adultCount}{locale === "ko" ? "인 성인" : " Adults"}
-              </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight">
               {dict.planner.reportTitle}
@@ -223,9 +220,16 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           </div>
         </div>
 
-        {/* Selected Cities Tag Strip */}
-        <div className="pt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-neutral-600">
-          <span className="text-neutral-400 font-bold uppercase text-[10px] tracking-wider">ROUTE:</span>
+        {/* Selected Cities Tag Strip with Travel Duration & Adults */}
+        <div className="pt-3 flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs font-semibold text-neutral-600">
+          <span className="bg-neutral-100/80 border border-neutral-200/60 text-neutral-800 px-3 py-1 rounded-full text-xs font-bold">
+            {totalNights}{locale === "ko" ? "박 " : "N "}{travelDays}{locale === "ko" ? "일" : "D"}
+          </span>
+          <span className="bg-neutral-100/80 border border-neutral-200/60 text-neutral-800 px-3 py-1 rounded-full text-xs font-bold">
+            {adultCount}{locale === "ko" ? "인 성인" : " Adults"}
+          </span>
+          <span className="text-neutral-300 font-bold text-xs">·</span>
+          <span className="text-neutral-400 font-bold uppercase text-[10px] tracking-wider shrink-0">ROUTE:</span>
           <div className="flex flex-wrap items-center gap-1.5">
             {draft.selectedCities.map((city, idx) => {
               const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;

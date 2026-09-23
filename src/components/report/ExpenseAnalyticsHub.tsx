@@ -153,58 +153,6 @@ export default function ExpenseAnalyticsHub({
     pct: cityPercentList[idx],
   }));
 
-  // 도시별 비중 세로 막대 좌측 라벨 위치 및 좁은 간격 겹침 방지(Collision Avoidance) 계산
-  const cityLabelLayouts = useMemo(() => {
-    const validItems = cityBarItems.filter((c) => c.pct > 0);
-    if (validItems.length === 0) return [];
-
-    let acc = 0;
-    const rawList = validItems.map((c) => {
-      const center = acc + c.pct / 2;
-      acc += c.pct;
-      return {
-        ...c,
-        originalCenterPct: center,
-        displayYPercent: center,
-      };
-    });
-
-    // 최소 간격 (% 기준): 215px 기준 텍스트 높이 + 여백 감안 시 약 9.5%
-    const MIN_GAP_PCT = 9.5;
-
-    // 1차 순방향 밀어내기 (위 -> 아래)
-    for (let i = 1; i < rawList.length; i++) {
-      if (rawList[i].displayYPercent - rawList[i - 1].displayYPercent < MIN_GAP_PCT) {
-        rawList[i].displayYPercent = rawList[i - 1].displayYPercent + MIN_GAP_PCT;
-      }
-    }
-
-    // 하단 경계(96%) 초과 시 역방향 밀어내기 (아래 -> 위)
-    if (rawList[rawList.length - 1].displayYPercent > 96) {
-      rawList[rawList.length - 1].displayYPercent = 96;
-      for (let i = rawList.length - 2; i >= 0; i--) {
-        if (rawList[i + 1].displayYPercent - rawList[i].displayYPercent < MIN_GAP_PCT) {
-          rawList[i].displayYPercent = rawList[i + 1].displayYPercent - MIN_GAP_PCT;
-        }
-      }
-    }
-
-    // 상단 경계(4%) 보정
-    if (rawList[0].displayYPercent < 4) {
-      rawList[0].displayYPercent = 4;
-      for (let i = 1; i < rawList.length; i++) {
-        if (rawList[i].displayYPercent - rawList[i - 1].displayYPercent < MIN_GAP_PCT) {
-          rawList[i].displayYPercent = rawList[i - 1].displayYPercent + MIN_GAP_PCT;
-        }
-      }
-    }
-
-    return rawList.map((item) => ({
-      ...item,
-      isOffset: Math.abs(item.displayYPercent - item.originalCenterPct) > 2.5,
-    }));
-  }, [cityBarItems]);
-
   // 5. 카테고리별 비중 (%) 계산 (위에서 아래로: 숙소, 음식, 관광, 교통, 기타 순서)
   const stayPct = Math.round((stayTotal / safeTotal) * 100);
   const foodPct = Math.round((foodTotal / safeTotal) * 100);
@@ -219,6 +167,7 @@ export default function ExpenseAnalyticsHub({
       pct: stayPct,
       amount: stayTotal,
       barColor: "bg-teal-500",
+      textColor: "text-teal-700",
     },
     {
       key: "food",
@@ -226,6 +175,7 @@ export default function ExpenseAnalyticsHub({
       pct: foodPct,
       amount: foodTotal,
       barColor: "bg-rose-500",
+      textColor: "text-rose-600",
     },
     {
       key: "attraction",
@@ -233,6 +183,7 @@ export default function ExpenseAnalyticsHub({
       pct: attrPct,
       amount: attractionTotal,
       barColor: "bg-amber-500",
+      textColor: "text-amber-700",
     },
     {
       key: "transport",
@@ -240,6 +191,7 @@ export default function ExpenseAnalyticsHub({
       pct: transPct,
       amount: transportTotal,
       barColor: "bg-indigo-500",
+      textColor: "text-indigo-600",
     },
     {
       key: "etc",
@@ -247,8 +199,72 @@ export default function ExpenseAnalyticsHub({
       pct: etcPct,
       amount: etcTotal,
       barColor: "bg-purple-500",
+      textColor: "text-purple-600",
     },
   ];
+
+  // 좌/우 교차 2줄 라벨(홀수: 좌측, 짝수: 우측) 위치 및 겹침 방지(Collision Avoidance) 계산 헬퍼
+  const computeAlternatingLabels = <T extends { pct: number }>(items: T[]) => {
+    const validItems = items.filter((item) => item.pct > 0);
+    if (validItems.length === 0) return [];
+
+    let acc = 0;
+    const list = validItems.map((item, idx) => {
+      const center = acc + item.pct / 2;
+      acc += item.pct;
+      // 1, 3, 5번째 (idx 0, 2, 4) -> 좌측 / 2, 4번째 (idx 1, 3) -> 우측
+      const side: "left" | "right" = idx % 2 === 0 ? "left" : "right";
+      return {
+        ...item,
+        originalCenterPct: center,
+        displayYPercent: center,
+        side,
+      };
+    });
+
+    const MIN_GAP_PCT = 11; // 2줄 텍스트(약 26px) 공간 확보
+
+    ["left", "right"].forEach((targetSide) => {
+      const sideItems = list.filter((it) => it.side === targetSide);
+      if (sideItems.length <= 1) return;
+
+      for (let i = 1; i < sideItems.length; i++) {
+        if (sideItems[i].displayYPercent - sideItems[i - 1].displayYPercent < MIN_GAP_PCT) {
+          sideItems[i].displayYPercent = sideItems[i - 1].displayYPercent + MIN_GAP_PCT;
+        }
+      }
+
+      if (sideItems[sideItems.length - 1].displayYPercent > 94) {
+        sideItems[sideItems.length - 1].displayYPercent = 94;
+        for (let i = sideItems.length - 2; i >= 0; i--) {
+          if (sideItems[i + 1].displayYPercent - sideItems[i].displayYPercent < MIN_GAP_PCT) {
+            sideItems[i].displayYPercent = sideItems[i + 1].displayYPercent - MIN_GAP_PCT;
+          }
+        }
+      }
+
+      if (sideItems[0].displayYPercent < 6) {
+        sideItems[0].displayYPercent = 6;
+        for (let i = 1; i < sideItems.length; i++) {
+          if (sideItems[i].displayYPercent - sideItems[i - 1].displayYPercent < MIN_GAP_PCT) {
+            sideItems[i].displayYPercent = sideItems[i - 1].displayYPercent + MIN_GAP_PCT;
+          }
+        }
+      }
+    });
+
+    return list;
+  };
+
+  const categoryLabelLayouts = useMemo(
+    () => computeAlternatingLabels(categoryList),
+    [categoryList]
+  );
+
+  const cityLabelLayouts = useMemo(
+    () => computeAlternatingLabels(cityBarItems),
+    [cityBarItems]
+  );
 
   // 4개 행을 유지하기 위한 빈 행(placeholder rows) 계산
   const minRows = 4;
@@ -376,7 +392,7 @@ export default function ExpenseAnalyticsHub({
         {/* ========================================================================= */}
         <div className="lg:col-span-4 grid grid-cols-2 gap-3.5 items-stretch">
           
-          {/* [세로 막대그래프 1: 카테고리 비중] - 높이를 h-40 sm:h-44로 표와 완벽하게 동기화 */}
+          {/* [세로 막대그래프 1: 카테고리 비중] - 슬림 캡슐 막대 + 좌우 2줄 교차 지시선 */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
@@ -385,35 +401,58 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 (박스 중앙 정렬 & 시원하게 확장된 높이) */}
-            <div className="flex-1 flex items-center justify-center py-1 relative">
-              <div className="w-14 sm:w-16 h-[210px] sm:h-[220px] rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
-                {categoryList.map((cat) => {
-                  if (cat.pct <= 0) return null;
-                  const isSmall = cat.pct < 7;
-                  return (
-                    <div
-                      key={cat.key}
-                      style={{ height: `${cat.pct}%` }}
-                      className={`${cat.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
-                      title={`${cat.label}: ${cat.pct}% (${formatPriceByLocale(cat.amount, locale, usdRate)})`}
-                    >
-                      {!isSmall ? (
-                        <span className="text-white text-[11px] font-black">{cat.pct}%</span>
-                      ) : (
-                        <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
-                          <span className="text-neutral-400 mr-0.5">-</span>
-                          <span>{cat.pct}%</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* 슬림 막대 + 좌우 교차 2줄 라벨 */}
+            <div className="flex-1 flex items-center justify-center py-2 relative">
+              <div className="relative flex items-center justify-center">
+                {/* 라벨 레이어 (좌우 지시선 오버레이) */}
+                <div className="absolute inset-0 h-[210px] sm:h-[220px] pointer-events-none">
+                  {categoryLabelLayouts.map((cat) => {
+                    const isLeft = cat.side === "left";
+                    return (
+                      <div
+                        key={cat.key}
+                        style={{ top: `${cat.displayYPercent}%` }}
+                        className={`absolute -translate-y-1/2 flex items-center gap-1.5 whitespace-nowrap z-10 ${
+                          isLeft ? "right-full mr-1.5" : "left-full ml-1.5"
+                        }`}
+                      >
+                        {isLeft && (
+                          <div className="text-right leading-none">
+                            <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{cat.label}</span>
+                            <span className={`block text-xs font-black tabular-nums ${cat.textColor}`}>{cat.pct}%</span>
+                          </div>
+                        )}
+                        <span className="w-2.5 sm:w-3.5 h-[1.5px] bg-neutral-300 rounded-full shrink-0" />
+                        {!isLeft && (
+                          <div className="text-left leading-none">
+                            <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{cat.label}</span>
+                            <span className={`block text-xs font-black tabular-nums ${cat.textColor}`}>{cat.pct}%</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 슬림 세로 누적 막대 */}
+                <div className="w-7 sm:w-8 h-[210px] sm:h-[220px] rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden">
+                  {categoryList.map((cat) => {
+                    if (cat.pct <= 0) return null;
+                    return (
+                      <div
+                        key={cat.key}
+                        style={{ height: `${cat.pct}%` }}
+                        className={`${cat.barColor} w-full first:rounded-t-full last:rounded-b-full transition-all duration-500 relative select-none`}
+                        title={`${cat.label}: ${cat.pct}% (${formatPriceByLocale(cat.amount, locale, usdRate)})`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* [세로 막대그래프 2: 방문 도시별 비중] - 박스 중앙 정렬 & 시원하게 확장된 높이 */}
+          {/* [세로 막대그래프 2: 방문 도시별 비중] - 슬림 캡슐 막대 + 좌우 2줄 교차 지시선 */}
           <div className="p-3.5 sm:p-4 rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between space-y-2">
             <div className="border-b border-neutral-200/60 pb-1.5 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
@@ -422,53 +461,50 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 (좌측 도시명 라벨 + 박스 중앙 정렬) */}
-            <div className="flex-1 flex items-center justify-center py-1 pl-10 sm:pl-12 relative">
-              <div className="relative flex items-center">
-                {/* 좌측 도시명 라벨 오버레이 */}
-                <div className="absolute right-full mr-2 h-[210px] sm:h-[220px] w-20 sm:w-24 pointer-events-none">
-                  {cityLabelLayouts.map((c) => (
-                    <div
-                      key={c.city}
-                      style={{ top: `${c.displayYPercent}%` }}
-                      className="absolute right-0 -translate-y-1/2 flex items-center justify-end gap-1 whitespace-nowrap"
-                    >
-                      <span
-                        className={`text-[10.5px] sm:text-[11px] font-black tracking-tight ${c.textColor}`}
-                        title={`${c.cityName}: ${c.pct}%`}
+            {/* 슬림 막대 + 좌우 교차 2줄 라벨 */}
+            <div className="flex-1 flex items-center justify-center py-2 relative">
+              <div className="relative flex items-center justify-center">
+                {/* 라벨 레이어 (좌우 지시선 오버레이) */}
+                <div className="absolute inset-0 h-[210px] sm:h-[220px] pointer-events-none">
+                  {cityLabelLayouts.map((c) => {
+                    const isLeft = c.side === "left";
+                    return (
+                      <div
+                        key={c.city}
+                        style={{ top: `${c.displayYPercent}%` }}
+                        className={`absolute -translate-y-1/2 flex items-center gap-1.5 whitespace-nowrap z-10 ${
+                          isLeft ? "right-full mr-1.5" : "left-full ml-1.5"
+                        }`}
                       >
-                        {c.cityName}
-                      </span>
-                      {c.isOffset ? (
-                        <span className="w-2.5 h-[1.5px] bg-neutral-300 rounded-full shrink-0" />
-                      ) : (
-                        <span className={`w-1.5 h-1.5 rounded-full ${c.barColor} shrink-0 opacity-80`} />
-                      )}
-                    </div>
-                  ))}
+                        {isLeft && (
+                          <div className="text-right leading-none">
+                            <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{c.cityName}</span>
+                            <span className={`block text-xs font-black tabular-nums ${c.textColor}`}>{c.pct}%</span>
+                          </div>
+                        )}
+                        <span className="w-2.5 sm:w-3.5 h-[1.5px] bg-neutral-300 rounded-full shrink-0" />
+                        {!isLeft && (
+                          <div className="text-left leading-none">
+                            <span className="block text-[10px] text-neutral-500 font-bold mb-0.5">{c.cityName}</span>
+                            <span className={`block text-xs font-black tabular-nums ${c.textColor}`}>{c.pct}%</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* 중앙 세로 누적 막대 */}
-                <div className="w-13 sm:w-15 h-[210px] sm:h-[220px] rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
+                {/* 슬림 세로 누적 막대 */}
+                <div className="w-7 sm:w-8 h-[210px] sm:h-[220px] rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden">
                   {cityBarItems.map((c) => {
                     if (c.pct <= 0) return null;
-                    const isSmall = c.pct < 7;
                     return (
                       <div
                         key={c.city}
                         style={{ height: `${c.pct}%` }}
-                        className={`${c.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
+                        className={`${c.barColor} w-full first:rounded-t-full last:rounded-b-full transition-all duration-500 relative select-none`}
                         title={`${c.cityName}: ${c.pct}% (${formatPriceByLocale(c.subtotal, locale, usdRate)})`}
-                      >
-                        {!isSmall ? (
-                          <span className="text-white text-[11px] font-black">{c.pct}%</span>
-                        ) : (
-                          <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
-                            <span className="text-neutral-400 mr-0.5">-</span>
-                            <span>{c.pct}%</span>
-                          </div>
-                        )}
-                      </div>
+                      />
                     );
                   })}
                 </div>

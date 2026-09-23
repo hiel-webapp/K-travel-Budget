@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import type { Locale } from "src/lib/i18n/locales";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { TripDraft } from "src/lib/trip-domain";
@@ -152,6 +152,58 @@ export default function ExpenseAnalyticsHub({
     ...r,
     pct: cityPercentList[idx],
   }));
+
+  // 도시별 비중 세로 막대 좌측 라벨 위치 및 좁은 간격 겹침 방지(Collision Avoidance) 계산
+  const cityLabelLayouts = useMemo(() => {
+    const validItems = cityBarItems.filter((c) => c.pct > 0);
+    if (validItems.length === 0) return [];
+
+    let acc = 0;
+    const rawList = validItems.map((c) => {
+      const center = acc + c.pct / 2;
+      acc += c.pct;
+      return {
+        ...c,
+        originalCenterPct: center,
+        displayYPercent: center,
+      };
+    });
+
+    // 최소 간격 (% 기준): 215px 기준 텍스트 높이 + 여백 감안 시 약 9.5%
+    const MIN_GAP_PCT = 9.5;
+
+    // 1차 순방향 밀어내기 (위 -> 아래)
+    for (let i = 1; i < rawList.length; i++) {
+      if (rawList[i].displayYPercent - rawList[i - 1].displayYPercent < MIN_GAP_PCT) {
+        rawList[i].displayYPercent = rawList[i - 1].displayYPercent + MIN_GAP_PCT;
+      }
+    }
+
+    // 하단 경계(96%) 초과 시 역방향 밀어내기 (아래 -> 위)
+    if (rawList[rawList.length - 1].displayYPercent > 96) {
+      rawList[rawList.length - 1].displayYPercent = 96;
+      for (let i = rawList.length - 2; i >= 0; i--) {
+        if (rawList[i + 1].displayYPercent - rawList[i].displayYPercent < MIN_GAP_PCT) {
+          rawList[i].displayYPercent = rawList[i + 1].displayYPercent - MIN_GAP_PCT;
+        }
+      }
+    }
+
+    // 상단 경계(4%) 보정
+    if (rawList[0].displayYPercent < 4) {
+      rawList[0].displayYPercent = 4;
+      for (let i = 1; i < rawList.length; i++) {
+        if (rawList[i].displayYPercent - rawList[i - 1].displayYPercent < MIN_GAP_PCT) {
+          rawList[i].displayYPercent = rawList[i - 1].displayYPercent + MIN_GAP_PCT;
+        }
+      }
+    }
+
+    return rawList.map((item) => ({
+      ...item,
+      isOffset: Math.abs(item.displayYPercent - item.originalCenterPct) > 2.5,
+    }));
+  }, [cityBarItems]);
 
   // 5. 카테고리별 비중 (%) 계산 (위에서 아래로: 숙소, 음식, 관광, 교통, 기타 순서)
   const stayPct = Math.round((stayTotal / safeTotal) * 100);
@@ -370,30 +422,56 @@ export default function ExpenseAnalyticsHub({
               <span className="text-[9px] font-bold text-neutral-400">100%</span>
             </div>
 
-            {/* 세로 누적 막대 (박스 중앙 정렬 & 시원하게 확장된 높이) */}
-            <div className="flex-1 flex items-center justify-center py-1 relative">
-              <div className="w-14 sm:w-16 h-[210px] sm:h-[220px] rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
-                {cityBarItems.map((c) => {
-                  if (c.pct <= 0) return null;
-                  const isSmall = c.pct < 7;
-                  return (
+            {/* 세로 누적 막대 (좌측 도시명 라벨 + 박스 중앙 정렬) */}
+            <div className="flex-1 flex items-center justify-center py-1 pl-10 sm:pl-12 relative">
+              <div className="relative flex items-center">
+                {/* 좌측 도시명 라벨 오버레이 */}
+                <div className="absolute right-full mr-2 h-[210px] sm:h-[220px] w-20 sm:w-24 pointer-events-none">
+                  {cityLabelLayouts.map((c) => (
                     <div
                       key={c.city}
-                      style={{ height: `${c.pct}%` }}
-                      className={`${c.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
-                      title={`${c.cityName}: ${c.pct}% (${formatPriceByLocale(c.subtotal, locale, usdRate)})`}
+                      style={{ top: `${c.displayYPercent}%` }}
+                      className="absolute right-0 -translate-y-1/2 flex items-center justify-end gap-1 whitespace-nowrap"
                     >
-                      {!isSmall ? (
-                        <span className="text-white text-[11px] font-black">{c.pct}%</span>
+                      <span
+                        className={`text-[10.5px] sm:text-[11px] font-black tracking-tight ${c.textColor}`}
+                        title={`${c.cityName}: ${c.pct}%`}
+                      >
+                        {c.cityName}
+                      </span>
+                      {c.isOffset ? (
+                        <span className="w-2.5 h-[1.5px] bg-neutral-300 rounded-full shrink-0" />
                       ) : (
-                        <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
-                          <span className="text-neutral-400 mr-0.5">-</span>
-                          <span>{c.pct}%</span>
-                        </div>
+                        <span className={`w-1.5 h-1.5 rounded-full ${c.barColor} shrink-0 opacity-80`} />
                       )}
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+
+                {/* 중앙 세로 누적 막대 */}
+                <div className="w-13 sm:w-15 h-[210px] sm:h-[220px] rounded-2xl flex flex-col bg-neutral-200/60 p-1 shadow-inner relative">
+                  {cityBarItems.map((c) => {
+                    if (c.pct <= 0) return null;
+                    const isSmall = c.pct < 7;
+                    return (
+                      <div
+                        key={c.city}
+                        style={{ height: `${c.pct}%` }}
+                        className={`${c.barColor} w-full first:rounded-t-xl last:rounded-b-xl transition-all duration-500 flex items-center justify-center relative select-none`}
+                        title={`${c.cityName}: ${c.pct}% (${formatPriceByLocale(c.subtotal, locale, usdRate)})`}
+                      >
+                        {!isSmall ? (
+                          <span className="text-white text-[11px] font-black">{c.pct}%</span>
+                        ) : (
+                          <div className="absolute left-full ml-1.5 flex items-center text-[10px] font-black text-neutral-800 whitespace-nowrap z-10 pointer-events-none">
+                            <span className="text-neutral-400 mr-0.5">-</span>
+                            <span>{c.pct}%</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

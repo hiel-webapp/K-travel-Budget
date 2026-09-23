@@ -2484,50 +2484,83 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
     const courseTitle = locale === "ko" ? course.nameKo : course.nameEn;
 
-    // [상황 1] 완전 선택 또는 일부 담김 상태에서 클릭 시 -> 코스 및 관련 장소 전부 일괄 해제 (초기 미선택 무표시 상태로 리셋)
+    // [상황 1] 완전 선택 또는 일부 담김 상태에서 클릭 시 -> 코스 및 관련 장소 + 연계 K-체험 전부 일괄 해제
     if (hasAnySpotInCourse) {
+      const allCourseKeys = new Set<string>();
+      const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
+      course.spotIds.forEach((sid) => {
+        allCourseKeys.add(normalizeSpotKey(sid));
+        const sp = allSpots.find((s) => isSameSpot(s.id, sid));
+        const relatedAct = getRelatedThemeActivity(sid, sp?.nameKo);
+        if (relatedAct) {
+          allCourseKeys.add(normalizeSpotKey(relatedAct.id));
+        }
+      });
+
       nextIndividualSpotIds = nextIndividualSpotIds.filter(
-        (id) => !course.spotIds.some((sid) => isSameSpot(sid, id))
+        (id) => !allCourseKeys.has(normalizeSpotKey(id))
       );
 
       setToastMessage(
         locale === "ko"
-          ? `[${courseTitle}]의 모든 장소가 예산에서 제외되었습니다.`
-          : `All spots in [${courseTitle}] removed from budget.`
+          ? `[${courseTitle}]의 모든 장소 및 연계 체험이 예산에서 제외되었습니다.`
+          : `All spots and linked activities in [${courseTitle}] removed from budget.`
       );
       setTimeout(() => setToastMessage(null), 2500);
 
-      // K-스팟 budgetPlaces에서도 해당 코스 장소들 일괄 제거
+      // K-스팟 budgetPlaces에서도 해당 코스 장소 및 연계 체험 일괄 제거
       const currentBudget = loadBudgetPlaces();
       const nextBudget = currentBudget.filter(
-        (p) => !course.spotIds.some((sid) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid))
+        (p) => !allCourseKeys.has(normalizeSpotKey(p.id)) && !allCourseKeys.has(normalizeSpotKey(p.contentId))
       );
       saveBudgetPlaces(nextBudget);
     }
-    // [상황 2] 미선택(표시 없음) 상태에서 클릭 시 -> 코스 전체 담기
+    // [상황 2] 미선택(표시 없음) 상태에서 클릭 시 -> 코스 전체 + 각 명소별 연계 체험까지 일괄 담기
     else {
       nextCourseIds.push(courseId);
 
       setToastMessage(
         locale === "ko"
-          ? `[${courseTitle}]의 장소들이 예산에 담겼습니다.`
-          : `[${courseTitle}] spots added to budget.`
+          ? `[${courseTitle}]의 장소들과 연계 K-체험이 예산에 담겼습니다.`
+          : `[${courseTitle}] spots and linked activities added to budget.`
       );
       setTimeout(() => setToastMessage(null), 2500);
 
-      // K-스팟 budgetPlaces에 해당 코스 장소들 추가
+      // K-스팟 budgetPlaces에 해당 코스 장소 및 연계 K-체험 추가
       const currentBudget = loadBudgetPlaces();
       const allSpots = [...(dbAttractionsByCity[city] || []), ...ATTRACTION_SPOTS_CATALOG];
       const newItems: PlaceItem[] = [];
+
       course.spotIds.forEach((sid) => {
+        if (!nextIndividualSpotIds.some((id) => isSameSpot(id, sid))) {
+          nextIndividualSpotIds.push(sid);
+        }
+
+        const sp = allSpots.find((s) => isSameSpot(s.id, sid));
         if (
+          sp &&
           !currentBudget.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid)) &&
           !newItems.some((p) => isSameSpot(p.id, sid) || isSameSpot(p.contentId, sid))
         ) {
-          const sp = allSpots.find((s) => isSameSpot(s.id, sid));
-          if (sp) newItems.push(spotToPlaceItem(sp));
+          newItems.push(spotToPlaceItem(sp));
+        }
+
+        // 추천 투어 코스 선택 시 연계 K-체험(한복 대여 등)도 함께 포함
+        const relatedAct = getRelatedThemeActivity(sid, sp?.nameKo);
+        if (relatedAct) {
+          if (!nextIndividualSpotIds.some((id) => isSameSpot(id, relatedAct.id))) {
+            nextIndividualSpotIds.push(relatedAct.id);
+          }
+          const actSpot = themeActivityToAttractionSpot(relatedAct);
+          if (
+            !currentBudget.some((p) => isSameSpot(p.id, relatedAct.id) || isSameSpot(p.contentId, relatedAct.id)) &&
+            !newItems.some((p) => isSameSpot(p.id, relatedAct.id) || isSameSpot(p.contentId, relatedAct.id))
+          ) {
+            newItems.push(spotToPlaceItem(actSpot));
+          }
         }
       });
+
       if (newItems.length > 0) {
         saveBudgetPlaces([...currentBudget, ...newItems]);
       }

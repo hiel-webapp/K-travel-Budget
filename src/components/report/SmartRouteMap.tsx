@@ -201,11 +201,16 @@ export default function SmartRouteMap({
     return groups;
   }, [displayedSpots, activeCity]);
 
-  // 개별 카드 클릭 핸들러 (단일 스팟만 지도 강조 + panTo)
+  // 개별 카드 클릭 핸들러 (한번 누르면 강조, 한번 더 누르면 강조 해제)
   const handleSpotCardClick = (spot: RouteSpotItem) => {
-    setSelectedSpotIds([spot.id]);
-    if (mapInstanceRef.current && window.kakao) {
-      mapInstanceRef.current.panTo(new window.kakao.maps.LatLng(spot.lat, spot.lng));
+    const isAlreadySelected = selectedSpotIds.length === 1 && selectedSpotIds[0] === spot.id;
+    if (isAlreadySelected) {
+      setSelectedSpotIds([]);
+    } else {
+      setSelectedSpotIds([spot.id]);
+      if (mapInstanceRef.current && window.kakao) {
+        mapInstanceRef.current.panTo(new window.kakao.maps.LatLng(spot.lat, spot.lng));
+      }
     }
   };
 
@@ -320,7 +325,12 @@ export default function SmartRouteMap({
           `;
 
           content.onclick = () => {
-            setSelectedSpotIds([spot.id]);
+            setSelectedSpotIds((prev) => {
+              if (prev.length === 1 && prev[0] === spot.id) {
+                return [];
+              }
+              return [spot.id];
+            });
             map.panTo(pos);
           };
 
@@ -576,74 +586,20 @@ export default function SmartRouteMap({
 
               return (
                 <div key={group.id} className="space-y-3">
-                  {/* 코스 타이틀 헤더 바 (코스 또는 개별 그룹 헤더) */}
+                  {/* 코스 타이틀 헤더 바 (코스 명만 남기고 모두 제거) */}
                   {title && (
                     <div
                       onClick={() => handleCourseTitleClick(group)}
-                      className={`group/header flex flex-wrap items-center justify-between gap-2.5 p-3 sm:p-3.5 rounded-2xl border transition-all cursor-pointer select-none ${
+                      className={`w-fit py-1.5 px-3 rounded-xl border transition-all cursor-pointer select-none ${
                         isGroupActive
-                          ? "bg-rose-50/90 border-rose-400 ring-2 ring-rose-300/60 shadow-xs"
-                          : "bg-slate-50/90 border-slate-200/90 hover:bg-slate-100 hover:border-slate-300"
+                          ? "bg-rose-50/90 border-rose-400 text-rose-950 ring-2 ring-rose-300/60 shadow-xs"
+                          : "bg-slate-50/90 border-slate-200/90 text-slate-800 hover:bg-slate-100 hover:border-slate-300"
                       }`}
+                      title={locale === "ko" ? "클릭 시 지도에서 코스 전체 강조 / 해제" : "Click to toggle course highlight on map"}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span
-                          className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black shrink-0 transition-colors ${
-                            isGroupActive
-                              ? "bg-rose-500 text-white shadow-xs"
-                              : group.isCourse
-                              ? "bg-slate-900 text-white"
-                              : "bg-slate-200 text-slate-700"
-                          }`}
-                        >
-                          {group.isCourse ? "🧭" : "📍"}
-                        </span>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h4
-                              className={`text-sm sm:text-base font-black truncate transition-colors ${
-                                isGroupActive ? "text-rose-950" : "text-slate-900"
-                              }`}
-                            >
-                              {title}
-                            </h4>
-                            <span
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
-                                isGroupActive
-                                  ? "bg-rose-200 text-rose-800"
-                                  : "bg-slate-200/80 text-slate-700"
-                              }`}
-                            >
-                              {group.spots.length}{locale === "ko" ? "개소" : " spots"}
-                            </span>
-                            {group.estimatedHours && (
-                              <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 flex items-center gap-1">
-                                <span>⏱️</span>
-                                <span>{locale === "ko" ? `약 ${group.estimatedHours}시간` : `~${group.estimatedHours}h`}</span>
-                              </span>
-                            )}
-                          </div>
-                          {desc && (
-                            <p className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
-                              {desc}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span
-                          className={`text-[11px] font-bold px-3 py-1 rounded-xl transition-all border ${
-                            isGroupActive
-                              ? "bg-rose-500 text-white border-rose-500 shadow-xs"
-                              : "bg-white text-slate-700 border-slate-200 group-hover/header:border-rose-300 group-hover/header:text-rose-600 shadow-2xs"
-                          }`}
-                        >
-                          {isGroupActive
-                            ? (locale === "ko" ? "✓ 코스 전체 강조 해제" : "✓ Course Focused (Clear)")
-                            : (locale === "ko" ? "코스 전체 지도 강조 👆" : "Focus Course on Map 👆")}
-                        </span>
-                      </div>
+                      <h4 className="text-sm sm:text-base font-black tracking-tight">
+                        {title}
+                      </h4>
                     </div>
                   )}
 

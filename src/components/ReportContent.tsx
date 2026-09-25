@@ -295,28 +295,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         <div className="lg:col-span-4 lg:sticky lg:top-6 space-y-4">
           <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
             {/* Receipt Header */}
-            <div className="bg-neutral-50/80 border-b border-neutral-200/70 p-4 sm:p-5 flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] tracking-widest text-slate-400 block uppercase font-bold">
-                    ITEMIZED EXPENSE AUDIT
-                  </span>
-                  <span
-                    className="inline-flex items-center bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold tracking-tight"
-                    title={locale === "ko" ? "실시간 외환 시장 고시 환율 기준" : "Live foreign exchange rate"}
-                  >
-                    {locale === "ko"
-                      ? `환율: $1 ≈ ₩${Math.round(usdRate).toLocaleString("ko-KR")}`
-                      : `$1 ≈ ₩${Math.round(usdRate).toLocaleString("en-US")} (Live)`}
-                  </span>
-                </div>
-                <h2 className="text-base font-black tracking-tight text-slate-900 mt-0.5">
-                  {locale === "ko" ? "스마트 예산 영수증 세부 내역" : "Smart Budget Receipt"}
-                </h2>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] text-slate-400 block font-bold">GRAND TOTAL</span>
-                <span className="text-base sm:text-lg font-black tabular-nums text-slate-900">
+            <div className="bg-neutral-50/80 border-b border-neutral-200/70 px-4 py-3 sm:px-5 flex items-center justify-between gap-3">
+              <h2 className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 truncate">
+                {locale === "ko" ? "여행 예산 세부 내역" : "Travel Budget Details"}
+              </h2>
+              <div className="text-right shrink-0">
+                <span className="text-xs sm:text-sm font-black tabular-nums text-slate-900 whitespace-nowrap">
                   {formatPriceByLocale(grandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
                 </span>
               </div>

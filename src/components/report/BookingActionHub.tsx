@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from "react";
 import type { Locale } from "src/lib/i18n/locales";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
-import type { TripDraft } from "src/lib/trip-domain";
+import type { TripDraft, SupportedCity } from "src/lib/trip-domain";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import type { TripBudgetSummary } from "src/features/budget/calculations/trip-budget-calculator";
 import { formatKrw } from "src/features/budget/presentation/formatters";
@@ -14,7 +14,8 @@ export type BookingFilterCategory = "ALL" | "TRANSIT" | "STAY" | "ATTRACTION" | 
 export interface BookingRowItem {
   id: string;
   category: "TRANSIT" | "STAY" | "ATTRACTION" | "ESSENTIAL";
-  icon: string;
+  categoryNameKo: string;
+  categoryNameEn: string;
   titleKo: string;
   titleEn: string;
   subtitleKo: string;
@@ -26,6 +27,16 @@ export interface BookingRowItem {
   badgeKo: string;
   badgeEn: string;
   isOfficial: boolean;
+}
+
+export interface FreeSpotItem {
+  id: string;
+  city: SupportedCity;
+  cityNameKo: string;
+  cityNameEn: string;
+  nameKo: string;
+  nameEn: string;
+  targetUrl: string;
 }
 
 export interface BookingActionHubProps {
@@ -45,12 +56,13 @@ export default function BookingActionHub({
   const isKo = locale === "ko";
   const [activeCategory, setActiveCategory] = useState<BookingFilterCategory>("ALL");
 
-  // 사용자의 실제 영수증 및 선택 내역과 1:1 매핑되는 스마트 예약 항목 생성
-  const { categorizedItems, totalCount } = useMemo(() => {
+  // 사용자의 실제 영수증 및 선택 내역과 1:1 매핑되는 스마트 예약 항목 & 무료 명소 생성
+  const { categorizedItems, totalCount, freeSpots } = useMemo(() => {
     const transit: BookingRowItem[] = [];
     const stay: BookingRowItem[] = [];
     const attraction: BookingRowItem[] = [];
     const essential: BookingRowItem[] = [];
+    const free: FreeSpotItem[] = [];
 
     // -------------------------------------------------------------------------
     // 1. 교통 (Transit)
@@ -63,7 +75,8 @@ export default function BookingActionHub({
       transit.push({
         id: "transit-arex",
         category: "TRANSIT",
-        icon: "🚆",
+        categoryNameKo: "공항철도",
+        categoryNameEn: "AREX",
         titleKo: "인천공항 ↔ 서울역 AREX 직통열차",
         titleEn: "Incheon Airport ↔ Seoul AREX Express",
         subtitleKo: "소요시간 43분 논스톱 고속철도 · 모바일 QR 승차권",
@@ -85,7 +98,8 @@ export default function BookingActionHub({
       transit.push({
         id: "transit-ktx",
         category: "TRANSIT",
-        icon: "🚄",
+        categoryNameKo: "고속열차",
+        categoryNameEn: "KTX/SRT",
         titleKo: "코레일 KTX / SRT 전국 고속열차",
         titleEn: "Korail KTX Official Train Reservation",
         subtitleKo: "서울, 부산, 경주, 전주, 여수 전국 주요 도시 고속 이동",
@@ -106,7 +120,8 @@ export default function BookingActionHub({
     transit.push({
       id: "transit-kakaot",
       category: "TRANSIT",
-      icon: "🚕",
+      categoryNameKo: "택시/호출",
+      categoryNameEn: "Taxi",
       titleKo: "카카오 T (택시 호출 & 바이크)",
       titleEn: "Kakao T (Taxi Hailing & Bike)",
       subtitleKo: "한국 어디서나 외국인 카드 및 카카오페이 간편 결제",
@@ -133,7 +148,8 @@ export default function BookingActionHub({
       stay.push({
         id: `stay-${city.toLowerCase()}`,
         category: "STAY",
-        icon: "🏨",
+        categoryNameKo: "숙소",
+        categoryNameEn: "Stay",
         titleKo: `${cityNameKo} 숙소 (${cInfo.stayItemLabel})`,
         titleEn: `${cityNameEn} Stays (${cInfo.stayItemLabel})`,
         subtitleKo: `1박 평균 ${formatKrw(cInfo.stayNightlyPrice)} 기준 · ${cInfo.nights}박 일정`,
@@ -149,20 +165,36 @@ export default function BookingActionHub({
     });
 
     // -------------------------------------------------------------------------
-    // 3. 주요 명소 & 티켓 (Attraction) - 사전 예매/유료/공식 링크 명소 선별
+    // 3. 주요 명소 & 티켓 (Attraction) - 유료 입장권 및 무료 명소 분류
     // -------------------------------------------------------------------------
     draft.selectedCities.forEach((city) => {
       const cInfo = calculations.cityBreakdown?.[city];
       const spots = cInfo?.selectedSpots || [];
+      const cityNameKo = CITY_KOREAN_NAMES[city] || city;
+      const cityNameEn = CITY_ENGLISH_NAMES[city] || city;
 
       spots.forEach((spot) => {
         const spotNameKo = spot.nameKo;
         const spotNameEn = spot.nameEn || spotNameKo;
         const spotPrice = spot.price || 0;
 
-        // 무료 입장은 결제/예약이 불필요하므로 스마트 여행 예약 목록에서 제외
-        if (spotPrice <= 0) return;
+        // 무료 입장 명소는 별도 무료 리스트로 분류
+        if (spotPrice <= 0) {
+          free.push({
+            id: `free-${spot.id}`,
+            city,
+            cityNameKo,
+            cityNameEn,
+            nameKo: spotNameKo,
+            nameEn: spotNameEn,
+            targetUrl:
+              spot.officialUrl ||
+              `https://map.naver.com/v5/search/${encodeURIComponent(spotNameKo)}`,
+          });
+          return;
+        }
 
+        // 유료 입장권 및 사전 예매 명소
         const targetUrl =
           spot.officialUrl ||
           `https://www.klook.com/search/result/?query=${encodeURIComponent(spotNameEn)}`;
@@ -170,7 +202,8 @@ export default function BookingActionHub({
         attraction.push({
           id: `spot-${spot.id}`,
           category: "ATTRACTION",
-          icon: "🎫",
+          categoryNameKo: "입장권",
+          categoryNameEn: "Ticket",
           titleKo: `${spotNameKo} 입장권 & 바우처`,
           titleEn: `${spotNameEn} Admission Ticket`,
           subtitleKo: spot.descKo || "현장 대기 없이 즉시 입장 가능한 모바일 티켓",
@@ -192,7 +225,8 @@ export default function BookingActionHub({
     essential.push({
       id: "essential-esim",
       category: "ESSENTIAL",
-      icon: "📱",
+      categoryNameKo: "통신",
+      categoryNameEn: "eSIM",
       titleKo: "한국 무제한 4G/5G eSIM (SKT · KT · LGU+)",
       titleEn: "Korea Unlimited 4G/5G eSIM",
       subtitleKo: "인천/김포/김해공항 수령 또는 즉시 QR 개통",
@@ -209,7 +243,8 @@ export default function BookingActionHub({
     essential.push({
       id: "essential-helpline",
       category: "ESSENTIAL",
-      icon: "📞",
+      categoryNameKo: "안내 지원",
+      categoryNameEn: "Support",
       titleKo: "1330 한국관광 통역안내 핫라인",
       titleEn: "1330 Korea Travel Hotline",
       subtitleKo: "24시간 4개 국어(한/영/일/중) 무료 관광 안내 및 긴급 통역",
@@ -233,18 +268,19 @@ export default function BookingActionHub({
         ESSENTIAL: essential,
       },
       totalCount: total,
+      freeSpots: free,
     };
   }, [calculations, draft, isKo, locale, usdRate]);
 
-  // 카테고리 메타 정보 정의
+  // 카테고리 메타 정보 정의 (이모지 없음)
   const categoryMeta: Record<
     "TRANSIT" | "STAY" | "ATTRACTION" | "ESSENTIAL",
-    { labelKo: string; labelEn: string; emoji: string }
+    { labelKo: string; labelEn: string }
   > = {
-    TRANSIT: { labelKo: "교통편 예매", labelEn: "Transit Booking", emoji: "🚆" },
-    STAY: { labelKo: "도시별 숙소", labelEn: "Accommodations", emoji: "🏨" },
-    ATTRACTION: { labelKo: "명소 & 티켓", labelEn: "Attractions & Tickets", emoji: "🎫" },
-    ESSENTIAL: { labelKo: "여행 필수 준비물", labelEn: "Travel Essentials", emoji: "📱" },
+    TRANSIT: { labelKo: "교통편 예매", labelEn: "Transit Booking" },
+    STAY: { labelKo: "도시별 숙소", labelEn: "Accommodations" },
+    ATTRACTION: { labelKo: "명소 & 티켓", labelEn: "Attractions & Tickets" },
+    ESSENTIAL: { labelKo: "여행 필수 준비물", labelEn: "Travel Essentials" },
   };
 
   const categoriesToRender: ("TRANSIT" | "STAY" | "ATTRACTION" | "ESSENTIAL")[] =
@@ -253,7 +289,7 @@ export default function BookingActionHub({
       : [activeCategory];
 
   return (
-    <div className="w-full bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-5">
+    <div className="w-full bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-6">
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-neutral-100 pb-4">
         <div>
@@ -267,19 +303,19 @@ export default function BookingActionHub({
           </p>
         </div>
 
-        <span className="text-[11px] font-bold text-slate-400 self-start sm:self-auto tabular-nums bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200/60">
-          {isKo ? `총 ${totalCount}개 링크 연동` : `${totalCount} Verified Links`}
+        <span className="text-[11px] font-bold text-slate-500 self-start sm:self-auto tabular-nums bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200/70">
+          {isKo ? `총 ${totalCount}개 예약 연동` : `${totalCount} Verified Links`}
         </span>
       </div>
 
-      {/* Category Filter Tabs Bar */}
+      {/* Category Filter Tabs Bar (이모지 없이 심플한 텍스트 탭) */}
       <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5">
         {[
-          { key: "ALL" as const, labelKo: "전체", labelEn: "All", emoji: "✨", count: totalCount },
-          { key: "TRANSIT" as const, labelKo: "교통", labelEn: "Transit", emoji: "🚆", count: categorizedItems.TRANSIT.length },
-          { key: "STAY" as const, labelKo: "숙소", labelEn: "Stays", emoji: "🏨", count: categorizedItems.STAY.length },
-          { key: "ATTRACTION" as const, labelKo: "명소·티켓", labelEn: "Attractions", emoji: "🎫", count: categorizedItems.ATTRACTION.length },
-          { key: "ESSENTIAL" as const, labelKo: "필수 준비물", labelEn: "Essentials", emoji: "📱", count: categorizedItems.ESSENTIAL.length },
+          { key: "ALL" as const, labelKo: "전체", labelEn: "All", count: totalCount },
+          { key: "TRANSIT" as const, labelKo: "교통", labelEn: "Transit", count: categorizedItems.TRANSIT.length },
+          { key: "STAY" as const, labelKo: "숙소", labelEn: "Stays", count: categorizedItems.STAY.length },
+          { key: "ATTRACTION" as const, labelKo: "명소·티켓", labelEn: "Attractions", count: categorizedItems.ATTRACTION.length },
+          { key: "ESSENTIAL" as const, labelKo: "필수 준비물", labelEn: "Essentials", count: categorizedItems.ESSENTIAL.length },
         ]
           .filter((tab) => tab.key === "ALL" || tab.count > 0)
           .map((tab) => {
@@ -295,7 +331,6 @@ export default function BookingActionHub({
                     : "bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border-neutral-200/80 hover:text-neutral-900"
                 }`}
               >
-                <span>{tab.emoji}</span>
                 <span>{isKo ? tab.labelKo : tab.labelEn}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums ${
@@ -319,14 +354,11 @@ export default function BookingActionHub({
 
           return (
             <div key={catKey} className="space-y-2.5">
-              {/* Category Group Header (카테고리별 명확한 구분) */}
+              {/* Category Group Header (이모지 없는 깔끔한 헤더) */}
               <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-200/80">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm">{meta.emoji}</span>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 tracking-tight">
-                    {isKo ? meta.labelKo : meta.labelEn}
-                  </h3>
-                </div>
+                <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 tracking-tight">
+                  {isKo ? meta.labelKo : meta.labelEn}
+                </h3>
                 <span className="text-[10.5px] font-bold text-slate-400 tabular-nums">
                   {items.length}{isKo ? "개" : " items"}
                 </span>
@@ -339,17 +371,18 @@ export default function BookingActionHub({
                   const subtitle = isKo ? item.subtitleKo : item.subtitleEn;
                   const actionLabel = isKo ? item.actionLabelKo : item.actionLabelEn;
                   const badge = isKo ? item.badgeKo : item.badgeEn;
+                  const categoryName = isKo ? item.categoryNameKo : item.categoryNameEn;
 
                   return (
                     <div
                       key={item.id}
                       className="px-3.5 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-white transition-colors group"
                     >
-                      {/* Left: Icon + Title + Inline Subtitle */}
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-sm shrink-0 shadow-2xs">
-                          {item.icon}
-                        </div>
+                      {/* Left: Category Tag + Title + Subtitle */}
+                      <div className="flex items-start sm:items-center gap-2.5 min-w-0">
+                        <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 shrink-0 shadow-2xs">
+                          {categoryName}
+                        </span>
                         <div className="min-w-0 space-y-0.5">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors truncate">
@@ -374,7 +407,7 @@ export default function BookingActionHub({
                       </div>
 
                       {/* Right: Price & Action Button */}
-                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-10.5 sm:pl-0">
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-11 sm:pl-0">
                         {item.priceText && (
                           <span className="text-xs font-black text-slate-800 tabular-nums">
                             {item.priceText}
@@ -399,12 +432,56 @@ export default function BookingActionHub({
         })}
       </div>
 
-      {/* Helper Footer Notice */}
+      {/* 무료 명소 미니 블록 (방안 1: 사전 예약 없이 바로 가는 무료 명소) */}
+      {freeSpots.length > 0 && (
+        <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black text-slate-900">
+                {isKo ? "사전 예약 없이 바로 가는 무료 명소" : "Free Admission Spots (No Booking Needed)"}
+              </span>
+              <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-full border border-slate-200 tabular-nums">
+                {freeSpots.length}{isKo ? "곳" : " spots"}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              {isKo
+                ? "별도 예매 없이 현장에서 자유롭게 방문할 수 있는 코스입니다."
+                : "No advance tickets required. Walk in freely at your convenience."}
+            </p>
+          </div>
+
+          {/* 무료 명소 인라인 칩 목록 */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {freeSpots.map((spot) => (
+              <a
+                key={spot.id}
+                href={spot.targetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100/90 border border-slate-200 text-xs text-slate-800 transition-colors shadow-2xs group cursor-pointer"
+              >
+                <span className="text-[10px] font-bold text-slate-400">
+                  [{isKo ? spot.cityNameKo : spot.cityNameEn}]
+                </span>
+                <span className="font-extrabold group-hover:text-rose-600 transition-colors">
+                  {isKo ? spot.nameKo : spot.nameEn}
+                </span>
+                <span className="text-[9px] font-bold text-slate-400 group-hover:text-rose-600 transition-colors">
+                  ↗
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Helper Footer Notice (이모지 없음) */}
       <div className="p-3 rounded-2xl bg-neutral-50/80 border border-neutral-100 flex items-center justify-between gap-2 text-xs text-neutral-400">
         <span className="text-[11px]">
           {isKo
-            ? "💡 모든 링크는 새 창에서 열리며, 공식 사이트 및 사전 검증된 채널로 안전하게 연결됩니다."
-            : "💡 All links open in a new tab, securely connecting to official booking channels."}
+            ? "모든 링크는 새 창에서 열리며, 공식 사이트 및 사전 검증된 채널로 안전하게 연결됩니다."
+            : "All links open in a new tab, securely connecting to official booking channels."}
         </span>
       </div>
     </div>

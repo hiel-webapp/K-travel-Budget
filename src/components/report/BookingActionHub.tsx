@@ -160,6 +160,9 @@ export default function BookingActionHub({
         const spotNameEn = spot.nameEn || spotNameKo;
         const spotPrice = spot.price || 0;
 
+        // 무료 입장은 결제/예약이 불필요하므로 스마트 여행 예약 목록에서 제외
+        if (spotPrice <= 0) return;
+
         const targetUrl =
           spot.officialUrl ||
           `https://www.klook.com/search/result/?query=${encodeURIComponent(spotNameEn)}`;
@@ -172,17 +175,12 @@ export default function BookingActionHub({
           titleEn: `${spotNameEn} Admission Ticket`,
           subtitleKo: spot.descKo || "현장 대기 없이 즉시 입장 가능한 모바일 티켓",
           subtitleEn: spot.descEn || "Fast-track mobile voucher & admissions",
-          priceText:
-            spotPrice > 0
-              ? formatPriceByLocale(spotPrice, locale, usdRate)
-              : isKo
-              ? "무료 입장"
-              : "Free Entry",
+          priceText: formatPriceByLocale(spotPrice, locale, usdRate),
           targetUrl,
           actionLabelKo: spot.officialUrl ? "공식 사이트" : "티켓 예매",
           actionLabelEn: spot.officialUrl ? "Official Site" : "Get Tickets",
-          badgeKo: spot.officialUrl ? "공식 사이트" : (spotPrice > 0 ? "티켓 예매" : "안내"),
-          badgeEn: spot.officialUrl ? "Official" : (spotPrice > 0 ? "Tickets" : "Info"),
+          badgeKo: spot.officialUrl ? "공식 사이트" : "티켓 예매",
+          badgeEn: spot.officialUrl ? "Official" : "Tickets",
           isOfficial: !!spot.officialUrl,
         });
       });

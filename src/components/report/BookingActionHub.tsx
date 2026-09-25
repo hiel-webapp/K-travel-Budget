@@ -378,36 +378,18 @@ export default function BookingActionHub({
                       key={item.id}
                       className="px-3.5 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-white transition-colors group"
                     >
-                      {/* Left: Category Tag + Title + Subtitle */}
-                      <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-                        <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600 shrink-0 shadow-2xs">
-                          {categoryName}
+                      {/* Left: Title + Subtitle */}
+                      <div className="min-w-0 space-y-0.5">
+                        <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors truncate block">
+                          {title}
                         </span>
-                        <div className="min-w-0 space-y-0.5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors truncate">
-                              {title}
-                            </span>
-                            {badge && (
-                              <span
-                                className={`text-[9px] font-black px-1.5 py-0.2 rounded border ${
-                                  item.isOfficial
-                                    ? "bg-blue-50 text-blue-700 border-blue-200/80"
-                                    : "bg-slate-100 text-slate-600 border-slate-200"
-                                }`}
-                              >
-                                {badge}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10.5px] text-slate-400 truncate">
-                            {subtitle}
-                          </p>
-                        </div>
+                        <p className="text-[11px] text-slate-400 truncate">
+                          {subtitle}
+                        </p>
                       </div>
 
                       {/* Right: Price & Action Button */}
-                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-11 sm:pl-0">
+                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0">
                         {item.priceText && (
                           <span className="text-xs font-black text-slate-800 tabular-nums">
                             {item.priceText}

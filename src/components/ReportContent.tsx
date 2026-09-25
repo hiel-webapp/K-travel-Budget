@@ -64,7 +64,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const toggleReceiptCity = (cityKey: string) => {
     setExpandedReceiptCities((prev) => ({
       ...prev,
-      [cityKey]: !prev[cityKey],
+      [cityKey]: prev[cityKey] === undefined ? false : !prev[cityKey],
     }));
   };
 
@@ -305,75 +305,17 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             {/* Receipt Header (고정) */}
             <div className="bg-neutral-50/80 border-b border-neutral-200/70 px-4 py-3 sm:px-5 flex items-center justify-between gap-3 shrink-0">
               <h2 className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 truncate">
-                {locale === "ko" ? "여행 예산 세부 내역" : "Travel Budget Details"}
+                {locale === "ko" ? "내 한국 여행 영수증" : "My Korea Travel Receipt"}
               </h2>
               <div className="text-right shrink-0">
-                <span className="text-xs sm:text-sm font-black tabular-nums text-slate-900 whitespace-nowrap">
-                  {formatPriceByLocale(grandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
+                <span className="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-0.5 rounded-full border border-slate-200/80 shadow-2xs">
+                  {totalNights}{locale === "ko" ? "박" : "N"} · {adultCount}{locale === "ko" ? "인" : " Travelers"}
                 </span>
               </div>
             </div>
 
             {/* Receipt Items Body (독립 스크롤 영역) */}
             <div className="p-3.5 sm:p-4 space-y-3.5 divide-y divide-slate-100 text-xs overflow-y-auto overscroll-contain flex-1 pr-1.5">
-              {/* 공통 자율 예산 (쇼핑, 용돈, 비상금) */}
-              {(shoppingAmountKrw > 0 || totalDailyAllowanceKrw > 0 || computedEmergencyKrw > 0) && (
-                <div className="space-y-2.5">
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block">
-                    {locale === "ko" ? "공통 자율 예산 (쇼핑 · 용돈 · 비상금)" : "Common Flexible Expenses"}
-                  </span>
-                  <div className="space-y-2">
-                    {shoppingAmountKrw > 0 && (
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-slate-900 block">
-                            {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
-                          </span>
-                          <span className="text-[10px] text-slate-400 block">
-                            {locale === "ko" ? "한국 여행 자율 쇼핑 예산" : "Custom shopping budget"}
-                          </span>
-                        </div>
-                        <strong className="font-black text-slate-900 tabular-nums shrink-0">
-                          {formatPriceByLocale(shoppingAmountKrw, locale, usdRate)}
-                        </strong>
-                      </div>
-                    )}
-
-                    {totalDailyAllowanceKrw > 0 && (
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-slate-900 block">
-                            {locale === "ko" ? "일일 용돈" : "Daily Allowance"}
-                          </span>
-                          <span className="text-[10px] text-slate-400 block tabular-nums">
-                            {formatPriceByLocale(dailyAllowancePerPerson, locale, usdRate)} × {adultCount}{locale === "ko" ? "인" : " Travelers"} × {totalNights}{locale === "ko" ? "박" : "N"}
-                          </span>
-                        </div>
-                        <strong className="font-black text-slate-900 tabular-nums shrink-0">
-                          {formatPriceByLocale(totalDailyAllowanceKrw, locale, usdRate)}
-                        </strong>
-                      </div>
-                    )}
-
-                    {computedEmergencyKrw > 0 && (
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="space-y-0.5">
-                          <span className="font-bold text-slate-900 block">
-                            {locale === "ko" ? "여행 비상금" : "Emergency Fund"}
-                          </span>
-                          <span className="text-[10px] text-slate-400 block">
-                            {emergencyPct > 0 ? `기본 경비 대비 ${Math.round(emergencyPct * 100)}%` : "고정 비상금"}
-                          </span>
-                        </div>
-                        <strong className="font-black text-slate-900 tabular-nums shrink-0">
-                          {formatPriceByLocale(computedEmergencyKrw, locale, usdRate)}
-                        </strong>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* 여정 타임라인 및 도시별 접이식 아코디언 카드 (도시 간 이동 교통 포함) */}
               {(() => {
                 const allTransitItems = basePlan.intercitySection?.lineItems || [];
@@ -518,7 +460,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       const foodItems = cInfo.foodBasketPlan?.selectedItems || [];
 
                       const accordionKey = `${city}-${cityIdx}`;
-                      const isExpanded = !!expandedReceiptCities[accordionKey];
+                      const isExpanded = expandedReceiptCities[accordionKey] !== false;
 
                       // 다음 도시로 이동하는 교통 아이템
                       const nextCity = draft.selectedCities[cityIdx + 1];
@@ -797,19 +739,81 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               })()}
             </div>
 
-            {/* Receipt Footer Stamp (고정) */}
-            <div className="bg-slate-50 border-t border-slate-200/80 p-3.5 text-center space-y-1 shrink-0">
-              <div className="flex items-center justify-center gap-1.5 text-xs font-extrabold text-slate-700">
-                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-                <span>HypeHeritage Verified Travel Budget</span>
+            {/* Receipt Bottom Fixed: 쇼핑 예산, 일일 용돈, 여행 비상금, 예산 총액 고정 영역 */}
+            <div className="bg-slate-50/95 border-t border-slate-200/90 p-3.5 sm:p-4 space-y-3 shrink-0 backdrop-blur-xs">
+              {/* 공통 자율 예산 (쇼핑 · 용돈 · 비상금) */}
+              {(shoppingAmountKrw > 0 || totalDailyAllowanceKrw > 0 || computedEmergencyKrw > 0) && (
+                <div className="space-y-2 pb-1 border-b border-slate-200/70 text-xs">
+                  {shoppingAmountKrw > 0 && (
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <span className="font-bold text-slate-900 block">
+                          {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block">
+                          {locale === "ko" ? "한국 여행 자율 쇼핑 예산" : "Custom shopping budget"}
+                        </span>
+                      </div>
+                      <strong className="font-black text-slate-900 tabular-nums shrink-0">
+                        {formatPriceByLocale(shoppingAmountKrw, locale, usdRate)}
+                      </strong>
+                    </div>
+                  )}
+
+                  {totalDailyAllowanceKrw > 0 && (
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <span className="font-bold text-slate-900 block">
+                          {locale === "ko" ? "일일 용돈" : "Daily Allowance"}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block tabular-nums">
+                          {formatPriceByLocale(dailyAllowancePerPerson, locale, usdRate)} × {adultCount}{locale === "ko" ? "인" : " Travelers"} × {totalNights}{locale === "ko" ? "박" : "N"}
+                        </span>
+                      </div>
+                      <strong className="font-black text-slate-900 tabular-nums shrink-0">
+                        {formatPriceByLocale(totalDailyAllowanceKrw, locale, usdRate)}
+                      </strong>
+                    </div>
+                  )}
+
+                  {computedEmergencyKrw > 0 && (
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <span className="font-bold text-slate-900 block">
+                          {locale === "ko" ? "여행 비상금" : "Emergency Fund"}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block">
+                          {emergencyPct > 0 ? `기본 경비 대비 ${Math.round(emergencyPct * 100)}%` : (locale === "ko" ? "고정 비상금" : "Fixed reserve")}
+                        </span>
+                      </div>
+                      <strong className="font-black text-slate-900 tabular-nums shrink-0">
+                        {formatPriceByLocale(computedEmergencyKrw, locale, usdRate)}
+                      </strong>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 예산 총액 */}
+              <div className="flex justify-between items-center pt-0.5">
+                <div>
+                  <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 block">
+                    {locale === "ko" ? "예산 총액" : "Total Budget"}
+                  </span>
+                  {adultCount > 1 && (
+                    <span className="text-[10.5px] font-bold text-slate-400 tabular-nums block">
+                      {locale === "ko"
+                        ? `(1인당 ${formatPriceByLocale(Math.round(grandTotalKrw / adultCount), locale, usdRate)})`
+                        : `(${formatPriceByLocale(Math.round(grandTotalKrw / adultCount), locale, usdRate)} / person)`}
+                    </span>
+                  )}
+                </div>
+                <div className="text-right">
+                  <strong className="text-lg sm:text-xl font-black text-slate-900 tracking-tight tabular-nums block leading-tight">
+                    {formatPriceByLocale(grandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
+                  </strong>
+                </div>
               </div>
-              <p className="text-[10px] text-slate-400">
-                {locale === "ko"
-                  ? "본 리포트는 플래너에서 직접 담은 바스켓 데이터를 기반으로 산출된 공식 예산 내역입니다."
-                  : "Certified travel budget plan calculated from your actual planner selections."}
-              </p>
             </div>
           </div>
         </div>

@@ -16,20 +16,59 @@ export default function Header({ locale, dict }: HeaderProps) {
   const searchParams = useSearchParams();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
-  // Scroll detection for dynamic glassmorphism texture
+  // Scroll detection for dynamic glassmorphism texture & smart auto-hide
   useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 12);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          setIsScrolled(currentScrollY > 12);
+
+          // 모바일 메뉴가 열려있을 때는 헤더 숨김 방지
+          if (isMobileMenuOpen) {
+            setIsVisible(true);
+            lastScrollY = currentScrollY;
+            ticking = false;
+            return;
+          }
+
+          // 최상단 근처에서는 항상 표시
+          if (currentScrollY <= 24) {
+            setIsVisible(true);
+          } else {
+            const diff = currentScrollY - lastScrollY;
+            // 미세 스크롤 흔들림 무시 (임계값 8px)
+            if (Math.abs(diff) > 8) {
+              if (diff > 0) {
+                // 아래로 스크롤: 본문 가림 방지를 위해 부드럽게 숨김
+                setIsVisible(false);
+              } else {
+                // 위로 스크롤: 메뉴 접근을 위해 부드럽게 노출
+                setIsVisible(true);
+              }
+            }
+          }
+
+          lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    handleScroll();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isMobileMenuOpen]);
 
   // Close mobile menu on route change & prevent browser from restoring outdated scroll positions on refresh
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsVisible(true);
     if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
       window.history.scrollRestoration = "manual";
     }
@@ -57,7 +96,13 @@ export default function Header({ locale, dict }: HeaderProps) {
   ] as const;
 
   return (
-    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[94%] sm:w-[92%] max-w-5xl z-50 transition-all duration-300">
+    <header
+      className={`fixed top-4 left-1/2 -translate-x-1/2 w-[94%] sm:w-[92%] max-w-5xl z-50 transition-all duration-300 ease-in-out ${
+        isVisible
+          ? "translate-y-0 opacity-100 pointer-events-auto"
+          : "-translate-y-28 opacity-0 pointer-events-none"
+      }`}
+    >
       <div
         className={`w-full rounded-full transition-all duration-300 px-3 sm:px-6 md:px-7 ${
           isScrolled

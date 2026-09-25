@@ -743,17 +743,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             <div className="bg-slate-50/95 border-t border-slate-200/90 p-3.5 sm:p-4 space-y-3 shrink-0 backdrop-blur-xs">
               {/* 공통 자율 예산 (쇼핑 · 용돈 · 비상금) */}
               {(shoppingAmountKrw > 0 || totalDailyAllowanceKrw > 0 || computedEmergencyKrw > 0) && (
-                <div className="space-y-2 pb-1 border-b border-slate-200/70 text-xs">
+                <div className="space-y-1.5 pb-2 border-b border-slate-200/70 text-xs">
                   {shoppingAmountKrw > 0 && (
-                    <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <span className="font-bold text-slate-900 block">
-                          {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
-                        </span>
-                        <span className="text-[10px] text-slate-400 block">
-                          {locale === "ko" ? "한국 여행 자율 쇼핑 예산" : "Custom shopping budget"}
-                        </span>
-                      </div>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="font-bold text-slate-900">
+                        {locale === "ko" ? "쇼핑 예산" : "Shopping Budget"}
+                      </span>
                       <strong className="font-black text-slate-900 tabular-nums shrink-0">
                         {formatPriceByLocale(shoppingAmountKrw, locale, usdRate)}
                       </strong>
@@ -761,13 +756,13 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   )}
 
                   {totalDailyAllowanceKrw > 0 && (
-                    <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <span className="font-bold text-slate-900 block">
+                    <div className="flex justify-between items-center gap-2">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="font-bold text-slate-900 shrink-0">
                           {locale === "ko" ? "일일 용돈" : "Daily Allowance"}
                         </span>
-                        <span className="text-[10px] text-slate-400 block tabular-nums">
-                          {formatPriceByLocale(dailyAllowancePerPerson, locale, usdRate)} × {adultCount}{locale === "ko" ? "인" : " Travelers"} × {totalNights}{locale === "ko" ? "박" : "N"}
+                        <span className="text-[10.5px] text-slate-400 tabular-nums truncate">
+                          ({formatPriceByLocale(dailyAllowancePerPerson, locale, usdRate)} × {adultCount}{locale === "ko" ? "인" : " Travelers"} × {totalNights}{locale === "ko" ? "박" : "N"})
                         </span>
                       </div>
                       <strong className="font-black text-slate-900 tabular-nums shrink-0">
@@ -777,13 +772,13 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                   )}
 
                   {computedEmergencyKrw > 0 && (
-                    <div className="flex justify-between items-start gap-2">
-                      <div>
-                        <span className="font-bold text-slate-900 block">
+                    <div className="flex justify-between items-center gap-2">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="font-bold text-slate-900 shrink-0">
                           {locale === "ko" ? "여행 비상금" : "Emergency Fund"}
                         </span>
-                        <span className="text-[10px] text-slate-400 block">
-                          {emergencyPct > 0 ? `기본 경비 대비 ${Math.round(emergencyPct * 100)}%` : (locale === "ko" ? "고정 비상금" : "Fixed reserve")}
+                        <span className="text-[10.5px] text-slate-400 truncate">
+                          ({emergencyPct > 0 ? `${Math.round(emergencyPct * 100)}%` : (locale === "ko" ? "고정" : "Fixed")})
                         </span>
                       </div>
                       <strong className="font-black text-slate-900 tabular-nums shrink-0">

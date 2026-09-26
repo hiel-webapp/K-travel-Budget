@@ -5620,22 +5620,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     }));
                   };
 
-                  // 영수증 내부 스크롤이 최상단/최하단 도달 시 전체 브라우저 화면으로 부드럽게 스크롤 전파
-                  const handlePlannerReceiptWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-                    const el = e.currentTarget;
-                    const isAtTop = el.scrollTop <= 0;
-                    const isAtBottom = Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight - 1;
-
-                    if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
-                      window.scrollBy({ top: e.deltaY, behavior: "auto" });
-                    }
-                  };
-
                   return (
-                    <div
-                      onWheel={handlePlannerReceiptWheel}
-                      className="py-1 space-y-1.5 max-h-[580px] overflow-y-auto overscroll-auto pr-0.5"
-                    >
+                    <div className="py-1 space-y-1.5 max-h-[580px] overflow-y-auto overscroll-contain pr-0.5">
                       {/* 1. 입국 공항 이동 (첫 도시 전 타임라인 구분선 커넥터) */}
                       {entryItems.length > 0 && (
                         <div className="relative py-1 flex items-center justify-center">

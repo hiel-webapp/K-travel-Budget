@@ -8,6 +8,11 @@ import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import type { TripBudgetSummary } from "src/features/budget/calculations/trip-budget-calculator";
 import { formatKrw } from "src/features/budget/presentation/formatters";
 import { formatPriceByLocale } from "src/lib/currency/currency-converter";
+import {
+  STAY_ARCHETYPES,
+  AGODA_CITY_IDS,
+  generateStayOtaUrl,
+} from "src/features/budget/catalog/stay-archetypes";
 
 export type BookingFilterCategory = "ALL" | "TRANSIT" | "STAY" | "ATTRACTION" | "ESSENTIAL";
 
@@ -153,6 +158,14 @@ export default function BookingActionHub({
       const cityNameKo = CITY_KOREAN_NAMES[city] || city;
       const cityNameEn = CITY_ENGLISH_NAMES[city] || city;
 
+      const cityId = AGODA_CITY_IDS[city] || 14690;
+      const matchedArchetype = STAY_ARCHETYPES.find(
+        (a) => a.titleKo === cInfo.stayItemLabel || a.titleEn === cInfo.stayItemLabel
+      );
+      const targetUrl = matchedArchetype
+        ? generateStayOtaUrl(matchedArchetype.id, city)
+        : `https://www.agoda.com/search?city=${cityId}&priceCur=KRW&tag=hypeheritage`;
+
       stay.push({
         id: `stay-${city.toLowerCase()}`,
         category: "STAY",
@@ -163,11 +176,11 @@ export default function BookingActionHub({
         subtitleKo: `1박 평균 ${formatKrw(cInfo.stayNightlyPrice)} 기준 · ${cInfo.nights}박 일정`,
         subtitleEn: `Avg. ${formatPriceByLocale(cInfo.stayNightlyPrice, locale, usdRate)} / night · ${cInfo.nights} nights`,
         priceText: formatPriceByLocale(cInfo.stayTotalKrw, locale, usdRate),
-        targetUrl: `https://www.trip.com/hotels/list?city=${encodeURIComponent(cityNameEn)}`,
-        actionLabelKo: "예약 링크",
-        actionLabelEn: "Book Stays",
-        badgeKo: "최저가",
-        badgeEn: "Check Rates",
+        targetUrl,
+        actionLabelKo: "아고다 예약",
+        actionLabelEn: "Book on Agoda",
+        badgeKo: "아고다",
+        badgeEn: "Agoda",
         isOfficial: false,
       });
     });

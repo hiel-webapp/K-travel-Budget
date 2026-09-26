@@ -55,6 +55,14 @@ export default function BookingActionHub({
 }: BookingActionHubProps) {
   const isKo = locale === "ko";
   const [activeCategory, setActiveCategory] = useState<BookingFilterCategory>("ALL");
+  const [collapsedCategories, setCollapsedCategories] = useState<Record<string, boolean>>({});
+
+  const toggleCategoryCollapse = (catKey: string) => {
+    setCollapsedCategories((prev) => ({
+      ...prev,
+      [catKey]: !prev[catKey],
+    }));
+  };
 
   // 사용자의 실제 영수증 및 선택 내역과 1:1 매핑되는 스마트 예약 항목 & 무료 명소 생성
   const { categorizedItems, totalCount, freeSpots } = useMemo(() => {
@@ -351,64 +359,84 @@ export default function BookingActionHub({
           if (!items || items.length === 0) return null;
 
           const meta = categoryMeta[catKey];
+          const isCollapsed = !!collapsedCategories[catKey];
 
           return (
             <div key={catKey} className="space-y-2.5">
-              {/* Category Group Header (이모지 없는 깔끔한 헤더) */}
-              <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-200/80">
-                <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 tracking-tight">
-                  {isKo ? meta.labelKo : meta.labelEn}
-                </h3>
-                <span className="text-[10.5px] font-bold text-slate-400 tabular-nums">
-                  {items.length}{isKo ? "개" : " items"}
-                </span>
-              </div>
+              {/* Category Group Header (접기/펼치기 토글 버튼) */}
+              <button
+                type="button"
+                onClick={() => toggleCategoryCollapse(catKey)}
+                className="w-full flex items-center justify-between gap-2 pb-1.5 border-b border-slate-200/80 hover:border-slate-300 transition-colors text-left cursor-pointer group select-none"
+                aria-expanded={!isCollapsed}
+              >
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 group-hover:text-rose-600 transition-colors tracking-tight">
+                    {isKo ? meta.labelKo : meta.labelEn}
+                  </h3>
+                  <span className="text-[10.5px] font-bold text-slate-400 tabular-nums">
+                    {items.length}{isKo ? "개" : " items"}
+                  </span>
+                </div>
 
-              {/* 1-Line Compact Rows */}
-              <div className="bg-slate-50/50 rounded-2xl border border-slate-200/70 divide-y divide-slate-200/60 overflow-hidden">
-                {items.map((item) => {
-                  const title = isKo ? item.titleKo : item.titleEn;
-                  const subtitle = isKo ? item.subtitleKo : item.subtitleEn;
-                  const actionLabel = isKo ? item.actionLabelKo : item.actionLabelEn;
-                  const badge = isKo ? item.badgeKo : item.badgeEn;
-                  const categoryName = isKo ? item.categoryNameKo : item.categoryNameEn;
+                <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-slate-600 transition-colors text-[11px] font-bold">
+                  <span>{isCollapsed ? (isKo ? "펼치기" : "Expand") : (isKo ? "접기" : "Collapse")}</span>
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${isCollapsed ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+                  </svg>
+                </div>
+              </button>
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="px-3.5 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-white transition-colors group"
-                    >
-                      {/* Left: Title + Subtitle */}
-                      <div className="min-w-0 space-y-0.5">
-                        <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors truncate block">
-                          {title}
-                        </span>
-                        <p className="text-[11px] text-slate-400 truncate">
-                          {subtitle}
-                        </p>
-                      </div>
+              {/* 1-Line Compact Rows (접히지 않았을 때 노출) */}
+              {!isCollapsed && (
+                <div className="bg-slate-50/50 rounded-2xl border border-slate-200/70 divide-y divide-slate-200/60 overflow-hidden transition-all">
+                  {items.map((item) => {
+                    const title = isKo ? item.titleKo : item.titleEn;
+                    const subtitle = isKo ? item.subtitleKo : item.subtitleEn;
+                    const actionLabel = isKo ? item.actionLabelKo : item.actionLabelEn;
 
-                      {/* Right: Price & Action Button */}
-                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0">
-                        {item.priceText && (
-                          <span className="text-xs font-black text-slate-800 tabular-nums">
-                            {item.priceText}
+                    return (
+                      <div
+                        key={item.id}
+                        className="px-3.5 py-2.5 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-white transition-colors group"
+                      >
+                        {/* Left: Title + Subtitle */}
+                        <div className="min-w-0 space-y-0.5">
+                          <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors truncate block">
+                            {title}
                           </span>
-                        )}
-                        <a
-                          href={item.targetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black bg-slate-900 hover:bg-rose-600 text-white shadow-2xs transition-all hover:translate-x-0.5 cursor-pointer shrink-0"
-                        >
-                          <span>{actionLabel}</span>
-                          <span className="text-xs">↗</span>
-                        </a>
+                          <p className="text-[11px] text-slate-400 truncate">
+                            {subtitle}
+                          </p>
+                        </div>
+
+                        {/* Right: Price & Action Button */}
+                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0">
+                          {item.priceText && (
+                            <span className="text-xs font-black text-slate-800 tabular-nums">
+                              {item.priceText}
+                            </span>
+                          )}
+                          <a
+                            href={item.targetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black bg-slate-900 hover:bg-rose-600 text-white shadow-2xs transition-all hover:translate-x-0.5 cursor-pointer shrink-0"
+                          >
+                            <span>{actionLabel}</span>
+                            <span className="text-xs">↗</span>
+                          </a>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}

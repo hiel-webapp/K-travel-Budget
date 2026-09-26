@@ -314,17 +314,17 @@ export default function BookingActionHub({
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-neutral-100 pb-4">
         <div>
-          <h2 className="text-base sm:text-lg font-black text-neutral-900 tracking-tight">
+          <h2 className="text-base sm:text-lg font-bold text-neutral-900 tracking-tight">
             {isKo ? "스마트 여행 예약" : "Smart Travel Booking"}
           </h2>
-          <p className="text-xs text-neutral-500 mt-1 font-medium">
+          <p className="text-xs text-neutral-500 mt-1 font-normal">
             {isKo
               ? "내 여행 일정에 맞춘 공식 예매 및 추천 예약 링크입니다."
               : "Official and verified booking links curated for your personalized itinerary."}
           </p>
         </div>
 
-        <span className="text-[11px] font-bold text-slate-500 self-start sm:self-auto tabular-nums bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200/70">
+        <span className="text-[11px] font-normal text-slate-500 self-start sm:self-auto tabular-nums bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200/70">
           {isKo ? `총 ${totalCount}개 예약 연동` : `${totalCount} Verified Links`}
         </span>
       </div>
@@ -346,16 +346,16 @@ export default function BookingActionHub({
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveCategory(tab.key)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer shrink-0 border ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-all cursor-pointer shrink-0 border ${
                   isActive
-                    ? "bg-[#b93829] text-white border-[#b93829] shadow-xs"
-                    : "bg-white hover:bg-slate-50 text-slate-600 border-slate-200/80 hover:text-slate-900 shadow-2xs"
+                    ? "bg-[#b93829] text-white border-[#b93829] font-bold shadow-xs"
+                    : "bg-white hover:bg-slate-50 text-slate-600 border-slate-200/80 hover:text-slate-900 font-normal shadow-2xs"
                 }`}
               >
                 <span>{isKo ? tab.labelKo : tab.labelEn}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold tabular-nums ${
-                    isActive ? "bg-white/20 text-white" : "bg-neutral-200/70 text-neutral-600"
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full tabular-nums ${
+                    isActive ? "bg-white/20 text-white font-bold" : "bg-neutral-100 text-neutral-500 font-normal"
                   }`}
                 >
                   {tab.count}
@@ -384,15 +384,15 @@ export default function BookingActionHub({
                 aria-expanded={!isCollapsed}
               >
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 group-hover:text-[#b93829] transition-colors tracking-tight">
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-700 group-hover:text-[#b93829] transition-colors tracking-tight">
                     {isKo ? meta.labelKo : meta.labelEn}
                   </h3>
-                  <span className="text-[10.5px] font-bold text-slate-400 tabular-nums">
+                  <span className="text-[10.5px] font-normal text-slate-400 tabular-nums">
                     {items.length}{isKo ? "개" : " items"}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-slate-600 transition-colors text-[11px] font-bold">
+                <div className="flex items-center gap-1.5 text-slate-400 group-hover:text-slate-600 transition-colors text-[11px] font-normal">
                   <span>{isCollapsed ? (isKo ? "펼치기" : "Expand") : (isKo ? "접기" : "Collapse")}</span>
                   <svg
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${isCollapsed ? "rotate-180" : ""}`}
@@ -400,7 +400,7 @@ export default function BookingActionHub({
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                   </svg>
                 </div>
               </button>
@@ -420,10 +420,10 @@ export default function BookingActionHub({
                       >
                         {/* Left: Title + Subtitle */}
                         <div className="min-w-0 space-y-0.5">
-                          <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-[#b93829] transition-colors truncate block">
+                          <span className="text-xs sm:text-sm font-normal text-slate-700 group-hover:text-[#b93829] group-hover:font-medium transition-colors truncate block">
                             {title}
                           </span>
-                          <p className="text-[11px] text-slate-400 truncate">
+                          <p className="text-[11px] text-slate-400 truncate font-normal">
                             {subtitle}
                           </p>
                         </div>
@@ -431,7 +431,7 @@ export default function BookingActionHub({
                         {/* Right: Price & Action Button */}
                         <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0">
                           {item.priceText && (
-                            <span className="text-xs font-black text-slate-800 tabular-nums">
+                            <span className="text-xs font-normal text-slate-600 tabular-nums">
                               {item.priceText}
                             </span>
                           )}
@@ -439,7 +439,7 @@ export default function BookingActionHub({
                             href={item.targetUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11.5px] font-extrabold bg-white hover:bg-rose-50 text-slate-800 hover:text-[#b93829] border border-slate-200/90 hover:border-rose-300 shadow-2xs transition-all hover:translate-x-0.5 cursor-pointer shrink-0"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11.5px] font-normal bg-white hover:bg-rose-50 text-slate-700 hover:text-[#b93829] hover:font-medium border border-slate-200/90 hover:border-rose-300 shadow-2xs transition-all hover:translate-x-0.5 cursor-pointer shrink-0"
                           >
                             <span>{actionLabel}</span>
                             <span className="text-xs">↗</span>
@@ -460,14 +460,14 @@ export default function BookingActionHub({
         <div className="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-slate-900">
+              <span className="text-xs font-semibold text-slate-700">
                 {isKo ? "사전 예약 없이 바로 가는 무료 명소" : "Free Admission Spots (No Booking Needed)"}
               </span>
-              <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded-full border border-slate-200 tabular-nums">
+              <span className="text-[10px] font-normal text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200 tabular-nums">
                 {freeSpots.length}{isKo ? "곳" : " spots"}
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-400 font-normal">
               {isKo
                 ? "별도 예매 없이 현장에서 자유롭게 방문할 수 있는 코스입니다."
                 : "No advance tickets required. Walk in freely at your convenience."}
@@ -482,15 +482,15 @@ export default function BookingActionHub({
                 href={spot.targetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100/90 border border-slate-200 text-xs text-slate-800 transition-colors shadow-2xs group cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100/90 border border-slate-200 text-xs text-slate-600 transition-colors shadow-2xs group cursor-pointer"
               >
-                <span className="text-[10px] font-bold text-slate-400">
+                <span className="text-[10px] font-normal text-slate-400">
                   [{isKo ? spot.cityNameKo : spot.cityNameEn}]
                 </span>
-                <span className="font-extrabold group-hover:text-rose-600 transition-colors">
+                <span className="font-normal group-hover:text-[#b93829] group-hover:font-medium transition-colors">
                   {isKo ? spot.nameKo : spot.nameEn}
                 </span>
-                <span className="text-[9px] font-bold text-slate-400 group-hover:text-rose-600 transition-colors">
+                <span className="text-[9px] font-normal text-slate-400 group-hover:text-[#b93829] transition-colors">
                   ↗
                 </span>
               </a>

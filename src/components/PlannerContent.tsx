@@ -5425,7 +5425,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           const overBudgetAmountKrw = Math.max(0, finalGrandTotalKrw - targetBudget);
 
           return (
-            <div className="lg:col-span-4 lg:sticky lg:top-[76px] space-y-6">
+            <div className="lg:col-span-4 lg:sticky lg:top-[38px] space-y-6">
               <div className="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#e25c5c] to-[#e25c5c]/60"></div>
 

@@ -269,12 +269,12 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         usdRate={usdRate}
       />
 
-      {/* 4. Balanced 2-Column Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* 4. Balanced 2-Column Dashboard (인쇄 시 블록 해제 및 영수증 마지막 페이지 분리) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start print:block print:space-y-0">
         {/* ========================================================================= */}
         {/* LEFT COLUMN: ITINERARY, BOOKING & HELPLINE (8 COLS / ~68%) */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-6 print:w-full print:block print:space-y-6">
           {/* Section C: Interactive Smart Route & Kakao Map */}
           <SmartRouteMap
             selectedCities={draft.selectedCities}
@@ -299,23 +299,24 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
 
         {/* ========================================================================= */}
         {/* RIGHT COLUMN: STICKY OFFICIAL SMART RECEIPT (4 COLS / ~32%) */}
+        {/* 인쇄 모드: 무조건 마지막 새 페이지로 분리되어 1페이지 내에 2단 다단으로 렌더링 */}
         {/* ========================================================================= */}
-        <div className="lg:col-span-4 lg:sticky lg:top-6 space-y-4">
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden flex flex-col max-h-[calc(100vh-5.5rem)]">
-            {/* Receipt Header (고정) */}
-            <div className="bg-neutral-50/80 border-b border-neutral-200/70 px-4 py-3 sm:px-5 flex items-center justify-between gap-3 shrink-0">
-              <h2 className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 truncate">
+        <div className="lg:col-span-4 lg:sticky lg:top-6 space-y-4 print:w-full print:block print:static print:m-0 print:p-0 print-break-before-page">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden flex flex-col max-h-[calc(100vh-5.5rem)] print:max-h-none print:overflow-visible print:border print:border-neutral-300 print:shadow-none print:rounded-2xl print:bg-white print:p-0">
+            {/* Receipt Header (인쇄 시 2단 전폭 상단 바) */}
+            <div className="bg-neutral-50/80 border-b border-neutral-200/70 px-4 py-3 sm:px-5 flex items-center justify-between gap-3 shrink-0 print:bg-white print:border-b-2 print:border-neutral-900 print:px-5 print:py-3 print-column-span-all">
+              <h2 className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 truncate print:text-base print:font-black">
                 {locale === "ko" ? "내 한국 여행 영수증" : "My Korea Travel Receipt"}
               </h2>
               <div className="text-right shrink-0">
-                <span className="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-0.5 rounded-full border border-slate-200/80 shadow-2xs">
+                <span className="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-0.5 rounded-full border border-slate-200/80 shadow-2xs print:border-neutral-400 print:text-black">
                   {totalNights}{locale === "ko" ? "박" : "N"} · {adultCount}{locale === "ko" ? "인" : " Travelers"}
                 </span>
               </div>
             </div>
 
-            {/* Receipt Items Body (독립 스크롤 영역 - 스크롤 가둠) */}
-            <div className="p-3.5 sm:p-4 space-y-3.5 divide-y divide-slate-100 text-xs overflow-y-auto overscroll-contain flex-1 pr-1.5">
+            {/* Receipt Items Body (독립 스크롤 영역 - 스크롤 가둠 / 인쇄 시 2단 다단 흐름) */}
+            <div className="p-3.5 sm:p-4 space-y-3.5 divide-y divide-slate-100 text-xs overflow-y-auto overscroll-contain flex-1 pr-1.5 print:max-h-none print:overflow-visible print-receipt-columns print:p-4 print:space-y-0 print:divide-y-0">
               {/* 여정 타임라인 및 도시별 접이식 아코디언 카드 (도시 간 이동 교통 포함) */}
               {(() => {
                 const allTransitItems = basePlan.intercitySection?.lineItems || [];
@@ -469,9 +470,9 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                       ) : null;
 
                       return (
-                        <div key={accordionKey} className="space-y-2.5">
+                        <div key={accordionKey} className="space-y-2.5 print:space-y-0 print-avoid-break print:mb-3.5">
                           {/* 도시 접이식 아코디언 카드 */}
-                          <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden transition-all">
+                          <div className="rounded-xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden transition-all print:shadow-none print:border-slate-300">
                             {/* 도시 헤더 (토글 버튼) */}
                             <button
                               type="button"
@@ -489,16 +490,15 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                 <span className="text-xs font-black text-slate-900 tabular-nums">
                                   {formatPriceByLocale(cInfo.subtotalKrw, locale, usdRate)}
                                 </span>
-                                <span className="text-slate-400 font-bold text-[10px] w-3 text-center">
+                                <span className="text-slate-400 font-bold text-[10px] w-3 text-center print:hidden">
                                   {isExpanded ? "▲" : "▼"}
                                 </span>
                               </div>
                             </button>
 
-                            {/* 도시 내부 항목 (펼쳤을 때만 노출) */}
-                            {isExpanded && (
-                              <div className="px-3.5 pb-3.5 pt-2 border-t border-slate-100 space-y-3 bg-slate-50/30 text-xs">
-                                {/* 1. 숙박 */}
+                            {/* 도시 내부 항목 (펼쳤을 때만 노출 / 인쇄 시에는 접힘 무시하고 항상 출력) */}
+                            <div className={`px-3.5 pb-3.5 pt-2 border-t border-slate-100 space-y-3 bg-slate-50/30 text-xs ${isExpanded ? "block" : "hidden print:!block"}`}>
+                              {/* 1. 숙박 */}
                                 <div className="space-y-1">
                                   <div className="flex justify-between items-start gap-3">
                                     <div className="flex-1 min-w-0">
@@ -699,8 +699,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                   )}
                                 </div>
                               </div>
-                            )}
-                          </div>
+                            </div>
 
                           {/* 도시 간 이동 교통 (도시와 다음 도시 사이 커넥터) */}
                           {transitToNext && renderTransitConnector(transitToNext, `transit-${city}-${nextCity}`)}
@@ -739,8 +738,8 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               })()}
             </div>
 
-            {/* Receipt Bottom Fixed: 쇼핑 예산, 일일 용돈, 여행 비상금, 예산 총액 고정 영역 */}
-            <div className="bg-slate-50/95 border-t border-slate-200/90 p-3.5 sm:p-4 space-y-3 shrink-0 backdrop-blur-xs">
+            {/* Receipt Bottom Fixed: 쇼핑 예산, 일일 용돈, 여행 비상금, 예산 총액 고정 영역 (인쇄 시 2단 다단 하단 전폭 배치) */}
+            <div className="bg-slate-50/95 border-t border-slate-200/90 p-3.5 sm:p-4 space-y-3 shrink-0 backdrop-blur-xs print:static print:border-t-2 print:border-neutral-900 print:bg-white print:shadow-none print:p-4 print:mt-4 print-column-span-all print-avoid-break">
               {/* 공통 자율 예산 (쇼핑 · 용돈 · 비상금) */}
               {(shoppingAmountKrw > 0 || totalDailyAllowanceKrw > 0 || computedEmergencyKrw > 0) && (
                 <div className="space-y-1.5 pb-2 border-b border-slate-200/70 text-xs">

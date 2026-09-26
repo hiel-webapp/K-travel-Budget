@@ -59,9 +59,6 @@ export default function GuideContent({
     <div className="w-full max-w-7xl mx-auto px-4 md:px-8 space-y-6">
       {/* Header Banner Section (Matching Planner Standard) */}
       <div className="text-center space-y-2 pt-2">
-        <span className="text-[#b93829] font-extrabold text-xs tracking-tight uppercase">
-          HypeHeritage Guide
-        </span>
         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
           {isKo ? "한국 여행 실전 가이드 & 생존 사전" : "Korea Travel Survival & Culture Guide"}
         </h1>

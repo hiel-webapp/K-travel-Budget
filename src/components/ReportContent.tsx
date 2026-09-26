@@ -68,6 +68,17 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     }));
   };
 
+  // 영수증 내부 스크롤이 최상단/최하단 도달 시 전체 브라우저 화면으로 부드럽게 스크롤 전파
+  const handleReceiptWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const isAtTop = el.scrollTop <= 0;
+    const isAtBottom = Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight - 1;
+
+    if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
+      window.scrollBy({ top: e.deltaY, behavior: "auto" });
+    }
+  };
+
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
       try {
@@ -314,8 +325,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               </div>
             </div>
 
-            {/* Receipt Items Body (독립 스크롤 영역) */}
-            <div className="p-3.5 sm:p-4 space-y-3.5 divide-y divide-slate-100 text-xs overflow-y-auto overscroll-contain flex-1 pr-1.5">
+            {/* Receipt Items Body (독립 스크롤 영역 - 상/하단 도달 시 브라우저 스크롤 연동) */}
+            <div
+              onWheel={handleReceiptWheel}
+              className="p-3.5 sm:p-4 space-y-3.5 divide-y divide-slate-100 text-xs overflow-y-auto overscroll-auto flex-1 pr-1.5"
+            >
               {/* 여정 타임라인 및 도시별 접이식 아코디언 카드 (도시 간 이동 교통 포함) */}
               {(() => {
                 const allTransitItems = basePlan.intercitySection?.lineItems || [];

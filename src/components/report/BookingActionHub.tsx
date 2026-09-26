@@ -335,8 +335,8 @@ export default function BookingActionHub({
                 onClick={() => setActiveCategory(tab.key)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer shrink-0 border ${
                   isActive
-                    ? "bg-neutral-900 text-white border-neutral-900 shadow-xs"
-                    : "bg-neutral-50 hover:bg-neutral-100 text-neutral-600 border-neutral-200/80 hover:text-neutral-900"
+                    ? "bg-[#b93829] text-white border-[#b93829] shadow-xs"
+                    : "bg-white hover:bg-slate-50 text-slate-600 border-slate-200/80 hover:text-slate-900 shadow-2xs"
                 }`}
               >
                 <span>{isKo ? tab.labelKo : tab.labelEn}</span>
@@ -371,7 +371,7 @@ export default function BookingActionHub({
                 aria-expanded={!isCollapsed}
               >
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 group-hover:text-rose-600 transition-colors tracking-tight">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-800 group-hover:text-[#b93829] transition-colors tracking-tight">
                     {isKo ? meta.labelKo : meta.labelEn}
                   </h3>
                   <span className="text-[10.5px] font-bold text-slate-400 tabular-nums">
@@ -407,7 +407,7 @@ export default function BookingActionHub({
                       >
                         {/* Left: Title + Subtitle */}
                         <div className="min-w-0 space-y-0.5">
-                          <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-rose-600 transition-colors truncate block">
+                          <span className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-[#b93829] transition-colors truncate block">
                             {title}
                           </span>
                           <p className="text-[11px] text-slate-400 truncate">
@@ -426,7 +426,7 @@ export default function BookingActionHub({
                             href={item.targetUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black bg-slate-900 hover:bg-rose-600 text-white shadow-2xs transition-all hover:translate-x-0.5 cursor-pointer shrink-0"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11.5px] font-extrabold bg-white hover:bg-rose-50 text-slate-800 hover:text-[#b93829] border border-slate-200/90 hover:border-rose-300 shadow-2xs transition-all hover:translate-x-0.5 cursor-pointer shrink-0"
                           >
                             <span>{actionLabel}</span>
                             <span className="text-xs">↗</span>

@@ -644,7 +644,7 @@ export default function SmartRouteMap({
         {/* 2. City Switcher & Route Action (Left Column) & Map Viewport (Right Column) */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch">
           {/* 좌측 사이드바: 도시 전환 탭 + 경로 스팟 수 + 카카오맵 길찾기 버튼 (2줄) */}
-          <div className="flex sm:flex-col gap-2 p-2 sm:p-2.5 rounded-2xl bg-neutral-100/90 border border-neutral-200/70 w-full sm:w-36 md:w-44 shrink-0 justify-between sm:justify-start">
+          <div className="flex sm:flex-col gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 w-full sm:w-36 md:w-44 shrink-0 justify-between sm:justify-start">
             {/* 도시 탭 리스트 */}
             {selectedCities.length > 1 && (
               <div className="flex sm:flex-col gap-1.5 w-full">
@@ -662,13 +662,18 @@ export default function SmartRouteMap({
                         setActiveCity(c);
                         setSelectedSpotIds([]);
                       }}
-                      className={`w-full py-2.5 px-3.5 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left ${
+                      className={`w-full py-2.5 px-3.5 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left flex items-center justify-between ${
                         isCurrent
-                          ? "bg-neutral-900 text-white shadow-sm"
-                          : "text-neutral-600 hover:text-neutral-900 hover:bg-white/60"
+                          ? "bg-white text-slate-900 border border-slate-200/90 shadow-2xs ring-1 ring-slate-900/5"
+                          : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
                       }`}
                     >
-                      {cName}
+                      <div className="flex items-center gap-2">
+                        {isCurrent && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#b93829] shrink-0"></span>
+                        )}
+                        <span>{cName}</span>
+                      </div>
                     </button>
                   );
                 })}

@@ -258,12 +258,16 @@ export default function SmartRouteMap({
     return groups;
   }, [displayedSpots, activeCity]);
 
-  // 개별 카드 클릭 핸들러 (한번 누르면 강조, 한번 더 누르면 강조 해제)
+  // 개별 카드 클릭 핸들러 (한번 누르면 해당 카드만 단독 강조, 한번 더 누르면 강조 해제)
   const handleSpotCardClick = (spot: RouteSpotItem) => {
-    const isAlreadySelected = selectedSpotIds.length === 1 && selectedSpotIds[0] === spot.id;
+    const isAlreadySelected =
+      selectedSpotIds.length === 1 &&
+      (isSameSpot(selectedSpotIds[0], spot.id) || selectedSpotIds[0] === spot.id);
+
     if (isAlreadySelected) {
       setSelectedSpotIds([]);
     } else {
+      // 기존에 코스나 다른 스팟이 선택되어 있었더라도 무조건 새롭게 클릭한 단일 스팟만 단독 선택
       setSelectedSpotIds([spot.id]);
       if (mapInstanceRef.current && window.kakao) {
         mapInstanceRef.current.panTo(new window.kakao.maps.LatLng(spot.lat, spot.lng));
@@ -303,13 +307,13 @@ export default function SmartRouteMap({
     );
   };
 
-  // 코스 타이틀 클릭 핸들러 (코스 내 모든 관광지 일괄 강조 + 지도 Bounds 자동 조정)
+  // 코스 타이틀 클릭 핸들러 (코스 내 모든 관광지만 배타적으로 일괄 강조 + 지도 Bounds 자동 조정)
   const handleCourseTitleClick = (group: RouteSpotGroup) => {
     const groupSpotIds = group.spots.map((s) => s.id);
     const isAllGroupSelected =
       groupSpotIds.length > 0 &&
-      groupSpotIds.every((id) => selectedSpotIds.includes(id)) &&
-      selectedSpotIds.length === groupSpotIds.length;
+      selectedSpotIds.length === groupSpotIds.length &&
+      groupSpotIds.every((id) => selectedSpotIds.some((sId) => isSameSpot(sId, id) || sId === id));
 
     if (isAllGroupSelected) {
       // 이미 해당 코스의 모든 스팟이 선택되어 있다면 전체 해제 및 전체 뷰 복귀
@@ -321,8 +325,8 @@ export default function SmartRouteMap({
         }
       }
     } else {
-      // 해당 코스에 속한 모든 스팟을 일괄 선택 및 강조
-      setSelectedSpotIds(groupSpotIds);
+      // 기존 선택(이전 코스나 다른 스팟)을 완전히 리셋하고 오직 현재 클릭한 코스의 스팟들만 일괄 선택
+      setSelectedSpotIds([...groupSpotIds]);
 
       // 지도 포커스: 마커 텍스트가 화면 밖으로 잘리지 않도록 안전 여백이 포함된 영역으로 맞춤
       if (mapInstanceRef.current && window.kakao && group.spots.length > 0) {
@@ -441,6 +445,7 @@ export default function SmartRouteMap({
 
           (overlay as any).spotId = spot.id;
           (overlay as any).routeOrder = spot.routeOrder;
+          (overlay as any).contentElement = content;
 
           overlay.setMap(map);
           overlaysRef.current.push(overlay);
@@ -496,42 +501,74 @@ export default function SmartRouteMap({
     return () => clearTimeout(timer);
   }, [activeCity, displayedSpots]);
 
-  // 선택된 장소들(selectedSpotIds) 변경 시 지도 위의 핀 스타일 및 zIndex를 즉시 동기화
+  // 선택된 장소들(selectedSpotIds) 변경 시 지도 위의 핀 스타일 및 zIndex를 배타적으로 즉시 동기화
   useEffect(() => {
-    // 1. 카카오맵 SDK CustomOverlay 객체의 zIndex 업데이트
-    if (overlaysRef.current && overlaysRef.current.length > 0) {
-      overlaysRef.current.forEach((overlay) => {
-        const spotId = (overlay as any).spotId;
-        const routeOrder = (overlay as any).routeOrder || 1;
-        if (spotId && typeof overlay.setZIndex === "function") {
-          const z = getSpotZIndex(spotId, routeOrder, selectedSpotIds);
-          overlay.setZIndex(z);
-        }
-      });
-    }
+    const syncAllMarkerElements = () => {
+      // 1. 카카오맵 SDK CustomOverlay 객체의 zIndex 및 직접 보관된 contentElement 업데이트
+      if (overlaysRef.current && overlaysRef.current.length > 0) {
+        overlaysRef.current.forEach((overlay) => {
+          const spotId = (overlay as any).spotId;
+          const routeOrder = (overlay as any).routeOrder || 1;
+          if (!spotId) return;
 
-    // 2. DOM 요소의 핀 스타일(normal vs active) 및 zIndex & 부모 래퍼 zIndex 업데이트
-    if (!mapContainerRef.current) return;
-    const markerElements = mapContainerRef.current.querySelectorAll<HTMLElement>("[data-spot-marker]");
-    markerElements.forEach((el) => {
-      const spotId = el.getAttribute("data-spot-id");
-      const routeOrder = parseInt(el.getAttribute("data-route-order") || "1", 10);
-      const isSel = spotId ? selectedSpotIds.includes(spotId) : false;
-      const normalPin = el.querySelector<HTMLElement>(".pin-normal");
-      const activePin = el.querySelector<HTMLElement>(".pin-active");
-      if (normalPin && activePin) {
-        normalPin.style.display = isSel ? "none" : "flex";
-        activePin.style.display = isSel ? "flex" : "none";
+          const isSel = selectedSpotIds.some(
+            (id) => isSameSpot(id, spotId) || id === spotId
+          );
+
+          if (typeof overlay.setZIndex === "function") {
+            const z = getSpotZIndex(spotId, routeOrder, selectedSpotIds);
+            overlay.setZIndex(z);
+          }
+
+          const contentEl: HTMLElement | null =
+            (overlay as any).contentElement ||
+            (typeof overlay.getContent === "function" ? overlay.getContent() : null);
+
+          if (contentEl && contentEl.querySelector) {
+            const normalPin = contentEl.querySelector<HTMLElement>(".pin-normal");
+            const activePin = contentEl.querySelector<HTMLElement>(".pin-active");
+            if (normalPin) normalPin.style.display = isSel ? "none" : "flex";
+            if (activePin) activePin.style.display = isSel ? "flex" : "none";
+            const z = getSpotZIndex(spotId, routeOrder, selectedSpotIds);
+            contentEl.style.zIndex = String(z);
+            if (contentEl.parentElement) {
+              contentEl.parentElement.style.zIndex = String(z);
+            }
+          }
+        });
       }
 
-      if (spotId) {
-        const z = getSpotZIndex(spotId, routeOrder, selectedSpotIds);
-        el.style.zIndex = String(z);
-        if (el.parentElement) {
-          el.parentElement.style.zIndex = String(z);
-        }
+      // 2. DOM querySelectorAll을 통한 2중 안전 검사 (지도 DOM에 렌더링된 모든 마커 전수 검사)
+      if (mapContainerRef.current) {
+        const markerElements = mapContainerRef.current.querySelectorAll<HTMLElement>("[data-spot-marker]");
+        markerElements.forEach((el) => {
+          const spotId = el.getAttribute("data-spot-id");
+          const routeOrder = parseInt(el.getAttribute("data-route-order") || "1", 10);
+          const isSel = spotId
+            ? selectedSpotIds.some((id) => isSameSpot(id, spotId) || id === spotId)
+            : false;
+          const normalPin = el.querySelector<HTMLElement>(".pin-normal");
+          const activePin = el.querySelector<HTMLElement>(".pin-active");
+          if (normalPin) normalPin.style.display = isSel ? "none" : "flex";
+          if (activePin) activePin.style.display = isSel ? "flex" : "none";
+
+          if (spotId) {
+            const z = getSpotZIndex(spotId, routeOrder, selectedSpotIds);
+            el.style.zIndex = String(z);
+            if (el.parentElement) {
+              el.parentElement.style.zIndex = String(z);
+            }
+          }
+        });
       }
-    });
+    };
+
+    // 즉시 동기화 실행
+    syncAllMarkerElements();
+
+    // 지도 panTo / setBounds 비동기 렌더링 이후에도 확실히 상태가 유지되도록 지연 동기화 보완
+    const timer = setTimeout(syncAllMarkerElements, 60);
+    return () => clearTimeout(timer);
   }, [selectedSpotIds]);
 
   const fullRouteLink =

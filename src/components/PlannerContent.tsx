@@ -1506,14 +1506,13 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     );
 
     const cityName = locale === "ko" ? (CITY_KOREAN_NAMES[targetStop.city] || targetStop.city) : (CITY_ENGLISH_NAMES[targetStop.city] || targetStop.city);
-    const stopLabel = targetStop.label ? ` (${targetStop.label})` : "";
     const updatedSum = nextStops.reduce((sum, s) => sum + s.nights, 0);
     const unallocated = maxTotalNights - updatedSum;
 
     setToastMessage(
       locale === "ko"
-        ? `${cityName}${stopLabel} 체류 기간이 ${clampedNights === 0 ? "당일" : `${clampedNights}박`}으로 설정되었습니다.${unallocated > 0 ? ` (${unallocated}박 여유)` : ""}`
-        : `${cityName}${stopLabel} stay set to ${clampedNights} night(s).`
+        ? `${cityName} 체류 기간이 ${clampedNights === 0 ? "당일" : `${clampedNights}박`}으로 설정되었습니다.${unallocated > 0 ? ` (${unallocated}박 여유)` : ""}`
+        : `${cityName} stay set to ${clampedNights} night(s).`
     );
     setTimeout(() => setToastMessage(null), 2500);
   };
@@ -3785,12 +3784,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                               </span>
                             )}
                             <span className={`text-xs sm:text-[13px] font-black truncate max-w-[75px] sm:max-w-none ${isActive ? "text-[#e25c5c]" : "text-slate-800"}`}>
-                              {(() => {
-                                if (currentStop.label) {
-                                  return `${label} (${currentStop.label})`;
-                                }
-                                return label;
-                              })()}
+                              {label}
                             </span>
                             {isAddedStop && (
                               <span
@@ -4724,7 +4718,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             : sameCityStops[0] || { id: `stop_1_${currentCity.toLowerCase()}`, city: currentCity, nights: draft.cityNightAllocations[currentCity] ?? 0 };
 
                           const effectiveNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[currentCity] ?? 0);
-                          const displayName = activeStop.label ? `${currentCityName} (${activeStop.label})` : currentCityName;
+                          const displayName = activeStop.isAdded ? `${currentCityName} +추가` : currentCityName;
 
                           let accOverride = preferences.accommodationByCity?.[activeStop.id];
                           if (!accOverride && isRepeatedCity) {
@@ -5054,7 +5048,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       return (
                         <StaySelectorPanel
                           city={city}
-                          stopLabel={activeStop.label}
+                          stopLabel={activeStop.isAdded ? (locale === "ko" ? "+추가" : "+Added") : undefined}
                           locale={locale}
                           dict={dict}
                           adultCount={adultCount}

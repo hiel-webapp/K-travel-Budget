@@ -169,6 +169,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const {
     basePlan,
     cityBreakdown,
+    stopBreakdown,
     sumAccTotal,
     sumFoodTotal,
     sumTransportTotal,
@@ -234,20 +235,33 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           <span className="text-neutral-300 font-bold text-xs">·</span>
           <span className="text-neutral-400 font-bold uppercase text-[10px] tracking-wider shrink-0">ROUTE:</span>
           <div className="flex flex-wrap items-center gap-1.5">
-            {draft.selectedCities.map((city, idx) => {
-              const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
-              const nights = draft.cityNightAllocations[city] || 0;
-              return (
-                <React.Fragment key={city}>
-                  <span className="bg-neutral-100/80 border border-neutral-200/60 text-neutral-800 px-3 py-1 rounded-full text-xs font-bold">
-                    {cityName} ({nights === 0 ? (locale === "ko" ? "당일" : "Day") : `${nights}${locale === "ko" ? "박" : "N"}`})
-                  </span>
-                  {idx < draft.selectedCities.length - 1 && (
-                    <span className="text-neutral-300 font-bold text-xs">➔</span>
+            {(stopBreakdown && stopBreakdown.length > 0
+              ? stopBreakdown
+              : draft.selectedCities.map((city, idx) => ({
+                  stopId: `${city}-${idx}`,
+                  city,
+                  cityName: locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city,
+                  nights: draft.cityNightAllocations[city] || 0,
+                  isAdded: false,
+                }))
+            ).map((stop, idx, arr) => (
+              <React.Fragment key={stop.stopId || `${stop.city}-${idx}`}>
+                <span className="inline-flex items-center gap-1 bg-neutral-100/80 border border-neutral-200/60 text-neutral-800 px-3 py-1 rounded-full text-xs font-bold">
+                  <span>{stop.cityName}</span>
+                  {stop.isAdded && (
+                    <span className="text-[9px] px-1 py-0.2 rounded font-extrabold bg-rose-100 text-[#e25c5c]">
+                      {locale === "ko" ? "+추가" : "+Added"}
+                    </span>
                   )}
-                </React.Fragment>
-              );
-            })}
+                  <span className="text-neutral-500 font-medium">
+                    ({stop.nights === 0 ? (locale === "ko" ? "당일" : "Day") : `${stop.nights}${locale === "ko" ? "박" : "N"}`})
+                  </span>
+                </span>
+                {idx < arr.length - 1 && (
+                  <span className="text-neutral-300 font-bold text-xs">➔</span>
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>
@@ -453,20 +467,40 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                     )}
 
                     {/* 2. 도시별 접이식 아코디언 카드 및 도시 간 이동 교통 */}
-                    {draft.selectedCities.map((city, cityIdx) => {
-                      const cInfo = cityBreakdown[city];
-                      if (!cInfo) return null;
+                    {(stopBreakdown && stopBreakdown.length > 0
+                      ? stopBreakdown
+                      : draft.selectedCities.map((city, cityIdx) => {
+                          const cInfo = cityBreakdown[city];
+                          return {
+                            stopId: `${city}-${cityIdx}`,
+                            city,
+                            cityName: locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city,
+                            nights: cInfo?.nights ?? (draft.cityNightAllocations[city] || 0),
+                            isAdded: false,
+                            stopIndex: cityIdx,
+                            stayTotalKrw: cInfo?.stayTotalKrw ?? 0,
+                            stayItemLabel: cInfo?.stayItemLabel ?? "",
+                            stayNightlyPrice: cInfo?.stayNightlyPrice ?? 0,
+                            hasStay: cInfo?.hasStay ?? false,
+                            foodTotalKrw: cInfo?.foodTotalKrw ?? 0,
+                            foodBasketPlan: cInfo?.foodBasketPlan,
+                            transportTotalKrw: cInfo?.transportTotalKrw ?? 0,
+                            attractionTotalKrw: cInfo?.attractionTotalKrw ?? 0,
+                            selectedSpots: cInfo?.selectedSpots ?? [],
+                            subtotalKrw: cInfo?.subtotalKrw ?? 0,
+                          };
+                        })
+                    ).map((sInfo, stopIdx, allStops) => {
+                      const cityName = sInfo.cityName;
+                      const foodItems = sInfo.foodBasketPlan?.selectedItems || [];
 
-                      const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
-                      const foodItems = cInfo.foodBasketPlan?.selectedItems || [];
-
-                      const accordionKey = `${city}-${cityIdx}`;
+                      const accordionKey = sInfo.stopId || `${sInfo.city}-${stopIdx}`;
                       const isExpanded = expandedReceiptCities[accordionKey] !== false;
 
                       // 다음 도시로 이동하는 교통 아이템
-                      const nextCity = draft.selectedCities[cityIdx + 1];
-                      const transitToNext = nextCity ? (
-                        transitItems.find((i) => i.route === `${city}-${nextCity}` || i.route === `${nextCity}-${city}`) || transitItems[cityIdx]
+                      const nextStop = allStops[stopIdx + 1];
+                      const transitToNext = nextStop ? (
+                        transitItems.find((i) => i.route === `${sInfo.city}-${nextStop.city}` || i.route === `${nextStop.city}-${sInfo.city}`) || transitItems[stopIdx]
                       ) : null;
 
                       return (
@@ -482,13 +516,18 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="w-2 h-2 rounded-full bg-[#e25c5c] shrink-0"></span>
                                 <span className="text-[13px] font-black text-[#0f172a] truncate">{cityName}</span>
+                                {sInfo.isAdded && (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-rose-100 text-[#e25c5c] shrink-0">
+                                    {locale === "ko" ? "+추가" : "+Added"}
+                                  </span>
+                                )}
                                 <span className="text-[10.5px] font-bold text-slate-400 shrink-0">
-                                  ({cInfo.nights === 0 ? (locale === "ko" ? "당일치기" : "Day trip") : `${cInfo.nights}${locale === "ko" ? "박" : "N"}`})
+                                  ({sInfo.nights === 0 ? (locale === "ko" ? "당일치기" : "Day trip") : `${sInfo.nights}${locale === "ko" ? "박" : "N"}`})
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
                                 <span className="text-xs font-black text-slate-900 tabular-nums">
-                                  {formatPriceByLocale(cInfo.subtotalKrw, locale, usdRate)}
+                                  {formatPriceByLocale(sInfo.subtotalKrw, locale, usdRate)}
                                 </span>
                                 <span className="text-slate-400 font-bold text-[10px] w-3 text-center print:hidden">
                                   {isExpanded ? "▲" : "▼"}
@@ -499,210 +538,212 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                             {/* 도시 내부 항목 (펼쳤을 때만 노출 / 인쇄 시에는 접힘 무시하고 항상 출력) */}
                             <div className={`px-3.5 pb-3.5 pt-2 border-t border-slate-100 space-y-3 bg-slate-50/30 text-xs ${isExpanded ? "block" : "hidden print:!block"}`}>
                               {/* 1. 숙박 */}
-                                <div className="space-y-1">
-                                  <div className="flex justify-between items-start gap-3">
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-1.5 flex-wrap">
-                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
-                                          {locale === "ko" ? "숙소" : "Stay"}
-                                        </span>
-                                        <span className="font-bold text-slate-800">
-                                          {(() => {
-                                            const accSel = preferences.accommodationByCity?.[city];
-                                            const isSplit = accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT";
-                                            if (isSplit) {
-                                              return locale === "ko" ? "분할 숙박 (Split Stay)" : "Split Stay";
-                                            }
-                                            return cInfo.stayItemLabel;
-                                          })()}
-                                        </span>
-                                      </div>
-                                      {cInfo.hasStay && (
-                                        <span className="text-[10px] text-slate-400 block mt-0.5 tabular-nums">
-                                          {locale === "ko"
-                                            ? `1박 ${formatKrw(cInfo.stayNightlyPrice)} × ${cInfo.nights}박`
-                                            : `${formatPriceByLocale(cInfo.stayNightlyPrice, locale, usdRate)}/night × ${cInfo.nights}N`}
-                                        </span>
-                                      )}
-                                      {(() => {
-                                        const accSel = preferences.accommodationByCity?.[city];
-                                        if (accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT" && Array.isArray((accSel as any).segments)) {
-                                          return (
-                                            <div className="mt-1.5 space-y-0.5 border-l-2 border-rose-300 pl-2 text-[10.5px] text-slate-600">
-                                              {(accSel as any).segments.map((seg: any, sIdx: number) => {
-                                                let segName = seg.placeNameKo;
-                                                if (locale === "en") segName = seg.placeNameEn || seg.placeNameKo;
-                                                const bId = seg.basketId;
-                                                const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
-                                                if (!segName || segName === "호텔" || segName === "Hotel") {
-                                                  if (arch) {
-                                                    segName = locale === "ko" ? arch.titleKo : arch.titleEn;
-                                                  } else if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") {
-                                                    segName = locale === "ko" ? "호스텔 & 게스트하우스" : "Hostel & Guesthouse";
-                                                  } else if (bId === "HANOK_BOUTIQUE") {
-                                                    segName = locale === "ko" ? "한옥 스테이" : "Hanok Stay";
-                                                  } else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") {
-                                                    segName = locale === "ko" ? "5성급 럭셔리 호텔" : "5-Star Luxury";
-                                                  } else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") {
-                                                    segName = locale === "ko" ? "도심 비즈니스 호텔" : "Business Hotel";
-                                                  } else {
-                                                    segName = locale === "ko" ? "도심 비즈니스 호텔" : "Business Hotel";
-                                                  }
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-start gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
+                                        {locale === "ko" ? "숙소" : "Stay"}
+                                      </span>
+                                      <span className="font-bold text-slate-800">
+                                        {!sInfo.hasStay
+                                          ? (locale === "ko" ? "당일치기 (숙박 없음)" : "Day Trip (No Accommodation)")
+                                          : (() => {
+                                              const accSel = preferences.accommodationByCity?.[sInfo.stopId] || preferences.accommodationByCity?.[sInfo.city];
+                                              const isSplit = accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT";
+                                              if (isSplit) {
+                                                return locale === "ko" ? "분할 숙박 (Split Stay)" : "Split Stay";
+                                              }
+                                              return sInfo.stayItemLabel;
+                                            })()}
+                                      </span>
+                                    </div>
+                                    {sInfo.hasStay && (
+                                      <span className="text-[10px] text-slate-400 block mt-0.5 tabular-nums">
+                                        {locale === "ko"
+                                          ? `1박 ${formatKrw(sInfo.stayNightlyPrice)} × ${sInfo.nights}박`
+                                          : `${formatPriceByLocale(sInfo.stayNightlyPrice, locale, usdRate)}/night × ${sInfo.nights}N`}
+                                      </span>
+                                    )}
+                                    {(() => {
+                                      const accSel = preferences.accommodationByCity?.[sInfo.stopId] || preferences.accommodationByCity?.[sInfo.city];
+                                      if (accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT" && Array.isArray((accSel as any).segments)) {
+                                        return (
+                                          <div className="mt-1.5 space-y-0.5 border-l-2 border-rose-300 pl-2 text-[10.5px] text-slate-600">
+                                            {(accSel as any).segments.map((seg: any, sIdx: number) => {
+                                              let segName = seg.placeNameKo;
+                                              if (locale === "en") segName = seg.placeNameEn || seg.placeNameKo;
+                                              const bId = seg.basketId;
+                                              const arch = STAY_ARCHETYPES.find((a) => (a.id as string) === (bId as string));
+                                              if (!segName || segName === "호텔" || segName === "Hotel") {
+                                                if (arch) {
+                                                  segName = locale === "ko" ? arch.titleKo : arch.titleEn;
+                                                } else if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") {
+                                                  segName = locale === "ko" ? "호스텔 & 게스트하우스" : "Hostel & Guesthouse";
+                                                } else if (bId === "HANOK_BOUTIQUE") {
+                                                  segName = locale === "ko" ? "한옥 스테이" : "Hanok Stay";
+                                                } else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") {
+                                                  segName = locale === "ko" ? "5성급 럭셔리 호텔" : "5-Star Luxury";
+                                                } else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") {
+                                                  segName = locale === "ko" ? "도심 비즈니스 호텔" : "Business Hotel";
+                                                } else {
+                                                  segName = locale === "ko" ? "도심 비즈니스 호텔" : "Business Hotel";
                                                 }
-                                                return (
-                                                  <div key={sIdx} className="flex justify-between">
-                                                    <span>• {segName} ({seg.nights}{locale === "ko" ? "박" : "N"})</span>
-                                                  </div>
-                                                );
-                                              })}
-                                            </div>
-                                          );
-                                        }
-                                        return null;
-                                      })()}
-                                    </div>
-                                    <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                                      {formatPriceByLocale(cInfo.stayTotalKrw, locale, usdRate)}
-                                    </strong>
-                                  </div>
-                                </div>
-
-                                {/* 2. 음식 */}
-                                <div className="space-y-1 pt-1.5 border-t border-slate-100">
-                                  <div className="flex justify-between items-start gap-3">
-                                    <div>
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
-                                          {locale === "ko" ? "음식" : "Food"}
-                                        </span>
-                                        <span className="font-bold text-slate-800">
-                                          {foodItems.length > 0
-                                            ? (locale === "ko" ? `담은 대표 음식 (${foodItems.length}종)` : `Selected Foods (${foodItems.length})`)
-                                            : (locale === "ko" ? "담은 음식 없음" : "No foods selected")}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                                      {formatPriceByLocale(cInfo.foodTotalKrw, locale, usdRate)}
-                                    </strong>
-                                  </div>
-
-                                  {/* 선택된 음식 품목 목록 */}
-                                  {foodItems.length > 0 && (
-                                    <div className="pl-4 pt-1 space-y-1 border-l-2 border-slate-100">
-                                      {foodItems.map((fItem: any) => {
-                                        const fName = locale === "ko" ? fItem.food.nameKo : fItem.food.nameEn;
-                                        const unitPrice = fItem.food.unitPriceKrw || 0;
-                                        const qty = fItem.quantity || 1;
-                                        const subtext = adultCount > 1
-                                          ? (locale === "ko"
-                                            ? `1인 ${formatKrw(unitPrice)}${qty > 1 ? ` (${qty}세트)` : ""} × ${adultCount}명`
-                                            : `${formatPriceByLocale(unitPrice, locale, usdRate)}/person${qty > 1 ? ` (${qty} sets)` : ""} × ${adultCount} travelers`)
-                                          : (qty > 1 ? (locale === "ko" ? `${qty}인분` : `${qty} servings`) : "");
-                                        return (
-                                          <div key={fItem.food.id} className="flex justify-between items-start text-[11px]">
-                                            <div className="space-y-0.5 min-w-0 pr-2">
-                                              <span className="font-medium text-slate-700 block truncate">
-                                                {fName}
-                                              </span>
-                                              {subtext && (
-                                                <span className="text-[10px] text-slate-400 block tabular-nums">
-                                                  {subtext}
-                                                </span>
-                                              )}
-                                            </div>
-                                            <span className="tabular-nums font-medium text-slate-700 shrink-0">
-                                              {formatPriceByLocale(fItem.subtotalKrw, locale, usdRate)}
-                                            </span>
+                                              }
+                                              return (
+                                                <div key={sIdx} className="flex justify-between">
+                                                  <span>• {segName} ({seg.nights}{locale === "ko" ? "박" : "N"})</span>
+                                                </div>
+                                              );
+                                            })}
                                           </div>
                                         );
-                                      })}
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* 3. 시내 교통 */}
-                                <div className="space-y-1 pt-1.5 border-t border-slate-100">
-                                  <div className="flex justify-between items-start gap-3">
-                                    <div>
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
-                                          {locale === "ko" ? "교통" : "Transit"}
-                                        </span>
-                                        <span className="font-bold text-slate-800">
-                                          {cityName} {locale === "ko" ? "시내 대중교통" : "Local Transit"}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                                      {formatPriceByLocale(cInfo.transportTotalKrw, locale, usdRate)}
-                                    </strong>
+                                      }
+                                      return null;
+                                    })()}
                                   </div>
-                                </div>
-
-                                {/* 4. 관광 & 액티비티 */}
-                                <div className="space-y-1 pt-1.5 border-t border-slate-100">
-                                  <div className="flex justify-between items-start gap-3">
-                                    <div>
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
-                                          {locale === "ko" ? "관광" : "Attr"}
-                                        </span>
-                                        <span className="font-bold text-slate-800">
-                                          {cInfo.selectedSpots.length > 0
-                                            ? (locale === "ko" ? `담은 명소 · 액티비티 (${cInfo.selectedSpots.length}곳)` : `Selected Spots (${cInfo.selectedSpots.length})`)
-                                            : (locale === "ko" ? "담은 관광지 없음" : "No attractions selected")}
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <strong className="font-bold text-slate-900 tabular-nums shrink-0">
-                                      {formatPriceByLocale(cInfo.attractionTotalKrw, locale, usdRate)}
-                                    </strong>
-                                  </div>
-
-                                  {/* 선택된 명소 & 액티비티 품목 목록 */}
-                                  {cInfo.selectedSpots.length > 0 && (
-                                    <div className="pl-4 pt-1 space-y-1 border-l-2 border-slate-100">
-                                      {cInfo.selectedSpots.map((spot) => {
-                                        const sName = locale === "ko" ? spot.nameKo : spot.nameEn;
-                                        const isActivity = (spot as any).categoryType === "액티비티" || spot.id.startsWith("act_");
-                                        const isFree = spot.priceStatus === "FREE" || spot.price === 0;
-                                        const spotSubtext = (!isFree && adultCount > 1)
-                                          ? (locale === "ko"
-                                            ? `1인 ${isActivity ? "체험비" : "입장료"} ${formatKrw(spot.price)} × ${adultCount}명`
-                                            : `${formatPriceByLocale(spot.price, locale, usdRate)}/person × ${adultCount} travelers`)
-                                          : "";
-                                        return (
-                                          <div key={spot.id} className="flex justify-between items-start text-[11px]">
-                                            <div className="space-y-0.5 min-w-0 pr-2">
-                                              <span className="truncate text-slate-700 flex items-center gap-1">
-                                                {isActivity && (
-                                                  <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-700 font-bold">
-                                                    {locale === "ko" ? "액티비티" : "Activity"}
-                                                  </span>
-                                                )}
-                                                {sName}
-                                              </span>
-                                              {spotSubtext && (
-                                                <span className="text-[10px] text-slate-400 block tabular-nums">
-                                                  {spotSubtext}
-                                                </span>
-                                              )}
-                                            </div>
-                                            <span className="tabular-nums font-medium text-slate-900 shrink-0">
-                                              {isFree ? (locale === "ko" ? "무료" : "Free") : formatPriceByLocale(spot.price * adultCount, locale, usdRate)}
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  )}
+                                  <strong className="font-bold text-slate-900 tabular-nums shrink-0">
+                                    {formatPriceByLocale(sInfo.stayTotalKrw, locale, usdRate)}
+                                  </strong>
                                 </div>
                               </div>
+
+                              {/* 2. 음식 */}
+                              <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                                <div className="flex justify-between items-start gap-3">
+                                  <div>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
+                                        {locale === "ko" ? "음식" : "Food"}
+                                      </span>
+                                      <span className="font-bold text-slate-800">
+                                        {foodItems.length > 0
+                                          ? (locale === "ko" ? `담은 대표 음식 (${foodItems.length}종)` : `Selected Foods (${foodItems.length})`)
+                                          : (locale === "ko" ? "담은 음식 없음" : "No foods selected")}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <strong className="font-bold text-slate-900 tabular-nums shrink-0">
+                                    {formatPriceByLocale(sInfo.foodTotalKrw, locale, usdRate)}
+                                  </strong>
+                                </div>
+
+                                {/* 선택된 음식 품목 목록 */}
+                                {foodItems.length > 0 && (
+                                  <div className="pl-4 pt-1 space-y-1 border-l-2 border-slate-100">
+                                    {foodItems.map((fItem: any) => {
+                                      const fName = locale === "ko" ? fItem.food.nameKo : fItem.food.nameEn;
+                                      const unitPrice = fItem.food.unitPriceKrw || 0;
+                                      const qty = fItem.quantity || 1;
+                                      const subtext = adultCount > 1
+                                        ? (locale === "ko"
+                                          ? `1인 ${formatKrw(unitPrice)}${qty > 1 ? ` (${qty}세트)` : ""} × ${adultCount}명`
+                                          : `${formatPriceByLocale(unitPrice, locale, usdRate)}/person${qty > 1 ? ` (${qty} sets)` : ""} × ${adultCount} travelers`)
+                                        : (qty > 1 ? (locale === "ko" ? `${qty}인분` : `${qty} servings`) : "");
+                                      return (
+                                        <div key={fItem.food.id} className="flex justify-between items-start text-[11px]">
+                                          <div className="space-y-0.5 min-w-0 pr-2">
+                                            <span className="font-medium text-slate-700 block truncate">
+                                              {fName}
+                                            </span>
+                                            {subtext && (
+                                              <span className="text-[10px] text-slate-400 block tabular-nums">
+                                                {subtext}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <span className="tabular-nums font-medium text-slate-700 shrink-0">
+                                            {formatPriceByLocale(fItem.subtotalKrw, locale, usdRate)}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* 3. 시내 교통 */}
+                              <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                                <div className="flex justify-between items-start gap-3">
+                                  <div>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
+                                        {locale === "ko" ? "교통" : "Transit"}
+                                      </span>
+                                      <span className="font-bold text-slate-800">
+                                        {cityName} {locale === "ko" ? "시내 대중교통" : "Local Transit"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <strong className="font-bold text-slate-900 tabular-nums shrink-0">
+                                    {formatPriceByLocale(sInfo.transportTotalKrw, locale, usdRate)}
+                                  </strong>
+                                </div>
+                              </div>
+
+                              {/* 4. 관광 & 액티비티 */}
+                              <div className="space-y-1 pt-1.5 border-t border-slate-100">
+                                <div className="flex justify-between items-start gap-3">
+                                  <div>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 uppercase">
+                                        {locale === "ko" ? "관광" : "Attr"}
+                                      </span>
+                                      <span className="font-bold text-slate-800">
+                                        {sInfo.selectedSpots.length > 0
+                                          ? (locale === "ko" ? `담은 명소 · 액티비티 (${sInfo.selectedSpots.length}곳)` : `Selected Spots (${sInfo.selectedSpots.length})`)
+                                          : (locale === "ko" ? "담은 관광지 없음" : "No attractions selected")}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <strong className="font-bold text-slate-900 tabular-nums shrink-0">
+                                    {formatPriceByLocale(sInfo.attractionTotalKrw, locale, usdRate)}
+                                  </strong>
+                                </div>
+
+                                {/* 선택된 명소 & 액티비티 품목 목록 */}
+                                {sInfo.selectedSpots.length > 0 && (
+                                  <div className="pl-4 pt-1 space-y-1 border-l-2 border-slate-100">
+                                    {sInfo.selectedSpots.map((spot) => {
+                                      const sName = locale === "ko" ? spot.nameKo : spot.nameEn;
+                                      const isActivity = (spot as any).categoryType === "액티비티" || spot.id.startsWith("act_");
+                                      const isFree = spot.priceStatus === "FREE" || spot.price === 0;
+                                      const spotSubtext = (!isFree && adultCount > 1)
+                                        ? (locale === "ko"
+                                          ? `1인 ${isActivity ? "체험비" : "입장료"} ${formatKrw(spot.price)} × ${adultCount}명`
+                                          : `${formatPriceByLocale(spot.price, locale, usdRate)}/person × ${adultCount} travelers`)
+                                        : "";
+                                      return (
+                                        <div key={spot.id} className="flex justify-between items-start text-[11px]">
+                                          <div className="space-y-0.5 min-w-0 pr-2">
+                                            <span className="truncate text-slate-700 flex items-center gap-1">
+                                              {isActivity && (
+                                                <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-700 font-bold">
+                                                  {locale === "ko" ? "액티비티" : "Activity"}
+                                                </span>
+                                              )}
+                                              {sName}
+                                            </span>
+                                            {spotSubtext && (
+                                              <span className="text-[10px] text-slate-400 block tabular-nums">
+                                                {spotSubtext}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <span className="tabular-nums font-medium text-slate-900 shrink-0">
+                                            {isFree ? (locale === "ko" ? "무료" : "Free") : formatPriceByLocale(spot.price * adultCount, locale, usdRate)}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
                             </div>
+                          </div>
 
                           {/* 도시 간 이동 교통 (도시와 다음 도시 사이 커넥터) */}
-                          {transitToNext && renderTransitConnector(transitToNext, `transit-${city}-${nextCity}`)}
+                          {transitToNext && renderTransitConnector(transitToNext, `transit-${sInfo.stopId || sInfo.city}-${nextStop.stopId || nextStop.city}`)}
                         </div>
                       );
                     })}

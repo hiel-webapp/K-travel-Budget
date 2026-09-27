@@ -1,4 +1,14 @@
-import { TripDraft, SupportedCity, CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT } from "src/lib/trip-domain";
+import {
+  TripDraft,
+  SupportedCity,
+  CITY_KOREAN_NAMES,
+  CITY_ENGLISH_NAMES,
+  validateTripDraft,
+  sanitizeTripDraft,
+  DEFAULT_TRIP_DRAFT,
+  ensureTripStops,
+  TripStop,
+} from "src/lib/trip-domain";
 import { PlannerPreferences, BudgetCategory, BudgetBasketId, ShoppingOption, BudgetPlan } from "../domain/types";
 import { generateInitialBudgetPlan } from "./engine";
 import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
@@ -38,12 +48,32 @@ export interface CityCalculationBreakdown {
   subtotalKrw: number;
 }
 
+export interface StopCalculationBreakdown {
+  stopId: string;
+  city: SupportedCity;
+  cityName: string;
+  nights: number;
+  isAdded?: boolean;
+  stopIndex: number;
+  stayTotalKrw: number;
+  stayItemLabel: string;
+  stayNightlyPrice: number;
+  hasStay: boolean;
+  foodTotalKrw: number;
+  foodBasketPlan: any;
+  transportTotalKrw: number;
+  attractionTotalKrw: number;
+  selectedSpots: AttractionSpot[];
+  subtotalKrw: number;
+}
+
 export interface TripBudgetSummary {
   adultCount: number;
   totalNights: number;
   travelDays: number;
   basePlan: BudgetPlan;
   cityBreakdown: Record<string, CityCalculationBreakdown>;
+  stopBreakdown: StopCalculationBreakdown[];
   sumAccTotal: number;
   sumFoodTotal: number;
   sumTransportTotal: number;
@@ -288,6 +318,173 @@ export function calculateTripBudgetSummary(
     sumCitySubtotals += citySub;
   });
 
+  // 3-1. 정차지(Stop)별 상세 분할 계산 (동일 도시 재방문 및 분할 숙박 완벽 지원)
+  const stops = ensureTripStops(draft);
+  const stopBreakdown: StopCalculationBreakdown[] = [];
+
+  const cityStopsMap: Record<string, TripStop[]> = {};
+  stops.forEach((s) => {
+    if (!cityStopsMap[s.city]) cityStopsMap[s.city] = [];
+    cityStopsMap[s.city].push(s);
+  });
+  const cityVisitTracker: Record<string, number> = {};
+
+  stops.forEach((stop, stopIdx) => {
+    const city = stop.city;
+    const sameCityStops = cityStopsMap[city] || [stop];
+    const isRepeated = sameCityStops.length > 1;
+    const visitIdx = (cityVisitTracker[city] = (cityVisitTracker[city] || 0) + 1) - 1;
+
+    const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
+    const nights = stop.nights;
+
+    // A. 숙박 계산
+    let stayTotal = 0;
+    let stayNightly = 0;
+    let stayLabel = locale === "ko" ? "당일치기 (숙박 없음)" : "Day trip (No stay)";
+    let hasStay = false;
+
+    if (nights > 0) {
+      let accOverride = preferences.accommodationByCity?.[stop.id];
+      if (!accOverride && isRepeated) {
+        const cityAcc = preferences.accommodationByCity?.[city];
+        if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
+          const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === stop.id);
+          if (foundSeg) {
+            accOverride = {
+              kind: "TIER",
+              basketId: foundSeg.basketId,
+              nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+              placeNameKo: foundSeg.placeNameKo,
+              placeNameEn: foundSeg.placeNameEn,
+            } as any;
+          }
+        }
+      }
+      if (!accOverride) {
+        accOverride = preferences.accommodationByCity?.[city];
+        if (isRepeated && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
+          accOverride = undefined;
+        }
+      }
+
+      if (accOverride) {
+        if (typeof accOverride === "object" && "nightlyPriceKrw" in accOverride && (accOverride as any).nightlyPriceKrw) {
+          stayNightly = (accOverride as any).nightlyPriceKrw;
+          stayLabel = (locale === "ko" ? (accOverride as any).placeNameKo : (accOverride as any).placeNameEn) || (accOverride as any).placeNameKo || (locale === "ko" ? "선택 숙소" : "Selected Stay");
+        } else {
+          const bId = typeof accOverride === "string" ? accOverride : (accOverride as any).basketId;
+          const arch = STAY_ARCHETYPES.find((a) => a.id === bId);
+          if (arch) {
+            stayNightly = arch.cityPrices[city] || arch.defaultPriceKrw;
+            stayLabel = locale === "ko" ? arch.titleKo : arch.titleEn;
+          }
+        }
+      }
+
+      if (stayNightly === 0) {
+        const defTier = draft.budgetTier || "STANDARD";
+        const archId = defTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : defTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
+        const arch = STAY_ARCHETYPES.find((a) => a.id === archId);
+        if (arch) {
+          stayNightly = arch.cityPrices[city] || arch.defaultPriceKrw;
+          stayLabel = locale === "ko" ? arch.titleKo : arch.titleEn;
+        }
+      }
+
+      const isSolo = adultCount <= 1;
+      const occupancyMode = preferences.occupancyModeByCity?.[city] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
+      const isPair = !isSolo && occupancyMode === "SHARED_PAIR";
+      const sharedRoomCount = Math.ceil(adultCount / 2);
+      const roomCount = isSolo ? 1 : isPair ? sharedRoomCount : adultCount;
+
+      stayTotal = stayNightly * roomCount * nights;
+      hasStay = stayTotal > 0;
+    }
+
+    // B. 음식
+    const cData = cityBreakdown[city];
+    const cityTotalNights = Math.max(1, sameCityStops.reduce((sum, s) => sum + s.nights, 0));
+    const effectiveStopRatio = isRepeated
+      ? (nights === 0 ? 0.35 / (cityTotalNights + 0.35) : nights / (cityTotalNights + (sameCityStops.some(s => s.nights === 0) ? 0.35 : 0)))
+      : 1;
+
+    const foodTotal = cData ? Math.round(cData.foodTotalKrw * effectiveStopRatio) : 0;
+    const allFoodItems = cData?.foodBasketPlan?.selectedItems || [];
+    let stopFoodItems: any[] = [];
+    if (!isRepeated) {
+      stopFoodItems = allFoodItems;
+    } else {
+      if (allFoodItems.length <= 1) {
+        stopFoodItems = visitIdx === 0 ? allFoodItems : [];
+      } else {
+        const half = Math.ceil(allFoodItems.length / 2);
+        stopFoodItems = visitIdx === 0 ? allFoodItems.slice(0, half) : allFoodItems.slice(half);
+      }
+    }
+    const stopFoodPlan = cData?.foodBasketPlan ? {
+      ...cData.foodBasketPlan,
+      selectedItems: stopFoodItems,
+      subtotalKrw: foodTotal,
+    } : undefined;
+
+    // C. 시내 교통
+    const transportTotal = cData ? Math.round(cData.transportTotalKrw * effectiveStopRatio) : 0;
+
+    // D. 관광지
+    const allCitySpots = cData?.selectedSpots || [];
+    let stopSpots: AttractionSpot[] = [];
+    if (!isRepeated) {
+      stopSpots = allCitySpots;
+    } else {
+      if (allCitySpots.length === 0) {
+        stopSpots = [];
+      } else if (allCitySpots.length === 1) {
+        stopSpots = visitIdx === 0 ? allCitySpots : [];
+      } else {
+        const half = Math.ceil(allCitySpots.length / 2);
+        stopSpots = visitIdx === 0 ? allCitySpots.slice(0, half) : allCitySpots.slice(half);
+      }
+    }
+
+    const attractionTotal = stopSpots.reduce((sum, s) => {
+      if (s.priceStatus === "PAID" && s.price > 0) {
+        return sum + s.price * adultCount;
+      }
+      return sum;
+    }, 0);
+
+    const subtotal = stayTotal + foodTotal + transportTotal + attractionTotal;
+
+    stopBreakdown.push({
+      stopId: stop.id,
+      city,
+      cityName,
+      nights,
+      isAdded: stop.isAdded,
+      stopIndex: stopIdx,
+      stayTotalKrw: stayTotal,
+      stayItemLabel: stayLabel,
+      stayNightlyPrice: stayNightly,
+      hasStay,
+      foodTotalKrw: foodTotal,
+      foodBasketPlan: stopFoodPlan || cData?.foodBasketPlan,
+      transportTotalKrw: transportTotal,
+      attractionTotalKrw: attractionTotal,
+      selectedSpots: stopSpots,
+      subtotalKrw: subtotal,
+    });
+  });
+
+  // 복수 정차지(스탑) 구성 시 총합계를 stopBreakdown 기준으로 정밀 동기화
+  if (stops.length > uniqueCities.length || stops.some((s) => s.isAdded)) {
+    sumAccTotal = stopBreakdown.reduce((sum, s) => sum + s.stayTotalKrw, 0);
+    sumFoodTotal = stopBreakdown.reduce((sum, s) => sum + s.foodTotalKrw, 0);
+    sumTransportTotal = stopBreakdown.reduce((sum, s) => sum + s.transportTotalKrw, 0);
+    sumAttractionTotal = stopBreakdown.reduce((sum, s) => sum + s.attractionTotalKrw, 0);
+    sumCitySubtotals = stopBreakdown.reduce((sum, s) => sum + s.subtotalKrw, 0);
+  }
+
   // 4. 도시 간 이동 교통 요금 및 공항 교통
   const intercityTotal = basePlan.intercitySection.subtotalKrw;
 
@@ -366,6 +563,7 @@ export function calculateTripBudgetSummary(
     travelDays,
     basePlan,
     cityBreakdown,
+    stopBreakdown,
     sumAccTotal,
     sumFoodTotal,
     sumTransportTotal,

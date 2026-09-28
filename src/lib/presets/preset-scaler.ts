@@ -1,11 +1,13 @@
-import { SupportedCity, TripDraft, CITY_KOREAN_NAMES } from "../trip-domain";
+import { SupportedCity, TripDraft, CITY_KOREAN_NAMES, ensureTripStops } from "../trip-domain";
 import { TravelPreset, TravelPresetId, getTravelPresetById } from "./travel-presets";
 import {
   AccommodationOverridesByCity,
   BudgetBasketId,
   PlannerPreferences,
+  FoodBasketItemSelection,
 } from "../../features/budget/domain/types";
 import { SavePlannerPreferencesInput } from "../storage-helper";
+import { FOOD_CATALOG_BY_ID } from "../../features/budget/catalog/food-catalog";
 
 /**
  * 선택된 여행 테마 프리셋의 고유 규칙(숙소 등급, 식비 성향, 관광지 코스)을
@@ -73,7 +75,25 @@ export function scalePresetPreferences(
     }
   }
 
-  // 3. 식비 바스켓 복사 (기존 도시 유지)
+  // 3. 식비 바스켓 복사 (정차지별 완전 독립 격리 매핑)
+  const stops = ensureTripStops(currentDraft);
+  const foodBasketSelectionsByStop: Record<string, FoodBasketItemSelection[]> = {};
+
+  const cityVisitedCount: Record<string, number> = {};
+  stops.forEach((stop) => {
+    cityVisitedCount[stop.city] = (cityVisitedCount[stop.city] || 0) + 1;
+    // 오직 첫 번째 정차지(1차 방문)에만 프리셋의 해당 도시 음식 바스켓을 매핑
+    if (cityVisitedCount[stop.city] === 1 && !stop.isAdded) {
+      const cityFoods = (preferences.foodBasketSelections || []).filter(
+        (fb) => fb.cityCode === stop.city || FOOD_CATALOG_BY_ID.get(fb.foodId)?.cityCode === stop.city
+      );
+      foodBasketSelectionsByStop[stop.id] = cityFoods.map((f) => ({ ...f, cityCode: stop.city }));
+    } else {
+      // 추가 도시나 2차 이상 방문은 독립된 빈 바스켓으로 시작!
+      foodBasketSelectionsByStop[stop.id] = [];
+    }
+  });
+
   const scaledFoodBaskets = (preferences.foodBasketSelections || []).filter((fb) =>
     targetCities.includes(fb.cityCode as SupportedCity)
   );
@@ -84,6 +104,7 @@ export function scalePresetPreferences(
     foodOverrides: preferences.foodOverrides || {},
     foodAddOnOverrides: preferences.foodAddOnOverrides || {},
     foodBasketSelections: scaledFoodBaskets,
+    foodBasketSelectionsByStop,
     attractionByCity: preferences.attractionByCity || {},
     attractionSelections: scaledAttractionSelections,
     shoppingOption: preferences.shoppingOption,

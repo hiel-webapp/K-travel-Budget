@@ -130,4 +130,81 @@ describe("추가 도시 음식 선택 격리 및 예산 리포트 영수증 정�
     expect(gangneungBreakdown.hasStay).toBe(true);
     expect(gangneungBreakdown.stayTotalKrw).toBeGreaterThan(0);
   });
+
+  it("3. 동일 도시 중복 방문(서울 1차 + 서울 2차 추가) 시 프리셋 음식 보존 및 2차 추가 도시의 음식 독립성 검증", () => {
+    const roundDraft: TripDraft = {
+      schemaVersion: 1,
+      totalNights: 6,
+      adultCount: 2,
+      selectedCities: ["SEOUL", "BUSAN", "SEOUL"],
+      cityNightAllocations: {
+        SEOUL: 4,
+        BUSAN: 2,
+      },
+      budgetTier: "STANDARD",
+      targetBudgetKrw: 3000000,
+    };
+
+    const roundStops = ensureTripStops(roundDraft);
+    expect(roundStops).toHaveLength(3);
+    const stop1Seoul = roundStops[0];
+    const stop2Busan = roundStops[1];
+    const stop3Seoul = roundStops[2];
+
+    // 서울 1차: 설렁탕 (1차에만 담김)
+    const seoul1Foods: FoodBasketItemSelection[] = [
+      { foodId: "seoul_seolleongtang", quantity: 2, cityCode: "SEOUL" },
+    ];
+    // 서울 2차(+추가): 삼계탕 (2차에만 담김)
+    const seoul2Foods: FoodBasketItemSelection[] = [
+      { foodId: "nat_samgyetang", quantity: 2, cityCode: "SEOUL" },
+    ];
+    // 부산: 돼지국밥
+    const busanFoods: FoodBasketItemSelection[] = [
+      { foodId: "busan_dwaeji_gukbap", quantity: 2, cityCode: "BUSAN" },
+    ];
+
+    const preferences: PlannerPreferences = {
+      schemaVersion: 5,
+      tripFingerprint: generateTripFingerprint(roundDraft),
+      accommodationByCity: {
+        [stop1Seoul.id]: { kind: "TIER", basketId: "STANDARD_HOTEL" },
+        [stop2Busan.id]: { kind: "TIER", basketId: "STANDARD_HOTEL" },
+        [stop3Seoul.id]: { kind: "TIER", basketId: "STANDARD_HOTEL" },
+      },
+      foodBasketSelectionsByStop: {
+        [stop1Seoul.id]: seoul1Foods,
+        [stop2Busan.id]: busanFoods,
+        [stop3Seoul.id]: seoul2Foods,
+      },
+      foodBasketSelections: [...seoul1Foods, ...busanFoods, ...seoul2Foods],
+      attractionSelectionsByStop: {},
+      attractionSelections: {},
+      foodOverrides: {},
+      addOnSelections: {},
+      attractionByCity: {},
+    };
+
+    const summary = calculateTripBudgetSummary(roundDraft, preferences, [], "ko", {});
+    expect(summary.stopBreakdown).toHaveLength(3);
+
+    const s1 = summary.stopBreakdown[0];
+    const s2 = summary.stopBreakdown[1];
+    const s3 = summary.stopBreakdown[2];
+
+    // 1차 서울: 설렁탕만 1개 항목 존재
+    expect(s1.city).toBe("SEOUL");
+    expect(s1.foodBasketPlan?.selectedItems).toHaveLength(1);
+    expect(s1.foodBasketPlan?.selectedItems[0].food.id).toBe("seoul_seolleongtang");
+
+    // 부산: 돼지국밥만 1개 항목 존재
+    expect(s2.city).toBe("BUSAN");
+    expect(s2.foodBasketPlan?.selectedItems).toHaveLength(1);
+    expect(s2.foodBasketPlan?.selectedItems[0].food.id).toBe("busan_dwaeji_gukbap");
+
+    // 2차 서울: 1차 서울 설렁탕이 섞이지 않고 오직 삼계탕만 1개 항목 존재
+    expect(s3.city).toBe("SEOUL");
+    expect(s3.foodBasketPlan?.selectedItems).toHaveLength(1);
+    expect(s3.foodBasketPlan?.selectedItems[0].food.id).toBe("nat_samgyetang");
+  });
 });

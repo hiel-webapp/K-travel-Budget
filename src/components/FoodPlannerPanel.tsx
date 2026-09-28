@@ -832,7 +832,7 @@ function FoodItemCard({
               <div className="absolute top-2 right-2 z-10">
                 <span className="px-2 py-0.5 rounded-full bg-indigo-600/90 backdrop-blur-xs text-white text-[9.5px] font-black shadow-xs flex items-center gap-1">
                   <span>🏷️</span>
-                  <span>{priorStopLabel ? `${priorStopLabel} 담음` : (locale === "ko" ? "1차에서 담음" : "In #1")}</span>
+                  <span>{priorStopLabel ? `${priorStopLabel} 담음` : (locale === "ko" ? "기선택 메뉴" : "Selected")}</span>
                 </span>
               </div>
             )}
@@ -854,6 +854,11 @@ function FoodItemCard({
             {!food.imageUrl && !isSelected && food.isMustEatTop3 && (
               <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500 text-white shadow-2xs shrink-0">
                 Must-Eat
+              </span>
+            )}
+            {!food.imageUrl && !isSelected && isPriorSelected && (
+              <span className="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-indigo-100 text-indigo-700 border border-indigo-200 shadow-2xs shrink-0">
+                {priorStopLabel ? `${priorStopLabel} 담음` : (locale === "ko" ? "기선택" : "Selected")}
               </span>
             )}
             <h5

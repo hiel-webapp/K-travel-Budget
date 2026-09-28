@@ -1684,11 +1684,37 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
     }
 
+    // 새로 추가된 도시의 정차지는 빈 음식 바스켓으로 명시적 격리
+    let nextFoodByStop = { ...(preferences.foodBasketSelectionsByStop || {}) };
+    nextFoodByStop[newStopId] = [];
+
+    // 중복 도시 발생 시 기존 1차 정차지의 음식을 firstStop.id에 안전하게 고정 보존
+    if (sameCityStops.length > 1) {
+      const firstStop = sameCityStops[0];
+      if (firstStop && (!nextFoodByStop[firstStop.id] || nextFoodByStop[firstStop.id].length === 0)) {
+        const cityInitialFoods = (preferences.foodBasketSelections || []).filter((item) => {
+          const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+          return (item.cityCode || fDef?.cityCode) === cityToAdd;
+        });
+        if (cityInitialFoods.length > 0) {
+          nextFoodByStop[firstStop.id] = [...cityInitialFoods];
+        }
+      }
+    }
+
     saveTripDraft(nextDraft);
-    persistPreferences({ accommodationByCity: nextAcc }, nextDraft);
+    persistPreferences({ accommodationByCity: nextAcc, foodBasketSelectionsByStop: nextFoodByStop }, nextDraft);
     setState((prev) =>
       prev.status === "ready"
-        ? { ...prev, draft: nextDraft, preferences: { ...prev.preferences, accommodationByCity: nextAcc } }
+        ? {
+            ...prev,
+            draft: nextDraft,
+            preferences: {
+              ...prev.preferences,
+              accommodationByCity: nextAcc,
+              foodBasketSelectionsByStop: nextFoodByStop,
+            },
+          }
         : prev
     );
     setSelectedCityTab(cityToAdd);
@@ -1772,11 +1798,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
     }
 
+    const nextFoodByStop = { ...(preferences.foodBasketSelectionsByStop || {}) };
+    if (stopToRemove) {
+      delete nextFoodByStop[stopToRemove.id];
+    }
+
     saveTripDraft(nextDraft);
-    persistPreferences({ accommodationByCity: nextAcc }, nextDraft);
+    persistPreferences({ accommodationByCity: nextAcc, foodBasketSelectionsByStop: nextFoodByStop }, nextDraft);
     setState((prev) =>
       prev.status === "ready"
-        ? { ...prev, draft: nextDraft, preferences: { ...prev.preferences, accommodationByCity: nextAcc } }
+        ? {
+            ...prev,
+            draft: nextDraft,
+            preferences: {
+              ...prev.preferences,
+              accommodationByCity: nextAcc,
+              foodBasketSelectionsByStop: nextFoodByStop,
+            },
+          }
         : prev
     );
 
@@ -2977,6 +3016,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const isFirstVisitOfCity = visitIdx === 0 && !(activeStop?.isAdded);
 
     const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
+
+    // 1차 도시의 바스켓이 아직 키로 고정되지 않았다면 최초 1회 확실히 고정보존
+    const firstStopOfCity = sameCityStops[0];
+    if (firstStopOfCity && !firstStopOfCity.isAdded && currentByStop[firstStopOfCity.id] === undefined) {
+      currentByStop[firstStopOfCity.id] = (latestPrefsRef.current.foodBasketSelections || []).filter((item) => {
+        const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+        return (item.cityCode || fDef?.cityCode) === fallbackCity;
+      });
+    }
+
     let currentBasket = currentByStop[stopKey];
     if (!currentBasket) {
       if (isFirstVisitOfCity) {
@@ -3018,7 +3067,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
     currentByStop[stopKey] = nextStopBasket;
 
-    // 전체 foodBasketSelections 동기화 (모든 정차지 통합)
+    // 전체 foodBasketSelections 동기화 (모든 정차지 통합 집계)
     const nextGlobalBasket: FoodBasketItemSelection[] = [];
     Object.entries(currentByStop).forEach(([, items]) => {
       items.forEach((it) => {
@@ -3073,6 +3122,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const isFirstVisitOfCity = visitIdx === 0 && !(activeStop?.isAdded);
 
     const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
+
+    // 1차 도시의 바스켓이 아직 키로 고정되지 않았다면 최초 1회 확실히 고정보존
+    const firstStopOfCity = sameCityStops[0];
+    if (firstStopOfCity && !firstStopOfCity.isAdded && currentByStop[firstStopOfCity.id] === undefined) {
+      currentByStop[firstStopOfCity.id] = (latestPrefsRef.current.foodBasketSelections || []).filter((item) => {
+        const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+        return (item.cityCode || fDef?.cityCode) === fallbackCity;
+      });
+    }
+
     let currentBasket = currentByStop[stopKey];
     if (!currentBasket) {
       if (isFirstVisitOfCity) {
@@ -3164,6 +3223,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     const stopKey = explicitStopId || activeStop?.id || `stop_1_${fallbackCity.toLowerCase()}`;
 
     const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
+
+    // 1차 도시의 바스켓이 아직 키로 고정되지 않았다면 최초 1회 확실히 고정보존
+    const firstStopOfCity = sameCityStops[0];
+    if (firstStopOfCity && !firstStopOfCity.isAdded && currentByStop[firstStopOfCity.id] === undefined) {
+      currentByStop[firstStopOfCity.id] = (latestPrefsRef.current.foodBasketSelections || []).filter((item) => {
+        const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+        return (item.cityCode || fDef?.cityCode) === fallbackCity;
+      });
+    }
+
     currentByStop[stopKey] = [];
 
     const nextGlobalBasket: FoodBasketItemSelection[] = [];
@@ -4558,8 +4627,16 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                     (pSel.individualSpotIds || []).forEach((sid) => priorSelectedSpotKeys.add(normalizeSpotKey(sid)));
                   }
 
-                  const pFoods = preferences.foodBasketSelectionsByStop?.[pStop.id] ||
-                    (pStop.id === sameCityStops[0]?.id && !pStop.isAdded ? preferences.foodBasketSelections : undefined);
+                  let pFoods = preferences.foodBasketSelectionsByStop?.[pStop.id];
+                  if (pFoods === undefined && pStop.id === sameCityStops[0]?.id && !pStop.isAdded) {
+                    const allKeys = Object.keys(preferences.foodBasketSelectionsByStop || {});
+                    if (allKeys.length === 0) {
+                      pFoods = (preferences.foodBasketSelections || []).filter((f) => {
+                        const fDef = FOOD_CATALOG_BY_ID.get(f.foodId);
+                        return (f.cityCode || fDef?.cityCode) === currentCity;
+                      });
+                    }
+                  }
                   if (pFoods) {
                     pFoods.forEach((f) => {
                       if (f.quantity > 0) priorSelectedFoodIds.add(f.foodId);
@@ -4570,8 +4647,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               const priorStopLabel = priorSameCityStops.length > 0
                 ? (locale === "ko"
-                    ? `${priorSameCityStops.map((_, i) => `${i + 1}차`).join(", ")} ${currentCityName}`
-                    : `${currentCityName} (${priorSameCityStops.map((_, i) => `#${i + 1}`).join(", ")})`)
+                    ? `${currentCityName}`
+                    : `${currentCityName}`)
                 : undefined;
 
               // 1. 숙박 (해당 도시/정차지 선택 숙소 및 금액)
@@ -4658,13 +4735,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
               // 2. 음식 (해당 정차지에 할당된 푸드 바스켓 금액 및 담긴 메뉴 수)
               let stopFoodSelections: FoodBasketItemSelection[] | undefined = preferences.foodBasketSelectionsByStop?.[activeStop.id];
-              if (!stopFoodSelections && isFirstVisitOfCity) {
-                stopFoodSelections = (preferences.foodBasketSelections || []).filter((item) => {
-                  const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
-                  return (item.cityCode || fDef?.cityCode) === currentCity;
-                });
-              } else if (!stopFoodSelections) {
-                stopFoodSelections = []; // 추가/2차 도시는 완전히 빈 바스켓으로 시작!
+              if (stopFoodSelections === undefined) {
+                if (isFirstVisitOfCity) {
+                  // 1차 도시: preferences.foodBasketSelectionsByStop에 아무 키도 없는 최초 레거시 데이터일 때만 1회성 추출
+                  const hasAnyStopFood = preferences.foodBasketSelectionsByStop && Object.keys(preferences.foodBasketSelectionsByStop).length > 0;
+                  if (!hasAnyStopFood) {
+                    stopFoodSelections = (preferences.foodBasketSelections || []).filter((item) => {
+                      const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+                      return (item.cityCode || fDef?.cityCode) === currentCity;
+                    });
+                  } else {
+                    stopFoodSelections = [];
+                  }
+                } else {
+                  stopFoodSelections = []; // 추가/2차 도시는 완전히 빈 바스켓으로 격리 시작!
+                }
               }
 
               const stopFoodNights = Math.max(1, activeStop.nights);

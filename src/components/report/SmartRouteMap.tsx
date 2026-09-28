@@ -110,6 +110,15 @@ export interface RouteSpotGroup {
 export interface SmartRouteMapProps {
   selectedCities: SupportedCity[];
   cityBreakdown: Record<string, { selectedSpots?: AttractionSpot[] }>;
+  stopBreakdown?: Array<{
+    stopId: string;
+    city: SupportedCity;
+    cityName: string;
+    isAdded?: boolean;
+    selectedSpots?: AttractionSpot[];
+    stopIndex?: number;
+    label?: string;
+  }>;
   locale: Locale;
   dict: Dictionary;
   usdRate?: number;
@@ -118,30 +127,62 @@ export interface SmartRouteMapProps {
 export default function SmartRouteMap({
   selectedCities,
   cityBreakdown,
+  stopBreakdown,
   locale,
   usdRate = 1387,
 }: SmartRouteMapProps) {
-  // 1. 활성화된 도시 탭 (기본값: 첫 번째 도시)
-  const [activeCity, setActiveCity] = useState<SupportedCity>(
-    selectedCities[0] || "SEOUL"
-  );
+  // 정차지 목록 구성: stopBreakdown이 제공되면 그것을 최우선으로, 없으면 selectedCities 기반으로 구성
+  const stopsList: Array<{
+    stopId: string;
+    city: SupportedCity;
+    cityName: string;
+    isAdded?: boolean;
+    selectedSpots?: AttractionSpot[];
+    stopIndex?: number;
+    label?: string;
+  }> = useMemo(() => {
+    if (stopBreakdown && stopBreakdown.length > 0) {
+      return stopBreakdown;
+    }
+    return selectedCities.map((city, idx) => ({
+      stopId: `${city}-${idx}`,
+      city,
+      cityName: locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city,
+      isAdded: false,
+      stopIndex: idx,
+      selectedSpots: cityBreakdown[city]?.selectedSpots || [],
+      label: undefined,
+    }));
+  }, [stopBreakdown, selectedCities, cityBreakdown, locale]);
 
-  // 사용자가 바스켓에 담은 스팟 (테마 액티비티/체험은 지리적 명소 경로 지도에서 제외)
+  // 1. 활성화된 정차지 인덱스 (기본값: 첫 번째 정차지)
+  const [activeStopIndex, setActiveStopIndex] = useState<number>(0);
+
+  // safeStopIndex 보정
+  const safeStopIndex = Math.max(0, Math.min(activeStopIndex, stopsList.length - 1));
+  const currentStop = stopsList[safeStopIndex] || stopsList[0];
+  const activeCity = currentStop?.city || selectedCities[0] || "SEOUL";
+
+  // 사용자가 바스켓에 담은 스팟 (현재 정차지의 selectedSpots를 최우선으로 반영)
   const userRawSpots = useMemo(() => {
-    const list = cityBreakdown[activeCity]?.selectedSpots || [];
+    const list = currentStop?.selectedSpots !== undefined
+      ? currentStop.selectedSpots
+      : cityBreakdown[activeCity]?.selectedSpots || [];
     return list.filter(
       (s) => !s.id.startsWith("act_") && !THEME_ACTIVITIES_CATALOG.some((a) => isSameSpot(a.id, s.id))
     );
-  }, [cityBreakdown, activeCity]);
+  }, [currentStop, cityBreakdown, activeCity]);
 
-  // 사용자가 신청한 연계 K-체험 목록 (도시별)
+  // 사용자가 신청한 연계 K-체험 목록 (현재 정차지 기준)
   const selectedThemeActivities = useMemo(() => {
-    const allSelected = cityBreakdown[activeCity]?.selectedSpots || [];
+    const allSelected = currentStop?.selectedSpots !== undefined
+      ? currentStop.selectedSpots
+      : cityBreakdown[activeCity]?.selectedSpots || [];
     const actCatalog = getAllThemeActivities();
     return allSelected.filter(
       (s) => s.id.startsWith("act_") || actCatalog.some((a) => isSameSpot(a.id, s.id))
     );
-  }, [cityBreakdown, activeCity]);
+  }, [currentStop, cityBreakdown, activeCity]);
 
   const [selectedSpotIds, setSelectedSpotIds] = useState<string[]>([]);
   const [previewSpot, setPreviewSpot] = useState<RouteSpotItem | null>(null);
@@ -156,10 +197,10 @@ export default function SmartRouteMap({
   const kakaoAppKey =
     process.env.NEXT_PUBLIC_KAKAO_MAP_KEY || "0fd19b94d6a6dffb2c23e0879fcab8ca";
 
-  // 도시 전환 시 선택 상태 초기화
+  // 정차지 전환 시 선택 상태 초기화
   useEffect(() => {
     setSelectedSpotIds([]);
-  }, [activeCity]);
+  }, [safeStopIndex, activeCity]);
 
   // 2. 현재 도시에서 사용자가 선택한 스팟 리스트 추출 및 최적 동선 계산
   const displayedSpots: RouteSpotItem[] = useMemo(() => {
@@ -646,34 +687,40 @@ export default function SmartRouteMap({
           {/* 좌측 사이드바: 도시 전환 탭 + 경로 스팟 수 + 카카오맵 길찾기 버튼 (2줄) */}
           <div className="flex sm:flex-col gap-2 p-2 sm:p-2.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 w-full sm:w-36 md:w-44 shrink-0 justify-between sm:justify-start">
             {/* 도시 탭 리스트 */}
-            {selectedCities.length > 1 && (
+            {stopsList.length > 1 && (
               <div className="flex sm:flex-col gap-1.5 w-full">
-                {selectedCities.map((c) => {
+                {stopsList.map((stopItem, sIdx) => {
                   const cName =
-                    locale === "ko"
-                      ? CITY_KOREAN_NAMES[c] || c
-                      : CITY_ENGLISH_NAMES[c] || c;
-                  const isCurrent = c === activeCity;
+                    stopItem.label ||
+                    (locale === "ko"
+                      ? CITY_KOREAN_NAMES[stopItem.city] || stopItem.cityName || stopItem.city
+                      : CITY_ENGLISH_NAMES[stopItem.city] || stopItem.cityName || stopItem.city);
+                  const isCurrent = sIdx === safeStopIndex;
                   return (
                     <button
-                      key={c}
+                      key={`${stopItem.stopId}-${sIdx}`}
                       type="button"
                       onClick={() => {
-                        setActiveCity(c);
+                        setActiveStopIndex(sIdx);
                         setSelectedSpotIds([]);
                       }}
-                      className={`w-full py-2.5 px-3.5 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left flex items-center justify-between ${
+                      className={`w-full py-2.5 px-3 rounded-xl text-sm font-black transition-all cursor-pointer text-center sm:text-left flex items-center justify-between gap-1.5 ${
                         isCurrent
                           ? "bg-white text-slate-900 border border-slate-200/90 shadow-2xs ring-1 ring-slate-900/5"
                           : "text-slate-500 hover:text-slate-800 hover:bg-white/60"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0 truncate">
                         {isCurrent && (
                           <span className="w-1.5 h-1.5 rounded-full bg-[#b93829] shrink-0"></span>
                         )}
-                        <span>{cName}</span>
+                        <span className="truncate">{cName}</span>
                       </div>
+                      {stopItem.isAdded && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded font-extrabold bg-rose-100 text-[#e25c5c] shrink-0 whitespace-nowrap">
+                          {locale === "ko" ? "+추가" : "+Added"}
+                        </span>
+                      )}
                     </button>
                   );
                 })}

@@ -299,6 +299,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           <SmartRouteMap
             selectedCities={draft.selectedCities}
             cityBreakdown={cityBreakdown}
+            stopBreakdown={stopBreakdown}
             locale={locale}
             dict={dict}
             usdRate={usdRate}

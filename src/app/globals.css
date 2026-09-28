@@ -97,9 +97,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Universal print media styling for A4 Report & PDF */
+/* Universal print media styling for A4 Report & PDF (Portrait: 210mm x 297mm) */
 @media print {
   @page {
-    size: 297mm 210mm;
+    size: 210mm 297mm;
     margin: 0;
   }
 
@@ -113,7 +114,7 @@ h1, h2, h3, h4, h5, h6 {
     print-color-adjust: exact !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 297mm !important;
+    width: 210mm !important;
     min-height: 0 !important;
     height: auto !important;
   }
@@ -138,31 +139,37 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
 
-  /* A4 가로 1페이지 절대 완결형 규격 (297mm x 210mm) */
-  .pdf-landscape-page {
-    width: 297mm !important;
-    max-width: 297mm !important;
-    height: 210mm !important;
-    max-height: 210mm !important;
+  /* A4 세로(Portrait) 규격 (210mm x 297mm) */
+  .pdf-portrait-page {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 297mm !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
+    background: #ffffff !important;
+    padding: 10mm 10mm !important;
     page-break-after: always !important;
     break-after: page !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    position: relative !important;
+  }
+
+  /* 첫 페이지: 1페이지 완결형 */
+  .pdf-portrait-page-first {
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
-    background: #ffffff !important;
-    padding: 7mm 10mm !important;
   }
 
-  .pdf-landscape-page:first-child {
+  .pdf-portrait-page:first-child {
     page-break-before: avoid !important;
     break-before: avoid !important;
   }
 
-  .pdf-landscape-page:last-child {
+  .pdf-portrait-page:last-child {
     page-break-after: auto !important;
     break-after: auto !important;
   }
@@ -178,24 +185,23 @@ h1, h2, h3, h4, h5, h6 {
     break-after: page !important;
   }
 
-  /* 페이지 내부 쪼개짐 방지 */
+  /* 페이지 내부 쪼개짐 방지 (카드, 아이템 단위) */
   .print-avoid-break {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
-  /* 영수증 3단 다단 흐름 */
-  .print-receipt-3col {
-    column-count: 3 !important;
-    column-gap: 20px !important;
+  /* 영수증 2단 다단 흐름 */
+  .print-receipt-2col {
+    column-count: 2 !important;
+    column-gap: 16px !important;
     column-fill: auto !important;
   }
 
-  /* 영수증 2단 다단 흐름 */
   .print-receipt-columns {
     column-count: 2 !important;
     column-gap: 16px !important;
-    column-fill: balance !important;
+    column-fill: auto !important;
   }
 
   .print-column-span-all {

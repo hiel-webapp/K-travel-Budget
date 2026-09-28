@@ -991,216 +991,214 @@ export default function ReportPdfDocument({
       </div>
 
       {/* ========================================================================= */}
-      {/* PAGE: 내 한국 여행 영수증 (2단 다단, 모든 내역 생략 없이 100% 온전히 수록) */}
+      {/* PAGE: 내 한국 여행 영수증 (2단 다단, 모든 내역 생략 없이 100% 온전히 수록, 단일 페이지 완결) */}
       {/* ========================================================================= */}
-      <div className="pdf-portrait-page">
-        <div className="space-y-4">
-          {/* 상단 헤더 */}
-          <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-neutral-900 text-white text-[9.5px] font-black uppercase tracking-wider">
-                  ITEMIZED RECEIPT
-                </span>
-                <h2 className="text-xl font-black text-neutral-900 tracking-tight">
-                  {isKo ? "내 한국 여행 영수증" : "Itemized Travel Receipt"}
-                </h2>
-              </div>
-              <p className="text-xs text-neutral-500 mt-0.5 font-medium">
-                {isKo
-                  ? "도시별 이동 교통과 머무는 일정에 맞춘 전 일정 실비 영수증입니다. (모든 내역 100% 완전 수록)"
-                  : "Complete itemized breakdown for all legs, stays, dining, and activities."}
-              </p>
+      <div className="pdf-portrait-page pdf-portrait-page-receipt flex flex-col justify-between h-[297mm] max-h-[297mm] overflow-hidden">
+        {/* 상단 헤더 */}
+        <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200 shrink-0">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-md bg-neutral-900 text-white text-[9px] font-black uppercase tracking-wider">
+                ITEMIZED RECEIPT
+              </span>
+              <h2 className="text-lg font-black text-neutral-900 tracking-tight">
+                {isKo ? "내 한국 여행 영수증" : "Itemized Travel Receipt"}
+              </h2>
             </div>
-            <span className="text-xs font-black text-neutral-700 bg-neutral-100 px-3 py-1 rounded-full">
-              {totalNights}{isKo ? "박" : "N"} · {adultCount}{isKo ? "인" : " Travelers"}
-            </span>
+            <p className="text-[10.5px] text-neutral-500 mt-0.5 font-medium">
+              {isKo
+                ? "도시별 이동 교통과 머무는 일정에 맞춘 전 일정 실비 영수증입니다. (모든 내역 100% 완전 수록)"
+                : "Complete itemized breakdown for all legs, stays, dining, and activities."}
+            </p>
           </div>
+          <span className="text-xs font-black text-neutral-700 bg-neutral-100 px-2.5 py-0.5 rounded-full shrink-0">
+            {totalNights}{isKo ? "박" : "N"} · {adultCount}{isKo ? "인" : " Travelers"}
+          </span>
+        </div>
 
-          {/* 2단 다단(2-column) 영수증 본문 - 임의의 생략 없이 모든 내역 100% 출력 */}
-          <div className="print-receipt-2col text-xs text-neutral-800 space-y-2">
-            {/* 1. 입국 공항 이동 */}
-            {entryItems.length > 0 && (
-              <div className="print-avoid-break p-2 mb-2 rounded-xl bg-neutral-100/80 border border-neutral-200">
-                <div className="flex justify-between items-center text-xs font-bold text-neutral-800">
-                  <span>{entryItems.map((i: any) => formatSimplifiedTransit(i).routeName).join(", ")}</span>
-                  <span className="font-black tabular-nums">
-                    ₩ {entryItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0).toLocaleString()}
-                  </span>
-                </div>
+        {/* 2단 다단(2-column) 영수증 본문 - 임의의 생략 없이 모든 내역 100% 출력 & 컴팩트 수록 */}
+        <div className="print-receipt-2col flex-1 overflow-hidden text-[10px] leading-tight text-neutral-800 py-1.5 space-y-1.5">
+          {/* 1. 입국 공항 이동 */}
+          {entryItems.length > 0 && (
+            <div className="print-avoid-break p-1.5 mb-1.5 rounded-xl bg-neutral-100/80 border border-neutral-200">
+              <div className="flex justify-between items-center text-[10px] font-bold text-neutral-800">
+                <span>{entryItems.map((i: any) => formatSimplifiedTransit(i).routeName).join(", ")}</span>
+                <span className="font-black tabular-nums">
+                  ₩ {entryItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0).toLocaleString()}
+                </span>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* 2. 도시별 영수증 블록들 */}
-            {stopsList.map((sInfo: any, idx: number) => {
-              const nextStop = stopsList[idx + 1];
-              const transitToNext = nextStop
-                ? transitItems.find(
-                    (item: any) =>
-                      item.route &&
-                      ((item.route.includes(sInfo.city) && item.route.includes(nextStop.city)) ||
-                        (item.sourceLabel && item.sourceLabel.includes(sInfo.cityName) && item.sourceLabel.includes(nextStop.cityName)))
-                  )
-                : null;
+          {/* 2. 도시별 영수증 블록들 */}
+          {stopsList.map((sInfo: any, idx: number) => {
+            const nextStop = stopsList[idx + 1];
+            const transitToNext = nextStop
+              ? transitItems.find(
+                  (item: any) =>
+                    item.route &&
+                    ((item.route.includes(sInfo.city) && item.route.includes(nextStop.city)) ||
+                      (item.sourceLabel && item.sourceLabel.includes(sInfo.cityName) && item.sourceLabel.includes(nextStop.cityName)))
+                )
+              : null;
 
-              const cInfo = cityBreakdown[sInfo.city];
-              const spots = (sInfo.selectedSpots !== undefined ? sInfo.selectedSpots : cInfo?.selectedSpots || []).filter(
-                (s: any) => !s.id.startsWith("act_") && !THEME_ACTIVITIES_CATALOG.some((a) => isSameSpot(a.id, s.id))
-              );
+            const cInfo = cityBreakdown[sInfo.city];
+            const spots = (sInfo.selectedSpots !== undefined ? sInfo.selectedSpots : cInfo?.selectedSpots || []).filter(
+              (s: any) => !s.id.startsWith("act_") && !THEME_ACTIVITIES_CATALOG.some((a) => isSameSpot(a.id, s.id))
+            );
 
-              // 전체 음식 내역 (생략 없이 100% 노출)
-              const foodItems = (sInfo as any).foodBasketPlan?.selectedItems
-                || ((cityBreakdown[sInfo.city] as any)?.foodBasketPlan?.selectedItems || []);
-              const foodKrw = sInfo.foodTotalKrw || (cityBreakdown[sInfo.city]?.foodTotalKrw || 0);
+            // 전체 음식 내역 (생략 없이 100% 노출)
+            const foodItems = (sInfo as any).foodBasketPlan?.selectedItems
+              || ((cityBreakdown[sInfo.city] as any)?.foodBasketPlan?.selectedItems || []);
+            const foodKrw = sInfo.foodTotalKrw || (cityBreakdown[sInfo.city]?.foodTotalKrw || 0);
 
-              const stayTotal = sInfo.stayTotalKrw ?? (cInfo?.stayTotalKrw || 0);
+            const stayTotal = sInfo.stayTotalKrw ?? (cInfo?.stayTotalKrw || 0);
 
-              return (
-                <React.Fragment key={`receipt-stop-${sInfo.stopId || `${sInfo.city}-${idx}`}`}>
-                  <div className="print-avoid-break p-2.5 mb-2.5 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-1.5">
-                    {/* 도시 헤더 */}
-                    <div className="flex justify-between items-center pb-1 border-b border-neutral-200">
-                      <span className="font-black text-xs text-neutral-900">
-                        • {sInfo.cityName}
-                        {sInfo.isAdded && <span className="text-[#b93829] ml-1">(+)</span>}
-                        <span className="text-[10px] text-neutral-400 font-medium ml-1">
-                          ({sInfo.nights > 0 ? `${sInfo.nights}박` : "0박"})
-                        </span>
+            return (
+              <React.Fragment key={`receipt-stop-${sInfo.stopId || `${sInfo.city}-${idx}`}`}>
+                <div className="print-avoid-break p-2 mb-1.5 rounded-xl bg-neutral-50 border border-neutral-200 space-y-1">
+                  {/* 도시 헤더 */}
+                  <div className="flex justify-between items-center pb-0.5 border-b border-neutral-200">
+                    <span className="font-black text-[10.5px] text-neutral-900">
+                      • {sInfo.cityName}
+                      {sInfo.isAdded && <span className="text-[#b93829] ml-1">(+)</span>}
+                      <span className="text-[9.5px] text-neutral-400 font-medium ml-1">
+                        ({sInfo.nights > 0 ? `${sInfo.nights}박` : "0박"})
                       </span>
-                      <span className="font-black text-xs text-neutral-900 tabular-nums">
-                        ₩ {(sInfo.subtotalKrw || 0).toLocaleString()}
+                    </span>
+                    <span className="font-black text-[10.5px] text-neutral-900 tabular-nums">
+                      ₩ {(sInfo.subtotalKrw || 0).toLocaleString()}
+                    </span>
+                  </div>
+
+                  {/* 숙소 */}
+                  {stayTotal > 0 && (
+                    <div className="flex justify-between items-center text-[9.5px]">
+                      <span className="text-neutral-600 truncate pr-1">
+                        <span className="font-bold text-teal-700 mr-1">[숙소]</span>
+                        {sInfo.stayItemLabel || "도심 호텔"}
                       </span>
+                      <span className="font-bold tabular-nums shrink-0">₩ {stayTotal.toLocaleString()}</span>
                     </div>
+                  )}
 
-                    {/* 숙소 */}
-                    {stayTotal > 0 && (
-                      <div className="flex justify-between items-center text-[10.5px]">
-                        <span className="text-neutral-600 truncate pr-1">
-                          <span className="font-bold text-teal-700 mr-1">[숙소]</span>
-                          {sInfo.stayItemLabel || "도심 호텔"}
+                  {/* 식비 - 생략 없이 모든 메뉴 100% 표시 */}
+                  {foodKrw > 0 && (
+                    <div className="space-y-0.5 pt-0.5 border-t border-neutral-100">
+                      <div className="flex justify-between items-center text-[9.5px]">
+                        <span className="text-neutral-700 truncate pr-1">
+                          <span className="font-bold text-rose-700 mr-1">[식비]</span>
+                          {foodItems.length > 0 ? `선택 미식 (${foodItems.length}종)` : "식비 합계"}
                         </span>
-                        <span className="font-bold tabular-nums shrink-0">₩ {stayTotal.toLocaleString()}</span>
+                        <span className="font-bold tabular-nums shrink-0">₩ {foodKrw.toLocaleString()}</span>
                       </div>
-                    )}
-
-                    {/* 식비 - 생략 없이 모든 메뉴 100% 표시 */}
-                    {foodKrw > 0 && (
-                      <div className="space-y-1 pt-1 border-t border-neutral-100">
-                        <div className="flex justify-between items-center text-[10.5px]">
-                          <span className="text-neutral-700 truncate pr-1">
-                            <span className="font-bold text-rose-700 mr-1">[식비]</span>
-                            {foodItems.length > 0 ? `선택 미식 (${foodItems.length}종)` : "식비 합계"}
-                          </span>
-                          <span className="font-bold tabular-nums shrink-0">₩ {foodKrw.toLocaleString()}</span>
-                        </div>
-                        {foodItems.length > 0 && (
-                          <div className="pl-2 space-y-0.5 text-[9.5px] text-neutral-600">
-                            {foodItems.map((fi: any) => (
-                              <div key={fi.food?.id || fi.food?.nameKo} className="flex justify-between">
-                                <span className="truncate pr-1">• {isKo ? fi.food?.nameKo : fi.food?.nameEn}</span>
-                                <span className="tabular-nums shrink-0">₩ {(fi.subtotalKrw || 0).toLocaleString()}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* 교통 */}
-                    <div className="flex justify-between items-center text-[10.5px] pt-1 border-t border-neutral-100">
-                      <span className="text-neutral-600">
-                        <span className="font-bold text-indigo-700 mr-1">[교통]</span>
-                        {sInfo.cityName} 시내 대중교통
-                      </span>
-                      <span className="font-bold tabular-nums">₩ {(sInfo.transportTotalKrw || 0).toLocaleString()}</span>
-                    </div>
-
-                    {/* 관광 - 생략 없이 모든 명소 100% 표시 */}
-                    {spots.length > 0 && (
-                      <div className="space-y-1 pt-1 border-t border-neutral-100">
-                        <div className="flex justify-between items-center text-[10.5px]">
-                          <span className="font-bold text-amber-700">[관광] 명소 ({spots.length}곳)</span>
-                          <span className="font-bold tabular-nums">₩ {(sInfo.attractionTotalKrw || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="pl-2 space-y-0.5 text-[9.5px] text-neutral-600">
-                          {spots.map((sp: any) => (
-                            <div key={sp.id} className="flex justify-between">
-                              <span className="truncate pr-1">• {isKo ? sp.nameKo : sp.nameEn}</span>
-                              <span className="tabular-nums shrink-0">
-                                {sp.price === 0 ? "무료" : `₩ ${(sp.price * adultCount).toLocaleString()}`}
-                              </span>
+                      {foodItems.length > 0 && (
+                        <div className="pl-1.5 space-y-0.2 text-[8.5px] text-neutral-600">
+                          {foodItems.map((fi: any) => (
+                            <div key={fi.food?.id || fi.food?.nameKo} className="flex justify-between">
+                              <span className="truncate pr-1">• {isKo ? fi.food?.nameKo : fi.food?.nameEn}</span>
+                              <span className="tabular-nums shrink-0">₩ {(fi.subtotalKrw || 0).toLocaleString()}</span>
                             </div>
                           ))}
                         </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 도시 간 이동 커넥터 */}
-                  {transitToNext && (
-                    <div className="print-avoid-break p-1.5 mb-2.5 rounded-xl bg-neutral-100/80 border border-neutral-200 flex justify-between items-center text-[10px] font-bold text-neutral-700">
-                      <span>{formatSimplifiedTransit(transitToNext).routeName} ({formatSimplifiedTransit(transitToNext).modeName})</span>
-                      <span className="font-black tabular-nums">₩ {(transitToNext.lineTotalKrw || 0).toLocaleString()}</span>
+                      )}
                     </div>
                   )}
-                </React.Fragment>
-              );
-            })}
 
-            {/* 3. 출국 공항 이동 */}
-            {exitItems.length > 0 && (
-              <div className="print-avoid-break p-2 mb-2 rounded-xl bg-neutral-100/80 border border-neutral-200">
-                <div className="flex justify-between items-center text-xs font-bold text-neutral-800">
-                  <span>{exitItems.map((i: any) => formatSimplifiedTransit(i).routeName).join(", ")}</span>
-                  <span className="font-black tabular-nums">
-                    ₩ {exitItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0).toLocaleString()}
-                  </span>
+                  {/* 교통 */}
+                  <div className="flex justify-between items-center text-[9.5px] pt-0.5 border-t border-neutral-100">
+                    <span className="text-neutral-600">
+                      <span className="font-bold text-indigo-700 mr-1">[교통]</span>
+                      {sInfo.cityName} 시내 대중교통
+                    </span>
+                    <span className="font-bold tabular-nums">₩ {(sInfo.transportTotalKrw || 0).toLocaleString()}</span>
+                  </div>
+
+                  {/* 관광 - 생략 없이 모든 명소 100% 표시 */}
+                  {spots.length > 0 && (
+                    <div className="space-y-0.5 pt-0.5 border-t border-neutral-100">
+                      <div className="flex justify-between items-center text-[9.5px]">
+                        <span className="font-bold text-amber-700">[관광] 명소 ({spots.length}곳)</span>
+                        <span className="font-bold tabular-nums">₩ {(sInfo.attractionTotalKrw || 0).toLocaleString()}</span>
+                      </div>
+                      <div className="pl-1.5 space-y-0.2 text-[8.5px] text-neutral-600">
+                        {spots.map((sp: any) => (
+                          <div key={sp.id} className="flex justify-between">
+                            <span className="truncate pr-1">• {isKo ? sp.nameKo : sp.nameEn}</span>
+                            <span className="tabular-nums shrink-0">
+                              {sp.price === 0 ? "무료" : `₩ ${(sp.price * adultCount).toLocaleString()}`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* 도시 간 이동 커넥터 */}
+                {transitToNext && (
+                  <div className="print-avoid-break p-1 mb-1.5 rounded-lg bg-neutral-100/80 border border-neutral-200 flex justify-between items-center text-[9px] font-bold text-neutral-700">
+                    <span>{formatSimplifiedTransit(transitToNext).routeName} ({formatSimplifiedTransit(transitToNext).modeName})</span>
+                    <span className="font-black tabular-nums">₩ {(transitToNext.lineTotalKrw || 0).toLocaleString()}</span>
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })}
+
+          {/* 3. 출국 공항 이동 */}
+          {exitItems.length > 0 && (
+            <div className="print-avoid-break p-1.5 mb-1.5 rounded-xl bg-neutral-100/80 border border-neutral-200">
+              <div className="flex justify-between items-center text-[10px] font-bold text-neutral-800">
+                <span>{exitItems.map((i: any) => formatSimplifiedTransit(i).routeName).join(", ")}</span>
+                <span className="font-black tabular-nums">
+                  ₩ {exitItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 하단 전폭 최종 합계 요약 바 (영수증과 같은 페이지 하단에 단단히 고정) */}
+        <div className="print-column-span-all print-avoid-break shrink-0 mt-auto pt-1.5 border-t-2 border-neutral-900 bg-neutral-50 p-2.5 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-4 text-xs">
+            {shoppingAmountKrw > 0 && (
+              <div>
+                <span className="text-[9.5px] text-neutral-400 block font-bold">{isKo ? "쇼핑 예산" : "Shopping"}</span>
+                <span className="font-black text-neutral-800 tabular-nums">₩ {shoppingAmountKrw.toLocaleString()}</span>
+              </div>
+            )}
+            {totalDailyAllowanceKrw > 0 && (
+              <div>
+                <span className="text-[9.5px] text-neutral-400 block font-bold">{isKo ? "일일 용돈" : "Daily Allowance"}</span>
+                <span className="font-black text-neutral-800 tabular-nums">₩ {totalDailyAllowanceKrw.toLocaleString()}</span>
+              </div>
+            )}
+            {computedEmergencyKrw > 0 && (
+              <div>
+                <span className="text-[9.5px] text-neutral-400 block font-bold">{isKo ? "여행 비상금" : "Emergency Fund"}</span>
+                <span className="font-black text-neutral-800 tabular-nums">₩ {computedEmergencyKrw.toLocaleString()}</span>
               </div>
             )}
           </div>
 
-          {/* 하단 전폭 최종 합계 요약 바 */}
-          <div className="print-column-span-all pt-2 border-t-2 border-neutral-900 bg-neutral-50 p-3 rounded-2xl flex items-center justify-between">
-            <div className="flex items-center gap-4 text-xs">
-              {shoppingAmountKrw > 0 && (
-                <div>
-                  <span className="text-[10px] text-neutral-400 block font-bold">{isKo ? "쇼핑 예산" : "Shopping"}</span>
-                  <span className="font-black text-neutral-800 tabular-nums">₩ {shoppingAmountKrw.toLocaleString()}</span>
-                </div>
-              )}
-              {totalDailyAllowanceKrw > 0 && (
-                <div>
-                  <span className="text-[10px] text-neutral-400 block font-bold">{isKo ? "일일 용돈" : "Daily Allowance"}</span>
-                  <span className="font-black text-neutral-800 tabular-nums">₩ {totalDailyAllowanceKrw.toLocaleString()}</span>
-                </div>
-              )}
-              {computedEmergencyKrw > 0 && (
-                <div>
-                  <span className="text-[10px] text-neutral-400 block font-bold">{isKo ? "여행 비상금" : "Emergency Fund"}</span>
-                  <span className="font-black text-neutral-800 tabular-nums">₩ {computedEmergencyKrw.toLocaleString()}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="text-right">
-              <span className="text-[10px] text-neutral-400 block font-bold uppercase tracking-wider">
-                {isKo ? "예산 총액 (GRAND TOTAL)" : "Grand Total"}
+          <div className="text-right">
+            <span className="text-[9.5px] text-neutral-400 block font-bold uppercase tracking-wider">
+              {isKo ? "예산 총액 (GRAND TOTAL)" : "Grand Total"}
+            </span>
+            <span className="text-base font-black text-neutral-900 tabular-nums">
+              ₩ {grandTotalKrw.toLocaleString()}
+            </span>
+            {adultCount > 1 && (
+              <span className="text-[9.5px] text-neutral-500 font-bold block">
+                1인당 ₩ {Math.round(grandTotalKrw / adultCount).toLocaleString()}
               </span>
-              <span className="text-lg font-black text-neutral-900 tabular-nums">
-                ₩ {grandTotalKrw.toLocaleString()}
-              </span>
-              {adultCount > 1 && (
-                <span className="text-[10px] text-neutral-500 font-bold block">
-                  1인당 ₩ {Math.round(grandTotalKrw / adultCount).toLocaleString()}
-                </span>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
         {/* 하단 푸터 */}
-        <div className="text-right text-[10px] text-neutral-400 font-semibold pt-4">
+        <div className="text-right text-[9.5px] text-neutral-400 font-semibold pt-1 shrink-0">
           Page {stopsList.length + 4}
         </div>
       </div>

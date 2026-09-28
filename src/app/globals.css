@@ -164,6 +164,19 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: space-between !important;
   }
 
+  /* 영수증 페이지: 본문과 토탈 요약 바가 무조건 1페이지에 함께 완결 */
+  .pdf-portrait-page-receipt {
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    padding: 7mm 9mm !important;
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
   .pdf-portrait-page:first-child {
     page-break-before: avoid !important;
     break-before: avoid !important;

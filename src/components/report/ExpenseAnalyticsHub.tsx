@@ -47,11 +47,35 @@ export default function ExpenseAnalyticsHub({
   //    - ENTRY_... (공항 -> 1번 정차지): 1번 정차지에 귀속
   //    - 도시 간 이동: 이동 도착 정차지(targetStopIdx)에 귀속
   //    - EXIT_... (마지막 정차지 -> 공항): 마지막 정차지에 귀속
+  // 2. 여정 정차지(Stops) 기반 데이터 소스 단일화 (동일 도시 재방문 및 정차지별 실비 100% 보존)
+  const stops =
+    calculations.stopBreakdown && calculations.stopBreakdown.length > 0
+      ? calculations.stopBreakdown
+      : draft.selectedCities.map((city, idx) => {
+          const cInfo = calculations.cityBreakdown?.[city];
+          return {
+            stopId: `stop_${idx}_${city}`,
+            city,
+            cityName: isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city,
+            nights: cInfo?.nights || 0,
+            stayTotalKrw: cInfo?.stayTotalKrw || 0,
+            foodTotalKrw: cInfo?.foodTotalKrw || 0,
+            transportTotalKrw: cInfo?.transportTotalKrw || 0,
+            attractionTotalKrw: cInfo?.attractionTotalKrw || 0,
+            subtotalKrw: cInfo?.subtotalKrw || 0,
+          };
+        });
+
+  const numStops = stops.length;
+
+  // 3. 실제 도시간 이동 구간(Leg-by-Leg)별 실제 요금을 여정 정차지 순서(인덱스)에 맞게 정확히 귀속
+  //    - ENTRY_... (공항 -> 1번 정차지): 1번 정차지에 귀속
+  //    - 도시 간 이동: 이동 도착 정차지(targetStopIdx)에 귀속
+  //    - EXIT_... (마지막 정차지 -> 공항): 마지막 정차지에 귀속
   const intercityLineItems =
     calculations.basePlan?.intercitySection?.lineItems || [];
-  const numCities = draft.selectedCities.length;
 
-  const allocatedIntercityByIndex: number[] = new Array(numCities).fill(0);
+  const allocatedIntercityByIndex: number[] = new Array(numStops).fill(0);
 
   if (intercityLineItems.length > 0) {
     intercityLineItems.forEach((item, itemIdx) => {
@@ -61,42 +85,48 @@ export default function ExpenseAnalyticsHub({
       if (route.startsWith("ENTRY_") || itemIdx === 0) {
         allocatedIntercityByIndex[0] += cost;
       } else if (route.startsWith("EXIT_") || itemIdx === intercityLineItems.length - 1) {
-        allocatedIntercityByIndex[numCities - 1] += cost;
+        allocatedIntercityByIndex[numStops - 1] += cost;
       } else {
-        const targetStopIdx = Math.min(itemIdx, numCities - 1);
+        const targetStopIdx = Math.min(itemIdx, numStops - 1);
         allocatedIntercityByIndex[targetStopIdx] += cost;
       }
     });
-  } else if (intercityTotal > 0 && numCities > 0) {
-    const totalLegs = numCities <= 1 ? 1 : numCities + 1;
-    draft.selectedCities.forEach((_, idx) => {
-      const legs = idx === numCities - 1 ? 2 : 1;
+  } else if (intercityTotal > 0 && numStops > 0) {
+    const totalLegs = numStops <= 1 ? 1 : numStops + 1;
+    stops.forEach((_, idx) => {
+      const legs = idx === numStops - 1 ? 2 : 1;
       allocatedIntercityByIndex[idx] = Math.round((intercityTotal * legs) / totalLegs);
     });
   }
 
-  // 3. 총 체류 박수 및 도시별 가중치 (당일치기 0박은 0.5가중치 보정)
-  const cityWeights = draft.selectedCities.map((city) => {
-    const nights = calculations.cityBreakdown?.[city]?.nights || 0;
-    return nights > 0 ? nights : 0.5;
-  });
-  const totalWeight = cityWeights.reduce((a, b) => a + b, 0);
-
-  // 기타 비용(쇼핑, 용돈, 비상금)을 도시별 체류 기간(박수) 비례로 배분
-  const allocatedEtcList = draft.selectedCities.map((_, idx) => {
-    if (etcTotal <= 0) return 0;
-    if (numCities === 1) return etcTotal;
-    const w = cityWeights[idx];
-    return Math.round((etcTotal * w) / totalWeight);
-  });
-  if (numCities > 1 && etcTotal > 0) {
-    const sumEtc = allocatedEtcList
-      .slice(0, numCities - 1)
-      .reduce((a, b) => a + b, 0);
-    allocatedEtcList[numCities - 1] = etcTotal - sumEtc;
+  // 도시간 이동 교통비 끝자리 오차 보정 (합계가 intercityTotal과 정확히 일치)
+  if (numStops > 0 && intercityTotal > 0) {
+    const sumIntercity = allocatedIntercityByIndex.reduce((a, b) => a + b, 0);
+    const diff = intercityTotal - sumIntercity;
+    if (diff !== 0) {
+      allocatedIntercityByIndex[numStops - 1] += diff;
+    }
   }
 
-  // 4. 도시별 고유 색상 팔레트 및 실질 5대 부문 지출 데이터 매핑
+  // 4. 총 체류 박수 및 정차지별 가중치 (당일치기 0박은 0.5가중치 보정)
+  const stopWeights = stops.map((s) => (s.nights > 0 ? s.nights : 0.5));
+  const totalWeight = stopWeights.reduce((a, b) => a + b, 0);
+
+  // 기타 비용(쇼핑, 용돈, 비상금)을 정차지별 체류 기간(박수) 비례로 배분
+  const allocatedEtcList = stops.map((_, idx) => {
+    if (etcTotal <= 0) return 0;
+    if (numStops === 1) return etcTotal;
+    const w = stopWeights[idx];
+    return Math.round((etcTotal * w) / totalWeight);
+  });
+  if (numStops > 1 && etcTotal > 0) {
+    const sumEtc = allocatedEtcList
+      .slice(0, numStops - 1)
+      .reduce((a, b) => a + b, 0);
+    allocatedEtcList[numStops - 1] = etcTotal - sumEtc;
+  }
+
+  // 5. 도시별 고유 색상 팔레트 및 실질 5대 부문 지출 데이터 매핑
   const cityPalette = [
     { barColor: "bg-slate-900", textColor: "text-slate-900" },
     { barColor: "bg-blue-600", textColor: "text-blue-600" },
@@ -107,27 +137,27 @@ export default function ExpenseAnalyticsHub({
     { barColor: "bg-pink-600", textColor: "text-pink-600" },
   ];
 
-  const cityTableRows = draft.selectedCities.map((city, idx) => {
-    const cInfo = calculations.cityBreakdown?.[city];
+  const cityTableRows = stops.map((stop, idx) => {
     const color = cityPalette[idx % cityPalette.length];
+    const city = stop.city;
     
-    // 순환 여정(동일 도시 중복 방문) 시 표기: 1차는 표시 제거, 2차 이상은 (+) 표기
-    const cityOccurrences = draft.selectedCities.filter((c) => c === city).length;
+    // 순환 여정(동일 도시 중복 방문) 시 표기: 1차는 기본 도시명, 2차 이상은 (+) 표기
+    const cityOccurrences = stops.filter((s) => s.city === city).length;
     let cityName = isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
     if (cityOccurrences > 1) {
-      const visitCount = draft.selectedCities.slice(0, idx + 1).filter((c) => c === city).length;
+      const visitCount = stops.slice(0, idx + 1).filter((s) => s.city === city).length;
       if (visitCount > 1) {
         cityName = `${cityName} (+)`;
       }
     }
 
-    const stay = cInfo?.stayTotalKrw || 0;
-    const food = cInfo?.foodTotalKrw || 0;
-    const attr = cInfo?.attractionTotalKrw || 0;
-    const trans = (cInfo?.transportTotalKrw || 0) + (allocatedIntercityByIndex[idx] || 0);
-    const etc = allocatedEtcList[idx];
+    const stay = stop.stayTotalKrw || 0;
+    const food = stop.foodTotalKrw || 0;
+    const attr = stop.attractionTotalKrw || 0;
+    const trans = (stop.transportTotalKrw || 0) + (allocatedIntercityByIndex[idx] || 0);
+    const etc = allocatedEtcList[idx] || 0;
     const subtotal = stay + food + attr + trans + etc;
-    const nights = cInfo?.nights || 0;
+    const nights = stop.nights || 0;
 
     return {
       city: `${city}_${idx}`,
@@ -277,10 +307,10 @@ export default function ExpenseAnalyticsHub({
     id: `empty-row-${i}`,
   }));
 
-  // 총 체류 박수 계산
-  const totalNights = draft.selectedCities.reduce((acc, city) => {
-    return acc + (calculations.cityBreakdown?.[city]?.nights || 0);
-  }, 0);
+  // 총 체류 박수 계산 (모든 정차지 박수의 정합성 완벽 보장)
+  const totalNights =
+    calculations.totalNights ||
+    cityTableRows.reduce((acc, r) => acc + r.nights, 0);
 
   return (
     <div className="w-full bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 p-5 sm:p-6 lg:p-7 shadow-[0_8px_30px_rgb(0,0,0,0.03)] space-y-5">

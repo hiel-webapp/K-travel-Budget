@@ -508,13 +508,33 @@ export function calculateTripBudgetSummary(
     });
   });
 
-  // 복수 정차지(스탑) 구성 시 총합계를 stopBreakdown 기준으로 정밀 동기화
+  // 복수 정차지(스탑) 구성 시 총합계 및 cityBreakdown을 stopBreakdown 기준으로 정밀 동기화
   if (stops.length > uniqueCities.length || stops.some((s) => s.isAdded)) {
     sumAccTotal = stopBreakdown.reduce((sum, s) => sum + s.stayTotalKrw, 0);
     sumFoodTotal = stopBreakdown.reduce((sum, s) => sum + s.foodTotalKrw, 0);
     sumTransportTotal = stopBreakdown.reduce((sum, s) => sum + s.transportTotalKrw, 0);
     sumAttractionTotal = stopBreakdown.reduce((sum, s) => sum + s.attractionTotalKrw, 0);
     sumCitySubtotals = stopBreakdown.reduce((sum, s) => sum + s.subtotalKrw, 0);
+
+    uniqueCities.forEach((city) => {
+      const cityStops = stopBreakdown.filter((s) => s.city === city);
+      if (cityStops.length > 0 && cityBreakdown[city]) {
+        const cityStayTotal = cityStops.reduce((sum, s) => sum + s.stayTotalKrw, 0);
+        const cityFoodTotal = cityStops.reduce((sum, s) => sum + s.foodTotalKrw, 0);
+        const cityTransportTotal = cityStops.reduce((sum, s) => sum + s.transportTotalKrw, 0);
+        const cityAttractionTotal = cityStops.reduce((sum, s) => sum + s.attractionTotalKrw, 0);
+        const cityNights = cityStops.reduce((sum, s) => sum + s.nights, 0);
+
+        cityBreakdown[city].stayTotalKrw = cityStayTotal;
+        cityBreakdown[city].foodTotalKrw = cityFoodTotal;
+        cityBreakdown[city].transportTotalKrw = cityTransportTotal;
+        cityBreakdown[city].attractionTotalKrw = cityAttractionTotal;
+        cityBreakdown[city].nights = cityNights;
+        cityBreakdown[city].hasStay = cityStayTotal > 0;
+        cityBreakdown[city].subtotalKrw =
+          cityStayTotal + cityFoodTotal + cityTransportTotal + cityAttractionTotal;
+      }
+    });
   }
 
   // 4. 도시 간 이동 교통 요금 및 공항 교통

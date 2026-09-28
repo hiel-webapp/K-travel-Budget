@@ -551,21 +551,18 @@ export function calculateCityFoodBasketPlan(
     return false;
   });
 
-  // 2. 레거시 데이터 (cityCode가 없는 구버전 전국 음식)만 도시 비율로 분할 배분
+  // 2. 레거시 데이터 (cityCode가 없는 구버전 전국 음식)는 첫 기착 도시(SEOUL)에 100% 온전히 배정하여 박수 변경 시 식비 왜곡 방지
   const legacyNationalItems = totalBasketPlan.selectedItems.filter(
     (item) => !item.cityCode && item.food.scope === "NATIONAL"
   );
 
-  if (legacyNationalItems.length > 0) {
-    const cityRatio = cityNights > 0 ? cityNights / safeTotalNights : 1;
+  if (legacyNationalItems.length > 0 && (city === "SEOUL" || !totalBasketPlan.selectedItems.some((i) => i.cityCode === "SEOUL"))) {
     legacyNationalItems.forEach((ni) => {
-      const allocatedSubtotal = Math.round(ni.subtotalKrw * cityRatio);
-      if (allocatedSubtotal > 0) {
-        displayItems.push({
-          ...ni,
-          subtotalKrw: allocatedSubtotal,
-        });
-      }
+      displayItems.push({
+        ...ni,
+        subtotalKrw: ni.subtotalKrw,
+        cityCode: city,
+      });
     });
   }
 

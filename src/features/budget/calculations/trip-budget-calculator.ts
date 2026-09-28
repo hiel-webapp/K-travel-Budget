@@ -10,8 +10,8 @@ import {
   TripStop,
 } from "src/lib/trip-domain";
 import { PlannerPreferences, BudgetCategory, BudgetBasketId, ShoppingOption, BudgetPlan } from "../domain/types";
-import { generateInitialBudgetPlan } from "./engine";
-import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
+import { generateInitialBudgetPlan, getDefaultCityTransitStyle } from "./engine";
+import { MOCK_PRICE_CATALOG, LOCAL_TRANSIT_OPTIONS } from "../catalog/mock-catalog";
 import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "./food-engine";
 import {
   ATTRACTION_SPOTS_CATALOG,
@@ -397,13 +397,8 @@ export function calculateTripBudgetSummary(
       hasStay = stayTotal > 0;
     }
 
-    // B. 음식
+    // B. 음식 (사용자가 바스켓에 담은 메뉴 목록 및 수량 기준 100% 실비 합산, 박수 변경 시에도 식비 왜곡 없음)
     const cData = cityBreakdown[city];
-    const cityTotalNights = Math.max(1, sameCityStops.reduce((sum, s) => sum + s.nights, 0));
-    const effectiveStopRatio = isRepeated
-      ? (nights === 0 ? 0.35 / (cityTotalNights + 0.35) : nights / (cityTotalNights + (sameCityStops.some(s => s.nights === 0) ? 0.35 : 0)))
-      : 1;
-
     let foodTotal = 0;
     let stopFoodPlan: any = undefined;
 
@@ -420,7 +415,8 @@ export function calculateTripBudgetSummary(
       };
     } else {
       if (isFirstVisitOfCity) {
-        foodTotal = cData ? Math.round(cData.foodTotalKrw * effectiveStopRatio) : 0;
+        // 첫 방문 정차지에 해당 도시의 모든 바스켓 음식 실비 100% 배정 (박수 비례 감액 없이 실비 보존)
+        foodTotal = cData ? cData.foodTotalKrw : 0;
         const allFoodItems = cData?.foodBasketPlan?.selectedItems || [];
         stopFoodPlan = cData?.foodBasketPlan ? {
           ...cData.foodBasketPlan,
@@ -437,8 +433,16 @@ export function calculateTripBudgetSummary(
       }
     }
 
-    // C. 시내 교통
-    const transportTotal = cData ? Math.round(cData.transportTotalKrw * effectiveStopRatio) : 0;
+    // C. 시내 교통 (각 정차지의 실제 체류 일수에 맞게 인가 요금 기반 실비 산출)
+    const effectiveTransitStyle =
+      preferences.cityTransitStyles?.[city] ||
+      preferences.localTransitStyle ||
+      getDefaultCityTransitStyle(city);
+    const transitOpt =
+      LOCAL_TRANSIT_OPTIONS.find((o) => o.style === effectiveTransitStyle) ||
+      LOCAL_TRANSIT_OPTIONS[0];
+    const stopTransitDays = Math.max(1, nights);
+    const transportTotal = transitOpt.pricePerDayKrw * adultCount * stopTransitDays;
 
     // D. 관광지
     let stopSpots: AttractionSpot[] = [];

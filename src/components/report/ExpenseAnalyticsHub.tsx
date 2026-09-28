@@ -304,15 +304,9 @@ export default function ExpenseAnalyticsHub({
         {/* ========================================================================= */}
         <div className="lg:col-span-8 flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-neutral-50/60 border border-neutral-200/70">
           <div className="flex items-center justify-between border-b border-neutral-200/60 pb-2.5 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-neutral-900 tracking-tight">
-                {isKo ? "도시별 5대 부문 집계표" : "City Expense Audit Table"}
-              </span>
-              <span className="text-[10px] font-extrabold text-neutral-500 bg-white px-2 py-0.5 rounded border border-neutral-200/80">
-                {isKo ? "가로·세로 소계 완비" : "Cross-Totaled"}
-              </span>
-            </div>
-            <span className="text-[10px] font-bold text-neutral-400 uppercase">AUDIT MATRIX</span>
+            <span className="text-xs font-black text-neutral-900 tracking-tight">
+              {isKo ? "도시별 5대 부문 집계표" : "City Expense Audit Table"}
+            </span>
           </div>
 
           {/* Table Area (모든 열 text-center) */}

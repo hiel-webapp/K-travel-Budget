@@ -149,33 +149,60 @@ export default function BookingActionHub({
     });
 
     // -------------------------------------------------------------------------
-    // 2. 숙소 (Stay) - 선택된 도시별 맞춤 링크
+    // 2. 숙소 (Stay) - 선택된 도시별 맞춤 링크 (0원이거나 미선택인 숙소는 제외)
     // -------------------------------------------------------------------------
-    draft.selectedCities.forEach((city) => {
-      const cInfo = calculations.cityBreakdown?.[city];
-      if (!cInfo || cInfo.nights === 0) return;
+    const stopsForStay = (calculations.stopBreakdown && calculations.stopBreakdown.length > 0)
+      ? calculations.stopBreakdown
+      : draft.selectedCities.map((c, idx) => ({
+          stopId: `${c}-${idx}`,
+          city: c,
+          cityName: CITY_KOREAN_NAMES[c] || c,
+          nights: calculations.cityBreakdown?.[c]?.nights || 0,
+          stayTotalKrw: calculations.cityBreakdown?.[c]?.stayTotalKrw || 0,
+          stayNightlyPrice: calculations.cityBreakdown?.[c]?.stayNightlyPrice || 0,
+          stayItemLabel: calculations.cityBreakdown?.[c]?.stayItemLabel || "",
+          hasStay: calculations.cityBreakdown?.[c]?.hasStay || false,
+          isAdded: false,
+        }));
 
-      const cityNameKo = CITY_KOREAN_NAMES[city] || city;
-      const cityNameEn = CITY_ENGLISH_NAMES[city] || city;
+    stopsForStay.forEach((sInfo, idx) => {
+      // 0원이거나 미선택 숙소는 리스트에서 제외
+      if (
+        !sInfo ||
+        sInfo.nights === 0 ||
+        sInfo.stayTotalKrw <= 0 ||
+        sInfo.stayNightlyPrice <= 0 ||
+        !sInfo.stayItemLabel ||
+        sInfo.stayItemLabel.includes("미선택") ||
+        sInfo.stayItemLabel.includes("Unselected")
+      ) {
+        return;
+      }
+
+      const city = sInfo.city;
+      const baseNameKo = CITY_KOREAN_NAMES[city] || city;
+      const baseNameEn = CITY_ENGLISH_NAMES[city] || city;
+      const cityNameKo = sInfo.isAdded ? `${baseNameKo} (+)` : baseNameKo;
+      const cityNameEn = sInfo.isAdded ? `${baseNameEn} (+)` : baseNameEn;
 
       const cityId = AGODA_CITY_IDS[city] || 14690;
       const matchedArchetype = STAY_ARCHETYPES.find(
-        (a) => a.titleKo === cInfo.stayItemLabel || a.titleEn === cInfo.stayItemLabel
+        (a) => a.titleKo === sInfo.stayItemLabel || a.titleEn === sInfo.stayItemLabel
       );
       const targetUrl = matchedArchetype
         ? generateStayOtaUrl(matchedArchetype.id, city)
         : `https://www.agoda.com/search?city=${cityId}&priceCur=KRW&tag=hypeheritage`;
 
       stay.push({
-        id: `stay-${city.toLowerCase()}`,
+        id: `stay-${sInfo.stopId || `${city.toLowerCase()}-${idx}`}`,
         category: "STAY",
         categoryNameKo: "숙소",
         categoryNameEn: "Stay",
-        titleKo: `${cityNameKo} 숙소 (${cInfo.stayItemLabel})`,
-        titleEn: `${cityNameEn} Stays (${cInfo.stayItemLabel})`,
-        subtitleKo: `1박 평균 ${formatKrw(cInfo.stayNightlyPrice)} 기준 · ${cInfo.nights}박 일정`,
-        subtitleEn: `Avg. ${formatPriceByLocale(cInfo.stayNightlyPrice, locale, usdRate)} / night · ${cInfo.nights} nights`,
-        priceText: formatPriceByLocale(cInfo.stayTotalKrw, locale, usdRate),
+        titleKo: `${cityNameKo} 숙소 (${sInfo.stayItemLabel})`,
+        titleEn: `${cityNameEn} Stays (${sInfo.stayItemLabel})`,
+        subtitleKo: `1박 평균 ${formatKrw(sInfo.stayNightlyPrice)} 기준 · ${sInfo.nights}박 일정`,
+        subtitleEn: `Avg. ${formatPriceByLocale(sInfo.stayNightlyPrice, locale, usdRate)} / night · ${sInfo.nights} nights`,
+        priceText: formatPriceByLocale(sInfo.stayTotalKrw, locale, usdRate),
         targetUrl,
         actionLabelKo: "아고다 예약",
         actionLabelEn: "Book on Agoda",
@@ -497,14 +524,6 @@ export default function BookingActionHub({
         </div>
       )}
 
-      {/* Helper Footer Notice (이모지 없음) */}
-      <div className="p-3 rounded-2xl bg-neutral-50/80 border border-neutral-100 flex items-center justify-between gap-2 text-xs text-neutral-400">
-        <span className="text-[11px]">
-          {isKo
-            ? "모든 링크는 새 창에서 열리며, 공식 사이트 및 사전 검증된 채널로 안전하게 연결됩니다."
-            : "All links open in a new tab, securely connecting to official booking channels."}
-        </span>
-      </div>
     </div>
   );
 }

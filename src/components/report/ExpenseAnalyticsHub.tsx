@@ -425,7 +425,10 @@ export default function ExpenseAnalyticsHub({
             <div className="flex-1 flex items-center justify-center py-1 relative">
               <div className="relative flex items-center justify-center">
                 {/* 라벨 레이어 (좌우 지시선 오버레이) */}
-                <div className={`absolute inset-0 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}>
+                <div
+                  style={{ height: isCompact ? "150px" : "210px" }}
+                  className={`absolute inset-0 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}
+                >
                   {categoryLabelLayouts.map((cat) => {
                     const isLeft = cat.side === "left";
                     return (
@@ -455,7 +458,10 @@ export default function ExpenseAnalyticsHub({
                 </div>
 
                 {/* 슬림 세로 누적 막대 */}
-                <div className={`w-7 sm:w-8 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}>
+                <div
+                  style={{ height: isCompact ? "150px" : "210px", minHeight: isCompact ? "150px" : "210px" }}
+                  className={`w-7 sm:w-8 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}
+                >
                   {categoryList.map((cat) => {
                     if (cat.pct <= 0) return null;
                     return (
@@ -485,7 +491,10 @@ export default function ExpenseAnalyticsHub({
             <div className="flex-1 flex items-center justify-center py-1 relative">
               <div className="relative flex items-center justify-center">
                 {/* 라벨 레이어 (좌우 지시선 오버레이) */}
-                <div className={`absolute inset-0 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}>
+                <div
+                  style={{ height: isCompact ? "150px" : "210px" }}
+                  className={`absolute inset-0 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}
+                >
                   {cityLabelLayouts.map((c) => {
                     const isLeft = c.side === "left";
                     return (
@@ -515,7 +524,10 @@ export default function ExpenseAnalyticsHub({
                 </div>
 
                 {/* 슬림 세로 누적 막대 */}
-                <div className={`w-7 sm:w-8 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}>
+                <div
+                  style={{ height: isCompact ? "150px" : "210px", minHeight: isCompact ? "150px" : "210px" }}
+                  className={`w-7 sm:w-8 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}
+                >
                   {cityBarItems.map((c) => {
                     if (c.pct <= 0) return null;
                     return (

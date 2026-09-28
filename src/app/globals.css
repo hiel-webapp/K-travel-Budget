@@ -100,7 +100,7 @@ h1, h2, h3, h4, h5, h6 {
 @media print {
   @page {
     size: A4 landscape;
-    margin: 8mm 10mm;
+    margin: 0 !important;
   }
 
   html,
@@ -111,6 +111,8 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 10pt !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   header,
@@ -120,21 +122,23 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
 
-  /* A4 가로 1페이지 완결형 규격 (297mm - 20mm = 277mm, 210mm - 16mm = 194mm) */
+  /* A4 가로 1페이지 절대 완결형 규격 (297mm x 210mm) */
   .pdf-landscape-page {
-    width: 277mm !important;
-    min-height: 194mm !important;
-    max-height: 194mm !important;
-    height: 194mm !important;
+    width: 297mm !important;
+    max-width: 297mm !important;
+    height: 210mm !important;
+    max-height: 210mm !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
     page-break-after: always !important;
     break-after: page !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
     background: #ffffff !important;
-    padding: 0 !important;
+    padding: 10mm 14mm !important;
   }
 
   .pdf-landscape-page:last-child {

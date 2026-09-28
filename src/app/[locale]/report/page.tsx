@@ -13,7 +13,7 @@ export default async function ReportPage({ params }: PageProps) {
   const dict = await getDictionary(locale as Locale);
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] py-12">
+    <div className="min-h-screen bg-[#faf9f6] py-12 print:p-0 print:m-0 print:min-h-0 print:bg-white">
       <ReportContent locale={locale as Locale} dict={dict} />
     </div>
   );

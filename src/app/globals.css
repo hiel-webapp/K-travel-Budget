@@ -99,8 +99,8 @@ h1, h2, h3, h4, h5, h6 {
 /* Universal print media styling for A4 Report & PDF */
 @media print {
   @page {
-    size: A4 landscape;
-    margin: 0 !important;
+    size: 297mm 210mm;
+    margin: 0;
   }
 
   html,
@@ -113,6 +113,22 @@ h1, h2, h3, h4, h5, h6 {
     print-color-adjust: exact !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 297mm !important;
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  /* 부모 레이아웃 및 래퍼들의 불필요한 마진/패딩/높이 완전 박멸 */
+  main,
+  #main-content,
+  div:has(> .report-pdf-root),
+  .min-h-screen,
+  body > div {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    background: transparent !important;
   }
 
   header,
@@ -138,7 +154,12 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column !important;
     justify-content: space-between !important;
     background: #ffffff !important;
-    padding: 10mm 14mm !important;
+    padding: 7mm 10mm !important;
+  }
+
+  .pdf-landscape-page:first-child {
+    page-break-before: avoid !important;
+    break-before: avoid !important;
   }
 
   .pdf-landscape-page:last-child {

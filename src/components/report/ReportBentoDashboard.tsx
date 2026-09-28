@@ -32,12 +32,14 @@ export interface ReportBentoDashboardProps {
   draft: TripDraft;
   locale: Locale;
   dict: Dictionary;
+  isStatic?: boolean;
 }
 
 export default function ReportBentoDashboard({
   calculations,
   draft,
   locale,
+  isStatic = false,
 }: ReportBentoDashboardProps) {
   const nights = draft.totalNights || 1;
   const travelDays = calculations.travelDays || nights + 1;
@@ -51,11 +53,16 @@ export default function ReportBentoDashboard({
   const usdDailyAverage = Math.round(dailyAverageKrw / usdRate);
   const usdPerTraveler = Math.round(usdGrandTotal / adults);
 
-  // Rolling counter animations
-  const animatedGrandTotalKrw = useCountUp(grandTotalKrw, 1100);
-  const animatedGrandTotalUsd = useCountUp(usdGrandTotal, 1100);
-  const animatedDailyAverageKrw = useCountUp(dailyAverageKrw, 1100);
-  const animatedDailyAverageUsd = useCountUp(usdDailyAverage, 1100);
+  // Rolling counter animations (인쇄 시 또는 isStatic 시 실제 정적 값 즉시 반환)
+  const countUpKrw = useCountUp(grandTotalKrw, 1100);
+  const countUpUsd = useCountUp(usdGrandTotal, 1100);
+  const countUpDailyKrw = useCountUp(dailyAverageKrw, 1100);
+  const countUpDailyUsd = useCountUp(usdDailyAverage, 1100);
+
+  const animatedGrandTotalKrw = isStatic ? grandTotalKrw : countUpKrw;
+  const animatedGrandTotalUsd = isStatic ? usdGrandTotal : countUpUsd;
+  const animatedDailyAverageKrw = isStatic ? dailyAverageKrw : countUpDailyKrw;
+  const animatedDailyAverageUsd = isStatic ? usdDailyAverage : countUpDailyUsd;
 
   const animatedPerTravelerKrw = Math.round(animatedGrandTotalKrw / adults);
   const animatedPerTravelerUsd = Math.round(animatedGrandTotalUsd / adults);

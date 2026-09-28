@@ -547,9 +547,11 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                       </span>
                                       <span className="font-bold text-slate-800">
                                         {!sInfo.hasStay
-                                          ? (locale === "ko" ? "당일치기 (숙박 없음)" : "Day Trip (No Accommodation)")
+                                          ? (sInfo.nights === 0
+                                              ? (locale === "ko" ? "당일치기 (숙박 없음)" : "Day Trip (No Accommodation)")
+                                              : (locale === "ko" ? "숙소 미선택" : "Accommodation Not Selected"))
                                           : (() => {
-                                              const accSel = preferences.accommodationByCity?.[sInfo.stopId] || preferences.accommodationByCity?.[sInfo.city];
+                                              const accSel = preferences.accommodationByCity?.[sInfo.stopId] || (sInfo.stopIndex === 0 && !sInfo.isAdded ? preferences.accommodationByCity?.[sInfo.city] : undefined);
                                               const isSplit = accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT";
                                               if (isSplit) {
                                                 return locale === "ko" ? "분할 숙박 (Split Stay)" : "Split Stay";
@@ -566,7 +568,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
                                       </span>
                                     )}
                                     {(() => {
-                                      const accSel = preferences.accommodationByCity?.[sInfo.stopId] || preferences.accommodationByCity?.[sInfo.city];
+                                      const accSel = preferences.accommodationByCity?.[sInfo.stopId] || (sInfo.stopIndex === 0 && !sInfo.isAdded ? preferences.accommodationByCity?.[sInfo.city] : undefined);
                                       if (accSel && typeof accSel === "object" && "kind" in accSel && (accSel as any).kind === "SPLIT" && Array.isArray((accSel as any).segments)) {
                                         return (
                                           <div className="mt-1.5 space-y-0.5 border-l-2 border-rose-300 pl-2 text-[10.5px] text-slate-600">

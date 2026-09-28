@@ -199,10 +199,14 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                           const arch = STAY_ARCHETYPES.find((a) => a.id === seg.basketId);
                           return `Leg ${idx + 1}(${seg.nights}N ${arch?.titleEn || seg.placeNameEn || "Stay"})`;
                         }).join(" + ")}`)
+                  : cityNights === 0
+                  ? (locale === "ko"
+                      ? "당일치기 일정으로 숙박이 필요하지 않습니다 (숙박 없음 · ₩0)"
+                      : "Day trip with no accommodation needed (0 Nts · ₩0)")
                   : !hasSelection
                   ? (locale === "ko"
-                      ? "원하는 숙소 스타일을 선택하거나 직접 입력하여 숙소 예산을 확정하세요."
-                      : "Select a stay archetype or enter your custom booked stay.")
+                      ? "선택된 숙소가 없습니다. 원하는 숙소 스타일을 선택하거나 직접 입력해 주세요."
+                      : "No accommodation selected. Please choose a stay style or enter custom.")
                   : isCustomActive
                   ? (locale === "ko"
                       ? `직접 입력 숙소: "${customStayOverride?.placeName}" (1박 ${formatPriceByLocale(nightlyRoomPrice, locale, usdRate)})`
@@ -332,7 +336,7 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {STAY_ARCHETYPES.map((archetype) => {
-            const isSelected = !isSplitActive && !isCustomActive && currentArchetype?.id === archetype.id;
+            const isSelected = cityNights > 0 && !isSplitActive && !isCustomActive && currentArchetype?.id === archetype.id;
             const price = getStayArchetypePrice(city, archetype.id);
             const title = locale === "ko" ? archetype.titleKo : archetype.titleEn;
             const desc = locale === "ko" ? archetype.descKo : archetype.descEn;

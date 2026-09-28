@@ -1632,35 +1632,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       nextDraft = sanitizeTripDraft(nextDraft);
     }
 
-    // 추가된 도시가 이제 순환 재방문 도시가 된 경우 SPLIT accommodation 자동 합성
+    // 새로 추가된 도시의 정차지는 사용자가 직접 선택할 때까지 숙소 미선택 상태 유지
     const sameCityStops = finalStops.filter((s) => s.city === cityToAdd);
     let nextAcc = { ...preferences.accommodationByCity };
+    delete nextAcc[newStopId];
     if (sameCityStops.length > 1) {
-      const defaultBasket =
-        nextDraft.budgetTier === "BUDGET"
-          ? "HOSTEL_GUESTHOUSE"
-          : nextDraft.budgetTier === "PREMIUM"
-            ? "LUXURY_SKYLINE"
-            : "BUSINESS_HOTEL";
-
-      const segments: SplitStaySegment[] = sameCityStops.map((s) => {
-        const stopAcc = nextAcc[s.id] || (s.id === newStopId ? defaultBasket : nextAcc[s.city]);
-        const bId = (typeof stopAcc === "string" ? stopAcc : (stopAcc as any)?.basketId) || defaultBasket;
-        const arch = STAY_ARCHETYPES.find((a) => a.id === bId);
-        const isPlace = typeof stopAcc === "object" && stopAcc !== null && "kind" in stopAcc && (stopAcc as any).kind === "PLACE";
-        return {
-          segmentId: s.id,
-          basketId: bId as BudgetBasketId,
-          nights: s.nights,
-          nightlyPriceKrw: isPlace ? (stopAcc as any).nightlyPriceKrw : (arch ? getStayArchetypePrice(s.city, arch.id) : 95000),
-          placeNameKo: isPlace ? (stopAcc as any).placeNameKo : arch?.titleKo,
-          placeNameEn: isPlace ? (stopAcc as any).placeNameEn : arch?.titleEn,
-        };
-      });
-      nextAcc[cityToAdd] = {
-        kind: "SPLIT",
-        segments,
-      };
+      const firstStop = sameCityStops[0];
+      if (firstStop && !nextAcc[firstStop.id] && nextAcc[cityToAdd]) {
+        nextAcc[firstStop.id] = nextAcc[cityToAdd];
+      }
     }
 
     saveTripDraft(nextDraft);
@@ -4596,28 +4576,54 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const cityNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[currentCity] ?? 0);
               const adultCount = draft.adultCount || 1;
 
+              // 이전 차수 방문에서 이미 선택된 명소 및 음식 수집
+              const activeStopIdx = stops.findIndex((s) => s.id === activeStop.id);
+              const priorSameCityStops = stops.slice(0, activeStopIdx >= 0 ? activeStopIdx : selectedStopIndex).filter((s) => s.city === currentCity);
+              const priorSelectedSpotKeys = new Set<string>();
+              const priorSelectedFoodIds = new Set<string>();
+
+              if (priorSameCityStops.length > 0) {
+                priorSameCityStops.forEach((pStop) => {
+                  const pSel = preferences.attractionSelectionsByStop?.[pStop.id] ||
+                    (pStop.id === sameCityStops[0]?.id && !pStop.isAdded ? preferences.attractionSelections?.[pStop.city] : undefined);
+                  if (pSel) {
+                    (pSel.selectedCourseIds || []).forEach((cid) => {
+                      const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+                      if (course) course.spotIds.forEach((sid) => priorSelectedSpotKeys.add(normalizeSpotKey(sid)));
+                    });
+                    (pSel.individualSpotIds || []).forEach((sid) => priorSelectedSpotKeys.add(normalizeSpotKey(sid)));
+                  }
+
+                  const pFoods = preferences.foodBasketSelectionsByStop?.[pStop.id] ||
+                    (pStop.id === sameCityStops[0]?.id && !pStop.isAdded ? preferences.foodBasketSelections : undefined);
+                  if (pFoods) {
+                    pFoods.forEach((f) => {
+                      if (f.quantity > 0) priorSelectedFoodIds.add(f.foodId);
+                    });
+                  }
+                });
+              }
+
+              const priorStopLabel = priorSameCityStops.length > 0
+                ? (locale === "ko"
+                    ? `${priorSameCityStops.map((_, i) => `${i + 1}차`).join(", ")} ${currentCityName}`
+                    : `${currentCityName} (${priorSameCityStops.map((_, i) => `#${i + 1}`).join(", ")})`)
+                : undefined;
+
               // 1. 숙박 (해당 도시/정차지 선택 숙소 및 금액)
               let accSelection = preferences.accommodationByCity?.[activeStop.id];
-              if (!accSelection && isRepeatedCity) {
-                const cityAcc = preferences.accommodationByCity?.[currentCity];
-                if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
-                  const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
-                  if (foundSeg) {
-                    accSelection = {
-                      kind: "TIER",
-                      basketId: foundSeg.basketId,
-                      nightlyPriceKrw: foundSeg.nightlyPriceKrw,
-                      placeNameKo: foundSeg.placeNameKo,
-                      placeNameEn: foundSeg.placeNameEn,
-                    } as any;
-                  }
-                }
-              }
               // 추가 도시나 2차 이상 방문은 첫 번째 도시의 설정을 무단 상속받지 않음
               if (!accSelection && isFirstVisitOfCity) {
                 accSelection = preferences.accommodationByCity?.[currentCity];
                 if (isRepeatedCity && accSelection && typeof accSelection === "object" && (accSelection as any).kind === "SPLIT") {
-                  accSelection = undefined;
+                  const foundSeg = (accSelection as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
+                  accSelection = foundSeg ? {
+                    kind: "TIER",
+                    basketId: foundSeg.basketId,
+                    nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+                    placeNameKo: foundSeg.placeNameKo,
+                    placeNameEn: foundSeg.placeNameEn,
+                  } as any : undefined;
                 }
               }
 
@@ -5125,31 +5131,23 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                       const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
 
                       let accOverride = preferences.accommodationByCity?.[activeStop.id];
-                      if (!accOverride && isRepeatedCity) {
-                        const cityAcc = preferences.accommodationByCity?.[city];
-                        if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
-                          const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
-                          if (foundSeg) {
-                            accOverride = {
-                              kind: "TIER",
-                              basketId: foundSeg.basketId,
-                              nightlyPriceKrw: foundSeg.nightlyPriceKrw,
-                              placeNameKo: foundSeg.placeNameKo,
-                              placeNameEn: foundSeg.placeNameEn,
-                            } as any;
-                          }
-                        }
-                      }
                       if (!accOverride && isFirstVisitOfCity) {
                         accOverride = preferences.accommodationByCity?.[city];
                         if (isRepeatedCity && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
-                          accOverride = undefined;
+                          const foundSeg = (accOverride as any).segments?.find((seg: any) => seg.segmentId === activeStop.id);
+                          accOverride = foundSeg ? {
+                            kind: "TIER",
+                            basketId: foundSeg.basketId,
+                            nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+                            placeNameKo: foundSeg.placeNameKo,
+                            placeNameEn: foundSeg.placeNameEn,
+                          } as any : undefined;
                         }
                       }
 
                       const hasOverride = !!accOverride;
                       let selectedArchetypeId: StayArchetypeId | null = null;
-                      if (accOverride) {
+                      if (stopNights > 0 && accOverride) {
                         const bId = typeof accOverride === "string" ? accOverride : (accOverride as any).basketId;
                         if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") selectedArchetypeId = "HOSTEL_GUESTHOUSE";
                         else if (bId === "HANOK_BOUTIQUE") selectedArchetypeId = "HANOK_BOUTIQUE";
@@ -5347,6 +5345,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             onSetQuantity={handleFoodBasketSetQuantity}
                             onClearBasket={handleFoodBasketClear}
                             hideHeader={true}
+                            priorSelectedFoodIds={priorSelectedFoodIds}
+                            priorStopLabel={priorStopLabel}
                           />
 
                           {/* 3. K-Spot Gourmet & Cafe Candidates added by user */}
@@ -5506,6 +5506,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           onAddCustomSpot={handleAddCustomSpot}
                           onToggleCourse={handleToggleCourse}
                           hideHeader={true}
+                          priorSelectedSpotKeys={priorSelectedSpotKeys}
+                          priorStopLabel={priorStopLabel}
                         />
                       );
                     })()}

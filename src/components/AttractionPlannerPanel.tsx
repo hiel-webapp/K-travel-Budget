@@ -44,6 +44,8 @@ export interface AttractionPlannerPanelProps {
   onAddCustomSpot?: (city: SupportedCity, name: string, priceKrw: number) => void;
   onToggleCourse?: (city: SupportedCity, courseId: string) => void;
   hideHeader?: boolean;
+  priorSelectedSpotKeys?: Set<string>;
+  priorStopLabel?: string;
 }
 
 export default function AttractionPlannerPanel({
@@ -63,11 +65,14 @@ export default function AttractionPlannerPanel({
   onAddCustomSpot,
   onToggleCourse,
   hideHeader = false,
+  priorSelectedSpotKeys,
+  priorStopLabel,
 }: AttractionPlannerPanelProps) {
   const { usdRate } = useExchangeRate();
   const [activeSubTab, setActiveSubTab] = useState<"CITY" | "BASKET" | "COURSE">("CITY");
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [visibleCount, setVisibleCount] = useState<number>(8);
+  const [excludePriorSpots, setExcludePriorSpots] = useState(true);
 
   // 커스텀 명소 직접 추가 폼 상태
   const [isCustomOpen, setIsCustomOpen] = useState<boolean>(false);
@@ -300,22 +305,26 @@ export default function AttractionPlannerPanel({
   // 5. 도시 대표 명소 필터링
   const effectiveCatFilter = categoryFilter === "SAVED_ONLY" && selectedSpotKeys.size === 0 ? "ALL" : categoryFilter;
   const filteredSpotsForCity = useMemo(() => {
+    let list = spotsForCity;
+    if (excludePriorSpots && priorSelectedSpotKeys && priorSelectedSpotKeys.size > 0 && effectiveCatFilter !== "SAVED_ONLY") {
+      list = list.filter((s) => !priorSelectedSpotKeys.has(normalizeSpotKey(s.id)));
+    }
     if (effectiveCatFilter === "SAVED_ONLY") {
-      return spotsForCity.filter((s) => selectedSpotKeys.has(normalizeSpotKey(s.id)));
+      return list.filter((s) => selectedSpotKeys.has(normalizeSpotKey(s.id)));
     }
     if (effectiveCatFilter === "FEATURED_ONLY") {
-      return spotsForCity.filter((s) => s.isFeatured);
+      return list.filter((s) => s.isFeatured);
     }
     if (effectiveCatFilter === "ALL") {
-      return spotsForCity;
+      return list;
     }
-    return spotsForCity.filter((s) => {
+    return list.filter((s) => {
       const spotKey = s.id.replace(/^kto_/, "");
       const bilingual = SEOUL_LANDMARK_BILINGUAL_MAP[spotKey];
       const cat = s.categoryType || bilingual?.categoryType;
       return cat === effectiveCatFilter;
     });
-  }, [spotsForCity, effectiveCatFilter, selectedSpotKeys]);
+  }, [spotsForCity, effectiveCatFilter, selectedSpotKeys, excludePriorSpots, priorSelectedSpotKeys]);
 
   const displayedSpots = useMemo(() => {
     return filteredSpotsForCity.slice(0, visibleCount);
@@ -557,6 +566,36 @@ export default function AttractionPlannerPanel({
             </div>
           </div>
 
+          {/* 이전 차수 기선택 명소 제외 토글 바 */}
+          {priorSelectedSpotKeys && priorSelectedSpotKeys.size > 0 && (
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-indigo-50/70 border border-indigo-200/80 text-xs">
+              <div className="flex items-center gap-2 text-indigo-950 font-bold min-w-0">
+                <span className="text-sm shrink-0">🏷️</span>
+                <span className="truncate">
+                  {locale === "ko"
+                    ? `${priorStopLabel || "이전 차수"}에서 선택한 명소 (${priorSelectedSpotKeys.size}곳)`
+                    : `Spots selected in ${priorStopLabel || "prior visit"} (${priorSelectedSpotKeys.size})`}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExcludePriorSpots((prev) => !prev)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs ${
+                  excludePriorSpots
+                    ? "bg-indigo-600 text-white shadow-xs hover:bg-indigo-700"
+                    : "bg-white text-indigo-700 border border-indigo-300 hover:bg-indigo-100/50"
+                }`}
+              >
+                <span>{excludePriorSpots ? "✓" : ""}</span>
+                <span>
+                  {excludePriorSpots
+                    ? (locale === "ko" ? "목록에서 제외 중" : "Excluded")
+                    : (locale === "ko" ? "목록에 포함하여 보기" : "Include in list")}
+                </span>
+              </button>
+            </div>
+          )}
+
           {/* 스팟 카드 그리드: FoodItemCard 규격과 100% 동일 */}
           {isLoading && displayedSpots.length === 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -654,6 +693,16 @@ export default function AttractionPlannerPanel({
                             <div className="absolute top-2 left-2 z-10">
                               <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[10px] font-black shadow-xs flex items-center gap-0.5">
                                 ★ {locale === "ko" ? "추천" : "Must-Visit"}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* 이전 차수 선택 배지 */}
+                          {priorSelectedSpotKeys?.has(normalizeSpotKey(rawSpot.id)) && (
+                            <div className="absolute top-2 right-2 z-10">
+                              <span className="px-2 py-0.5 rounded-full bg-indigo-600/90 backdrop-blur-xs text-white text-[9.5px] font-black shadow-xs flex items-center gap-1">
+                                <span>🏷️</span>
+                                <span>{priorStopLabel ? `${priorStopLabel} 선택됨` : (locale === "ko" ? "1차에서 선택됨" : "Selected in #1")}</span>
                               </span>
                             </div>
                           )}

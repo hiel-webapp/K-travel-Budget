@@ -348,25 +348,17 @@ export function calculateTripBudgetSummary(
 
     if (nights > 0) {
       let accOverride = preferences.accommodationByCity?.[stop.id];
-      if (!accOverride && isRepeated) {
-        const cityAcc = preferences.accommodationByCity?.[city];
-        if (cityAcc && typeof cityAcc === "object" && (cityAcc as any).kind === "SPLIT") {
-          const foundSeg = (cityAcc as any).segments?.find((seg: any) => seg.segmentId === stop.id);
-          if (foundSeg) {
-            accOverride = {
-              kind: "TIER",
-              basketId: foundSeg.basketId,
-              nightlyPriceKrw: foundSeg.nightlyPriceKrw,
-              placeNameKo: foundSeg.placeNameKo,
-              placeNameEn: foundSeg.placeNameEn,
-            } as any;
-          }
-        }
-      }
       if (!accOverride && isFirstVisitOfCity) {
         accOverride = preferences.accommodationByCity?.[city];
         if (isRepeated && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
-          accOverride = undefined;
+          const foundSeg = (accOverride as any).segments?.find((seg: any) => seg.segmentId === stop.id);
+          accOverride = foundSeg ? {
+            kind: "TIER",
+            basketId: foundSeg.basketId,
+            nightlyPriceKrw: foundSeg.nightlyPriceKrw,
+            placeNameKo: foundSeg.placeNameKo,
+            placeNameEn: foundSeg.placeNameEn,
+          } as any : undefined;
         }
       }
 
@@ -382,9 +374,7 @@ export function calculateTripBudgetSummary(
             stayLabel = locale === "ko" ? arch.titleKo : arch.titleEn;
           }
         }
-      }
-
-      if (stayNightly === 0) {
+      } else if (isFirstVisitOfCity) {
         const defTier = draft.budgetTier || "STANDARD";
         const archId = defTier === "BUDGET" ? "HOSTEL_GUESTHOUSE" : defTier === "PREMIUM" ? "LUXURY_SKYLINE" : "BUSINESS_HOTEL";
         const arch = STAY_ARCHETYPES.find((a) => a.id === archId);
@@ -392,6 +382,9 @@ export function calculateTripBudgetSummary(
           stayNightly = arch.cityPrices[city] || arch.defaultPriceKrw;
           stayLabel = locale === "ko" ? arch.titleKo : arch.titleEn;
         }
+      } else {
+        stayNightly = 0;
+        stayLabel = locale === "ko" ? "숙소 미선택" : "Accommodation Not Selected";
       }
 
       const isSolo = adultCount <= 1;
@@ -426,24 +419,22 @@ export function calculateTripBudgetSummary(
         subtotalKrw: foodTotal,
       };
     } else {
-      foodTotal = cData ? Math.round(cData.foodTotalKrw * effectiveStopRatio) : 0;
-      const allFoodItems = cData?.foodBasketPlan?.selectedItems || [];
-      let stopFoodItems: any[] = [];
-      if (!isRepeated) {
-        stopFoodItems = allFoodItems;
+      if (isFirstVisitOfCity) {
+        foodTotal = cData ? Math.round(cData.foodTotalKrw * effectiveStopRatio) : 0;
+        const allFoodItems = cData?.foodBasketPlan?.selectedItems || [];
+        stopFoodPlan = cData?.foodBasketPlan ? {
+          ...cData.foodBasketPlan,
+          selectedItems: allFoodItems,
+          subtotalKrw: foodTotal,
+        } : undefined;
       } else {
-        if (allFoodItems.length <= 1) {
-          stopFoodItems = visitIdx === 0 ? allFoodItems : [];
-        } else {
-          const half = Math.ceil(allFoodItems.length / 2);
-          stopFoodItems = visitIdx === 0 ? allFoodItems.slice(0, half) : allFoodItems.slice(half);
-        }
+        foodTotal = 0;
+        stopFoodPlan = cData?.foodBasketPlan ? {
+          ...cData.foodBasketPlan,
+          selectedItems: [],
+          subtotalKrw: 0,
+        } : undefined;
       }
-      stopFoodPlan = cData?.foodBasketPlan ? {
-        ...cData.foodBasketPlan,
-        selectedItems: stopFoodItems,
-        subtotalKrw: foodTotal,
-      } : undefined;
     }
 
     // C. 시내 교통
@@ -472,18 +463,10 @@ export function calculateTripBudgetSummary(
         if (spot) stopSpots.push(spot);
       });
     } else {
-      const allCitySpots = cData?.selectedSpots || [];
-      if (!isRepeated) {
-        stopSpots = allCitySpots;
+      if (isFirstVisitOfCity) {
+        stopSpots = cData?.selectedSpots || [];
       } else {
-        if (allCitySpots.length === 0) {
-          stopSpots = [];
-        } else if (allCitySpots.length === 1) {
-          stopSpots = visitIdx === 0 ? allCitySpots : [];
-        } else {
-          const half = Math.ceil(allCitySpots.length / 2);
-          stopSpots = visitIdx === 0 ? allCitySpots.slice(0, half) : allCitySpots.slice(half);
-        }
+        stopSpots = [];
       }
     }
 

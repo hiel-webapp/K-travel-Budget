@@ -43,6 +43,8 @@ interface FoodPlannerPanelProps {
   onRemoveAddOn?: (slotId: string, addOnItemId: string) => void;
   onChangeAddOnQuantity?: (slotId: string, addOnItemId: string, quantity: number) => void;
   hideHeader?: boolean;
+  priorSelectedFoodIds?: Set<string>;
+  priorStopLabel?: string;
 }
 
 export default function FoodPlannerPanel({
@@ -59,12 +61,15 @@ export default function FoodPlannerPanel({
   onSetQuantity,
   onClearBasket,
   hideHeader = false,
+  priorSelectedFoodIds,
+  priorStopLabel,
 }: FoodPlannerPanelProps) {
   const { usdRate } = useExchangeRate();
   const [activeTab, setActiveTab] = useState<"NATIONAL" | "CITY" | "BASKET">("CITY");
   const [activeCityTab, setActiveCityTab] = useState<SupportedCity>(currentCity);
   const [nationalCategoryFilter, setNationalCategoryFilter] = useState<"ALL" | FoodCategoryTag>("ALL");
   const [previewFood, setPreviewFood] = useState<FoodItemDefinition | null>(null);
+  const [excludePriorFoods, setExcludePriorFoods] = useState(true);
   const [dynamicFoods, setDynamicFoods] = useState<FoodItemDefinition[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -170,10 +175,13 @@ export default function FoodPlannerPanel({
       if (!aMust && bMust) return 1;
       return (a.sortOrder ?? 999) - (b.sortOrder ?? 999);
     });
-    const top3 = sorted.filter((f) => f.isMustEatTop3);
-    const explore7 = sorted.filter((f) => !f.isMustEatTop3);
-    return { all: sorted, top3, explore7 };
-  }, [activeCityTab, dynamicFoods]);
+    const filtered = (excludePriorFoods && priorSelectedFoodIds && priorSelectedFoodIds.size > 0)
+      ? sorted.filter((f) => !priorSelectedFoodIds.has(f.id))
+      : sorted;
+    const top3 = filtered.filter((f) => f.isMustEatTop3);
+    const explore7 = filtered.filter((f) => !f.isMustEatTop3);
+    return { all: filtered, top3, explore7 };
+  }, [activeCityTab, dynamicFoods, excludePriorFoods, priorSelectedFoodIds]);
 
   // 한국 대표 음식 필터링 - K-스팟 전용 아이템은 제외
   const filteredNationalFoods = useMemo(() => {
@@ -185,6 +193,9 @@ export default function FoodPlannerPanel({
     } else {
       base = NATIONAL_K_FOODS.filter((f) => f.targetScope !== "K_SPOT" && f.isActive !== false);
     }
+    if (excludePriorFoods && priorSelectedFoodIds && priorSelectedFoodIds.size > 0) {
+      base = base.filter((f) => !priorSelectedFoodIds.has(f.id));
+    }
     const sorted = [...base].sort((a, b) => {
       const aMust = !!a.isMustEatTop3;
       const bMust = !!b.isMustEatTop3;
@@ -194,7 +205,7 @@ export default function FoodPlannerPanel({
     });
     if (nationalCategoryFilter === "ALL") return sorted;
     return sorted.filter((f) => f.categoryTag === nationalCategoryFilter);
-  }, [nationalCategoryFilter, dynamicFoods]);
+  }, [nationalCategoryFilter, dynamicFoods, excludePriorFoods, priorSelectedFoodIds]);
 
   const handleAdd = (foodId: string, cityCode?: SupportedCity) => {
     if (onUpdateQuantity) {
@@ -369,6 +380,36 @@ export default function FoodPlannerPanel({
             </span>
           </div>
 
+          {/* 이전 차수 기선택 메뉴 제외 토글 바 */}
+          {priorSelectedFoodIds && priorSelectedFoodIds.size > 0 && (
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-indigo-50/70 border border-indigo-200/80 text-xs">
+              <div className="flex items-center gap-2 text-indigo-950 font-bold min-w-0">
+                <span className="text-sm shrink-0">🏷️</span>
+                <span className="truncate">
+                  {locale === "ko"
+                    ? `${priorStopLabel || "이전 차수"}에서 담은 메뉴 (${priorSelectedFoodIds.size}개)`
+                    : `Foods in ${priorStopLabel || "prior visit"} (${priorSelectedFoodIds.size})`}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExcludePriorFoods((prev) => !prev)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs ${
+                  excludePriorFoods
+                    ? "bg-indigo-600 text-white shadow-xs hover:bg-indigo-700"
+                    : "bg-white text-indigo-700 border border-indigo-300 hover:bg-indigo-100/50"
+                }`}
+              >
+                <span>{excludePriorFoods ? "✓" : ""}</span>
+                <span>
+                  {excludePriorFoods
+                    ? (locale === "ko" ? "목록에서 제외 중" : "Excluded")
+                    : (locale === "ko" ? "목록에 포함하여 보기" : "Include in list")}
+                </span>
+              </button>
+            </div>
+          )}
+
           {/* 대표 미식 통합 카드 그리드: 1줄에 2개씩 배열 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {cityFoods.all.map((food) => {
@@ -381,6 +422,8 @@ export default function FoodPlannerPanel({
                   count={count}
                   adultCount={adultCount}
                   isHighlighted={food.isMustEatTop3 || false}
+                  isPriorSelected={priorSelectedFoodIds?.has(food.id)}
+                  priorStopLabel={priorStopLabel}
                   onToggle={() => handleToggle(food.id)}
                   onPreview={() => setPreviewFood(food)}
                 />
@@ -429,6 +472,8 @@ export default function FoodPlannerPanel({
                   count={count}
                   adultCount={adultCount}
                   isHighlighted={food.isMustEatTop3 || false}
+                  isPriorSelected={priorSelectedFoodIds?.has(food.id)}
+                  priorStopLabel={priorStopLabel}
                   onToggle={() => handleToggle(food.id)}
                   onPreview={() => setPreviewFood(food)}
                 />
@@ -722,6 +767,8 @@ function FoodItemCard({
   count,
   adultCount,
   isHighlighted,
+  isPriorSelected,
+  priorStopLabel,
   onToggle,
   onPreview,
 }: {
@@ -730,6 +777,8 @@ function FoodItemCard({
   count: number;
   adultCount: number;
   isHighlighted?: boolean;
+  isPriorSelected?: boolean;
+  priorStopLabel?: string;
   onToggle: () => void;
   onPreview: () => void;
 }) {
@@ -779,6 +828,16 @@ function FoodItemCard({
               <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-500 text-white shadow-md">
                 Must-Eat
               </span>
+            )}
+
+            {/* 이전 차수 선택 배지 */}
+            {isPriorSelected && (
+              <div className="absolute top-2 right-2 z-10">
+                <span className="px-2 py-0.5 rounded-full bg-indigo-600/90 backdrop-blur-xs text-white text-[9.5px] font-black shadow-xs flex items-center gap-1">
+                  <span>🏷️</span>
+                  <span>{priorStopLabel ? `${priorStopLabel} 담음` : (locale === "ko" ? "1차에서 담음" : "In #1")}</span>
+                </span>
+              </div>
             )}
 
             <span className="absolute bottom-1.5 right-2 text-[9px] font-medium text-white/80 drop-shadow-xs">

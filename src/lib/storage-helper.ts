@@ -445,9 +445,9 @@ export function parsePlannerPreferences(
       const sanitizedAttr: AttractionOverridesByCity = {};
       if (prefs.attractionByCity && typeof prefs.attractionByCity === "object") {
         for (const [cityKey, basketId] of Object.entries(prefs.attractionByCity)) {
-          const city = cityKey as SupportedCity;
+          const city = getBaseCityFromKey(cityKey) || (cityKey as SupportedCity);
           if (validateSingleAttraction(city, basketId, draft)) {
-            sanitizedAttr[city] = basketId;
+            (sanitizedAttr as any)[cityKey] = basketId;
           }
         }
       }
@@ -481,7 +481,13 @@ export function parsePlannerPreferences(
         addOnSelections: sanitizedAddOns,
         foodTier: prefs.foodTier,
         foodBasketSelections: Array.isArray(prefs.foodBasketSelections) ? prefs.foodBasketSelections : undefined,
+        foodBasketSelectionsByStop: prefs.foodBasketSelectionsByStop && typeof prefs.foodBasketSelectionsByStop === "object"
+          ? prefs.foodBasketSelectionsByStop
+          : undefined,
         attractionSelections: prefs.attractionSelections || {},
+        attractionSelectionsByStop: prefs.attractionSelectionsByStop && typeof prefs.attractionSelectionsByStop === "object"
+          ? prefs.attractionSelectionsByStop
+          : undefined,
         attractionCustomDailyKrw: isEmergencyValValid(prefs.attractionCustomDailyKrw) ? prefs.attractionCustomDailyKrw : undefined,
         emergencyFundKrw: isEmergencyValValid(prefs.emergencyFundKrw) ? prefs.emergencyFundKrw : 0,
         emergencyFundPct: prefs.emergencyFundPct !== undefined
@@ -519,6 +525,11 @@ function getBaseCityFromKey(key: string): SupportedCity | null {
     const candidate = match[1].toUpperCase() as SupportedCity;
     if (ALL_SUPPORTED_CITIES.includes(candidate)) {
       return candidate;
+    }
+  }
+  for (const city of ALL_SUPPORTED_CITIES) {
+    if (key.toUpperCase().includes(city)) {
+      return city;
     }
   }
   return null;

@@ -8,7 +8,7 @@ import {
   DEFAULT_TRIP_DRAFT,
   ensureTripStops,
   TripStop,
-} from "src/lib/trip-domain";
+} from "../../../lib/trip-domain";
 import { PlannerPreferences, BudgetCategory, BudgetBasketId, ShoppingOption, BudgetPlan } from "../domain/types";
 import { generateInitialBudgetPlan, getDefaultCityTransitStyle } from "./engine";
 import { MOCK_PRICE_CATALOG, LOCAL_TRANSIT_OPTIONS } from "../catalog/mock-catalog";
@@ -368,7 +368,13 @@ export function calculateTripBudgetSummary(
           stayLabel = (locale === "ko" ? (accOverride as any).placeNameKo : (accOverride as any).placeNameEn) || (accOverride as any).placeNameKo || (locale === "ko" ? "선택 숙소" : "Selected Stay");
         } else {
           const bId = typeof accOverride === "string" ? accOverride : (accOverride as any).basketId;
-          const arch = STAY_ARCHETYPES.find((a) => a.id === bId);
+          let targetArchId = bId;
+          if (bId === "HOSTEL_GUESTHOUSE" || bId === "BUDGET_STAY") targetArchId = "HOSTEL_GUESTHOUSE";
+          else if (bId === "HANOK_BOUTIQUE") targetArchId = "HANOK_BOUTIQUE";
+          else if (bId === "LUXURY_SKYLINE" || bId === "PREMIUM_HERITAGE") targetArchId = "LUXURY_SKYLINE";
+          else if (bId === "BUSINESS_HOTEL" || bId === "STANDARD_HOTEL") targetArchId = "BUSINESS_HOTEL";
+
+          const arch = STAY_ARCHETYPES.find((a) => a.id === targetArchId);
           if (arch) {
             stayNightly = arch.cityPrices[city] || arch.defaultPriceKrw;
             stayLabel = locale === "ko" ? arch.titleKo : arch.titleEn;
@@ -407,10 +413,9 @@ export function calculateTripBudgetSummary(
       // 정차지 전용 바스켓이 명시된 경우 (빈 바스켓 포함)
       const stopFoodNights = Math.max(1, nights);
       const calcPlan = calculateFoodBasketPlan(stopFoodSelections, stopFoodNights, adultCount);
-      const cityFoodPlan = calculateCityFoodBasketPlan(city, stopFoodNights, stopFoodNights, calcPlan, adultCount);
-      foodTotal = stopFoodSelections.length > 0 ? cityFoodPlan.grandTotalKrw : 0;
+      foodTotal = stopFoodSelections.length > 0 ? calcPlan.grandTotalKrw : 0;
       stopFoodPlan = {
-        ...cityFoodPlan,
+        ...calcPlan,
         subtotalKrw: foodTotal,
       };
     } else {
@@ -495,7 +500,7 @@ export function calculateTripBudgetSummary(
       stayNightlyPrice: stayNightly,
       hasStay,
       foodTotalKrw: foodTotal,
-      foodBasketPlan: stopFoodPlan || cData?.foodBasketPlan,
+      foodBasketPlan: stopFoodPlan !== undefined ? stopFoodPlan : cData?.foodBasketPlan,
       transportTotalKrw: transportTotal,
       attractionTotalKrw: attractionTotal,
       selectedSpots: stopSpots,

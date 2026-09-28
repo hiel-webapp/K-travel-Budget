@@ -43,6 +43,7 @@ interface FoodPlannerPanelProps {
   onRemoveAddOn?: (slotId: string, addOnItemId: string) => void;
   onChangeAddOnQuantity?: (slotId: string, addOnItemId: string, quantity: number) => void;
   hideHeader?: boolean;
+  stopId?: string;
   priorSelectedFoodIds?: Set<string>;
   priorStopLabel?: string;
 }
@@ -61,6 +62,7 @@ export default function FoodPlannerPanel({
   onSetQuantity,
   onClearBasket,
   hideHeader = false,
+  stopId,
   priorSelectedFoodIds,
   priorStopLabel,
 }: FoodPlannerPanelProps) {
@@ -123,11 +125,10 @@ export default function FoodPlannerPanel({
 
   const safeCityNights = Math.max(1, cityNights ?? Math.floor(travelNights / Math.max(1, selectedCities.length)));
 
-  // 푸드 바스켓 연산 결과: 해당 활성 도시 기준 연산 (다른 도시 선택 항목과 철저 분리)
+  // 푸드 바스켓 연산 결과: 현재 정차지의 safeCityNights 및 basketSelections 기준 연산
   const basketPlan = useMemo(() => {
-    const totalPlan = calculateFoodBasketPlan(basketSelections, travelNights, adultCount);
-    return calculateCityFoodBasketPlan(activeCityTab, safeCityNights, travelNights, totalPlan, adultCount);
-  }, [basketSelections, travelNights, adultCount, activeCityTab, safeCityNights]);
+    return calculateFoodBasketPlan(basketSelections, safeCityNights, adultCount);
+  }, [basketSelections, safeCityNights, adultCount]);
 
   // 원클릭 토글 핸들러 (담기 / 취소)
   const handleToggle = (foodId: string) => {
@@ -141,19 +142,15 @@ export default function FoodPlannerPanel({
     }
   };
 
-  // 선택된 항목 맵 (foodId -> quantity): 오직 현재 activeCityTab에 담긴 음식만 매핑
+  // 선택된 항목 맵 (foodId -> quantity): 전달된 현재 정차지의 basketSelections 매핑
   const selectionMap = useMemo(() => {
     const map = new Map<string, number>();
     basketSelections.forEach((s) => {
       if (s.quantity <= 0) return;
-      const foodDef = FOOD_CATALOG_BY_ID.get(s.foodId);
-      const targetCity = s.cityCode || foodDef?.cityCode || currentCity;
-      if (targetCity === activeCityTab) {
-        map.set(s.foodId, (map.get(s.foodId) || 0) + s.quantity);
-      }
+      map.set(s.foodId, (map.get(s.foodId) || 0) + s.quantity);
     });
     return map;
-  }, [basketSelections, activeCityTab, currentCity]);
+  }, [basketSelections]);
 
   // 활성 도시의 10대 대표 음식 (Top 3 vs 탐색 7선) - K-스팟 전용 아이템은 제외
   // 추천(isMustEatTop3) 항목은 무조건 최상단에 우선 배치되며, 해제 시 본래 순서(sortOrder / ㄱㄴㄷ 순)로 복귀

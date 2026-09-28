@@ -25,7 +25,7 @@ import { formatPriceByLocale } from "../lib/currency/currency-converter";
 import type { Dictionary } from "../lib/i18n/dictionaries/ko";
 import type { Locale } from "../lib/i18n/locales";
 import type { TripDraft, SupportedCity } from "../lib/trip-domain";
-import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "../lib/trip-domain";
+import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, ensureTripStops } from "../lib/trip-domain";
 import type { PlannerPreferences, BudgetCategory, BudgetBasketId } from "../features/budget/domain/types";
 import {
   TOUR_COURSE_PRESETS,
@@ -72,12 +72,19 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     const handle = requestAnimationFrame(() => {
       try {
         const loadedDraft = loadTripDraft();
-        setDraft(loadedDraft);
         if (loadedDraft) {
-          const res = loadPlannerPreferencesEx(loadedDraft);
+          const draftWithStops: TripDraft = {
+            ...loadedDraft,
+            stops: ensureTripStops(loadedDraft),
+          };
+          setDraft(draftWithStops);
+          const res = loadPlannerPreferencesEx(draftWithStops);
           if (res.preferences) {
             setPreferences(res.preferences);
           }
+        } else {
+          setDraft(loadedDraft);
+        }
 
           // 도시별 최신 관광지 DB 카탈로그 프리페치 (플래너와 100% 동일한 DB 명소 입장료 동기화)
           if (Array.isArray(loadedDraft.selectedCities)) {
@@ -100,7 +107,6 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
               }
             });
           }
-        }
         setSavedPlaceIds(loadSavedPlaceIds());
         setBudgetPlaces(loadBudgetPlaces());
       } catch (error) {

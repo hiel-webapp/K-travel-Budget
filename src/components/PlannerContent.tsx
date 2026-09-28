@@ -2958,7 +2958,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const handleFoodBasketUpdateQuantity = (foodId: string, delta: number, cityCode?: SupportedCity) => {
+  const handleFoodBasketUpdateQuantity = (foodId: string, delta: number, cityCode?: SupportedCity, explicitStopId?: string) => {
     if (!latestPrefsRef.current) return;
 
     const stops = ensureTripStops(draft);
@@ -2967,12 +2967,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         ? (selectedCityTab as SupportedCity)
         : (draft.selectedCities[0] || "SEOUL");
     const sameCityStops = stops.filter((s) => s.city === fallbackCity);
-    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
-      ? stops[selectedStopIndex]
-      : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
-    const stopKey = activeStop.id;
-    const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
-    const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+    const activeStop = explicitStopId
+      ? stops.find((s) => s.id === explicitStopId) || (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity ? stops[selectedStopIndex] : sameCityStops[0])
+      : (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
+        ? stops[selectedStopIndex]
+        : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
+    const stopKey = explicitStopId || activeStop?.id || `stop_1_${fallbackCity.toLowerCase()}`;
+    const visitIdx = sameCityStops.findIndex((s) => s.id === stopKey);
+    const isFirstVisitOfCity = visitIdx === 0 && !(activeStop?.isAdded);
 
     const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
     let currentBasket = currentByStop[stopKey];
@@ -2988,7 +2990,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
 
     const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
-    const targetCity: SupportedCity = cityCode || foodDef?.cityCode || fallbackCity;
+    const targetCity: SupportedCity = cityCode || activeStop?.city || foodDef?.cityCode || fallbackCity;
 
     const existingIndex = currentBasket.findIndex((item) => {
       if (item.foodId !== foodId) return false;
@@ -3052,7 +3054,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const handleFoodBasketSetQuantity = (foodId: string, quantity: number, cityCode?: SupportedCity) => {
+  const handleFoodBasketSetQuantity = (foodId: string, quantity: number, cityCode?: SupportedCity, explicitStopId?: string) => {
     if (!latestPrefsRef.current) return;
 
     const stops = ensureTripStops(draft);
@@ -3061,12 +3063,14 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         ? (selectedCityTab as SupportedCity)
         : (draft.selectedCities[0] || "SEOUL");
     const sameCityStops = stops.filter((s) => s.city === fallbackCity);
-    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
-      ? stops[selectedStopIndex]
-      : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
-    const stopKey = activeStop.id;
-    const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
-    const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+    const activeStop = explicitStopId
+      ? stops.find((s) => s.id === explicitStopId) || (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity ? stops[selectedStopIndex] : sameCityStops[0])
+      : (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
+        ? stops[selectedStopIndex]
+        : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
+    const stopKey = explicitStopId || activeStop?.id || `stop_1_${fallbackCity.toLowerCase()}`;
+    const visitIdx = sameCityStops.findIndex((s) => s.id === stopKey);
+    const isFirstVisitOfCity = visitIdx === 0 && !(activeStop?.isAdded);
 
     const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
     let currentBasket = currentByStop[stopKey];
@@ -3082,7 +3086,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
 
     const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
-    const targetCity: SupportedCity = cityCode || foodDef?.cityCode || fallbackCity;
+    const targetCity: SupportedCity = cityCode || activeStop?.city || foodDef?.cityCode || fallbackCity;
 
     const existingIndex = currentBasket.findIndex((item) => {
       if (item.foodId !== foodId) return false;
@@ -3143,7 +3147,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
     }
   };
 
-  const handleFoodBasketClear = (cityCode?: SupportedCity) => {
+  const handleFoodBasketClear = (cityCode?: SupportedCity, explicitStopId?: string) => {
     if (!latestPrefsRef.current) return;
 
     const stops = ensureTripStops(draft);
@@ -3152,10 +3156,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         ? (selectedCityTab as SupportedCity)
         : (draft.selectedCities[0] || "SEOUL");
     const sameCityStops = stops.filter((s) => s.city === fallbackCity);
-    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
-      ? stops[selectedStopIndex]
-      : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
-    const stopKey = activeStop.id;
+    const activeStop = explicitStopId
+      ? stops.find((s) => s.id === explicitStopId) || (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity ? stops[selectedStopIndex] : sameCityStops[0])
+      : (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
+        ? stops[selectedStopIndex]
+        : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
+    const stopKey = explicitStopId || activeStop?.id || `stop_1_${fallbackCity.toLowerCase()}`;
 
     const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
     currentByStop[stopKey] = [];
@@ -5299,10 +5305,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             adultCount={draft.adultCount || 1}
                             basketSelections={stopFoodSelections}
                             foodBasketPlan={cityFoodBasket}
-                            onUpdateQuantity={handleFoodBasketUpdateQuantity}
-                            onSetQuantity={handleFoodBasketSetQuantity}
-                            onClearBasket={handleFoodBasketClear}
+                            onUpdateQuantity={(foodId, delta, cCode) => handleFoodBasketUpdateQuantity(foodId, delta, cCode, activeStop.id)}
+                            onSetQuantity={(foodId, qty, cCode) => handleFoodBasketSetQuantity(foodId, qty, cCode, activeStop.id)}
+                            onClearBasket={(cCode) => handleFoodBasketClear(cCode, activeStop.id)}
                             hideHeader={true}
+                            stopId={activeStop.id}
                             priorSelectedFoodIds={priorSelectedFoodIds}
                             priorStopLabel={priorStopLabel}
                           />

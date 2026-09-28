@@ -510,6 +510,7 @@ export function sanitizeTripDraft(draft: unknown): TripDraft {
         nights: typeof s.nights === "number" && s.nights >= 0 ? s.nights : 0,
         label: s.label,
         staySegments: s.staySegments,
+        isAdded: s.isAdded,
       }));
     }
   }

@@ -53,6 +53,261 @@ export interface BookingActionHubProps {
   usdRate?: number;
 }
 
+export function buildBookingHubData(
+  calculations: TripBudgetSummary,
+  draft: TripDraft,
+  locale: Locale,
+  usdRate: number = 1387
+) {
+  const isKo = locale === "ko";
+  const transit: BookingRowItem[] = [];
+  const stay: BookingRowItem[] = [];
+  const attraction: BookingRowItem[] = [];
+  const essential: BookingRowItem[] = [];
+  const free: FreeSpotItem[] = [];
+
+  // -------------------------------------------------------------------------
+  // 1. 교통 (Transit)
+  // -------------------------------------------------------------------------
+  // AREX 공항철도 직통열차 (서울/인천 경유 시)
+  if (
+    draft.selectedCities.includes("SEOUL") ||
+    draft.selectedCities.includes("INCHEON")
+  ) {
+    transit.push({
+      id: "transit-arex",
+      category: "TRANSIT",
+      categoryNameKo: "공항철도",
+      categoryNameEn: "AREX",
+      titleKo: "인천공항 ↔ 서울역 AREX 직통열차",
+      titleEn: "Incheon Airport ↔ Seoul AREX Express",
+      subtitleKo: "소요시간 43분 논스톱 고속철도 · 모바일 QR 승차권",
+      subtitleEn: "43-min non-stop express · Mobile QR boarding",
+      priceText: isKo ? "₩11,000 / 편도" : `${formatPriceByLocale(11000, locale, usdRate)} / one-way`,
+      targetUrl: isKo
+        ? "https://www.airportrailroad.com"
+        : "https://www.arex.or.kr/main.do",
+      actionLabelKo: "공식 예매",
+      actionLabelEn: "Official",
+      badgeKo: "공식",
+      badgeEn: "Official",
+      isOfficial: true,
+    });
+  }
+
+  // KTX 고속철도 (복수 도시 여행 시)
+  if (draft.selectedCities.length > 1) {
+    transit.push({
+      id: "transit-ktx",
+      category: "TRANSIT",
+      categoryNameKo: "고속열차",
+      categoryNameEn: "KTX/SRT",
+      titleKo: "코레일 KTX / SRT 전국 고속열차",
+      titleEn: "Korail KTX Official Train Reservation",
+      subtitleKo: "서울, 부산, 경주, 전주, 여수 전국 주요 도시 고속 이동",
+      subtitleEn: "High-speed rail connecting major cities across Korea",
+      priceText: isKo ? "구간별 실비 예매" : "Direct fare booking",
+      targetUrl: isKo
+        ? "https://www.letskorail.com"
+        : "https://www.letskorail.com/ebizbf/EbizBfTicketSearch.do",
+      actionLabelKo: "공식 예매",
+      actionLabelEn: "Official",
+      badgeKo: "공식",
+      badgeEn: "Official",
+      isOfficial: true,
+    });
+  }
+
+  // 카카오T 모빌리티
+  transit.push({
+    id: "transit-kakaot",
+    category: "TRANSIT",
+    categoryNameKo: "택시/호출",
+    categoryNameEn: "Taxi",
+    titleKo: "카카오 T (택시 호출 & 바이크)",
+    titleEn: "Kakao T (Taxi Hailing & Bike)",
+    subtitleKo: "한국 어디서나 외국인 카드 및 카카오페이 간편 결제",
+    subtitleEn: "Nationwide taxi dispatch with foreign card payment",
+    priceText: isKo ? "미터기 요금" : "Metered Fare",
+    targetUrl: "https://www.kakaocorp.com/page/service/service/KakaoT",
+    actionLabelKo: "앱 바로가기",
+    actionLabelEn: "Get App",
+    badgeKo: "필수 앱",
+    badgeEn: "Essential",
+    isOfficial: true,
+  });
+
+  // -------------------------------------------------------------------------
+  // 2. 숙소 (Stay) - 선택된 도시별 맞춤 링크 (0원이거나 미선택인 숙소는 제외)
+  // -------------------------------------------------------------------------
+  const stopsForStay = (calculations.stopBreakdown && calculations.stopBreakdown.length > 0)
+    ? calculations.stopBreakdown
+    : draft.selectedCities.map((c, idx) => ({
+        stopId: `${c}-${idx}`,
+        city: c,
+        cityName: CITY_KOREAN_NAMES[c] || c,
+        nights: calculations.cityBreakdown?.[c]?.nights || 0,
+        stayTotalKrw: calculations.cityBreakdown?.[c]?.stayTotalKrw || 0,
+        stayNightlyPrice: calculations.cityBreakdown?.[c]?.stayNightlyPrice || 0,
+        stayItemLabel: calculations.cityBreakdown?.[c]?.stayItemLabel || "",
+        hasStay: calculations.cityBreakdown?.[c]?.hasStay || false,
+        isAdded: false,
+      }));
+
+  stopsForStay.forEach((sInfo, idx) => {
+    // 0원이거나 미선택 숙소는 리스트에서 제외
+    if (
+      !sInfo ||
+      sInfo.nights === 0 ||
+      sInfo.stayTotalKrw <= 0 ||
+      sInfo.stayNightlyPrice <= 0 ||
+      !sInfo.stayItemLabel ||
+      sInfo.stayItemLabel.includes("미선택") ||
+      sInfo.stayItemLabel.includes("Unselected")
+    ) {
+      return;
+    }
+
+    const city = sInfo.city;
+    const baseNameKo = CITY_KOREAN_NAMES[city] || city;
+    const baseNameEn = CITY_ENGLISH_NAMES[city] || city;
+    const cityNameKo = sInfo.isAdded ? `${baseNameKo} (+)` : baseNameKo;
+    const cityNameEn = sInfo.isAdded ? `${baseNameEn} (+)` : baseNameEn;
+
+    const matchedArchetype = STAY_ARCHETYPES.find(
+      (a) => a.titleKo === sInfo.stayItemLabel || a.titleEn === sInfo.stayItemLabel
+    );
+    const targetUrl = matchedArchetype
+      ? generateStayOtaUrl(matchedArchetype.id, city, locale)
+      : generateAgodaCitySearchUrl(city, locale);
+
+    stay.push({
+      id: `stay-${sInfo.stopId || `${city.toLowerCase()}-${idx}`}`,
+      category: "STAY",
+      categoryNameKo: "숙소",
+      categoryNameEn: "Stay",
+      titleKo: `${cityNameKo} 숙소 (${sInfo.stayItemLabel})`,
+      titleEn: `${cityNameEn} Stays (${sInfo.stayItemLabel})`,
+      subtitleKo: `1박 평균 ${formatKrw(sInfo.stayNightlyPrice)} 기준 · ${sInfo.nights}박 일정`,
+      subtitleEn: `Avg. ${formatPriceByLocale(sInfo.stayNightlyPrice, locale, usdRate)} / night · ${sInfo.nights} nights`,
+      priceText: formatPriceByLocale(sInfo.stayTotalKrw, locale, usdRate),
+      targetUrl,
+      actionLabelKo: "아고다 예약",
+      actionLabelEn: "Book on Agoda",
+      badgeKo: "아고다",
+      badgeEn: "Agoda",
+      isOfficial: false,
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // 3. 주요 명소 & 티켓 (Attraction) - 유료 입장권 및 무료 명소 분류
+  // -------------------------------------------------------------------------
+  draft.selectedCities.forEach((city) => {
+    const cInfo = calculations.cityBreakdown?.[city];
+    const spots = cInfo?.selectedSpots || [];
+    const cityNameKo = CITY_KOREAN_NAMES[city] || city;
+    const cityNameEn = CITY_ENGLISH_NAMES[city] || city;
+
+    spots.forEach((spot) => {
+      const spotNameKo = spot.nameKo;
+      const spotNameEn = spot.nameEn || spotNameKo;
+      const spotPrice = spot.price || 0;
+
+      // 무료 입장 명소는 별도 무료 리스트로 분류
+      if (spotPrice <= 0) {
+        free.push({
+          id: `free-${spot.id}`,
+          city,
+          cityNameKo,
+          cityNameEn,
+          nameKo: spotNameKo,
+          nameEn: spotNameEn,
+          targetUrl:
+            spot.officialUrl ||
+            `https://map.naver.com/v5/search/${encodeURIComponent(spotNameKo)}`,
+        });
+        return;
+      }
+
+      // 유료 입장권 및 사전 예매 명소
+      const targetUrl =
+        spot.officialUrl ||
+        `https://www.klook.com/search/result/?query=${encodeURIComponent(spotNameEn)}`;
+
+      attraction.push({
+        id: `spot-${spot.id}`,
+        category: "ATTRACTION",
+        categoryNameKo: "입장권",
+        categoryNameEn: "Ticket",
+        titleKo: `${spotNameKo} 입장권 & 바우처`,
+        titleEn: `${spotNameEn} Admission Ticket`,
+        subtitleKo: spot.descKo || "현장 대기 없이 즉시 입장 가능한 모바일 티켓",
+        subtitleEn: spot.descEn || "Fast-track mobile voucher & admissions",
+        priceText: formatPriceByLocale(spotPrice, locale, usdRate),
+        targetUrl,
+        actionLabelKo: spot.officialUrl ? "공식 사이트" : "티켓 예매",
+        actionLabelEn: spot.officialUrl ? "Official Site" : "Get Tickets",
+        badgeKo: spot.officialUrl ? "공식 사이트" : "티켓 예매",
+        badgeEn: spot.officialUrl ? "Official" : "Tickets",
+        isOfficial: !!spot.officialUrl,
+      });
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // 4. 여행 필수 준비물 (Essentials)
+  // -------------------------------------------------------------------------
+  essential.push({
+    id: "essential-esim",
+    category: "ESSENTIAL",
+    categoryNameKo: "통신",
+    categoryNameEn: "eSIM",
+    titleKo: "한국 무제한 4G/5G eSIM (SKT · KT · LGU+)",
+    titleEn: "Korea Unlimited 4G/5G eSIM",
+    subtitleKo: "인천/김포/김해공항 수령 또는 즉시 QR 개통",
+    subtitleEn: "Airport pickup or instant QR activation with local network",
+    priceText: isKo ? "1일 ~₩3,000" : `From ~${formatPriceByLocale(3000, locale, usdRate)}/day`,
+    targetUrl: "https://www.klook.com/search/result/?query=korea+esim",
+    actionLabelKo: "신청하기",
+    actionLabelEn: "Get eSIM",
+    badgeKo: "필수품",
+    badgeEn: "Essential",
+    isOfficial: false,
+  });
+
+  essential.push({
+    id: "essential-helpline",
+    category: "ESSENTIAL",
+    categoryNameKo: "안내 지원",
+    categoryNameEn: "Support",
+    titleKo: "1330 한국관광 통역안내 핫라인",
+    titleEn: "1330 Korea Travel Hotline",
+    subtitleKo: "24시간 4개 국어(한/영/일/중) 무료 관광 안내 및 긴급 통역",
+    subtitleEn: "24/7 free multilingual travel assistance & interpretation",
+    priceText: isKo ? "무료 안내" : "Free Service",
+    targetUrl: "https://kto.visitkorea.or.kr/kor/customer/call1330.kto",
+    actionLabelKo: "안내 보기",
+    actionLabelEn: "View Info",
+    badgeKo: "공공 서비스",
+    badgeEn: "Gov. Service",
+    isOfficial: true,
+  });
+
+  const total = transit.length + stay.length + attraction.length + essential.length;
+
+  return {
+    categorizedItems: {
+      TRANSIT: transit,
+      STAY: stay,
+      ATTRACTION: attraction,
+      ESSENTIAL: essential,
+    },
+    totalCount: total,
+    freeSpots: free,
+  };
+}
+
 export default function BookingActionHub({
   calculations,
   draft,
@@ -72,253 +327,8 @@ export default function BookingActionHub({
 
   // 사용자의 실제 영수증 및 선택 내역과 1:1 매핑되는 스마트 예약 항목 & 무료 명소 생성
   const { categorizedItems, totalCount, freeSpots } = useMemo(() => {
-    const transit: BookingRowItem[] = [];
-    const stay: BookingRowItem[] = [];
-    const attraction: BookingRowItem[] = [];
-    const essential: BookingRowItem[] = [];
-    const free: FreeSpotItem[] = [];
-
-    // -------------------------------------------------------------------------
-    // 1. 교통 (Transit)
-    // -------------------------------------------------------------------------
-    // AREX 공항철도 직통열차 (서울/인천 경유 시)
-    if (
-      draft.selectedCities.includes("SEOUL") ||
-      draft.selectedCities.includes("INCHEON")
-    ) {
-      transit.push({
-        id: "transit-arex",
-        category: "TRANSIT",
-        categoryNameKo: "공항철도",
-        categoryNameEn: "AREX",
-        titleKo: "인천공항 ↔ 서울역 AREX 직통열차",
-        titleEn: "Incheon Airport ↔ Seoul AREX Express",
-        subtitleKo: "소요시간 43분 논스톱 고속철도 · 모바일 QR 승차권",
-        subtitleEn: "43-min non-stop express · Mobile QR boarding",
-        priceText: isKo ? "₩11,000 / 편도" : `${formatPriceByLocale(11000, locale, usdRate)} / one-way`,
-        targetUrl: isKo
-          ? "https://www.airportrailroad.com"
-          : "https://www.arex.or.kr/main.do",
-        actionLabelKo: "공식 예매",
-        actionLabelEn: "Official",
-        badgeKo: "공식",
-        badgeEn: "Official",
-        isOfficial: true,
-      });
-    }
-
-    // KTX 고속철도 (복수 도시 여행 시)
-    if (draft.selectedCities.length > 1) {
-      transit.push({
-        id: "transit-ktx",
-        category: "TRANSIT",
-        categoryNameKo: "고속열차",
-        categoryNameEn: "KTX/SRT",
-        titleKo: "코레일 KTX / SRT 전국 고속열차",
-        titleEn: "Korail KTX Official Train Reservation",
-        subtitleKo: "서울, 부산, 경주, 전주, 여수 전국 주요 도시 고속 이동",
-        subtitleEn: "High-speed rail connecting major cities across Korea",
-        priceText: isKo ? "구간별 실비 예매" : "Direct fare booking",
-        targetUrl: isKo
-          ? "https://www.letskorail.com"
-          : "https://www.letskorail.com/ebizbf/EbizBfTicketSearch.do",
-        actionLabelKo: "공식 예매",
-        actionLabelEn: "Official",
-        badgeKo: "공식",
-        badgeEn: "Official",
-        isOfficial: true,
-      });
-    }
-
-    // 카카오T 모빌리티
-    transit.push({
-      id: "transit-kakaot",
-      category: "TRANSIT",
-      categoryNameKo: "택시/호출",
-      categoryNameEn: "Taxi",
-      titleKo: "카카오 T (택시 호출 & 바이크)",
-      titleEn: "Kakao T (Taxi Hailing & Bike)",
-      subtitleKo: "한국 어디서나 외국인 카드 및 카카오페이 간편 결제",
-      subtitleEn: "Nationwide taxi dispatch with foreign card payment",
-      priceText: isKo ? "미터기 요금" : "Metered Fare",
-      targetUrl: "https://www.kakaocorp.com/page/service/service/KakaoT",
-      actionLabelKo: "앱 바로가기",
-      actionLabelEn: "Get App",
-      badgeKo: "필수 앱",
-      badgeEn: "Essential",
-      isOfficial: true,
-    });
-
-    // -------------------------------------------------------------------------
-    // 2. 숙소 (Stay) - 선택된 도시별 맞춤 링크 (0원이거나 미선택인 숙소는 제외)
-    // -------------------------------------------------------------------------
-    const stopsForStay = (calculations.stopBreakdown && calculations.stopBreakdown.length > 0)
-      ? calculations.stopBreakdown
-      : draft.selectedCities.map((c, idx) => ({
-          stopId: `${c}-${idx}`,
-          city: c,
-          cityName: CITY_KOREAN_NAMES[c] || c,
-          nights: calculations.cityBreakdown?.[c]?.nights || 0,
-          stayTotalKrw: calculations.cityBreakdown?.[c]?.stayTotalKrw || 0,
-          stayNightlyPrice: calculations.cityBreakdown?.[c]?.stayNightlyPrice || 0,
-          stayItemLabel: calculations.cityBreakdown?.[c]?.stayItemLabel || "",
-          hasStay: calculations.cityBreakdown?.[c]?.hasStay || false,
-          isAdded: false,
-        }));
-
-    stopsForStay.forEach((sInfo, idx) => {
-      // 0원이거나 미선택 숙소는 리스트에서 제외
-      if (
-        !sInfo ||
-        sInfo.nights === 0 ||
-        sInfo.stayTotalKrw <= 0 ||
-        sInfo.stayNightlyPrice <= 0 ||
-        !sInfo.stayItemLabel ||
-        sInfo.stayItemLabel.includes("미선택") ||
-        sInfo.stayItemLabel.includes("Unselected")
-      ) {
-        return;
-      }
-
-      const city = sInfo.city;
-      const baseNameKo = CITY_KOREAN_NAMES[city] || city;
-      const baseNameEn = CITY_ENGLISH_NAMES[city] || city;
-      const cityNameKo = sInfo.isAdded ? `${baseNameKo} (+)` : baseNameKo;
-      const cityNameEn = sInfo.isAdded ? `${baseNameEn} (+)` : baseNameEn;
-
-      const matchedArchetype = STAY_ARCHETYPES.find(
-        (a) => a.titleKo === sInfo.stayItemLabel || a.titleEn === sInfo.stayItemLabel
-      );
-      const targetUrl = matchedArchetype
-        ? generateStayOtaUrl(matchedArchetype.id, city, locale)
-        : generateAgodaCitySearchUrl(city, locale);
-
-      stay.push({
-        id: `stay-${sInfo.stopId || `${city.toLowerCase()}-${idx}`}`,
-        category: "STAY",
-        categoryNameKo: "숙소",
-        categoryNameEn: "Stay",
-        titleKo: `${cityNameKo} 숙소 (${sInfo.stayItemLabel})`,
-        titleEn: `${cityNameEn} Stays (${sInfo.stayItemLabel})`,
-        subtitleKo: `1박 평균 ${formatKrw(sInfo.stayNightlyPrice)} 기준 · ${sInfo.nights}박 일정`,
-        subtitleEn: `Avg. ${formatPriceByLocale(sInfo.stayNightlyPrice, locale, usdRate)} / night · ${sInfo.nights} nights`,
-        priceText: formatPriceByLocale(sInfo.stayTotalKrw, locale, usdRate),
-        targetUrl,
-        actionLabelKo: "아고다 예약",
-        actionLabelEn: "Book on Agoda",
-        badgeKo: "아고다",
-        badgeEn: "Agoda",
-        isOfficial: false,
-      });
-    });
-
-    // -------------------------------------------------------------------------
-    // 3. 주요 명소 & 티켓 (Attraction) - 유료 입장권 및 무료 명소 분류
-    // -------------------------------------------------------------------------
-    draft.selectedCities.forEach((city) => {
-      const cInfo = calculations.cityBreakdown?.[city];
-      const spots = cInfo?.selectedSpots || [];
-      const cityNameKo = CITY_KOREAN_NAMES[city] || city;
-      const cityNameEn = CITY_ENGLISH_NAMES[city] || city;
-
-      spots.forEach((spot) => {
-        const spotNameKo = spot.nameKo;
-        const spotNameEn = spot.nameEn || spotNameKo;
-        const spotPrice = spot.price || 0;
-
-        // 무료 입장 명소는 별도 무료 리스트로 분류
-        if (spotPrice <= 0) {
-          free.push({
-            id: `free-${spot.id}`,
-            city,
-            cityNameKo,
-            cityNameEn,
-            nameKo: spotNameKo,
-            nameEn: spotNameEn,
-            targetUrl:
-              spot.officialUrl ||
-              `https://map.naver.com/v5/search/${encodeURIComponent(spotNameKo)}`,
-          });
-          return;
-        }
-
-        // 유료 입장권 및 사전 예매 명소
-        const targetUrl =
-          spot.officialUrl ||
-          `https://www.klook.com/search/result/?query=${encodeURIComponent(spotNameEn)}`;
-
-        attraction.push({
-          id: `spot-${spot.id}`,
-          category: "ATTRACTION",
-          categoryNameKo: "입장권",
-          categoryNameEn: "Ticket",
-          titleKo: `${spotNameKo} 입장권 & 바우처`,
-          titleEn: `${spotNameEn} Admission Ticket`,
-          subtitleKo: spot.descKo || "현장 대기 없이 즉시 입장 가능한 모바일 티켓",
-          subtitleEn: spot.descEn || "Fast-track mobile voucher & admissions",
-          priceText: formatPriceByLocale(spotPrice, locale, usdRate),
-          targetUrl,
-          actionLabelKo: spot.officialUrl ? "공식 사이트" : "티켓 예매",
-          actionLabelEn: spot.officialUrl ? "Official Site" : "Get Tickets",
-          badgeKo: spot.officialUrl ? "공식 사이트" : "티켓 예매",
-          badgeEn: spot.officialUrl ? "Official" : "Tickets",
-          isOfficial: !!spot.officialUrl,
-        });
-      });
-    });
-
-    // -------------------------------------------------------------------------
-    // 4. 여행 필수 준비물 (Essentials)
-    // -------------------------------------------------------------------------
-    essential.push({
-      id: "essential-esim",
-      category: "ESSENTIAL",
-      categoryNameKo: "통신",
-      categoryNameEn: "eSIM",
-      titleKo: "한국 무제한 4G/5G eSIM (SKT · KT · LGU+)",
-      titleEn: "Korea Unlimited 4G/5G eSIM",
-      subtitleKo: "인천/김포/김해공항 수령 또는 즉시 QR 개통",
-      subtitleEn: "Airport pickup or instant QR activation with local network",
-      priceText: isKo ? "1일 ~₩3,000" : `From ~${formatPriceByLocale(3000, locale, usdRate)}/day`,
-      targetUrl: "https://www.klook.com/search/result/?query=korea+esim",
-      actionLabelKo: "신청하기",
-      actionLabelEn: "Get eSIM",
-      badgeKo: "필수품",
-      badgeEn: "Essential",
-      isOfficial: false,
-    });
-
-    essential.push({
-      id: "essential-helpline",
-      category: "ESSENTIAL",
-      categoryNameKo: "안내 지원",
-      categoryNameEn: "Support",
-      titleKo: "1330 한국관광 통역안내 핫라인",
-      titleEn: "1330 Korea Travel Hotline",
-      subtitleKo: "24시간 4개 국어(한/영/일/중) 무료 관광 안내 및 긴급 통역",
-      subtitleEn: "24/7 free multilingual travel assistance & interpretation",
-      priceText: isKo ? "무료 안내" : "Free Service",
-      targetUrl: "https://kto.visitkorea.or.kr/kor/customer/call1330.kto",
-      actionLabelKo: "안내 보기",
-      actionLabelEn: "View Info",
-      badgeKo: "공공 서비스",
-      badgeEn: "Gov. Service",
-      isOfficial: true,
-    });
-
-    const total = transit.length + stay.length + attraction.length + essential.length;
-
-    return {
-      categorizedItems: {
-        TRANSIT: transit,
-        STAY: stay,
-        ATTRACTION: attraction,
-        ESSENTIAL: essential,
-      },
-      totalCount: total,
-      freeSpots: free,
-    };
-  }, [calculations, draft, isKo, locale, usdRate]);
+    return buildBookingHubData(calculations, draft, locale, usdRate);
+  }, [calculations, draft, locale, usdRate]);
 
   // 카테고리 메타 정보 정의 (이모지 없음)
   const categoryMeta: Record<

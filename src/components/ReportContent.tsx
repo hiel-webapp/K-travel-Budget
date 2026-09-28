@@ -44,6 +44,7 @@ import SmartRouteMap from "./report/SmartRouteMap";
 import BookingActionHub from "./report/BookingActionHub";
 import TravelHelpline1330 from "./report/TravelHelpline1330";
 import ReportShareBar from "./report/ReportShareBar";
+import ReportPdfDocument from "./report/ReportPdfDocument";
 
 interface ReportContentProps {
   locale: Locale;
@@ -202,7 +203,8 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   const targetUsagePercent = targetBudget > 0 ? (grandTotalKrw / targetBudget) * 100 : 0;
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 pb-6 space-y-6 text-slate-800 print:p-0 print:space-y-4">
+    <>
+      <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 pb-6 space-y-6 text-slate-800 print:hidden">
       {/* 1. Header with Route & Metadata (Craft.do 감성의 단정한 글래스 카드) */}
       <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 px-5 py-4 sm:px-6 sm:py-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] print:border-b-2 print:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-neutral-100 pb-4">
@@ -866,5 +868,18 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
       {/* 4. Bottom Report Storage & Share Bar (인쇄 / PDF / 공유하기 / 링크 복사) */}
       <ReportShareBar locale={locale} />
     </div>
+
+    {/* A4 가로(Landscape) 전용 완결형 PDF 인쇄 도큐먼트 */}
+    <ReportPdfDocument
+      calculations={calculations}
+      draft={draft}
+      preferences={preferences}
+      locale={locale}
+      dict={dict}
+      usdRate={usdRate}
+      dbAttractionsByCity={dbAttractionsByCity}
+      className="hidden print:block"
+    />
+  </>
   );
 }

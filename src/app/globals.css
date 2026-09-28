@@ -99,8 +99,8 @@ h1, h2, h3, h4, h5, h6 {
 /* Universal print media styling for A4 Report & PDF */
 @media print {
   @page {
-    size: A4 portrait;
-    margin: 10mm 12mm;
+    size: A4 landscape;
+    margin: 8mm 10mm;
   }
 
   html,
@@ -120,6 +120,28 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
 
+  /* A4 가로 1페이지 완결형 규격 (297mm - 20mm = 277mm, 210mm - 16mm = 194mm) */
+  .pdf-landscape-page {
+    width: 277mm !important;
+    min-height: 194mm !important;
+    max-height: 194mm !important;
+    height: 194mm !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    page-break-after: always !important;
+    break-after: page !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+
+  .pdf-landscape-page:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+  }
+
   /* 강제 페이지 넘김 */
   .print-break-before-page {
     page-break-before: always !important;
@@ -135,6 +157,13 @@ h1, h2, h3, h4, h5, h6 {
   .print-avoid-break {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+  }
+
+  /* 영수증 3단 다단 흐름 */
+  .print-receipt-3col {
+    column-count: 3 !important;
+    column-gap: 20px !important;
+    column-fill: auto !important;
   }
 
   /* 영수증 2단 다단 흐름 */

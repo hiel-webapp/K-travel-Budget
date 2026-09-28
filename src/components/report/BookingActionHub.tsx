@@ -12,6 +12,7 @@ import {
   STAY_ARCHETYPES,
   AGODA_CITY_IDS,
   generateStayOtaUrl,
+  generateAgodaCitySearchUrl,
 } from "src/features/budget/catalog/stay-archetypes";
 
 export type BookingFilterCategory = "ALL" | "TRANSIT" | "STAY" | "ATTRACTION" | "ESSENTIAL";
@@ -185,13 +186,12 @@ export default function BookingActionHub({
       const cityNameKo = sInfo.isAdded ? `${baseNameKo} (+)` : baseNameKo;
       const cityNameEn = sInfo.isAdded ? `${baseNameEn} (+)` : baseNameEn;
 
-      const cityId = AGODA_CITY_IDS[city] || 14690;
       const matchedArchetype = STAY_ARCHETYPES.find(
         (a) => a.titleKo === sInfo.stayItemLabel || a.titleEn === sInfo.stayItemLabel
       );
       const targetUrl = matchedArchetype
-        ? generateStayOtaUrl(matchedArchetype.id, city)
-        : `https://www.agoda.com/search?city=${cityId}&priceCur=KRW&tag=hypeheritage`;
+        ? generateStayOtaUrl(matchedArchetype.id, city, locale)
+        : generateAgodaCitySearchUrl(city, locale);
 
       stay.push({
         id: `stay-${sInfo.stopId || `${city.toLowerCase()}-${idx}`}`,

@@ -27,19 +27,32 @@ export interface StayArchetypeDefinition {
 }
 
 /**
- * Agoda city code mapping for popular Korean destinations
+ * Agoda city code mapping for popular Korean destinations (verified directly on Agoda)
  */
 export const AGODA_CITY_IDS: Record<SupportedCity, number> = {
   SEOUL: 14690,
   BUSAN: 17172,
   JEJU: 16901,
-  INCHEON: 17345,
-  GYEONGJU: 18663,
-  GANGNEUNG: 16904,
-  JEONJU: 18665,
-  SOKCHO: 16907,
-  SUWON: 17349,
-  YEOSU: 18666,
+  INCHEON: 17234,
+  GYEONGJU: 17179,
+  GANGNEUNG: 19041,
+  JEONJU: 17831,
+  SOKCHO: 17236,
+  SUWON: 3818,
+  YEOSU: 213193,
+};
+
+export const AGODA_CITY_SEARCH_NAMES: Record<SupportedCity, { ko: string; en: string }> = {
+  SEOUL: { ko: "서울", en: "Seoul" },
+  BUSAN: { ko: "부산", en: "Busan" },
+  JEJU: { ko: "제주", en: "Jeju" },
+  INCHEON: { ko: "인천", en: "Incheon" },
+  GYEONGJU: { ko: "경주", en: "Gyeongju" },
+  GANGNEUNG: { ko: "강릉", en: "Gangneung" },
+  JEONJU: { ko: "전주", en: "Jeonju" },
+  SOKCHO: { ko: "속초", en: "Sokcho" },
+  SUWON: { ko: "수원", en: "Suwon" },
+  YEOSU: { ko: "여수", en: "Yeosu" },
 };
 
 export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
@@ -67,7 +80,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
       SUWON: 38000,
       YEOSU: 36000,
     },
-    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&priceCur=KRW&maxPrice=55000&tag=hypeheritage",
+    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&textToSearch={search_text}&priceCur=KRW&maxPrice=55000&tag=hypeheritage",
     otaProvider: "AGODA",
   },
   {
@@ -94,7 +107,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
       SUWON: 110000,
       YEOSU: 115000,
     },
-    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&priceCur=KRW&minPrice=80000&maxPrice=160000&tag=hypeheritage",
+    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&textToSearch={search_text}&priceCur=KRW&minPrice=80000&maxPrice=160000&tag=hypeheritage",
     otaProvider: "AGODA",
   },
   {
@@ -121,7 +134,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
       SUWON: 200000,
       YEOSU: 230000,
     },
-    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&priceCur=KRW&tag=hypeheritage",
+    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&textToSearch={search_text}&priceCur=KRW&tag=hypeheritage",
     otaProvider: "AGODA",
   },
   {
@@ -148,7 +161,7 @@ export const STAY_ARCHETYPES: StayArchetypeDefinition[] = [
       SUWON: 380000,
       YEOSU: 420000,
     },
-    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&priceCur=KRW&minPrice=350000&tag=hypeheritage",
+    deepLinkTemplate: "https://www.agoda.com/search?city={city_id}&textToSearch={search_text}&priceCur=KRW&minPrice=350000&tag=hypeheritage",
     otaProvider: "AGODA",
   },
 ];
@@ -167,17 +180,37 @@ export function getStayArchetypePrice(city: SupportedCity, archetypeId: StayArch
  */
 export function generateStayOtaUrl(
   archetypeId: StayArchetypeId,
-  city: SupportedCity
+  city: SupportedCity,
+  locale?: string
 ): string {
-  const archetype = STAY_ARCHETYPES.find((a) => a.id === archetypeId);
-  if (!archetype) return "https://www.agoda.com";
-
   const cityId = AGODA_CITY_IDS[city] || 14690;
+  const searchNameObj = AGODA_CITY_SEARCH_NAMES[city] || { ko: city, en: city };
+  const searchText = locale === "en" ? searchNameObj.en : searchNameObj.ko;
+
+  const archetype = STAY_ARCHETYPES.find((a) => a.id === archetypeId);
+  if (!archetype) {
+    return generateAgodaCitySearchUrl(city, locale);
+  }
+
   const cityName = city.toLowerCase();
 
   return archetype.deepLinkTemplate
     .replace("{city_id}", String(cityId))
-    .replace("{city_name}", cityName);
+    .replace("{city_name}", cityName)
+    .replace("{search_text}", encodeURIComponent(searchText));
+}
+
+/**
+ * Generate direct Agoda search URL for a city
+ */
+export function generateAgodaCitySearchUrl(
+  city: SupportedCity,
+  locale?: string
+): string {
+  const cityId = AGODA_CITY_IDS[city] || 14690;
+  const searchNameObj = AGODA_CITY_SEARCH_NAMES[city] || { ko: city, en: city };
+  const searchText = locale === "en" ? searchNameObj.en : searchNameObj.ko;
+  return `https://www.agoda.com/search?city=${cityId}&textToSearch=${encodeURIComponent(searchText)}&priceCur=KRW&tag=hypeheritage`;
 }
 
 /**

@@ -13,6 +13,7 @@ import {
   OccupancyMode,
   getStayArchetypePrice,
   generateStayOtaUrl,
+  generateAgodaCitySearchUrl,
   AGODA_CITY_IDS,
 } from "../catalog/stay-archetypes";
 import { SplitStaySegment, BudgetBasketId } from "../domain/types";
@@ -171,10 +172,9 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
   };
 
   // 아고다 검색 딥링크 URL 생성 (선택된 아키타입 조건 또는 도시 기본 검색)
-  const cityId = AGODA_CITY_IDS[city] || 14690;
   const agodaSearchUrl = currentArchetype
-    ? generateStayOtaUrl(currentArchetype.id, city)
-    : `https://www.agoda.com/search?city=${cityId}&priceCur=KRW&tag=hypeheritage`;
+    ? generateStayOtaUrl(currentArchetype.id, city, locale)
+    : generateAgodaCitySearchUrl(city, locale);
 
   return (
     <div className="space-y-6">
@@ -442,15 +442,15 @@ export const StaySelectorPanel: React.FC<StaySelectorPanelProps> = ({
                   {locale === "ko" ? "티어 평균가로 복귀" : "Reset to Tier"}
                 </button>
               )}
-              {/* 아고다에서 검색 버튼 (헤더 우측 배치) */}
+              {/* 아고다 예약 버튼 (헤더 우측 배치) */}
               <a
                 href={agodaSearchUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="h-8.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-extrabold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer group whitespace-nowrap"
-                title={locale === "ko" ? `${cityName} 숙소 아고다에서 검색` : `Search ${cityName} stays on Agoda`}
+                title={locale === "ko" ? `${cityName} 아고다 예약` : `Book ${cityName} stays on Agoda`}
               >
-                <span>{locale === "ko" ? "아고다에서 검색" : "Search on Agoda"}</span>
+                <span>{locale === "ko" ? "아고다 예약" : "Book on Agoda"}</span>
                 <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform text-[11px]">↗</span>
               </a>
             </div>

@@ -13,6 +13,7 @@ import {
   CITY_KOREAN_NAMES,
   sortCitiesByStandardOrder,
   getDefaultTargetBudgetByNights,
+  ensureTripStops,
 } from "src/lib/trip-domain";
 import {
   saveTripDraft,
@@ -163,13 +164,38 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
 
   const formTopRef = useRef<HTMLDivElement>(null);
 
+  const applyPresetToStorage = (preset: TravelPreset) => {
+    const defaultBudget = getDefaultTargetBudgetByNights(preset.draft.totalNights, preset.draft.adultCount);
+    const draftWithStops: TripDraft = {
+      ...preset.draft,
+      budgetTier: preset.draft.budgetTier || defaultBudget.budgetTier,
+      targetBudgetKrw: preset.draft.targetBudgetKrw || defaultBudget.targetBudgetKrw,
+      stops: ensureTripStops(preset.draft),
+    };
+    saveTripDraft(draftWithStops);
+    saveActiveDraft(draftWithStops, 1);
+    const preferencesToSave = scalePresetPreferences(preset.id, draftWithStops);
+    savePlannerPreferences(preferencesToSave);
+    return draftWithStops;
+  };
+
   const handleSelectPreset = (preset: TravelPreset) => {
     setActivePresetId(preset.id);
-    setDraft(preset.draft);
+    const draftWithStops = applyPresetToStorage(preset);
+    setDraft(draftWithStops);
     setValidationError(null);
     if (formTopRef.current) {
       formTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  };
+
+  const handleLaunchPreset = (preset: TravelPreset) => {
+    applyPresetToStorage(preset);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("hh_planner_selected_city_tab", "ALL");
+      sessionStorage.setItem("hh_planner_active_category", "ACCOMMODATION");
+    }
+    router.push(`/${locale}/planner?tab=ALL`);
   };
 
   const handleClearPreset = () => {
@@ -276,6 +302,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
       ...draft,
       budgetTier: draft.budgetTier || defaultBudget.budgetTier,
       targetBudgetKrw: draft.targetBudgetKrw || defaultBudget.targetBudgetKrw,
+      stops: draft.stops && draft.stops.length === draft.selectedCities.length ? draft.stops : ensureTripStops(draft),
     };
 
     const validation = validateTripDraft(draftToSave);
@@ -847,6 +874,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
           isCustomized={isCustomized}
           initialPresets={initialPresets}
           onSelectPreset={handleSelectPreset}
+          onLaunchPreset={handleLaunchPreset}
           onClearPreset={handleClearPreset}
         />
       </div>

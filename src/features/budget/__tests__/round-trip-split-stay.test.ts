@@ -8,7 +8,7 @@ import {
   sanitizeTripDraft,
 } from "../../../lib/trip-domain";
 import { generateInitialBudgetPlan } from "../calculations/engine";
-import { BUDGET_CATALOG } from "../catalog/mock-catalog";
+import { MOCK_PRICE_CATALOG } from "../catalog/mock-catalog";
 import { AccommodationSelection } from "../domain/types";
 
 describe("TripStop Architecture: Split Stay & Round-Trip Itinerary Unit Tests", () => {
@@ -31,7 +31,7 @@ describe("TripStop Architecture: Split Stay & Round-Trip Itinerary Unit Tests", 
     expect(validation.success).toBe(true);
     expect(validation.errors.length).toBe(0);
 
-    const plan = generateInitialBudgetPlan(roundTripDraft, BUDGET_CATALOG);
+    const plan = generateInitialBudgetPlan(roundTripDraft, MOCK_PRICE_CATALOG);
     expect(plan).toBeDefined();
     expect(plan.grandTotalKrw).toBeGreaterThan(0);
   });
@@ -130,7 +130,7 @@ describe("TripStop Architecture: Split Stay & Round-Trip Itinerary Unit Tests", 
         targetBudgetKrw: 3000000,
         schemaVersion: 1,
       },
-      BUDGET_CATALOG,
+      MOCK_PRICE_CATALOG,
       {
         accommodation: {
           SEOUL: splitAcc,
@@ -208,7 +208,7 @@ describe("TripStop Architecture: Split Stay & Round-Trip Itinerary Unit Tests", 
 
     const plan = generateInitialBudgetPlan(
       roundTripDraft,
-      BUDGET_CATALOG,
+      MOCK_PRICE_CATALOG,
       {
         accommodation: {
           SEOUL: seoulSplitStay,

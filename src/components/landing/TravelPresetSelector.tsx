@@ -13,6 +13,7 @@ interface TravelPresetSelectorProps {
   isCustomized?: boolean;
   initialPresets?: TravelPreset[];
   onSelectPreset: (preset: TravelPreset) => void;
+  onLaunchPreset?: (preset: TravelPreset) => void;
   onClearPreset?: () => void;
 }
 
@@ -47,6 +48,7 @@ export default function TravelPresetSelector({
   isCustomized = false,
   initialPresets,
   onSelectPreset,
+  onLaunchPreset,
   onClearPreset,
 }: TravelPresetSelectorProps) {
   // 서버에서 전달된 최신 프리셋 -> 로컬스토리지 캐시 -> 정적 기본값 순서로 즉시 초기화하여 이전 사진 노출(깜빡임) 완전 차단
@@ -421,13 +423,28 @@ export default function TravelPresetSelector({
                           </span>
                         ))}
                       </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-[9.5px] text-white/70 block leading-none">
-                          {locale === "ko" ? "1인 권장" : "Per Person"}
-                        </span>
-                        <span className="text-xs sm:text-[13px] font-black text-amber-300 tabular-nums drop-shadow-xs">
-                          {formatKrw(preset.estimatedBudgetKrw)}~
-                        </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="text-right shrink-0">
+                          <span className="text-[9.5px] text-white/70 block leading-none">
+                            {locale === "ko" ? "1인 권장" : "Per Person"}
+                          </span>
+                          <span className="text-xs sm:text-[13px] font-black text-amber-300 tabular-nums drop-shadow-xs">
+                            {formatKrw(preset.estimatedBudgetKrw)}~
+                          </span>
+                        </div>
+                        {onLaunchPreset && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onLaunchPreset(preset);
+                            }}
+                            className="px-2 py-1 rounded-lg bg-teal-500 hover:bg-teal-400 text-white text-[10.5px] font-extrabold shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
+                            title={locale === "ko" ? "이 코스로 플래너 바로 시작" : "Start planner with this preset"}
+                          >
+                            {locale === "ko" ? "시작 ➔" : "Start ➔"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

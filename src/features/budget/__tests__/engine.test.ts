@@ -480,8 +480,7 @@ describe("Budget Calculation Engine - MVP Alignment", () => {
     it("should safely ignore overrides for cities absent from the trip", () => {
       const plan = generateInitialBudgetPlan(defaultTrip, MOCK_PRICE_CATALOG, {
         accommodation: {
-          // @ts-expect-error DAEJEON is unsupported city key
-          DAEJEON: "STANDARD_HOTEL",
+          DAEJEON: "STANDARD_HOTEL" as any,
         },
       });
 

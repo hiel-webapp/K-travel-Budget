@@ -648,10 +648,12 @@ export default function SmartRouteMap({
     return locale === "ko" ? "카카오맵 길찾기" : "Kakao Map Route";
   }, [singleSelectedSpot, locale]);
 
-  const cityName =
+  const isCurrentAdded = currentStop?.isAdded || stopsList.slice(0, safeStopIndex).some((s) => s.city === activeCity);
+  const baseCityName =
     locale === "ko"
       ? CITY_KOREAN_NAMES[activeCity] || activeCity
       : CITY_ENGLISH_NAMES[activeCity] || activeCity;
+  const cityName = isCurrentAdded ? `${baseCityName} (+)` : baseCityName;
 
   return (
     <>
@@ -690,11 +692,13 @@ export default function SmartRouteMap({
             {stopsList.length > 1 && (
               <div className="flex sm:flex-col gap-1.5 w-full">
                 {stopsList.map((stopItem, sIdx) => {
-                  const cName =
-                    stopItem.label ||
-                    (locale === "ko"
+                  const baseName =
+                    locale === "ko"
                       ? CITY_KOREAN_NAMES[stopItem.city] || stopItem.cityName || stopItem.city
-                      : CITY_ENGLISH_NAMES[stopItem.city] || stopItem.cityName || stopItem.city);
+                      : CITY_ENGLISH_NAMES[stopItem.city] || stopItem.cityName || stopItem.city;
+                  const isPriorVisit = stopsList.slice(0, sIdx).some((s) => s.city === stopItem.city);
+                  const isAddedCity = Boolean(stopItem.isAdded || isPriorVisit);
+                  const cName = isAddedCity ? `${baseName} (+)` : baseName;
                   const isCurrent = sIdx === safeStopIndex;
                   return (
                     <button
@@ -716,11 +720,6 @@ export default function SmartRouteMap({
                         )}
                         <span className="truncate">{cName}</span>
                       </div>
-                      {stopItem.isAdded && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded font-extrabold bg-rose-100 text-[#e25c5c] shrink-0 whitespace-nowrap">
-                          {locale === "ko" ? "+추가" : "+Added"}
-                        </span>
-                      )}
                     </button>
                   );
                 })}

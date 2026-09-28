@@ -139,7 +139,7 @@ export function ensureTripStops(draft: TripDraft): TripStop[] {
       nights: matchedOldStop?.nights ?? stopNights,
       label: isRepeated ? `${cityVisitedCount[city]}차` : undefined,
       staySegments: matchedOldStop?.staySegments,
-      isAdded: matchedOldStop?.isAdded,
+      isAdded: matchedOldStop?.isAdded ?? (isRepeated && cityVisitedCount[city] > 1),
     };
   });
 }

@@ -338,6 +338,8 @@ export function calculateTripBudgetSummary(
     const cityName = locale === "ko" ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
     const nights = stop.nights;
 
+    const isFirstVisitOfCity = visitIdx === 0 && !stop.isAdded;
+
     // A. 숙박 계산
     let stayTotal = 0;
     let stayNightly = 0;
@@ -361,7 +363,7 @@ export function calculateTripBudgetSummary(
           }
         }
       }
-      if (!accOverride) {
+      if (!accOverride && isFirstVisitOfCity) {
         accOverride = preferences.accommodationByCity?.[city];
         if (isRepeated && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
           accOverride = undefined;
@@ -409,41 +411,79 @@ export function calculateTripBudgetSummary(
       ? (nights === 0 ? 0.35 / (cityTotalNights + 0.35) : nights / (cityTotalNights + (sameCityStops.some(s => s.nights === 0) ? 0.35 : 0)))
       : 1;
 
-    const foodTotal = cData ? Math.round(cData.foodTotalKrw * effectiveStopRatio) : 0;
-    const allFoodItems = cData?.foodBasketPlan?.selectedItems || [];
-    let stopFoodItems: any[] = [];
-    if (!isRepeated) {
-      stopFoodItems = allFoodItems;
+    let foodTotal = 0;
+    let stopFoodPlan: any = undefined;
+
+    const stopFoodSelections = preferences.foodBasketSelectionsByStop?.[stop.id];
+    if (stopFoodSelections !== undefined) {
+      // 정차지 전용 바스켓이 명시된 경우 (빈 바스켓 포함)
+      const stopFoodNights = Math.max(1, nights);
+      const calcPlan = calculateFoodBasketPlan(stopFoodSelections, stopFoodNights, adultCount);
+      const cityFoodPlan = calculateCityFoodBasketPlan(city, stopFoodNights, stopFoodNights, calcPlan, adultCount);
+      foodTotal = stopFoodSelections.length > 0 ? cityFoodPlan.grandTotalKrw : 0;
+      stopFoodPlan = {
+        ...cityFoodPlan,
+        subtotalKrw: foodTotal,
+      };
     } else {
-      if (allFoodItems.length <= 1) {
-        stopFoodItems = visitIdx === 0 ? allFoodItems : [];
+      foodTotal = cData ? Math.round(cData.foodTotalKrw * effectiveStopRatio) : 0;
+      const allFoodItems = cData?.foodBasketPlan?.selectedItems || [];
+      let stopFoodItems: any[] = [];
+      if (!isRepeated) {
+        stopFoodItems = allFoodItems;
       } else {
-        const half = Math.ceil(allFoodItems.length / 2);
-        stopFoodItems = visitIdx === 0 ? allFoodItems.slice(0, half) : allFoodItems.slice(half);
+        if (allFoodItems.length <= 1) {
+          stopFoodItems = visitIdx === 0 ? allFoodItems : [];
+        } else {
+          const half = Math.ceil(allFoodItems.length / 2);
+          stopFoodItems = visitIdx === 0 ? allFoodItems.slice(0, half) : allFoodItems.slice(half);
+        }
       }
+      stopFoodPlan = cData?.foodBasketPlan ? {
+        ...cData.foodBasketPlan,
+        selectedItems: stopFoodItems,
+        subtotalKrw: foodTotal,
+      } : undefined;
     }
-    const stopFoodPlan = cData?.foodBasketPlan ? {
-      ...cData.foodBasketPlan,
-      selectedItems: stopFoodItems,
-      subtotalKrw: foodTotal,
-    } : undefined;
 
     // C. 시내 교통
     const transportTotal = cData ? Math.round(cData.transportTotalKrw * effectiveStopRatio) : 0;
 
     // D. 관광지
-    const allCitySpots = cData?.selectedSpots || [];
     let stopSpots: AttractionSpot[] = [];
-    if (!isRepeated) {
-      stopSpots = allCitySpots;
+    const stopAttrSel = preferences.attractionSelectionsByStop?.[stop.id];
+    if (stopAttrSel !== undefined) {
+      // 정차지 전용 명소 선택이 명시된 경우 (빈 선택 포함)
+      const selectedSpotKeys = new Set<string>();
+      (stopAttrSel.selectedCourseIds || []).forEach((cid) => {
+        const course = TOUR_COURSE_PRESETS.find((c) => c.id === cid);
+        if (course) course.spotIds.forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+      });
+      (stopAttrSel.individualSpotIds || []).forEach((sid) => selectedSpotKeys.add(normalizeSpotKey(sid)));
+
+      const spotsForCity = [
+        ...budgetPlaces.filter((p) => p.city === city && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpotHelper),
+        ...(dbAttractionsByCity[city] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === city)),
+        ...THEME_ACTIVITIES_CATALOG.filter((act) => act.cityCode === city).map(themeActivityToAttractionSpot),
+      ];
+
+      selectedSpotKeys.forEach((normKey) => {
+        const spot = spotsForCity.find((s) => isSameSpot(s.id, normKey)) || ATTRACTION_SPOTS_CATALOG.find((s) => isSameSpot(s.id, normKey));
+        if (spot) stopSpots.push(spot);
+      });
     } else {
-      if (allCitySpots.length === 0) {
-        stopSpots = [];
-      } else if (allCitySpots.length === 1) {
-        stopSpots = visitIdx === 0 ? allCitySpots : [];
+      const allCitySpots = cData?.selectedSpots || [];
+      if (!isRepeated) {
+        stopSpots = allCitySpots;
       } else {
-        const half = Math.ceil(allCitySpots.length / 2);
-        stopSpots = visitIdx === 0 ? allCitySpots.slice(0, half) : allCitySpots.slice(half);
+        if (allCitySpots.length === 0) {
+          stopSpots = [];
+        } else if (allCitySpots.length === 1) {
+          stopSpots = visitIdx === 0 ? allCitySpots : [];
+        } else {
+          const half = Math.ceil(allCitySpots.length / 2);
+          stopSpots = visitIdx === 0 ? allCitySpots.slice(0, half) : allCitySpots.slice(half);
+        }
       }
     }
 

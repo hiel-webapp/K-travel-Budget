@@ -429,10 +429,12 @@ export interface PlannerPreferences {
   cityTransitStyles?: Partial<Record<SupportedCity, LocalTransitStyle>>;
   isKobusPassApplied?: boolean;
   foodBasketSelections?: FoodBasketItemSelection[];
+  foodBasketSelectionsByStop?: Record<string, FoodBasketItemSelection[]>;
   shoppingOption?: ShoppingOption;
   shoppingCustomInput?: string;
   shoppingAmountKrw?: number;
   occupancyModeByCity?: Record<string, OccupancyMode>;
+  attractionSelectionsByStop?: Record<string, AttractionSelections>;
 }
 
 export interface PlannerPreferencesEnvelope {

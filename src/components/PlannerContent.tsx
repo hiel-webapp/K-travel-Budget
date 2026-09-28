@@ -7,7 +7,7 @@ import { TripDraft, validateTripDraft, sanitizeTripDraft, DEFAULT_TRIP_DRAFT, Su
 import { loadTripDraft, saveTripDraft, loadPlannerPreferencesEx, savePlannerPreferences, saveSavedTrip, saveSingleTrip, getSingleSavedTrip, deleteSingleSavedTrip, restoreSavedTrip, SavedTripItem, loadSavedPlaceIds, hasActiveDraft, loadBudgetPlaces, toggleBudgetPlace, isPlaceInBudget, saveBudgetPlaces, generateTripFingerprint } from "../lib/storage-helper";
 import type { PlaceItem } from "../lib/places/types";
 
-import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle, FoodBasketItemSelection, SplitStaySegment } from "../features/budget/domain/types";
+import { BudgetCategory, BudgetBasketId, PlannerPreferences, isCalculatedMealPlan, AccommodationSelection, LocalTransitStyle, FoodBasketItemSelection, SplitStaySegment, AttractionSelections } from "../features/budget/domain/types";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { ATTRACTION_SPOTS_CATALOG, TOUR_COURSE_PRESETS, AttractionSpot, TourCoursePreset, registerCustomAttractionSpots, parseAttractionMetadata, SEOUL_LANDMARK_BILINGUAL_MAP, isSameSpot, normalizeSpotKey } from "../features/budget/catalog/attraction-spots";
 import { SHOW_LOCAL_SPOTS } from "../lib/config/spots-visibility";
@@ -1066,8 +1066,10 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
         foodOverrides: nextPrefs.foodOverrides ?? current.foodOverrides ?? {},
         foodAddOnOverrides: nextPrefs.addOnSelections ?? current.addOnSelections ?? {},
         foodBasketSelections: nextPrefs.foodBasketSelections ?? current.foodBasketSelections ?? [],
+        foodBasketSelectionsByStop: nextPrefs.foodBasketSelectionsByStop ?? current.foodBasketSelectionsByStop ?? {},
         attractionByCity: nextPrefs.attractionByCity ?? current.attractionByCity ?? {},
         attractionSelections: nextPrefs.attractionSelections ?? current.attractionSelections ?? {},
+        attractionSelectionsByStop: nextPrefs.attractionSelectionsByStop ?? current.attractionSelectionsByStop ?? {},
         attractionCustomDailyKrw:
           nextPrefs.attractionCustomDailyKrw !== undefined
             ? nextPrefs.attractionCustomDailyKrw
@@ -2438,15 +2440,31 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   const handleResetAttraction = (cityTarget: SupportedCity) => {
-    const nextAttr = { ...preferences.attractionByCity };
-    delete nextAttr[cityTarget];
+    const stops = ensureTripStops(draft);
+    const sameCityStops = stops.filter((s) => s.city === cityTarget);
+    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === cityTarget)
+      ? stops[selectedStopIndex]
+      : sameCityStops[0] || { id: `stop_1_${cityTarget.toLowerCase()}`, city: cityTarget, nights: draft.cityNightAllocations[cityTarget] ?? 0 };
+    const stopKey = activeStop.id;
+    const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
+    const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+
+    const nextByStop = { ...(preferences.attractionSelectionsByStop || {}) };
+    delete nextByStop[stopKey];
 
     const nextAttrSel = { ...preferences.attractionSelections };
-    delete nextAttrSel[cityTarget];
+    if (isFirstVisitOfCity) {
+      delete nextAttrSel[cityTarget];
+    }
+    const nextAttr = { ...preferences.attractionByCity };
+    if (isFirstVisitOfCity) {
+      delete nextAttr[cityTarget];
+    }
 
     const saved = persistPreferences({
       attractionByCity: nextAttr,
       attractionSelections: nextAttrSel,
+      attractionSelectionsByStop: nextByStop,
     });
 
     if (saved) {
@@ -2459,6 +2477,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             ...prev.preferences,
             attractionByCity: nextAttr,
             attractionSelections: nextAttrSel,
+            attractionSelectionsByStop: nextByStop,
           },
         };
       });
@@ -2468,7 +2487,25 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   const handleToggleCourse = (city: SupportedCity, courseId: string) => {
-    const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+    const stops = ensureTripStops(draft);
+    const sameCityStops = stops.filter((s) => s.city === city);
+    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === city)
+      ? stops[selectedStopIndex]
+      : sameCityStops[0] || { id: `stop_1_${city.toLowerCase()}`, city, nights: draft.cityNightAllocations[city] ?? 0 };
+    const stopKey = activeStop.id;
+    const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
+    const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+
+    const currentByStop = { ...(preferences.attractionSelectionsByStop || {}) };
+    let currentCitySel = currentByStop[stopKey];
+    if (!currentCitySel) {
+      if (isFirstVisitOfCity) {
+        currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+      } else {
+        currentCitySel = { selectedCourseIds: [], individualSpotIds: [] };
+      }
+    }
+
     const course = TOUR_COURSE_PRESETS.find((c) => c.id === courseId);
     if (!course) return;
 
@@ -2540,16 +2577,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       }
     }
 
+    currentByStop[stopKey] = {
+      selectedCourseIds: nextCourseIds,
+      individualSpotIds: nextIndividualSpotIds,
+    };
+
     const nextAttractionSelections = {
       ...preferences.attractionSelections,
-      [city]: {
-        selectedCourseIds: nextCourseIds,
-        individualSpotIds: nextIndividualSpotIds,
-      },
     };
+    if (isFirstVisitOfCity) {
+      nextAttractionSelections[city] = currentByStop[stopKey];
+    }
 
     const saved = persistPreferences({
       attractionSelections: nextAttractionSelections,
+      attractionSelectionsByStop: currentByStop,
     });
 
     if (saved) {
@@ -2561,6 +2603,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           preferences: {
             ...prev.preferences,
             attractionSelections: nextAttractionSelections,
+            attractionSelectionsByStop: currentByStop,
           },
         };
       });
@@ -2570,7 +2613,24 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   const handleToggleSpot = (city: SupportedCity, spotId: string) => {
-    const currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+    const stops = ensureTripStops(draft);
+    const sameCityStops = stops.filter((s) => s.city === city);
+    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === city)
+      ? stops[selectedStopIndex]
+      : sameCityStops[0] || { id: `stop_1_${city.toLowerCase()}`, city, nights: draft.cityNightAllocations[city] ?? 0 };
+    const stopKey = activeStop.id;
+    const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
+    const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+
+    const currentByStop = { ...(preferences.attractionSelectionsByStop || {}) };
+    let currentCitySel = currentByStop[stopKey];
+    if (!currentCitySel) {
+      if (isFirstVisitOfCity) {
+        currentCitySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+      } else {
+        currentCitySel = { selectedCourseIds: [], individualSpotIds: [] };
+      }
+    }
     const customKSpot = budgetPlaces.find((p) => isSameSpot(p.id, spotId) || isSameSpot(p.contentId, spotId));
 
     // 이 spotId가 속한 코스 프리셋 중 현재 선택되어 있는 코스가 있는지 확인
@@ -2662,16 +2722,21 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       setTimeout(() => setToastMessage(null), 2000);
     }
 
+    currentByStop[stopKey] = {
+      selectedCourseIds: nextCourseIds,
+      individualSpotIds: nextSpotIds,
+    };
+
     const nextAttractionSelections = {
       ...preferences.attractionSelections,
-      [city]: {
-        selectedCourseIds: nextCourseIds,
-        individualSpotIds: nextSpotIds,
-      },
     };
+    if (isFirstVisitOfCity) {
+      nextAttractionSelections[city] = currentByStop[stopKey];
+    }
 
     const saved = persistPreferences({
       attractionSelections: nextAttractionSelections,
+      attractionSelectionsByStop: currentByStop,
     });
 
     if (saved) {
@@ -2683,6 +2748,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           preferences: {
             ...prev.preferences,
             attractionSelections: nextAttractionSelections,
+            attractionSelectionsByStop: currentByStop,
           },
         };
       });
@@ -2957,12 +3023,33 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleFoodBasketUpdateQuantity = (foodId: string, delta: number, cityCode?: SupportedCity) => {
     if (!latestPrefsRef.current) return;
 
-    const currentBasket = latestPrefsRef.current.foodBasketSelections || [];
-    const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
+    const stops = ensureTripStops(draft);
     const fallbackCity: SupportedCity =
       selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT"
         ? (selectedCityTab as SupportedCity)
         : (draft.selectedCities[0] || "SEOUL");
+    const sameCityStops = stops.filter((s) => s.city === fallbackCity);
+    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
+      ? stops[selectedStopIndex]
+      : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
+    const stopKey = activeStop.id;
+    const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
+    const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+
+    const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
+    let currentBasket = currentByStop[stopKey];
+    if (!currentBasket) {
+      if (isFirstVisitOfCity) {
+        currentBasket = (latestPrefsRef.current.foodBasketSelections || []).filter((item) => {
+          const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+          return (item.cityCode || fDef?.cityCode) === fallbackCity;
+        });
+      } else {
+        currentBasket = [];
+      }
+    }
+
+    const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
     const targetCity: SupportedCity = cityCode || foodDef?.cityCode || fallbackCity;
 
     const existingIndex = currentBasket.findIndex((item) => {
@@ -2971,51 +3058,47 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return itemCity === targetCity;
     });
 
-    let nextBasket: FoodBasketItemSelection[];
+    let nextStopBasket: FoodBasketItemSelection[];
     if (existingIndex >= 0) {
       const nextQty = Math.max(0, currentBasket[existingIndex].quantity + delta);
       if (nextQty === 0) {
-        nextBasket = currentBasket.filter((_, idx) => idx !== existingIndex);
+        nextStopBasket = currentBasket.filter((_, idx) => idx !== existingIndex);
       } else {
-        nextBasket = currentBasket.map((item, idx) =>
+        nextStopBasket = currentBasket.map((item, idx) =>
           idx === existingIndex ? { ...item, quantity: nextQty, cityCode: targetCity } : item
         );
       }
     } else {
       if (delta > 0) {
-        nextBasket = [...currentBasket, { foodId, quantity: delta, cityCode: targetCity }];
+        nextStopBasket = [...currentBasket, { foodId, quantity: delta, cityCode: targetCity }];
       } else {
-        nextBasket = currentBasket;
+        nextStopBasket = currentBasket;
       }
     }
 
-    const nextPrefs: PlannerPreferences = {
-      ...latestPrefsRef.current,
-      foodBasketSelections: nextBasket,
-    };
+    currentByStop[stopKey] = nextStopBasket;
 
-    const saved = savePlannerPreferences({
-      draft,
-      accommodationByCity: nextPrefs.accommodationByCity,
-      foodTier: nextPrefs.foodTier,
-      foodOverrides: nextPrefs.foodOverrides,
-      foodAddOnOverrides: nextPrefs.addOnSelections,
-      foodBasketSelections: nextBasket,
-      attractionByCity: nextPrefs.attractionByCity,
-      attractionSelections: nextPrefs.attractionSelections,
-      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
-      emergencyFundKrw: nextPrefs.emergencyFundKrw,
-      emergencyFundPct: nextPrefs.emergencyFundPct,
-      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
-      localTransitStyle: nextPrefs.localTransitStyle,
-      cityTransitStyles: nextPrefs.cityTransitStyles,
-      isKobusPassApplied: nextPrefs.isKobusPassApplied,
-      shoppingOption: nextPrefs.shoppingOption,
-      shoppingCustomInput: nextPrefs.shoppingCustomInput,
-      shoppingAmountKrw: nextPrefs.shoppingAmountKrw,
-      occupancyModeByCity: nextPrefs.occupancyModeByCity,
+    // 전체 foodBasketSelections 동기화 (모든 정차지 통합)
+    const nextGlobalBasket: FoodBasketItemSelection[] = [];
+    Object.entries(currentByStop).forEach(([, items]) => {
+      items.forEach((it) => {
+        const key = `${it.foodId}-${it.cityCode || ""}`;
+        const existing = nextGlobalBasket.find((g) => `${g.foodId}-${g.cityCode || ""}` === key);
+        if (existing) {
+          existing.quantity += it.quantity;
+        } else {
+          nextGlobalBasket.push({ ...it });
+        }
+      });
     });
 
+    const nextPrefs: PlannerPreferences = {
+      ...latestPrefsRef.current,
+      foodBasketSelections: nextGlobalBasket,
+      foodBasketSelectionsByStop: currentByStop,
+    };
+
+    const saved = persistPreferences(nextPrefs);
     if (saved) {
       setSaveError(false);
       latestPrefsRef.current = nextPrefs;
@@ -3034,12 +3117,33 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleFoodBasketSetQuantity = (foodId: string, quantity: number, cityCode?: SupportedCity) => {
     if (!latestPrefsRef.current) return;
 
-    const currentBasket = latestPrefsRef.current.foodBasketSelections || [];
-    const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
+    const stops = ensureTripStops(draft);
     const fallbackCity: SupportedCity =
       selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT"
         ? (selectedCityTab as SupportedCity)
         : (draft.selectedCities[0] || "SEOUL");
+    const sameCityStops = stops.filter((s) => s.city === fallbackCity);
+    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
+      ? stops[selectedStopIndex]
+      : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
+    const stopKey = activeStop.id;
+    const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
+    const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+
+    const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
+    let currentBasket = currentByStop[stopKey];
+    if (!currentBasket) {
+      if (isFirstVisitOfCity) {
+        currentBasket = (latestPrefsRef.current.foodBasketSelections || []).filter((item) => {
+          const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+          return (item.cityCode || fDef?.cityCode) === fallbackCity;
+        });
+      } else {
+        currentBasket = [];
+      }
+    }
+
+    const foodDef = FOOD_CATALOG_BY_ID.get(foodId);
     const targetCity: SupportedCity = cityCode || foodDef?.cityCode || fallbackCity;
 
     const existingIndex = currentBasket.findIndex((item) => {
@@ -3048,49 +3152,44 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
       return itemCity === targetCity;
     });
 
-    let nextBasket: FoodBasketItemSelection[];
+    let nextStopBasket: FoodBasketItemSelection[];
     const validQty = Math.max(0, Math.floor(quantity));
     if (validQty === 0) {
       if (existingIndex >= 0) {
-        nextBasket = currentBasket.filter((_, idx) => idx !== existingIndex);
+        nextStopBasket = currentBasket.filter((_, idx) => idx !== existingIndex);
       } else {
-        nextBasket = currentBasket;
+        nextStopBasket = currentBasket;
       }
     } else if (existingIndex >= 0) {
-      nextBasket = currentBasket.map((item, idx) =>
+      nextStopBasket = currentBasket.map((item, idx) =>
         idx === existingIndex ? { ...item, quantity: validQty, cityCode: targetCity } : item
       );
     } else {
-      nextBasket = [...currentBasket, { foodId, quantity: validQty, cityCode: targetCity }];
+      nextStopBasket = [...currentBasket, { foodId, quantity: validQty, cityCode: targetCity }];
     }
+
+    currentByStop[stopKey] = nextStopBasket;
+
+    const nextGlobalBasket: FoodBasketItemSelection[] = [];
+    Object.entries(currentByStop).forEach(([, items]) => {
+      items.forEach((it) => {
+        const key = `${it.foodId}-${it.cityCode || ""}`;
+        const existing = nextGlobalBasket.find((g) => `${g.foodId}-${g.cityCode || ""}` === key);
+        if (existing) {
+          existing.quantity += it.quantity;
+        } else {
+          nextGlobalBasket.push({ ...it });
+        }
+      });
+    });
 
     const nextPrefs: PlannerPreferences = {
       ...latestPrefsRef.current,
-      foodBasketSelections: nextBasket,
+      foodBasketSelections: nextGlobalBasket,
+      foodBasketSelectionsByStop: currentByStop,
     };
 
-    const saved = savePlannerPreferences({
-      draft,
-      accommodationByCity: nextPrefs.accommodationByCity,
-      foodTier: nextPrefs.foodTier,
-      foodOverrides: nextPrefs.foodOverrides,
-      foodAddOnOverrides: nextPrefs.addOnSelections,
-      foodBasketSelections: nextBasket,
-      attractionByCity: nextPrefs.attractionByCity,
-      attractionSelections: nextPrefs.attractionSelections,
-      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
-      emergencyFundKrw: nextPrefs.emergencyFundKrw,
-      emergencyFundPct: nextPrefs.emergencyFundPct,
-      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
-      localTransitStyle: nextPrefs.localTransitStyle,
-      cityTransitStyles: nextPrefs.cityTransitStyles,
-      isKobusPassApplied: nextPrefs.isKobusPassApplied,
-      shoppingOption: nextPrefs.shoppingOption,
-      shoppingCustomInput: nextPrefs.shoppingCustomInput,
-      shoppingAmountKrw: nextPrefs.shoppingAmountKrw,
-      occupancyModeByCity: nextPrefs.occupancyModeByCity,
-    });
-
+    const saved = persistPreferences(nextPrefs);
     if (saved) {
       setSaveError(false);
       latestPrefsRef.current = nextPrefs;
@@ -3109,44 +3208,40 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   const handleFoodBasketClear = (cityCode?: SupportedCity) => {
     if (!latestPrefsRef.current) return;
 
-    let nextBasket: FoodBasketItemSelection[];
-    if (cityCode) {
-      const fallbackCity: SupportedCity = draft.selectedCities[0] || "SEOUL";
-      nextBasket = (latestPrefsRef.current.foodBasketSelections || []).filter((item) => {
-        const itemCity = item.cityCode || FOOD_CATALOG_BY_ID.get(item.foodId)?.cityCode || fallbackCity;
-        return itemCity !== cityCode;
+    const stops = ensureTripStops(draft);
+    const fallbackCity: SupportedCity =
+      selectedCityTab !== "ALL" && selectedCityTab !== "TRANSPORT"
+        ? (selectedCityTab as SupportedCity)
+        : (draft.selectedCities[0] || "SEOUL");
+    const sameCityStops = stops.filter((s) => s.city === fallbackCity);
+    const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === fallbackCity)
+      ? stops[selectedStopIndex]
+      : sameCityStops[0] || { id: `stop_1_${fallbackCity.toLowerCase()}`, city: fallbackCity, nights: draft.cityNightAllocations[fallbackCity] ?? 0 };
+    const stopKey = activeStop.id;
+
+    const currentByStop: Record<string, FoodBasketItemSelection[]> = { ...(latestPrefsRef.current.foodBasketSelectionsByStop || {}) };
+    currentByStop[stopKey] = [];
+
+    const nextGlobalBasket: FoodBasketItemSelection[] = [];
+    Object.entries(currentByStop).forEach(([, items]) => {
+      items.forEach((it) => {
+        const key = `${it.foodId}-${it.cityCode || ""}`;
+        const existing = nextGlobalBasket.find((g) => `${g.foodId}-${g.cityCode || ""}` === key);
+        if (existing) {
+          existing.quantity += it.quantity;
+        } else {
+          nextGlobalBasket.push({ ...it });
+        }
       });
-    } else {
-      nextBasket = [];
-    }
+    });
 
     const nextPrefs: PlannerPreferences = {
       ...latestPrefsRef.current,
-      foodBasketSelections: nextBasket,
+      foodBasketSelections: nextGlobalBasket,
+      foodBasketSelectionsByStop: currentByStop,
     };
 
-    const saved = savePlannerPreferences({
-      draft,
-      accommodationByCity: nextPrefs.accommodationByCity,
-      foodTier: nextPrefs.foodTier,
-      foodOverrides: nextPrefs.foodOverrides,
-      foodAddOnOverrides: nextPrefs.addOnSelections,
-      foodBasketSelections: [],
-      attractionByCity: nextPrefs.attractionByCity,
-      attractionSelections: nextPrefs.attractionSelections,
-      attractionCustomDailyKrw: nextPrefs.attractionCustomDailyKrw,
-      emergencyFundKrw: nextPrefs.emergencyFundKrw,
-      emergencyFundPct: nextPrefs.emergencyFundPct,
-      intercityTransportOverrides: nextPrefs.intercityTransportOverrides,
-      localTransitStyle: nextPrefs.localTransitStyle,
-      cityTransitStyles: nextPrefs.cityTransitStyles,
-      isKobusPassApplied: nextPrefs.isKobusPassApplied,
-      shoppingOption: nextPrefs.shoppingOption,
-      shoppingCustomInput: nextPrefs.shoppingCustomInput,
-      shoppingAmountKrw: nextPrefs.shoppingAmountKrw,
-      occupancyModeByCity: nextPrefs.occupancyModeByCity,
-    });
-
+    const saved = persistPreferences(nextPrefs);
     if (saved) {
       setSaveError(false);
       latestPrefsRef.current = nextPrefs;
@@ -4494,6 +4589,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               const activeStop = (stops[selectedStopIndex] && stops[selectedStopIndex].city === currentCity)
                 ? stops[selectedStopIndex]
                 : sameCityStops[0] || { id: `stop_1_${currentCity.toLowerCase()}`, city: currentCity, nights: draft.cityNightAllocations[currentCity] ?? 0 };
+              const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
+              const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
 
               const currentCityName = locale === "ko" ? (CITY_KOREAN_NAMES[currentCity] || currentCity) : (CITY_ENGLISH_NAMES[currentCity] || currentCity);
               const cityNights = isRepeatedCity ? activeStop.nights : (draft.cityNightAllocations[currentCity] ?? 0);
@@ -4516,7 +4613,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   }
                 }
               }
-              if (!accSelection) {
+              // 추가 도시나 2차 이상 방문은 첫 번째 도시의 설정을 무단 상속받지 않음
+              if (!accSelection && isFirstVisitOfCity) {
                 accSelection = preferences.accommodationByCity?.[currentCity];
                 if (isRepeatedCity && accSelection && typeof accSelection === "object" && (accSelection as any).kind === "SPLIT") {
                   accSelection = undefined;
@@ -4527,13 +4625,17 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
               let cityAccStatus = locale === "ko" ? "미선택" : "Unselected";
               let isAccSelected = false;
 
-              const isCustomStay =
-                typeof accSelection === "object" &&
-                accSelection !== null &&
-                "kind" in accSelection &&
-                ((accSelection as any).kind === "PLACE" || (accSelection as any).kind === "CUSTOM");
+              if (activeStop.nights === 0) {
+                cityAccTotal = 0;
+                cityAccStatus = locale === "ko" ? "당일치기" : "Day trip";
+                isAccSelected = true;
+              } else if (accSelection) {
+                const isCustomStay =
+                  typeof accSelection === "object" &&
+                  accSelection !== null &&
+                  "kind" in accSelection &&
+                  ((accSelection as any).kind === "PLACE" || (accSelection as any).kind === "CUSTOM");
 
-              if (accSelection) {
                 const isSolo = adultCount <= 1;
                 const occupancyMode = occupancyModeByCity[currentCity] || (adultCount > 1 ? "SHARED_PAIR" : "SOLO");
                 const isPair = !isSolo && occupancyMode === "SHARED_PAIR";
@@ -4584,29 +4686,52 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                 }
               }
 
-              // 2. 음식 (해당 도시에 할당된 푸드 바스켓 금액 및 담긴 메뉴 수)
-              const safeTotalNights = draft.totalNights || 5;
-              const totalFoodBasketPlan = calculateFoodBasketPlan(
-                preferences.foodBasketSelections || [],
-                safeTotalNights,
+              // 2. 음식 (해당 정차지에 할당된 푸드 바스켓 금액 및 담긴 메뉴 수)
+              let stopFoodSelections: FoodBasketItemSelection[] | undefined = preferences.foodBasketSelectionsByStop?.[activeStop.id];
+              if (!stopFoodSelections && isFirstVisitOfCity) {
+                stopFoodSelections = (preferences.foodBasketSelections || []).filter((item) => {
+                  const fDef = FOOD_CATALOG_BY_ID.get(item.foodId);
+                  return (item.cityCode || fDef?.cityCode) === currentCity;
+                });
+              } else if (!stopFoodSelections) {
+                stopFoodSelections = []; // 추가/2차 도시는 완전히 빈 바스켓으로 시작!
+              }
+
+              const stopFoodNights = Math.max(1, activeStop.nights);
+              const stopExpectedMeals = activeStop.nights === 0 ? 1 : Math.max(1, activeStop.nights * 3);
+              const stopFoodPlan = calculateFoodBasketPlan(
+                stopFoodSelections,
+                stopFoodNights,
                 adultCount
               );
-              const cityFoodBasket = calculateCityFoodBasketPlan(
-                currentCity,
-                cityNights,
-                safeTotalNights,
-                totalFoodBasketPlan,
-                adultCount
-              );
-              const cityFoodTotal = cityFoodBasket.grandTotalKrw;
-              const cityFoodItemCount = cityFoodBasket.selectedItems.length;
+              const cityFoodBasket = {
+                ...calculateCityFoodBasketPlan(
+                  currentCity,
+                  stopFoodNights,
+                  stopFoodNights,
+                  stopFoodPlan,
+                  adultCount
+                ),
+                expectedMealsCount: stopExpectedMeals,
+              };
+
+              const cityFoodTotal = stopFoodSelections.length > 0 ? cityFoodBasket.grandTotalKrw : 0;
+              const cityFoodItemCount = stopFoodSelections.length;
               const isFoodSelected = cityFoodItemCount > 0;
               const cityFoodStatus = isFoodSelected
                 ? (locale === "ko" ? `${cityFoodItemCount}개 메뉴` : `${cityFoodItemCount} items`)
                 : (locale === "ko" ? "미선택" : "Unselected");
 
-              // 3. 관광 (해당 도시 담은 명소 및 테마 액티비티 금액)
-              const citySel = preferences.attractionSelections?.[currentCity] || { selectedCourseIds: [], individualSpotIds: [] };
+              // 3. 관광 (해당 정차지 담은 명소 및 테마 액티비티 금액)
+              let stopAttrSel: AttractionSelections | undefined = preferences.attractionSelectionsByStop?.[activeStop.id];
+              if (!stopAttrSel && isFirstVisitOfCity) {
+                stopAttrSel = preferences.attractionSelections?.[currentCity];
+              }
+              if (!stopAttrSel) {
+                stopAttrSel = { selectedCourseIds: [], individualSpotIds: [] }; // 추가/2차 도시는 0곳 담김으로 시작!
+              }
+              const citySel = stopAttrSel;
+
               const spotsForCity = [
                 ...budgetPlaces.filter((p) => p.city === currentCity && !["ACCOMMODATION", "RESTAURANT", "CAFE"].includes(p.category)).map(placeToAttractionSpot),
                 ...(dbAttractionsByCity[currentCity] || ATTRACTION_SPOTS_CATALOG.filter((s) => s.cityCode === currentCity)),
@@ -4996,6 +5121,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                         0
                       );
 
+                      const visitIdx = sameCityStops.findIndex((s) => s.id === activeStop.id);
+                      const isFirstVisitOfCity = visitIdx === 0 && !activeStop.isAdded;
+
                       let accOverride = preferences.accommodationByCity?.[activeStop.id];
                       if (!accOverride && isRepeatedCity) {
                         const cityAcc = preferences.accommodationByCity?.[city];
@@ -5012,7 +5140,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                           }
                         }
                       }
-                      if (!accOverride) {
+                      if (!accOverride && isFirstVisitOfCity) {
                         accOverride = preferences.accommodationByCity?.[city];
                         if (isRepeatedCity && accOverride && typeof accOverride === "object" && (accOverride as any).kind === "SPLIT") {
                           accOverride = undefined;
@@ -5193,7 +5321,6 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                     {activeCategory === "FOOD" && (() => {
                       const city = selectedCityTab;
-                      const foodLine = plan.citySections[city]?.lineItems.find((i) => i.category === "FOOD");
                       const activeFoodTier = preferences.foodTier || draft.budgetTier || "STANDARD";
                       const foodBasketOptions: BudgetBasketId[] = ["BUDGET_MEAL_PLAN", "STANDARD_MEAL_PLAN", "PREMIUM_MEAL_PLAN"];
 
@@ -5210,12 +5337,12 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                             locale={locale}
                             dict={dict}
                             currentCity={city}
-                            cityNights={foodLine?.durationCount ?? Math.max(1, Math.floor((draft.totalNights || 3) / Math.max(1, draft.selectedCities.length)))}
+                            cityNights={Math.max(1, activeStop.nights)}
                             selectedCities={draft.selectedCities}
                             travelNights={draft.totalNights || 3}
                             adultCount={draft.adultCount || 1}
-                            basketSelections={preferences.foodBasketSelections || []}
-                            foodBasketPlan={isCalculatedMealPlan(foodLine?.mealPlan) ? foodLine.mealPlan.foodBasketPlan : undefined}
+                            basketSelections={stopFoodSelections}
+                            foodBasketPlan={cityFoodBasket}
                             onUpdateQuantity={handleFoodBasketUpdateQuantity}
                             onSetQuantity={handleFoodBasketSetQuantity}
                             onClearBasket={handleFoodBasketClear}
@@ -5312,7 +5439,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
 
                     {activeCategory === "ATTRACTION" && (() => {
                       const city = selectedCityTab;
-                      const citySel = preferences.attractionSelections?.[city] || { selectedCourseIds: [], individualSpotIds: [] };
+                      const citySel = stopAttrSel;
                       const selectedCourseIds = citySel.selectedCourseIds || [];
                       const individualSpotIds = citySel.individualSpotIds || [];
 

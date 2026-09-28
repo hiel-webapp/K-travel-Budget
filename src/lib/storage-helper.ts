@@ -15,6 +15,7 @@ import {
   AccommodationOverridesByCity,
   AttractionOverridesByCity,
   AttractionSelectionsByCity,
+  AttractionSelections,
   PlannerPreferencesV1,
   PlannerPreferencesV2,
   FoodOverrides,
@@ -640,8 +641,10 @@ export interface SavePlannerPreferencesInput {
   foodOverrides?: FoodOverrides;
   foodAddOnOverrides?: FoodAddOnOverrides;
   foodBasketSelections?: FoodBasketItemSelection[];
+  foodBasketSelectionsByStop?: Record<string, FoodBasketItemSelection[]>;
   attractionByCity?: AttractionOverridesByCity;
   attractionSelections?: AttractionSelectionsByCity;
+  attractionSelectionsByStop?: Record<string, AttractionSelections>;
   attractionCustomDailyKrw?: number;
   emergencyFundKrw?: number;
   emergencyFundPct?: number;
@@ -669,8 +672,10 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
     foodOverrides = {},
     foodAddOnOverrides = {},
     foodBasketSelections,
+    foodBasketSelectionsByStop,
     attractionByCity = {},
     attractionSelections = {},
+    attractionSelectionsByStop,
     draft,
   } = input;
 
@@ -687,8 +692,10 @@ export function savePlannerPreferences(input: SavePlannerPreferencesInput): bool
       foodOverrides,
       addOnSelections: foodAddOnOverrides,
       foodBasketSelections,
+      foodBasketSelectionsByStop,
       attractionByCity,
       attractionSelections,
+      attractionSelectionsByStop,
       attractionCustomDailyKrw: isValValid(input.attractionCustomDailyKrw) ? input.attractionCustomDailyKrw : undefined,
       emergencyFundKrw: isValValid(input.emergencyFundKrw) ? input.emergencyFundKrw : 0,
       emergencyFundPct: typeof input.emergencyFundPct === "number" ? input.emergencyFundPct : undefined,

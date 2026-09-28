@@ -11,6 +11,8 @@ import { formatPriceByLocale } from "src/lib/currency/currency-converter";
 import { buildBookingHubData } from "./BookingActionHub";
 import {
   TOUR_COURSE_PRESETS,
+  ATTRACTION_SPOTS_CATALOG,
+  normalizeSpotKey,
   type AttractionSpot,
   isSameSpot,
 } from "src/features/budget/catalog/attraction-spots";
@@ -137,55 +139,41 @@ function PdfKakaoCityMap({
   }, [spots, minLat, maxLat, minLng, maxLng, city, isKo]);
 
   return (
-    <div className="relative w-full h-[240px] rounded-2xl overflow-hidden border border-neutral-300 bg-[#f4f2ea] shadow-inner select-none">
+    <div className="relative w-full h-[210px] rounded-2xl overflow-hidden border border-neutral-300 bg-[#f4f2ea] shadow-inner select-none">
       {/* 1. 카카오 StaticMap 타일 삽입용 DOM (클라이언트에서 즉시 렌더) */}
       <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
 
-      {/* 2. 실제 한국 도시 지형 & 도로망 그래픽 레이어 */}
+      {/* 2. 한국 도시 도로망 & 랜드마크 보조 그래픽 레이어 (배경 투명화로 카카오 지도 보존) */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none z-1" preserveAspectRatio="none">
-        <defs>
-          <pattern id={`map-grid-${city}`} width="36" height="36" patternUnits="userSpaceOnUse">
-            <path d="M 36 0 L 0 0 0 36" fill="none" stroke="#e6e3d8" strokeWidth="0.8" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="#f4f2ea" opacity="0.95" />
-        <rect width="100%" height="100%" fill={`url(#map-grid-${city})`} opacity="0.7" />
-
-        {/* 한강 또는 하천/해안 곡선 (서울/부산/전주/제주 등 지형적 랜드마크) */}
+        {/* 한강 또는 하천/해안 곡선 (서울/부산) */}
         {city === "SEOUL" && (
           <path
-            d="M -10 175 C 90 155, 170 195, 250 170 C 330 145, 410 185, 520 160"
+            d="M -10 155 C 90 135, 170 175, 250 150 C 330 125, 410 165, 520 140"
             fill="none"
-            stroke="#bde0fe"
-            strokeWidth="22"
+            stroke="#93c5fd"
+            strokeWidth="18"
             strokeLinecap="round"
-            opacity="0.9"
+            opacity="0.6"
           />
         )}
         {city === "BUSAN" && (
           <path
-            d="M 50 250 C 130 190, 230 210, 330 165 C 410 130, 480 155, 520 120"
+            d="M 50 220 C 130 160, 230 180, 330 145 C 410 110, 480 135, 520 100"
             fill="none"
-            stroke="#bde0fe"
-            strokeWidth="28"
+            stroke="#93c5fd"
+            strokeWidth="22"
             strokeLinecap="round"
-            opacity="0.9"
+            opacity="0.6"
           />
         )}
 
-        {/* 도심 간선도로망 (노란색/주황색 도로 표현) */}
-        <path d="M 0 95 Q 160 80, 290 110 T 520 100" fill="none" stroke="#fed7aa" strokeWidth="5" opacity="0.85" />
-        <path d="M 130 0 Q 150 120, 165 240" fill="none" stroke="#fdba74" strokeWidth="3.5" opacity="0.8" />
-        <path d="M 290 0 Q 310 125, 320 240" fill="none" stroke="#fed7aa" strokeWidth="3.5" opacity="0.8" />
-        <path d="M 0 190 Q 210 200, 520 170" fill="none" stroke="#e5e7eb" strokeWidth="4.5" opacity="0.85" />
-
-        {/* 관광지 간 순차 이동 경로 폴리라인 (카카오맵 파란색 동선) */}
+        {/* 관광지 간 순차 이동 경로 폴리라인 (카카오맵 빨간색/파란색 동선 점선) */}
         {projectedSpots.length > 1 && (
           <polyline
-            points={projectedSpots.map((s) => `${(s.xPct * 4.6).toFixed(1)},${(s.yPct * 2.4).toFixed(1)}`).join(" ")}
+            points={projectedSpots.map((s) => `${(s.xPct * 4.6).toFixed(1)},${(s.yPct * 2.1).toFixed(1)}`).join(" ")}
             fill="none"
-            stroke="#2563eb"
-            strokeWidth="3.5"
+            stroke="#ef4444"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeDasharray="6,4"
@@ -214,22 +202,22 @@ function PdfKakaoCityMap({
         <span className="font-black text-neutral-900">kakao</span>
       </div>
 
-      {/* 5. 각 스팟의 번호 캡슐 마커 (첨부 이미지 2와 100% 동일) */}
+      {/* 5. 각 스팟의 선명한 핑크/레드 캡슐 마커 (첨부 이미지 2와 100% 동일) */}
       {projectedSpots.map((spot) => {
         const spotName = isKo ? spot.nameKo : spot.nameEn;
         return (
           <div
             key={spot.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-white/95 border border-neutral-500 px-2 py-0.5 rounded-full shadow-sm z-20 whitespace-nowrap"
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-[#f43f5e] hover:bg-[#e11d48] text-white border-2 border-white px-2 py-0.5 rounded-full shadow-md z-20 whitespace-nowrap"
             style={{
               left: `${spot.xPct}%`,
               top: `${spot.yPct}%`,
             }}
           >
-            <span className="w-3.5 h-3.5 rounded-full bg-neutral-900 text-white font-black text-[8.5px] flex items-center justify-center shrink-0">
+            <span className="w-3.5 h-3.5 rounded-full bg-white text-[#f43f5e] font-black text-[8.5px] flex items-center justify-center shrink-0 shadow-2xs">
               {spot.routeOrder}
             </span>
-            <span className="text-[9.5px] font-black text-neutral-900 truncate max-w-[105px]">
+            <span className="text-[9.5px] font-black tracking-tight truncate max-w-[110px]">
               {spotName}
             </span>
           </div>
@@ -245,6 +233,7 @@ export default function ReportPdfDocument({
   locale,
   dict,
   usdRate = 1356,
+  dbAttractionsByCity = {},
   className = "",
 }: ReportPdfDocumentProps) {
   const isKo = locale === "ko";
@@ -434,11 +423,43 @@ export default function ReportPdfDocument({
       {stopsList.map((stop: any, stopIdx: number) => {
         const city = stop.city;
         const cInfo = cityBreakdown[city];
-        const rawSpots = (stop.selectedSpots !== undefined ? stop.selectedSpots : cInfo?.selectedSpots || []).filter(
+
+        // 1. 관광지 목록 추출 (정차지 실비 스팟 -> 도시별 스팟 -> 공식 추천 프리셋 코스 스팟 순으로 완벽 fallback)
+        let citySpotsSource: AttractionSpot[] =
+          stop.selectedSpots && stop.selectedSpots.length > 0
+            ? stop.selectedSpots
+            : cInfo?.selectedSpots && cInfo.selectedSpots.length > 0
+            ? cInfo.selectedSpots
+            : calculations.cityBreakdown?.[city]?.selectedSpots &&
+              calculations.cityBreakdown[city].selectedSpots.length > 0
+            ? calculations.cityBreakdown[city].selectedSpots
+            : [];
+
+        // 선택된 스팟이 없거나 빈 배열일 때, 해당 도시의 공식 프리셋 추천 코스 스팟들을 100% 온전히 로드
+        if (citySpotsSource.length === 0) {
+          const cityPresets = TOUR_COURSE_PRESETS.filter(
+            (c) => (c.cityCode || "").toLowerCase() === (city || "").toLowerCase() && c.isActive !== false
+          );
+          const presetSpotIds = new Set<string>();
+          cityPresets.forEach((c) =>
+            (c.spotIds || []).forEach((sid) => presetSpotIds.add(normalizeSpotKey(sid)))
+          );
+
+          citySpotsSource = Array.from(presetSpotIds)
+            .map((sid) => {
+              return (
+                ATTRACTION_SPOTS_CATALOG.find((s: AttractionSpot) => isSameSpot(s.id, sid)) ||
+                (dbAttractionsByCity[city] || []).find((s: AttractionSpot) => isSameSpot(s.id, sid))
+              );
+            })
+            .filter((s): s is AttractionSpot => Boolean(s));
+        }
+
+        const rawSpots = citySpotsSource.filter(
           (s: any) => !s.id.startsWith("act_") && !THEME_ACTIVITIES_CATALOG.some((a) => isSameSpot(a.id, s.id))
         );
 
-        // 스팟 좌표 및 최적 동선 계산
+        // 2. 스팟 좌표 및 최적 이동 동선 계산
         const mappedSpots: RouteSpotItem[] = rawSpots.map((spot: any, idx: number) => {
           const coords = getSpotCoordinates(
             spot.nameKo,
@@ -471,7 +492,7 @@ export default function ReportPdfDocument({
           routeOrder: seqIdx + 1,
         }));
 
-        // 코스별 그룹화 (TOUR_COURSE_PRESETS 매칭)
+        // 3. 코스별 그룹화 (TOUR_COURSE_PRESETS 매칭 및 잔여 개별 스팟 수록)
         const cityCourses = TOUR_COURSE_PRESETS.filter(
           (c) => (c.cityCode || "").toLowerCase() === (city || "").toLowerCase() && c.isActive !== false
         );
@@ -480,6 +501,8 @@ export default function ReportPdfDocument({
           id: string;
           courseTitleKo: string;
           courseTitleEn: string;
+          courseDescKo?: string;
+          estimatedHours?: number;
           linkedActivity?: any;
           spots: RouteSpotItem[];
         }> = [];
@@ -487,10 +510,10 @@ export default function ReportPdfDocument({
         const remainingSpots = [...displayedSpots];
         cityCourses.forEach((course) => {
           if (!course.spotIds || course.spotIds.length === 0) return;
-          const hasAllSpots = course.spotIds.every((csId: string) =>
+          const hasMatchedSpots = course.spotIds.some((csId: string) =>
             remainingSpots.some((s) => isSameSpot(s.id, csId))
           );
-          if (hasAllSpots) {
+          if (hasMatchedSpots) {
             const matchedSpots: RouteSpotItem[] = [];
             course.spotIds.forEach((csId: string) => {
               const foundIdx = remainingSpots.findIndex((s) => isSameSpot(s.id, csId));
@@ -501,7 +524,6 @@ export default function ReportPdfDocument({
             });
             matchedSpots.sort((a, b) => a.routeOrder - b.routeOrder);
 
-            // 연계 체험 추출
             let linkedAct = undefined;
             for (const sp of matchedSpots) {
               const act = getRelatedThemeActivity(sp.id, sp.nameKo);
@@ -515,6 +537,8 @@ export default function ReportPdfDocument({
               id: course.id,
               courseTitleKo: course.nameKo,
               courseTitleEn: course.nameEn,
+              courseDescKo: course.descKo,
+              estimatedHours: course.estimatedHours,
               linkedActivity: linkedAct,
               spots: matchedSpots,
             });
@@ -525,8 +549,8 @@ export default function ReportPdfDocument({
           remainingSpots.sort((a, b) => a.routeOrder - b.routeOrder);
           spotGroups.push({
             id: `custom-group-${stopIdx}`,
-            courseTitleKo: isKo ? "맞춤 여행 스팟" : "Custom Tour Spots",
-            courseTitleEn: "Custom Tour Spots",
+            courseTitleKo: isKo ? "추천 관광지 & 명소" : "Recommended Spots",
+            courseTitleEn: "Recommended Spots",
             spots: remainingSpots,
           });
         }
@@ -537,37 +561,42 @@ export default function ReportPdfDocument({
 
         return (
           <div key={`pdf-course-${stop.stopId || `${city}-${stopIdx}`}`} className="pdf-portrait-page">
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               {/* 1. 최상단 타이틀 섹션 (첨부 이미지 2와 동일) */}
               <div>
                 <h2 className="text-xl font-black text-neutral-900 tracking-tight">
                   {isKo ? "스마트 투어 코스" : "Smart Tour Course"}
                 </h2>
                 <p className="text-xs text-neutral-500 font-medium mt-0.5">
-                  {isKo ? "도시별 추천 여행 코스와 최적 이동 동선을 지도에서 한눈에 확인하세요." : "Explore curated travel courses and optimized routes on the map."}
+                  {isKo
+                    ? "도시별 추천 여행 코스와 최적 이동 동선을 지도에서 한눈에 확인하세요."
+                    : "Explore curated travel courses and optimized routes on the map."}
                 </p>
               </div>
 
-              {/* 2. 상단 박스: 좌측 도시 탭/경로 스팟 + 우측 지도 (인쇄 친화적 안정적 flex-row 구조) */}
+              {/* 2. 상단 박스: 좌측 도시 탭/경로 스팟 + 우측 지도 (첨부 이미지 2와 100% 동일) */}
               <div className="bg-white rounded-3xl border border-neutral-200/80 p-3.5 shadow-sm">
                 <div className="flex flex-row items-stretch gap-3.5 w-full">
                   {/* 좌측 도시 탭 & 길찾기 버튼 */}
                   <div className="w-[145px] shrink-0 flex flex-col justify-between py-1 pr-3 border-r border-neutral-100">
                     <div className="space-y-1.5">
                       {stopsList.map((st: any) => {
-                        const isCurrentCity = st.stopId === stop.stopId || (st.city === stop.city && st.stopIndex === stop.stopIndex);
-                        return (
+                        const isCurrentCity =
+                          st.stopId === stop.stopId ||
+                          (st.city === stop.city && st.stopIndex === stop.stopIndex);
+                        return isCurrentCity ? (
                           <div
                             key={st.stopId || st.city}
-                            className={`flex items-center text-xs font-bold px-2 py-1.5 rounded-lg ${
-                              isCurrentCity
-                                ? "bg-neutral-100 text-neutral-900 font-black"
-                                : "text-neutral-500"
-                            }`}
+                            className="w-full py-2 px-3 rounded-xl bg-[#191919] text-white font-black text-xs text-left shadow-xs flex items-center justify-between"
                           >
-                            {isCurrentCity && (
-                              <span className="w-2 h-2 rounded-full bg-rose-500 mr-2 shrink-0" />
-                            )}
+                            <span className="truncate">{st.cityName}</span>
+                            {st.isAdded && <span className="text-[#fca5a5] text-[9px] ml-1">(+)</span>}
+                          </div>
+                        ) : (
+                          <div
+                            key={st.stopId || st.city}
+                            className="w-full py-1.5 px-3 rounded-xl text-neutral-500 font-bold text-xs text-left"
+                          >
                             <span className="truncate">{st.cityName}</span>
                             {st.isAdded && <span className="text-[#b93829] text-[9px] ml-1">(+)</span>}
                           </div>
@@ -577,21 +606,23 @@ export default function ReportPdfDocument({
 
                     <div className="space-y-1.5 pt-2 border-t border-neutral-100">
                       <div className="text-[11px] font-bold text-neutral-600">
-                        {isKo ? "경로 스팟" : "Spots"}: <strong className="text-neutral-900 font-black">{displayedSpots.length}개소</strong>
+                        {isKo ? "경로 스팟" : "Spots"}:{" "}
+                        <strong className="text-neutral-900 font-black">{displayedSpots.length}개소</strong>
                       </div>
                       <a
                         href={kakaoDirectUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-[11px] shadow-xs text-center"
+                        className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-[11px] shadow-xs text-center cursor-pointer no-underline"
                       >
-                        <span>{isKo ? "카카오웹 길찾기" : "KakaoMap Route"}</span>
+                        <span className="text-xs">💬</span>
+                        <span>{isKo ? "카카오맵 길찾기" : "KakaoMap Route"}</span>
                         <span className="text-[9px]">↗</span>
                       </a>
                     </div>
                   </div>
 
-                  {/* 우측 정밀 카카오 스타일 지도 (관광지 마커 포함) */}
+                  {/* 우측 정밀 카카오 스타일 지도 (선명한 핑크/레드 캡슐 마커 포함) */}
                   <div className="flex-1 min-w-0">
                     <PdfKakaoCityMap
                       city={city}
@@ -603,82 +634,103 @@ export default function ReportPdfDocument({
                 </div>
               </div>
 
-              {/* 3. 코스 설명 가이드 텍스트 (첨부 이미지 2와 동일) */}
-              <div className="text-[11px] font-semibold text-neutral-400">
-                {isKo
-                  ? "코스 타이틀을 클릭하면 코스 전체가, 카드를 클릭하면 해당 장소가 지도에서 강조됩니다."
-                  : "Click a course title to view the full route, or select a spot card for details."}
+              {/* 3. 코스 설명 가이드 텍스트 및 순번별 방문 타임라인 헤더 (첨부 이미지 2와 동일) */}
+              <div className="flex items-center justify-between text-[11px] pt-1">
+                <span className="font-extrabold text-neutral-800 flex items-center gap-1">
+                  <span>🚩</span>
+                  <span>{isKo ? "순번별 방문 타임라인 & 길찾기" : "Optimized Timeline & Route"}</span>
+                </span>
+                <span className="text-neutral-400 font-medium">
+                  {isKo
+                    ? "카드를 클릭하면 지도 해당 위치로 이동합니다."
+                    : "Click card to view directions."}
+                </span>
               </div>
 
-              {/* 4. 하단: 선택된 코스 및 관광지 목록 (누락 없이 1~N 전체 2열 카드 그리드 출력) */}
-              <div className="space-y-3.5 pt-1">
+              {/* 4. 하단: 3열 관광지 카드 그리드 (첨부 이미지 2와 100% 동일한 3단 카드 레이아웃) */}
+              <div className="space-y-3 pt-0.5">
                 {spotGroups.map((group) => (
                   <div key={group.id} className="space-y-2">
-                    {/* 코스 타이틀 헤더 */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-black text-neutral-900">
-                        {isKo ? group.courseTitleKo : group.courseTitleEn}
-                      </span>
+                    {/* 코스 타이틀 헤더 바 */}
+                    <div className="flex flex-wrap items-center justify-between gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-100/80 border border-neutral-200/80">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-neutral-900">
+                          {isKo ? group.courseTitleKo : group.courseTitleEn}
+                        </span>
+                        <span className="text-[9.5px] font-bold text-neutral-500 bg-white px-2 py-0.2 rounded-full border border-neutral-200">
+                          {group.spots.length}개소
+                        </span>
+                        {group.estimatedHours && (
+                          <span className="text-[9.5px] font-bold text-amber-700 bg-amber-50 px-2 py-0.2 rounded-full border border-amber-200">
+                            ⏱ {isKo ? `약 ${group.estimatedHours}시간` : `~${group.estimatedHours}h`}
+                          </span>
+                        )}
+                      </div>
                       {group.linkedActivity && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[9px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
                           <span>🍵</span>
                           <span>
-                            {isKo ? `연계 체험: ${group.linkedActivity.titleKo} 포함` : `Includes: ${group.linkedActivity.titleEn}`}
+                            {isKo
+                              ? `연계 체험: ${group.linkedActivity.titleKo} 포함`
+                              : `Includes: ${group.linkedActivity.titleEn}`}
                           </span>
                         </span>
                       )}
                     </div>
 
-                    {/* 2열 관광지 카드 그리드 - 개별 카드 단위 자연스러운 줄바꿈 */}
-                    <div className="grid grid-cols-2 gap-2">
+                    {/* 3열 관광지 카드 그리드 */}
+                    <div className="grid grid-cols-3 gap-2">
                       {group.spots.map((spot) => {
                         const spotName = isKo ? spot.nameKo : spot.nameEn;
-                        const transitDesc = spot.subwayInfo || (spot.descKo ? spot.descKo.slice(0, 42) : "");
+                        const transitDesc =
+                          spot.subwayInfo || (spot.descKo ? spot.descKo.slice(0, 42) : "");
+                        const directLink = getKakaoMapDirectLink(spot.nameKo, spot.lat, spot.lng);
+
                         return (
                           <div
                             key={spot.id}
-                            className="print-avoid-break p-2.5 rounded-xl bg-white border border-neutral-200 shadow-2xs flex flex-col justify-between space-y-1.5"
+                            className="print-avoid-break p-2.5 rounded-xl bg-white border border-neutral-200 shadow-2xs flex flex-col justify-between space-y-1.5 text-left"
                           >
-                            <div className="flex items-start justify-between gap-1.5">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="w-4 h-4 rounded-full bg-neutral-100 text-neutral-700 font-black text-[9px] flex items-center justify-center shrink-0">
-                                  {spot.routeOrder}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="w-4 h-4 rounded-full bg-[#f43f5e] text-white font-black text-[9px] flex items-center justify-center shrink-0">
+                                    {spot.routeOrder}
+                                  </span>
+                                  <h4 className="font-black text-[11px] text-neutral-900 truncate" title={spotName}>
+                                    {spotName}
+                                  </h4>
+                                </div>
+                                <span className="px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-600 text-[8.5px] font-bold shrink-0">
+                                  {spot.categoryType || (isKo ? "명소" : "Spot")}
                                 </span>
-                                <h4 className="font-black text-[11px] text-neutral-900 truncate">
-                                  {spotName}
-                                </h4>
                               </div>
-                              <span className="px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-600 text-[9px] font-bold shrink-0">
-                                {spot.categoryType || "명소"}
-                              </span>
+
+                              {transitDesc && (
+                                <p className="text-[9.5px] text-neutral-500 line-clamp-1 leading-tight">
+                                  🚇 {transitDesc}
+                                </p>
+                              )}
                             </div>
 
-                            {transitDesc && (
-                              <p className="text-[9.5px] text-neutral-500 line-clamp-1 leading-tight">
-                                🚇 {transitDesc}
-                              </p>
-                            )}
-
-                            <div className="flex items-center justify-between pt-1 border-t border-neutral-100 text-[10px]">
-                              {spot.officialUrl ? (
-                                <a
-                                  href={spot.officialUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-2 py-0.5 rounded-md bg-neutral-100 hover:bg-neutral-200 text-[9.5px] font-bold text-neutral-700 inline-flex items-center gap-0.5"
-                                >
-                                  <span>{isKo ? "상세보기" : "Detail"}</span>
-                                  <span>↗</span>
-                                </a>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-[9.5px] font-bold text-neutral-500">
-                                  {isKo ? "상세보기" : "Detail"}
-                                </span>
-                              )}
-
-                              <strong className="font-black text-neutral-900 tabular-nums">
-                                {spot.price === 0 ? (isKo ? "무료 입장" : "Free") : `₩ ${spot.price.toLocaleString()}`}
-                              </strong>
+                            {/* 하단 요금 및 카카오맵 길찾기 링크 */}
+                            <div className="pt-1.5 border-t border-neutral-100 flex items-center justify-between text-[10px]">
+                              <span className="font-black tabular-nums text-neutral-900">
+                                {spot.price === 0
+                                  ? isKo
+                                    ? "무료 입장"
+                                    : "Free"
+                                  : `₩ ${spot.price.toLocaleString()}`}
+                              </span>
+                              <a
+                                href={directLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#2563eb] hover:text-[#1d4ed8] font-black text-[9.5px] inline-flex items-center gap-0.5 cursor-pointer no-underline"
+                              >
+                                <span>{isKo ? "카카오맵 길찾기" : "Route"}</span>
+                                <span>↗</span>
+                              </a>
                             </div>
                           </div>
                         );

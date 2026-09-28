@@ -413,7 +413,7 @@ export default function ExpenseAnalyticsHub({
         <div className="lg:col-span-4 grid grid-cols-2 gap-3.5 items-stretch">
           
           {/* [세로 막대그래프 1: 카테고리 비중] - 슬림 캡슐 막대 + 좌우 2줄 교차 지시선 */}
-          <div className={`${isCompact ? "p-2.5 space-y-1" : "p-3.5 sm:p-4 space-y-2"} rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between`}>
+          <div className={`${isCompact ? "p-3 space-y-1.5" : "p-3.5 sm:p-4 space-y-2"} rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between`}>
             <div className="border-b border-neutral-200/60 pb-1 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
                 {isKo ? "카테고리 비중" : "By Sector"}
@@ -425,7 +425,7 @@ export default function ExpenseAnalyticsHub({
             <div className="flex-1 flex items-center justify-center py-1 relative">
               <div className="relative flex items-center justify-center">
                 {/* 라벨 레이어 (좌우 지시선 오버레이) */}
-                <div className={`absolute inset-0 ${isCompact ? "h-[105px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}>
+                <div className={`absolute inset-0 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}>
                   {categoryLabelLayouts.map((cat) => {
                     const isLeft = cat.side === "left";
                     return (
@@ -455,7 +455,7 @@ export default function ExpenseAnalyticsHub({
                 </div>
 
                 {/* 슬림 세로 누적 막대 */}
-                <div className={`w-7 sm:w-8 ${isCompact ? "h-[105px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}>
+                <div className={`w-7 sm:w-8 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}>
                   {categoryList.map((cat) => {
                     if (cat.pct <= 0) return null;
                     return (
@@ -473,7 +473,7 @@ export default function ExpenseAnalyticsHub({
           </div>
 
           {/* [세로 막대그래프 2: 방문 도시별 비중] - 슬림 캡슐 막대 + 좌우 2줄 교차 지시선 */}
-          <div className={`${isCompact ? "p-2.5 space-y-1" : "p-3.5 sm:p-4 space-y-2"} rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between`}>
+          <div className={`${isCompact ? "p-3 space-y-1.5" : "p-3.5 sm:p-4 space-y-2"} rounded-2xl bg-neutral-50/60 border border-neutral-200/70 flex flex-col justify-between`}>
             <div className="border-b border-neutral-200/60 pb-1 flex items-center justify-between">
               <span className="text-[11px] font-black text-neutral-900">
                 {isKo ? "도시별 비중" : "By City"}
@@ -485,7 +485,7 @@ export default function ExpenseAnalyticsHub({
             <div className="flex-1 flex items-center justify-center py-1 relative">
               <div className="relative flex items-center justify-center">
                 {/* 라벨 레이어 (좌우 지시선 오버레이) */}
-                <div className={`absolute inset-0 ${isCompact ? "h-[105px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}>
+                <div className={`absolute inset-0 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} pointer-events-none`}>
                   {cityLabelLayouts.map((c) => {
                     const isLeft = c.side === "left";
                     return (
@@ -515,7 +515,7 @@ export default function ExpenseAnalyticsHub({
                 </div>
 
                 {/* 슬림 세로 누적 막대 */}
-                <div className={`w-7 sm:w-8 ${isCompact ? "h-[105px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}>
+                <div className={`w-7 sm:w-8 ${isCompact ? "h-[150px]" : "h-[210px] sm:h-[220px]"} rounded-full flex flex-col bg-neutral-200/60 p-0.5 shadow-inner relative overflow-hidden`}>
                   {cityBarItems.map((c) => {
                     if (c.pct <= 0) return null;
                     return (

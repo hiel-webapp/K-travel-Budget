@@ -109,12 +109,14 @@ export default function ExpenseAnalyticsHub({
     const cInfo = calculations.cityBreakdown?.[city];
     const color = cityPalette[idx % cityPalette.length];
     
-    // 순환 여정(동일 도시 중복 방문) 시 N차 표기 지원
+    // 순환 여정(동일 도시 중복 방문) 시 표기: 1차는 표시 제거, 2차 이상은 (+) 표기
     const cityOccurrences = draft.selectedCities.filter((c) => c === city).length;
     let cityName = isKo ? CITY_KOREAN_NAMES[city] || city : CITY_ENGLISH_NAMES[city] || city;
     if (cityOccurrences > 1) {
       const visitCount = draft.selectedCities.slice(0, idx + 1).filter((c) => c === city).length;
-      cityName = isKo ? `${cityName} (${visitCount}차)` : `${cityName} (#${visitCount})`;
+      if (visitCount > 1) {
+        cityName = `${cityName} (+)`;
+      }
     }
 
     const stay = cInfo?.stayTotalKrw || 0;

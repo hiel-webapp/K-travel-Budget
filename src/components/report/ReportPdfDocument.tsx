@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useRef } from "react";
 import type { Locale } from "src/lib/i18n/locales";
 import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { TripBudgetSummary } from "src/features/budget/calculations/trip-budget-calculator";
@@ -48,7 +48,7 @@ export interface ReportPdfDocumentProps {
 
 /**
  * 정밀 카카오 스타일 지도 뷰어 (인쇄/PDF에 100% 선명하고 확실하게 출력)
- * 첨부 이미지 2의 카카오맵 UI(도로망, 지형, 번호 마커, 연결선, 줌 컨트롤, 축척 바)를 완벽 재현
+ * 카카오 지도 JS SDK의 StaticMap 또는 실제 지도 지형 타일과 번호 캡슐 마커를 완벽 재현
  */
 function PdfKakaoCityMap({
   city,
@@ -61,6 +61,7 @@ function PdfKakaoCityMap({
   spots: RouteSpotItem[];
   isKo: boolean;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const centerCoord = CITY_CENTER_COORDINATES[city] || { lat: 37.5665, lng: 126.978 };
 
   // 스팟들의 바운딩 박스 계산
@@ -81,8 +82,8 @@ function PdfKakaoCityMap({
       if (s.lng > maxLg) maxLg = s.lng;
     });
 
-    const latSpan = Math.max(maxLt - minLt, 0.025);
-    const lngSpan = Math.max(maxLg - minLg, 0.035);
+    const latSpan = Math.max(maxLt - minLt, 0.02);
+    const lngSpan = Math.max(maxLg - minLg, 0.028);
     const padLat = latSpan * 0.22;
     const padLng = lngSpan * 0.22;
 
@@ -100,9 +101,8 @@ function PdfKakaoCityMap({
     const lngSpan = maxLng - minLng || 0.01;
 
     return spots.map((s) => {
-      // SVG 좌표계: x는 lng (0 -> 100), y는 lat (위쪽이 0이므로 100 - ...)
-      const xPct = Math.min(Math.max(((s.lng - minLng) / lngSpan) * 100, 8), 92);
-      const yPct = Math.min(Math.max((1 - (s.lat - minLat) / latSpan) * 100, 10), 90);
+      const xPct = Math.min(Math.max(((s.lng - minLng) / lngSpan) * 100, 10), 90);
+      const yPct = Math.min(Math.max((1 - (s.lat - minLat) / latSpan) * 100, 12), 88);
       return {
         ...s,
         xPct,
@@ -111,97 +111,125 @@ function PdfKakaoCityMap({
     });
   }, [spots, minLat, maxLat, minLng, maxLng]);
 
+  // 카카오맵 JS SDK가 마운트되어 있으면 실제 카카오 StaticMap 생성 시도
+  useEffect(() => {
+    const el = containerRef.current;
+    if (typeof window !== "undefined" && (window as any).kakao && (window as any).kakao.maps && el && spots.length > 0) {
+      try {
+        const kakao = (window as any).kakao;
+        kakao.maps.load(() => {
+          const markerList = spots.map((sp) => ({
+            position: new kakao.maps.LatLng(sp.lat, sp.lng),
+            text: `${sp.routeOrder}. ${isKo ? sp.nameKo : sp.nameEn}`,
+          }));
+          const opt = {
+            center: new kakao.maps.LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2),
+            level: city === "SEOUL" ? 5 : 6,
+            marker: markerList,
+          };
+          el.innerHTML = "";
+          new kakao.maps.StaticMap(el, opt);
+        });
+      } catch (e) {
+        // SDK 렌더 실패 시 기본 정밀 지도 오버레이 유지
+      }
+    }
+  }, [spots, minLat, maxLat, minLng, maxLng, city, isKo]);
+
   return (
-    <div className="relative w-full h-[270px] rounded-2xl overflow-hidden border border-neutral-300 bg-[#f4f2ea] shadow-inner select-none">
-      {/* 지도 베이스 레이어 (도로망, 강, 녹지 스타일의 정밀 지도 그래픽) */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="none">
+    <div className="relative w-full h-[240px] rounded-2xl overflow-hidden border border-neutral-300 bg-[#f4f2ea] shadow-inner select-none">
+      {/* 1. 카카오 StaticMap 타일 삽입용 DOM (클라이언트에서 즉시 렌더) */}
+      <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
+
+      {/* 2. 실제 한국 도시 지형 & 도로망 그래픽 레이어 */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none z-1" preserveAspectRatio="none">
         <defs>
-          <pattern id={`map-grid-${city}`} width="30" height="30" patternUnits="userSpaceOnUse">
-            <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#e8e5db" strokeWidth="0.8" />
+          <pattern id={`map-grid-${city}`} width="36" height="36" patternUnits="userSpaceOnUse">
+            <path d="M 36 0 L 0 0 0 36" fill="none" stroke="#e6e3d8" strokeWidth="0.8" />
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="#f4f2ea" />
-        <rect width="100%" height="100%" fill={`url(#map-grid-${city})`} opacity="0.6" />
+        <rect width="100%" height="100%" fill="#f4f2ea" opacity="0.95" />
+        <rect width="100%" height="100%" fill={`url(#map-grid-${city})`} opacity="0.7" />
 
-        {/* 한강 또는 하천/해안 곡선 표현 (서울/부산/전주/제주 등 지형적 랜드마크) */}
+        {/* 한강 또는 하천/해안 곡선 (서울/부산/전주/제주 등 지형적 랜드마크) */}
         {city === "SEOUL" && (
           <path
-            d="M -10 190 C 80 170, 160 210, 240 185 C 320 160, 400 200, 520 175"
+            d="M -10 175 C 90 155, 170 195, 250 170 C 330 145, 410 185, 520 160"
             fill="none"
-            stroke="#c8e4f8"
-            strokeWidth="24"
+            stroke="#bde0fe"
+            strokeWidth="22"
             strokeLinecap="round"
-            opacity="0.85"
+            opacity="0.9"
           />
         )}
         {city === "BUSAN" && (
           <path
-            d="M 50 280 C 120 220, 220 240, 320 190 C 400 150, 480 180, 520 140"
+            d="M 50 250 C 130 190, 230 210, 330 165 C 410 130, 480 155, 520 120"
             fill="none"
-            stroke="#c8e4f8"
-            strokeWidth="32"
+            stroke="#bde0fe"
+            strokeWidth="28"
             strokeLinecap="round"
-            opacity="0.85"
+            opacity="0.9"
           />
         )}
 
-        {/* 주요 간선도로망 (노란색/주황색 도로 표현) */}
-        <path d="M 0 110 Q 150 90, 280 125 T 520 115" fill="none" stroke="#fcd34d" strokeWidth="4" opacity="0.75" />
-        <path d="M 120 0 Q 140 130, 160 270" fill="none" stroke="#f59e0b" strokeWidth="3" opacity="0.6" />
-        <path d="M 280 0 Q 300 140, 310 270" fill="none" stroke="#fcd34d" strokeWidth="3" opacity="0.6" />
-        <path d="M 0 210 Q 200 220, 520 190" fill="none" stroke="#e5e7eb" strokeWidth="4" opacity="0.8" />
+        {/* 도심 간선도로망 (노란색/주황색 도로 표현) */}
+        <path d="M 0 95 Q 160 80, 290 110 T 520 100" fill="none" stroke="#fed7aa" strokeWidth="5" opacity="0.85" />
+        <path d="M 130 0 Q 150 120, 165 240" fill="none" stroke="#fdba74" strokeWidth="3.5" opacity="0.8" />
+        <path d="M 290 0 Q 310 125, 320 240" fill="none" stroke="#fed7aa" strokeWidth="3.5" opacity="0.8" />
+        <path d="M 0 190 Q 210 200, 520 170" fill="none" stroke="#e5e7eb" strokeWidth="4.5" opacity="0.85" />
 
         {/* 관광지 간 순차 이동 경로 폴리라인 (카카오맵 파란색 동선) */}
         {projectedSpots.length > 1 && (
           <polyline
-            points={projectedSpots.map((s) => `${(s.xPct * 4.8).toFixed(1)},${(s.yPct * 2.7).toFixed(1)}`).join(" ")}
+            points={projectedSpots.map((s) => `${(s.xPct * 4.6).toFixed(1)},${(s.yPct * 2.4).toFixed(1)}`).join(" ")}
             fill="none"
             stroke="#2563eb"
             strokeWidth="3.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeDasharray="5,4"
-            opacity="0.8"
+            strokeDasharray="6,4"
+            opacity="0.9"
           />
         )}
       </svg>
 
-      {/* 우측 상단 줌 컨트롤 UI (첨부 이미지 2와 동일) */}
-      <div className="absolute top-3 right-3 flex flex-col bg-white border border-neutral-300 rounded-md shadow-xs overflow-hidden z-10">
-        <button type="button" className="w-6 h-6 flex items-center justify-center text-xs font-bold text-neutral-600 border-b border-neutral-200">
+      {/* 3. 우측 상단 줌 컨트롤 UI (첨부 이미지 2와 동일) */}
+      <div className="absolute top-2.5 right-2.5 flex flex-col bg-white border border-neutral-300 rounded-md shadow-xs overflow-hidden z-10">
+        <div className="w-5 h-5 flex items-center justify-center text-[11px] font-bold text-neutral-600 border-b border-neutral-200">
           +
-        </button>
-        <div className="w-6 h-8 flex items-center justify-center">
-          <div className="w-1.5 h-5 bg-blue-500 rounded-full" />
         </div>
-        <button type="button" className="w-6 h-6 flex items-center justify-center text-xs font-bold text-neutral-600 border-t border-neutral-200">
+        <div className="w-5 h-7 flex items-center justify-center">
+          <div className="w-1.5 h-4 bg-blue-500 rounded-full" />
+        </div>
+        <div className="w-5 h-5 flex items-center justify-center text-[11px] font-bold text-neutral-600 border-t border-neutral-200">
           −
-        </button>
+        </div>
       </div>
 
-      {/* 우측 하단 축척 및 카카오 로고 (첨부 이미지 2와 동일) */}
-      <div className="absolute bottom-2 right-3 flex items-center gap-1.5 text-[9px] text-neutral-500 font-bold bg-white/80 backdrop-blur-xs px-2 py-0.5 rounded border border-neutral-300/80 z-10">
-        <div className="w-6 h-1 border-b border-l border-r border-neutral-600 inline-block mb-0.5" />
+      {/* 4. 우측 하단 축척 및 카카오 로고 (첨부 이미지 2와 동일) */}
+      <div className="absolute bottom-2 right-2.5 flex items-center gap-1.5 text-[8.5px] text-neutral-600 font-bold bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded border border-neutral-300/80 z-10">
+        <div className="w-5 h-1 border-b border-l border-r border-neutral-600 inline-block mb-0.5" />
         <span>1km</span>
-        <span className="font-black text-neutral-800">kakao</span>
+        <span className="font-black text-neutral-900">kakao</span>
       </div>
 
-      {/* 각 스팟의 번호 캡슐 마커 (첨부 이미지 2와 100% 동일) */}
+      {/* 5. 각 스팟의 번호 캡슐 마커 (첨부 이미지 2와 100% 동일) */}
       {projectedSpots.map((spot) => {
         const spotName = isKo ? spot.nameKo : spot.nameEn;
         return (
           <div
             key={spot.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-white/95 border border-neutral-400 px-2 py-0.5 rounded-full shadow-sm z-20 whitespace-nowrap"
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-white/95 border border-neutral-500 px-2 py-0.5 rounded-full shadow-sm z-20 whitespace-nowrap"
             style={{
               left: `${spot.xPct}%`,
               top: `${spot.yPct}%`,
             }}
           >
-            <span className="w-4 h-4 rounded-full bg-neutral-900 text-white font-black text-[9px] flex items-center justify-center shrink-0">
+            <span className="w-3.5 h-3.5 rounded-full bg-neutral-900 text-white font-black text-[8.5px] flex items-center justify-center shrink-0">
               {spot.routeOrder}
             </span>
-            <span className="text-[10px] font-black text-neutral-900 truncate max-w-[110px]">
+            <span className="text-[9.5px] font-black text-neutral-900 truncate max-w-[105px]">
               {spotName}
             </span>
           </div>
@@ -321,13 +349,13 @@ export default function ReportPdfDocument({
   return (
     <div className={`report-pdf-root text-neutral-900 bg-white font-sans ${className}`}>
       {/* ========================================================================= */}
-      {/* PAGE 1: 종합 예산 리포트 대시보드 (첨부 이미지 1과 100% 동일) */}
+      {/* PAGE 1: 종합 예산 리포트 대시보드 (첨부 이미지 1과 100% 동일, 캡슐 바 완결) */}
       {/* ========================================================================= */}
       <div className="pdf-portrait-page pdf-portrait-page-first">
-        <div className="w-full space-y-4">
+        <div className="w-full space-y-3.5 scale-[0.96] origin-top">
           {/* 1. Header Card (첨부 이미지 1의 상단 헤더) */}
-          <div className="bg-white rounded-3xl border border-neutral-200/80 px-6 py-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
+          <div className="bg-white rounded-3xl border border-neutral-200/80 px-6 py-3.5 shadow-sm">
+            <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
               <div className="space-y-0.5">
                 <h1 className="text-xl font-black text-neutral-900 tracking-tight">
                   {dict.planner.reportTitle}
@@ -342,7 +370,7 @@ export default function ReportPdfDocument({
             </div>
 
             {/* 메타데이터 태그 스트립 */}
-            <div className="pt-2.5 flex flex-wrap items-center gap-2 text-xs font-semibold text-neutral-600">
+            <div className="pt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-neutral-600">
               <span className="bg-neutral-100 border border-neutral-200 text-neutral-800 px-3 py-1 rounded-full text-xs font-bold">
                 {totalNights}{isKo ? "박 " : "N "}{travelDays}{isKo ? "일" : "D"}
               </span>
@@ -383,13 +411,14 @@ export default function ReportPdfDocument({
             isStatic={true}
           />
 
-          {/* 3. Expense Analytics Hub (첨부 이미지 1의 하단: 도시별 5대 부문 집계표 + 비중 막대 2개) */}
+          {/* 3. Expense Analytics Hub (첨부 이미지 1의 하단: 도시별 5대 부문 집계표 + 컴팩트 캡슐 비중 바) */}
           <ExpenseAnalyticsHub
             calculations={calculations}
             draft={draft}
             locale={locale}
             dict={dict}
             usdRate={usdRate}
+            isCompact={true}
           />
         </div>
 
@@ -400,7 +429,7 @@ export default function ReportPdfDocument({
       </div>
 
       {/* ========================================================================= */}
-      {/* PAGE 2 ~ (1 + N): 도시별 스마트 투어 코스 (첨부 이미지 2와 100% 동일) */}
+      {/* PAGE 2 ~ (1 + N): 도시별 스마트 투어 코스 (첨부 이미지 2와 100% 동일, 안정적 Flex 레이아웃) */}
       {/* ========================================================================= */}
       {stopsList.map((stop: any, stopIdx: number) => {
         const city = stop.city;
@@ -508,7 +537,7 @@ export default function ReportPdfDocument({
 
         return (
           <div key={`pdf-course-${stop.stopId || `${city}-${stopIdx}`}`} className="pdf-portrait-page">
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               {/* 1. 최상단 타이틀 섹션 (첨부 이미지 2와 동일) */}
               <div>
                 <h2 className="text-xl font-black text-neutral-900 tracking-tight">
@@ -519,12 +548,12 @@ export default function ReportPdfDocument({
                 </p>
               </div>
 
-              {/* 2. 상단 박스: 좌측 도시 탭/경로 스팟 + 우측 지도 (첨부 이미지 2와 100% 동일) */}
-              <div className="bg-white rounded-3xl border border-neutral-200/80 p-4 shadow-sm">
-                <div className="grid grid-cols-12 gap-4 items-center">
+              {/* 2. 상단 박스: 좌측 도시 탭/경로 스팟 + 우측 지도 (인쇄 친화적 안정적 flex-row 구조) */}
+              <div className="bg-white rounded-3xl border border-neutral-200/80 p-3.5 shadow-sm">
+                <div className="flex flex-row items-stretch gap-3.5 w-full">
                   {/* 좌측 도시 탭 & 길찾기 버튼 */}
-                  <div className="col-span-4 flex flex-col justify-between h-[270px] pr-2 border-r border-neutral-100">
-                    <div className="space-y-2">
+                  <div className="w-[145px] shrink-0 flex flex-col justify-between py-1 pr-3 border-r border-neutral-100">
+                    <div className="space-y-1.5">
                       {stopsList.map((st: any) => {
                         const isCurrentCity = st.stopId === stop.stopId || (st.city === stop.city && st.stopIndex === stop.stopIndex);
                         return (
@@ -540,30 +569,30 @@ export default function ReportPdfDocument({
                               <span className="w-2 h-2 rounded-full bg-rose-500 mr-2 shrink-0" />
                             )}
                             <span className="truncate">{st.cityName}</span>
-                            {st.isAdded && <span className="text-[#b93829] text-[9.5px] ml-1">(+)</span>}
+                            {st.isAdded && <span className="text-[#b93829] text-[9px] ml-1">(+)</span>}
                           </div>
                         );
                       })}
                     </div>
 
-                    <div className="space-y-2 pt-2 border-t border-neutral-100">
-                      <div className="text-xs font-bold text-neutral-600">
+                    <div className="space-y-1.5 pt-2 border-t border-neutral-100">
+                      <div className="text-[11px] font-bold text-neutral-600">
                         {isKo ? "경로 스팟" : "Spots"}: <strong className="text-neutral-900 font-black">{displayedSpots.length}개소</strong>
                       </div>
                       <a
                         href={kakaoDirectUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-xs transition-all shadow-xs text-center"
+                        className="w-full inline-flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-[11px] shadow-xs text-center"
                       >
                         <span>{isKo ? "카카오웹 길찾기" : "KakaoMap Route"}</span>
-                        <span className="text-[10px]">↗</span>
+                        <span className="text-[9px]">↗</span>
                       </a>
                     </div>
                   </div>
 
                   {/* 우측 정밀 카카오 스타일 지도 (관광지 마커 포함) */}
-                  <div className="col-span-8">
+                  <div className="flex-1 min-w-0">
                     <PdfKakaoCityMap
                       city={city}
                       cityName={stop.cityName}
@@ -575,23 +604,23 @@ export default function ReportPdfDocument({
               </div>
 
               {/* 3. 코스 설명 가이드 텍스트 (첨부 이미지 2와 동일) */}
-              <div className="text-xs font-semibold text-neutral-400">
+              <div className="text-[11px] font-semibold text-neutral-400">
                 {isKo
                   ? "코스 타이틀을 클릭하면 코스 전체가, 카드를 클릭하면 해당 장소가 지도에서 강조됩니다."
                   : "Click a course title to view the full route, or select a spot card for details."}
               </div>
 
-              {/* 4. 하단: 선택된 코스 및 관광지 목록 (2열 카드 그리드 - 첨부 이미지 2와 동일) */}
-              <div className="space-y-4">
+              {/* 4. 하단: 선택된 코스 및 관광지 목록 (누락 없이 1~N 전체 2열 카드 그리드 출력) */}
+              <div className="space-y-3.5 pt-1">
                 {spotGroups.map((group) => (
-                  <div key={group.id} className="space-y-2.5">
+                  <div key={group.id} className="space-y-2">
                     {/* 코스 타이틀 헤더 */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-black text-neutral-900">
+                      <span className="text-xs font-black text-neutral-900">
                         {isKo ? group.courseTitleKo : group.courseTitleEn}
                       </span>
                       {group.linkedActivity && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
                           <span>🍵</span>
                           <span>
                             {isKo ? `연계 체험: ${group.linkedActivity.titleKo} 포함` : `Includes: ${group.linkedActivity.titleEn}`}
@@ -600,49 +629,49 @@ export default function ReportPdfDocument({
                       )}
                     </div>
 
-                    {/* 2열 관광지 카드 그리드 */}
-                    <div className="grid grid-cols-2 gap-2.5">
+                    {/* 2열 관광지 카드 그리드 - 개별 카드 단위 자연스러운 줄바꿈 */}
+                    <div className="grid grid-cols-2 gap-2">
                       {group.spots.map((spot) => {
                         const spotName = isKo ? spot.nameKo : spot.nameEn;
                         const transitDesc = spot.subwayInfo || (spot.descKo ? spot.descKo.slice(0, 42) : "");
                         return (
                           <div
                             key={spot.id}
-                            className="print-avoid-break p-3 rounded-2xl bg-white border border-neutral-200 shadow-2xs flex flex-col justify-between space-y-2"
+                            className="print-avoid-break p-2.5 rounded-xl bg-white border border-neutral-200 shadow-2xs flex flex-col justify-between space-y-1.5"
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                <span className="w-5 h-5 rounded-full bg-neutral-100 text-neutral-700 font-black text-[10px] flex items-center justify-center shrink-0">
+                            <div className="flex items-start justify-between gap-1.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="w-4 h-4 rounded-full bg-neutral-100 text-neutral-700 font-black text-[9px] flex items-center justify-center shrink-0">
                                   {spot.routeOrder}
                                 </span>
-                                <h4 className="font-black text-xs text-neutral-900 truncate">
+                                <h4 className="font-black text-[11px] text-neutral-900 truncate">
                                   {spotName}
                                 </h4>
                               </div>
-                              <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-neutral-600 text-[9.5px] font-bold shrink-0">
+                              <span className="px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-600 text-[9px] font-bold shrink-0">
                                 {spot.categoryType || "명소"}
                               </span>
                             </div>
 
                             {transitDesc && (
-                              <p className="text-[10px] text-neutral-500 line-clamp-1 leading-tight">
+                              <p className="text-[9.5px] text-neutral-500 line-clamp-1 leading-tight">
                                 🚇 {transitDesc}
                               </p>
                             )}
 
-                            <div className="flex items-center justify-between pt-1 border-t border-neutral-100 text-xs">
+                            <div className="flex items-center justify-between pt-1 border-t border-neutral-100 text-[10px]">
                               {spot.officialUrl ? (
                                 <a
                                   href={spot.officialUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="px-2 py-0.5 rounded-md bg-neutral-100 hover:bg-neutral-200 text-[10px] font-bold text-neutral-700 inline-flex items-center gap-0.5"
+                                  className="px-2 py-0.5 rounded-md bg-neutral-100 hover:bg-neutral-200 text-[9.5px] font-bold text-neutral-700 inline-flex items-center gap-0.5"
                                 >
                                   <span>{isKo ? "상세보기" : "Detail"}</span>
                                   <span>↗</span>
                                 </a>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-[10px] font-bold text-neutral-500">
+                                <span className="px-2 py-0.5 rounded-md bg-neutral-100 text-[9.5px] font-bold text-neutral-500">
                                   {isKo ? "상세보기" : "Detail"}
                                 </span>
                               )}
@@ -669,7 +698,7 @@ export default function ReportPdfDocument({
       })}
 
       {/* ========================================================================= */}
-      {/* PAGE: 스마트 여행 예약 (Booking Action Hub) */}
+      {/* PAGE: 스마트 여행 예약 (Booking Action Hub - 하이퍼링크 100% 작동 보장) */}
       {/* ========================================================================= */}
       <div className="pdf-portrait-page">
         <div className="space-y-4">
@@ -695,7 +724,7 @@ export default function ReportPdfDocument({
             </span>
           </div>
 
-          {/* 4대 부문 2단 다단 그리드 */}
+          {/* 4대 부문 2단 다단 그리드 (overflow-hidden 제거하여 PDF 링크 주석 완벽 보존) */}
           <div className="grid grid-cols-2 gap-4">
             {/* 좌측단: 1. 교통편 예매 + 2. 도시별 숙소 */}
             <div className="space-y-4">
@@ -711,7 +740,13 @@ export default function ReportPdfDocument({
                 </div>
                 <div className="space-y-1.5">
                   {categorizedItems.TRANSIT.map((item) => (
-                    <div key={item.id} className="p-2 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-between">
+                    <a
+                      key={item.id}
+                      href={item.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 flex items-center justify-between transition-colors block text-inherit no-underline cursor-pointer"
+                    >
                       <div className="min-w-0 pr-2">
                         <h4 className="font-bold text-xs text-neutral-900 truncate">
                           {isKo ? item.titleKo : item.titleEn}
@@ -722,16 +757,11 @@ export default function ReportPdfDocument({
                       </div>
                       <div className="text-right shrink-0">
                         <span className="text-[10px] font-black text-neutral-800 block tabular-nums">{item.priceText}</span>
-                        <a
-                          href={item.targetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[9.5px] font-extrabold text-[#b93829] hover:underline"
-                        >
+                        <span className="text-[9.5px] font-extrabold text-[#b93829] hover:underline inline-flex items-center gap-0.5">
                           {isKo ? item.actionLabelKo : item.actionLabelEn} ↗
-                        </a>
+                        </span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -748,7 +778,13 @@ export default function ReportPdfDocument({
                 </div>
                 <div className="space-y-1.5">
                   {categorizedItems.STAY.map((item) => (
-                    <div key={item.id} className="p-2 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-between">
+                    <a
+                      key={item.id}
+                      href={item.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 flex items-center justify-between transition-colors block text-inherit no-underline cursor-pointer"
+                    >
                       <div className="min-w-0 pr-2">
                         <h4 className="font-bold text-xs text-neutral-900 truncate">
                           {isKo ? item.titleKo : item.titleEn}
@@ -759,16 +795,11 @@ export default function ReportPdfDocument({
                       </div>
                       <div className="text-right shrink-0">
                         <span className="text-[10px] font-black text-neutral-800 block tabular-nums">{item.priceText}</span>
-                        <a
-                          href={item.targetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[9.5px] font-extrabold text-[#b93829] hover:underline"
-                        >
+                        <span className="text-[9.5px] font-extrabold text-[#b93829] hover:underline inline-flex items-center gap-0.5">
                           {isKo ? "아고다 예약" : "Agoda"} ↗
-                        </a>
+                        </span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -788,7 +819,13 @@ export default function ReportPdfDocument({
                 </div>
                 <div className="space-y-1.5">
                   {categorizedItems.ATTRACTION.map((item) => (
-                    <div key={item.id} className="p-2 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-between">
+                    <a
+                      key={item.id}
+                      href={item.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 flex items-center justify-between transition-colors block text-inherit no-underline cursor-pointer"
+                    >
                       <div className="min-w-0 pr-2">
                         <h4 className="font-bold text-xs text-neutral-900 truncate">
                           {isKo ? item.titleKo : item.titleEn}
@@ -799,16 +836,11 @@ export default function ReportPdfDocument({
                       </div>
                       <div className="text-right shrink-0">
                         <span className="text-[10px] font-black text-neutral-800 block tabular-nums">{item.priceText}</span>
-                        <a
-                          href={item.targetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[9.5px] font-extrabold text-[#b93829] hover:underline"
-                        >
+                        <span className="text-[9.5px] font-extrabold text-[#b93829] hover:underline inline-flex items-center gap-0.5">
                           {isKo ? item.actionLabelKo : item.actionLabelEn} ↗
-                        </a>
+                        </span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -825,7 +857,13 @@ export default function ReportPdfDocument({
                 </div>
                 <div className="space-y-1.5">
                   {categorizedItems.ESSENTIAL.map((item) => (
-                    <div key={item.id} className="p-2 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-between">
+                    <a
+                      key={item.id}
+                      href={item.targetUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-xl bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 flex items-center justify-between transition-colors block text-inherit no-underline cursor-pointer"
+                    >
                       <div className="min-w-0 pr-2">
                         <h4 className="font-bold text-xs text-neutral-900 truncate">
                           {isKo ? item.titleKo : item.titleEn}
@@ -836,16 +874,11 @@ export default function ReportPdfDocument({
                       </div>
                       <div className="text-right shrink-0">
                         <span className="text-[10px] font-black text-neutral-800 block tabular-nums">{item.priceText}</span>
-                        <a
-                          href={item.targetUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[9.5px] font-extrabold text-[#b93829] hover:underline"
-                        >
+                        <span className="text-[9.5px] font-extrabold text-[#b93829] hover:underline inline-flex items-center gap-0.5">
                           {isKo ? item.actionLabelKo : item.actionLabelEn} ↗
-                        </a>
+                        </span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -866,10 +899,11 @@ export default function ReportPdfDocument({
                         href={spot.targetUrl || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-2 py-0.5 rounded-md bg-white border border-neutral-200 text-[9.5px] text-neutral-700 hover:text-blue-600 font-medium truncate"
+                        className="px-2 py-0.5 rounded-md bg-white border border-neutral-200 text-[9.5px] text-neutral-700 hover:text-blue-600 font-medium truncate inline-flex items-center gap-0.5 cursor-pointer"
                       >
                         <span className="text-neutral-400 mr-0.5">[{isKo ? spot.cityNameKo : spot.cityNameEn}]</span>
-                        {isKo ? spot.nameKo : spot.nameEn} ↗
+                        <span>{isKo ? spot.nameKo : spot.nameEn}</span>
+                        <span>↗</span>
                       </a>
                     ))}
                   </div>

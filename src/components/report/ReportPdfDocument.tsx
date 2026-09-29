@@ -641,7 +641,7 @@ export default function ReportPdfDocument({
 
         return (
           <div key={`pdf-course-${stop.stopId || `${city}-${stopIdx}`}`} className="pdf-portrait-page">
-            <div className="space-y-2">
+            <div className="w-full space-y-2 scale-[0.94] origin-top">
               {/* 1. 최상단 타이틀 섹션 */}
               <div className="flex items-center justify-between border-b border-neutral-200/80 pb-1.5">
                 <div className="space-y-0.5">
@@ -736,34 +736,39 @@ export default function ReportPdfDocument({
 
               {/* 4. 하단: 3열 관광지 카드 그리드 (모든 카드 100% 온전히 수록) */}
               <div className="space-y-2">
-                {spotGroups.map((group) => (
-                  <div key={group.id} className="space-y-1.5">
-                    {/* 코스 타이틀 헤더 바 */}
-                    <div className="flex flex-wrap items-center justify-between gap-1 px-2.5 py-1 rounded-lg bg-neutral-100/90 border border-neutral-200/80">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[11px] font-black text-neutral-900">
-                          {isKo ? group.courseTitleKo : group.courseTitleEn}
-                        </span>
-                        <span className="text-[9px] font-bold text-neutral-600 bg-white px-1.5 py-0.2 rounded border border-neutral-200">
-                          {group.spots.length}개소
-                        </span>
-                        {group.estimatedHours && (
-                          <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
-                            ⏱ {isKo ? `약 ${group.estimatedHours}시간` : `~${group.estimatedHours}h`}
+                {spotGroups.map((group) => {
+                  const actName = group.linkedActivity
+                    ? (isKo
+                        ? group.linkedActivity.nameKo || group.linkedActivity.titleKo || group.linkedActivity.nameEn
+                        : group.linkedActivity.nameEn || group.linkedActivity.titleEn || group.linkedActivity.nameKo)
+                    : "";
+
+                  return (
+                    <div key={group.id} className="space-y-1.5">
+                      {/* 코스 타이틀 헤더 바 */}
+                      <div className="flex flex-wrap items-center justify-between gap-1 px-2.5 py-1 rounded-lg bg-neutral-100/90 border border-neutral-200/80">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-black text-neutral-900">
+                            {isKo ? group.courseTitleKo : group.courseTitleEn}
+                          </span>
+                          <span className="text-[9px] font-bold text-neutral-600 bg-white px-1.5 py-0.2 rounded border border-neutral-200">
+                            {group.spots.length}개소
+                          </span>
+                          {group.estimatedHours && (
+                            <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                              ⏱ {isKo ? `약 ${group.estimatedHours}시간` : `~${group.estimatedHours}h`}
+                            </span>
+                          )}
+                        </div>
+                        {group.linkedActivity && actName && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[8.5px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                            <span>🍵</span>
+                            <span>
+                              {isKo ? `연계 체험: ${actName}` : `Activity: ${actName}`}
+                            </span>
                           </span>
                         )}
                       </div>
-                      {group.linkedActivity && (
-                        <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[8.5px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
-                          <span>🍵</span>
-                          <span>
-                            {isKo
-                              ? `연계 체험: ${group.linkedActivity.titleKo}`
-                              : `Activity: ${group.linkedActivity.titleEn}`}
-                          </span>
-                        </span>
-                      )}
-                    </div>
 
                     {/* 3열 관광지 카드 그리드 */}
                     <div className="grid grid-cols-3 gap-1.5">
@@ -824,9 +829,10 @@ export default function ReportPdfDocument({
                       })}
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
+          </div>
 
             {/* 하단 푸터 */}
             <div className="text-right text-[9.5px] text-neutral-400 font-semibold pt-1">
@@ -840,7 +846,7 @@ export default function ReportPdfDocument({
       {/* PAGE: 스마트 여행 예약 (Booking Action Hub - 하이퍼링크 100% 작동 보장) */}
       {/* ========================================================================= */}
       <div className="pdf-portrait-page">
-        <div className="space-y-4">
+        <div className="w-full space-y-3.5 scale-[0.95] origin-top">
           {/* 상단 헤더 */}
           <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
             <div>
@@ -1036,7 +1042,7 @@ export default function ReportPdfDocument({
         {/* ========================================================================= */}
         {freeSpots.length > 0 && (
           <div className="pdf-portrait-page">
-            <div className="space-y-3">
+            <div className="w-full space-y-3 scale-[0.95] origin-top">
               {/* 상단 헤더 */}
               <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200">
                 <div>
@@ -1099,7 +1105,7 @@ export default function ReportPdfDocument({
       {/* PAGE: 도시별 담은 대표 음식 리스트 (K-FOOD SELECTION - 100% 온전히 수록) */}
       {/* ========================================================================= */}
       <div className="pdf-portrait-page">
-        <div className="space-y-3">
+        <div className="w-full space-y-3 scale-[0.95] origin-top">
           {/* 상단 헤더 */}
           <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200">
             <div>

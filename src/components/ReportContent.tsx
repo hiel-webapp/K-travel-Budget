@@ -878,7 +878,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
       dict={dict}
       usdRate={usdRate}
       dbAttractionsByCity={dbAttractionsByCity}
-      className="hidden print:block"
+      className="report-pdf-offscreen"
     />
   </>
   );

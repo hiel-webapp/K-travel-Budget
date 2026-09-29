@@ -139,39 +139,34 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
 
-  /* A4 세로(Portrait) 규격 (210mm x 297mm) */
+  /* A4 세로(Portrait) 규격 (210mm x 297mm) - 단일 페이지 완결형 구조 */
   .pdf-portrait-page {
     width: 210mm !important;
     max-width: 210mm !important;
+    height: 297mm !important;
+    max-height: 297mm !important;
     min-height: 297mm !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
-    padding: 10mm 10mm !important;
+    padding: 8mm 9mm !important;
     page-break-after: always !important;
     break-after: page !important;
-    page-break-inside: auto !important;
-    break-inside: auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
   }
 
   /* 첫 페이지: 1페이지 완결형 */
   .pdf-portrait-page-first {
-    height: 297mm !important;
-    max-height: 297mm !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
+    padding: 7mm 9mm !important;
   }
 
   /* 영수증 페이지: 본문과 토탈 요약 바가 무조건 1페이지에 함께 완결 */
   .pdf-portrait-page-receipt {
-    height: 297mm !important;
-    max-height: 297mm !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
     padding: 7mm 9mm !important;
     page-break-after: auto !important;
     break-after: auto !important;
@@ -219,6 +214,27 @@ h1, h2, h3, h4, h5, h6 {
 
   .print-column-span-all {
     column-span: all !important;
+  }
+}
+
+/* 화면에서는 숨겨두되 DOM 치수를 100% 계산하게 하여 인쇄 시 레이아웃 붕괴/비동기 지연을 방지하는 오프스크린 래퍼 */
+.report-pdf-offscreen {
+  position: absolute;
+  left: -99999px;
+  top: 0;
+  width: 210mm;
+  pointer-events: none;
+  opacity: 0;
+}
+
+@media print {
+  .report-pdf-offscreen {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 }
 

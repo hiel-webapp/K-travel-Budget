@@ -209,8 +209,8 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   // 플래너와 100% 동일한 정밀 종합 예산 계산
   const calculations = useMemo(() => {
     if (!draft || !preferences) return null;
-    return calculateTripBudgetSummary(draft, preferences, budgetPlaces, locale, dbAttractionsByCity);
-  }, [draft, preferences, budgetPlaces, locale, dbAttractionsByCity]);
+    return calculateTripBudgetSummary(draft, preferences, budgetPlaces, locale, dbAttractionsByCity, usdRate);
+  }, [draft, preferences, budgetPlaces, locale, dbAttractionsByCity, usdRate]);
 
   if (!isHydrated) {
     return (

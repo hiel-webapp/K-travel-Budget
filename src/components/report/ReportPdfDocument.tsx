@@ -7,7 +7,7 @@ import type { TripBudgetSummary } from "src/features/budget/calculations/trip-bu
 import type { TripDraft } from "src/lib/trip-domain";
 import type { PlannerPreferences } from "src/features/budget/domain/types";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES, type SupportedCity } from "src/lib/trip-domain";
-import { formatPriceByLocale } from "src/lib/currency/currency-converter";
+import { formatPriceByLocale, DEFAULT_USD_KRW_RATE } from "src/lib/currency/currency-converter";
 import { buildBookingHubData } from "./BookingActionHub";
 import {
   TOUR_COURSE_PRESETS,
@@ -180,7 +180,7 @@ export default function ReportPdfDocument({
   draft,
   locale,
   dict,
-  usdRate = 1356,
+  usdRate = DEFAULT_USD_KRW_RATE,
   dbAttractionsByCity = {},
   className = "",
 }: ReportPdfDocumentProps) {
@@ -709,7 +709,7 @@ export default function ReportPdfDocument({
                                   ? isKo
                                     ? "무료 입장"
                                     : "Free"
-                                  : `₩ ${spot.price.toLocaleString()}`}
+                                  : formatPriceByLocale(spot.price, locale, usdRate)}
                               </span>
                               <a
                                 href={directLink}
@@ -1035,7 +1035,7 @@ export default function ReportPdfDocument({
               </p>
             </div>
             <span className="text-[11px] font-black text-neutral-800 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200/60">
-              {isKo ? `식비 합계: ₩ ${sumFoodTotal.toLocaleString()}` : `Total Food: ₩ ${sumFoodTotal.toLocaleString()}`}
+              {isKo ? `식비 합계: ₩ ${sumFoodTotal.toLocaleString()}` : `Total Food: ${formatPriceByLocale(sumFoodTotal, locale, usdRate)}`}
             </span>
           </div>
 
@@ -1059,7 +1059,7 @@ export default function ReportPdfDocument({
                       ({foodItems.length}{isKo ? "종" : ""})
                     </span>
                     <span className="text-[10px] font-black text-rose-700 ml-auto tabular-nums">
-                      ₩ {(stop.foodTotalKrw || (cityBreakdown[stop.city]?.foodTotalKrw) || 0).toLocaleString()}
+                      {formatPriceByLocale((stop.foodTotalKrw || (cityBreakdown[stop.city]?.foodTotalKrw) || 0), locale, usdRate)}
                     </span>
                   </div>
 
@@ -1096,10 +1096,10 @@ export default function ReportPdfDocument({
                             </span>
                             <div className="flex items-center justify-between text-[8.5px] leading-tight">
                               <span className="text-neutral-500 tabular-nums">
-                                ₩ {unitPrice.toLocaleString()}{adultCount > 1 ? `×${adultCount}` : ""}
+                                {formatPriceByLocale(unitPrice, locale, usdRate)}{adultCount > 1 ? `×${adultCount}` : ""}
                               </span>
                               <span className="font-black text-rose-700 tabular-nums">
-                                ₩ {itemSubtotal.toLocaleString()}
+                                {formatPriceByLocale(itemSubtotal, locale, usdRate)}
                               </span>
                             </div>
                           </div>
@@ -1153,7 +1153,7 @@ export default function ReportPdfDocument({
               <div className="flex justify-between items-center text-[10px] font-bold text-neutral-800">
                 <span>{entryItems.map((i: any) => formatSimplifiedTransit(i).routeName).join(", ")}</span>
                 <span className="font-black tabular-nums">
-                  ₩ {entryItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0).toLocaleString()}
+                  {formatPriceByLocale(entryItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0), locale, usdRate)}
                 </span>
               </div>
             </div>
@@ -1196,7 +1196,7 @@ export default function ReportPdfDocument({
                       </span>
                     </span>
                     <span className="font-black text-[10.5px] text-neutral-900 tabular-nums">
-                      ₩ {(sInfo.subtotalKrw || 0).toLocaleString()}
+                      {formatPriceByLocale(sInfo.subtotalKrw || 0, locale, usdRate)}
                     </span>
                   </div>
 
@@ -1207,7 +1207,7 @@ export default function ReportPdfDocument({
                         <span className="font-bold text-teal-700 mr-1">[숙소]</span>
                         {sInfo.stayItemLabel || "도심 호텔"}
                       </span>
-                      <span className="font-bold tabular-nums shrink-0">₩ {stayTotal.toLocaleString()}</span>
+                      <span className="font-bold tabular-nums shrink-0">{formatPriceByLocale(stayTotal, locale, usdRate)}</span>
                     </div>
                   )}
 
@@ -1219,14 +1219,14 @@ export default function ReportPdfDocument({
                           <span className="font-bold text-rose-700 mr-1">[식비]</span>
                           {foodItems.length > 0 ? `선택 미식 (${foodItems.length}종)` : "식비 합계"}
                         </span>
-                        <span className="font-bold tabular-nums shrink-0">₩ {foodKrw.toLocaleString()}</span>
+                        <span className="font-bold tabular-nums shrink-0">{formatPriceByLocale(foodKrw, locale, usdRate)}</span>
                       </div>
                       {foodItems.length > 0 && (
                         <div className="pl-1.5 space-y-0.2 text-[8.5px] text-neutral-600">
                           {foodItems.map((fi: any) => (
                             <div key={fi.food?.id || fi.food?.nameKo} className="flex justify-between">
                               <span className="truncate pr-1">• {isKo ? fi.food?.nameKo : fi.food?.nameEn}</span>
-                              <span className="tabular-nums shrink-0">₩ {(fi.subtotalKrw || 0).toLocaleString()}</span>
+                              <span className="tabular-nums shrink-0">{formatPriceByLocale(fi.subtotalKrw || 0, locale, usdRate)}</span>
                             </div>
                           ))}
                         </div>
@@ -1240,7 +1240,7 @@ export default function ReportPdfDocument({
                       <span className="font-bold text-indigo-700 mr-1">[교통]</span>
                       {sInfo.cityName} 시내 대중교통
                     </span>
-                    <span className="font-bold tabular-nums">₩ {(sInfo.transportTotalKrw || 0).toLocaleString()}</span>
+                    <span className="font-bold tabular-nums">{formatPriceByLocale(sInfo.transportTotalKrw || 0, locale, usdRate)}</span>
                   </div>
 
                   {/* 관광 - 생략 없이 모든 명소 100% 표시 */}
@@ -1248,14 +1248,14 @@ export default function ReportPdfDocument({
                     <div className="space-y-0.5 pt-0.5 border-t border-neutral-100">
                       <div className="flex justify-between items-center text-[9.5px]">
                         <span className="font-bold text-amber-700">[관광] 명소 ({spots.length}곳)</span>
-                        <span className="font-bold tabular-nums">₩ {(sInfo.attractionTotalKrw || 0).toLocaleString()}</span>
+                        <span className="font-bold tabular-nums">{formatPriceByLocale(sInfo.attractionTotalKrw || 0, locale, usdRate)}</span>
                       </div>
                       <div className="pl-1.5 space-y-0.2 text-[8.5px] text-neutral-600">
                         {spots.map((sp: any) => (
                           <div key={sp.id} className="flex justify-between">
                             <span className="truncate pr-1">• {isKo ? sp.nameKo : sp.nameEn}</span>
                             <span className="tabular-nums shrink-0">
-                              {sp.price === 0 ? "무료" : `₩ ${(sp.price * adultCount).toLocaleString()}`}
+                              {sp.price === 0 ? (isKo ? "무료" : "Free") : formatPriceByLocale(sp.price * adultCount, locale, usdRate)}
                             </span>
                           </div>
                         ))}
@@ -1268,7 +1268,7 @@ export default function ReportPdfDocument({
                 {transitToNext && (
                   <div className="print-avoid-break p-1 mb-1.5 rounded-lg bg-neutral-100/80 border border-neutral-200 flex justify-between items-center text-[9px] font-bold text-neutral-700">
                     <span>{formatSimplifiedTransit(transitToNext).routeName} ({formatSimplifiedTransit(transitToNext).modeName})</span>
-                    <span className="font-black tabular-nums">₩ {(transitToNext.lineTotalKrw || 0).toLocaleString()}</span>
+                    <span className="font-black tabular-nums">{formatPriceByLocale(transitToNext.lineTotalKrw || 0, locale, usdRate)}</span>
                   </div>
                 )}
               </React.Fragment>
@@ -1281,7 +1281,7 @@ export default function ReportPdfDocument({
               <div className="flex justify-between items-center text-[10px] font-bold text-neutral-800">
                 <span>{exitItems.map((i: any) => formatSimplifiedTransit(i).routeName).join(", ")}</span>
                 <span className="font-black tabular-nums">
-                  ₩ {exitItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0).toLocaleString()}
+                  {formatPriceByLocale(exitItems.reduce((sum: number, item: any) => sum + (item.lineTotalKrw || item.totalKrw || 0), 0), locale, usdRate)}
                 </span>
               </div>
             </div>
@@ -1294,19 +1294,19 @@ export default function ReportPdfDocument({
             {shoppingAmountKrw > 0 && (
               <div>
                 <span className="text-[9.5px] text-neutral-400 block font-bold">{isKo ? "쇼핑 예산" : "Shopping"}</span>
-                <span className="font-black text-neutral-800 tabular-nums">₩ {shoppingAmountKrw.toLocaleString()}</span>
+                <span className="font-black text-neutral-800 tabular-nums">{formatPriceByLocale(shoppingAmountKrw, locale, usdRate)}</span>
               </div>
             )}
             {totalDailyAllowanceKrw > 0 && (
               <div>
                 <span className="text-[9.5px] text-neutral-400 block font-bold">{isKo ? "일일 용돈" : "Daily Allowance"}</span>
-                <span className="font-black text-neutral-800 tabular-nums">₩ {totalDailyAllowanceKrw.toLocaleString()}</span>
+                <span className="font-black text-neutral-800 tabular-nums">{formatPriceByLocale(totalDailyAllowanceKrw, locale, usdRate)}</span>
               </div>
             )}
             {computedEmergencyKrw > 0 && (
               <div>
                 <span className="text-[9.5px] text-neutral-400 block font-bold">{isKo ? "여행 비상금" : "Emergency Fund"}</span>
-                <span className="font-black text-neutral-800 tabular-nums">₩ {computedEmergencyKrw.toLocaleString()}</span>
+                <span className="font-black text-neutral-800 tabular-nums">{formatPriceByLocale(computedEmergencyKrw, locale, usdRate)}</span>
               </div>
             )}
           </div>
@@ -1316,11 +1316,13 @@ export default function ReportPdfDocument({
               {isKo ? "예산 총액 (GRAND TOTAL)" : "Grand Total"}
             </span>
             <span className="text-base font-black text-neutral-900 tabular-nums">
-              ₩ {grandTotalKrw.toLocaleString()}
+              {formatPriceByLocale(grandTotalKrw, locale, usdRate, { withSecondary: locale === "en" })}
             </span>
             {adultCount > 1 && (
               <span className="text-[9.5px] text-neutral-500 font-bold block">
-                1인당 ₩ {Math.round(grandTotalKrw / adultCount).toLocaleString()}
+                {locale === "ko"
+                  ? `1인당 ₩ ${Math.round(grandTotalKrw / adultCount).toLocaleString()}`
+                  : `${formatPriceByLocale(Math.round(grandTotalKrw / adultCount), locale, usdRate)} / person`}
               </span>
             )}
           </div>

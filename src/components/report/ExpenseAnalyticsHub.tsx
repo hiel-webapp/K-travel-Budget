@@ -6,7 +6,7 @@ import type { Dictionary } from "src/lib/i18n/dictionaries/ko";
 import type { TripDraft } from "src/lib/trip-domain";
 import { CITY_KOREAN_NAMES, CITY_ENGLISH_NAMES } from "src/lib/trip-domain";
 import { formatKrw } from "src/features/budget/presentation/formatters";
-import { formatPriceByLocale } from "src/lib/currency/currency-converter";
+import { formatPriceByLocale, DEFAULT_USD_KRW_RATE } from "src/lib/currency/currency-converter";
 import type { TripBudgetSummary } from "src/features/budget/calculations/trip-budget-calculator";
 
 export interface ExpenseAnalyticsHubProps {
@@ -22,7 +22,7 @@ export default function ExpenseAnalyticsHub({
   calculations,
   draft,
   locale,
-  usdRate = 1387,
+  usdRate = DEFAULT_USD_KRW_RATE,
   isCompact = false,
 }: ExpenseAnalyticsHubProps) {
   const isKo = locale === "ko";

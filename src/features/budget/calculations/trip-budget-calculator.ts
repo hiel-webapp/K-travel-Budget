@@ -142,7 +142,8 @@ export function calculateTripBudgetSummary(
   preferences: PlannerPreferences,
   budgetPlaces: PlaceItem[] = [],
   locale: Locale = "ko",
-  dbAttractionsByCity: Record<string, AttractionSpot[]> = {}
+  dbAttractionsByCity: Record<string, AttractionSpot[]> = {},
+  usdRate: number = 1350
 ) {
   let safeDraft = draft;
   const validation = validateTripDraft(draft);
@@ -558,7 +559,7 @@ export function calculateTripBudgetSummary(
       // 2순위: shoppingCustomInput이 전달된 경우 언어(locale)에 맞게 원화 환산
       if (preferences.shoppingCustomInput !== undefined && preferences.shoppingCustomInput !== "") {
         const rawDigits = parseInt(String(preferences.shoppingCustomInput).replace(/[^0-9]/g, ""), 10) || 0;
-        const perPersonKrw = locale === "ko" ? rawDigits : Math.round(rawDigits * 1350);
+        const perPersonKrw = locale === "ko" ? rawDigits : Math.round(rawDigits * (usdRate || 1350));
         return perPersonKrw * adultCount;
       }
       return 0;

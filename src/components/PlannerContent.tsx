@@ -2050,8 +2050,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   }), [preferences, shoppingOption, shoppingCustomInput, occupancyModeByCity, emergencyManualInput, activityManualInput, locale, usdRate, adultCount]);
 
   const summary = useMemo(() => {
-    return calculateTripBudgetSummary(draft, mergedPreferences, budgetPlaces, locale, dbAttractionsByCity);
-  }, [draft, mergedPreferences, budgetPlaces, locale, dbAttractionsByCity]);
+    return calculateTripBudgetSummary(draft, mergedPreferences, budgetPlaces, locale, dbAttractionsByCity, usdRate);
+  }, [draft, mergedPreferences, budgetPlaces, locale, dbAttractionsByCity, usdRate]);
 
   const shoppingAmountKrw = summary.shoppingAmountKrw;
   const activeEmergencyPct = summary.emergencyPct;
@@ -5948,7 +5948,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                               <div key={sIdx} className="flex justify-between text-[10.5px] text-slate-600">
                                                 <span className="truncate pr-1">• {segName} ({segNightText})</span>
                                                 <span className="tabular-nums text-slate-500 shrink-0">
-                                                  {segTotal > 0 ? formatPriceByLocale(segTotal, locale, usdRate) : "₩0"}
+                                                  {formatPriceByLocale(segTotal, locale, usdRate)}
                                                 </span>
                                               </div>
                                             );

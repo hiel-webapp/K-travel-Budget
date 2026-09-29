@@ -325,7 +325,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
         {/* 인쇄 모드: 무조건 마지막 새 페이지로 분리되어 1페이지 내에 2단 다단으로 렌더링 */}
         {/* ========================================================================= */}
         <div className="lg:col-span-4 lg:sticky lg:top-6 space-y-4 print:w-full print:block print:static print:m-0 print:p-0 print-break-before-page">
-          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden flex flex-col max-h-[calc(100vh-5.5rem)] print:max-h-none print:overflow-visible print:border print:border-neutral-300 print:shadow-none print:rounded-2xl print:bg-white print:p-0">
+          <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden flex flex-col max-h-[calc(100vh-12rem)] print:max-h-none print:overflow-visible print:border print:border-neutral-300 print:shadow-none print:rounded-2xl print:bg-white print:p-0">
             {/* Receipt Header (인쇄 시 2단 전폭 상단 바) */}
             <div className="bg-neutral-50/80 border-b border-neutral-200/70 px-4 py-3 sm:px-5 flex items-center justify-between gap-3 shrink-0 print:bg-white print:border-b-2 print:border-neutral-900 print:px-5 print:py-3 print-column-span-all">
               <h2 className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 truncate print:text-base print:font-black">
@@ -791,7 +791,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
             </div>
 
             {/* Receipt Bottom Fixed: 쇼핑 예산, 일일 용돈, 여행 비상금, 예산 총액 고정 영역 (인쇄 시 2단 다단 하단 전폭 배치) */}
-            <div className="bg-slate-50/95 border-t border-slate-200/90 p-3.5 sm:p-4 space-y-3 shrink-0 backdrop-blur-xs print:static print:border-t-2 print:border-neutral-900 print:bg-white print:shadow-none print:p-4 print:mt-4 print-column-span-all print-avoid-break">
+            <div className="bg-slate-50/95 border-t border-slate-200/90 p-3 sm:p-3.5 space-y-2.5 shrink-0 backdrop-blur-xs print:static print:border-t-2 print:border-neutral-900 print:bg-white print:shadow-none print:p-4 print:mt-4 print-column-span-all print-avoid-break">
               {/* 공통 자율 예산 (쇼핑 · 용돈 · 비상금) */}
               {(shoppingAmountKrw > 0 || totalDailyAllowanceKrw > 0 || computedEmergencyKrw > 0) && (
                 <div className="space-y-1.5 pb-2 border-b border-slate-200/70 text-xs">

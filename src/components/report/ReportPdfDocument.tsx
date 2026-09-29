@@ -366,41 +366,54 @@ export default function ReportPdfDocument({
       </div>
 
       {/* ========================================================================= */}
-      {/* PAGE 2 ~ (1 + N): 도시별 스마트 투어 코스 (첨부 이미지 2와 100% 동일, 안정적 Flex 레이아웃) */}
+      {/* PAGE 2 ~ (1 + N): 도시별 스마트 투어 코스 (각 정차지별 100% 독립 분리 렌더링) */}
       {/* ========================================================================= */}
       {stopsList.map((stop: any, stopIdx: number) => {
-        const city = stop.city;
+        const city = stop.city as SupportedCity;
         const cInfo = cityBreakdown[city];
+        const isPriorVisit = stopsList.slice(0, stopIdx).some((s: any) => s.city === stop.city);
+        const isAddedStop = Boolean(stop.isAdded || isPriorVisit);
+        const currentStopLabel = isAddedStop
+          ? `${stop.cityName || (isKo ? CITY_KOREAN_NAMES[city] : CITY_ENGLISH_NAMES[city])} (+)`
+          : stop.cityName || (isKo ? CITY_KOREAN_NAMES[city] : CITY_ENGLISH_NAMES[city]);
 
-        // 1. 관광지 목록 추출 (정차지 실비 스팟 -> 도시별 스팟 -> 공식 추천 프리셋 코스 스팟 순으로 완벽 fallback)
-        let citySpotsSource: AttractionSpot[] =
-          stop.selectedSpots && stop.selectedSpots.length > 0
-            ? stop.selectedSpots
-            : cInfo?.selectedSpots && cInfo.selectedSpots.length > 0
-            ? cInfo.selectedSpots
-            : calculations.cityBreakdown?.[city]?.selectedSpots &&
-              calculations.cityBreakdown[city].selectedSpots.length > 0
-            ? calculations.cityBreakdown[city].selectedSpots
-            : [];
+        // 1. 관광지 목록 추출: 추가 도시(isAddedStop)는 1차 도시의 스팟으로 덮어쓰지 않고 정차지 전용 스팟만 독립 반영
+        let citySpotsSource: AttractionSpot[] = [];
 
-        // 선택된 스팟이 없거나 빈 배열일 때, 해당 도시의 공식 프리셋 추천 코스 스팟들을 100% 온전히 로드
-        if (citySpotsSource.length === 0) {
-          const cityPresets = TOUR_COURSE_PRESETS.filter(
-            (c) => (c.cityCode || "").toLowerCase() === (city || "").toLowerCase() && c.isActive !== false
-          );
-          const presetSpotIds = new Set<string>();
-          cityPresets.forEach((c) =>
-            (c.spotIds || []).forEach((sid) => presetSpotIds.add(normalizeSpotKey(sid)))
-          );
+        if (stop.selectedSpots !== undefined) {
+          // 정차지 전용 selectedSpots가 있으면 (빈 배열 포함) 이를 100% 최우선 반영
+          citySpotsSource = stop.selectedSpots || [];
+        } else if (!isAddedStop) {
+          // 첫 번째 방문 정차지인 경우에만 도시 통합 breakdown 또는 프리셋 코스에서 가져옴
+          citySpotsSource =
+            cInfo?.selectedSpots && cInfo.selectedSpots.length > 0
+              ? cInfo.selectedSpots
+              : calculations.cityBreakdown?.[city]?.selectedSpots &&
+                calculations.cityBreakdown[city].selectedSpots.length > 0
+              ? calculations.cityBreakdown[city].selectedSpots
+              : [];
 
-          citySpotsSource = Array.from(presetSpotIds)
-            .map((sid) => {
-              return (
-                ATTRACTION_SPOTS_CATALOG.find((s: AttractionSpot) => isSameSpot(s.id, sid)) ||
-                (dbAttractionsByCity[city] || []).find((s: AttractionSpot) => isSameSpot(s.id, sid))
-              );
-            })
-            .filter((s): s is AttractionSpot => Boolean(s));
+          if (citySpotsSource.length === 0) {
+            const cityPresets = TOUR_COURSE_PRESETS.filter(
+              (c) => (c.cityCode || "").toLowerCase() === (city || "").toLowerCase() && c.isActive !== false
+            );
+            const presetSpotIds = new Set<string>();
+            cityPresets.forEach((c) =>
+              (c.spotIds || []).forEach((sid) => presetSpotIds.add(normalizeSpotKey(sid)))
+            );
+
+            citySpotsSource = Array.from(presetSpotIds)
+              .map((sid) => {
+                return (
+                  ATTRACTION_SPOTS_CATALOG.find((s: AttractionSpot) => isSameSpot(s.id, sid)) ||
+                  (dbAttractionsByCity[city] || []).find((s: AttractionSpot) => isSameSpot(s.id, sid))
+                );
+              })
+              .filter((s): s is AttractionSpot => Boolean(s));
+          }
+        } else {
+          // 추가 방문 도시(예: 서울(+))인데 전용 스팟이 지정되지 않은 경우: 1차 방문과 중복되지 않도록 빈 배열(독립 일정)로 유지
+          citySpotsSource = [];
         }
 
         const rawSpots = citySpotsSource.filter(
@@ -510,7 +523,7 @@ export default function ReportPdfDocument({
         return (
           <div key={`pdf-course-${stop.stopId || `${city}-${stopIdx}`}`} className="pdf-portrait-page">
             <div className="w-full space-y-2 scale-[0.94] origin-top">
-              {/* 1. 최상단 타이틀 섹션 (웹 화면과 동일한 타이틀 & 서브텍스트) */}
+              {/* 1. 최상단 타이틀 섹션 (웹 화면과 동일한 타이틀 & 정차지 독립 명칭 표기) */}
               <div className="border-b border-neutral-200/80 pb-1.5">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
@@ -518,6 +531,9 @@ export default function ReportPdfDocument({
                     <h2 className="text-base font-black text-neutral-900 tracking-tight">
                       {isKo ? "스마트 투어 코스" : "Smart Tour Course"}
                     </h2>
+                    <span className="text-[10px] font-black text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-md border border-neutral-200/70">
+                      {currentStopLabel} {stop.nights > 0 ? `(${stop.nights}${isKo ? "박" : "N"})` : `(${isKo ? "당일" : "Day"})`}
+                    </span>
                   </div>
                   <p className="text-[10.5px] text-neutral-500 font-medium leading-none">
                     {isKo
@@ -532,27 +548,29 @@ export default function ReportPdfDocument({
                 <div className="flex flex-row items-stretch gap-2.5 w-full">
                   {/* 좌측 도시 탭 & 경로 스팟 + 길찾기 버튼 */}
                   <div className="flex flex-col justify-between p-2.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 w-36 shrink-0">
-                    {/* 도시 탭 리스트 */}
+                    {/* 도시 탭 리스트 (인덱스 기반으로 현재 정차지 100% 정확하게 활성화) */}
                     <div className="flex flex-col gap-1.5 w-full">
                       {stopsList.map((st: any, sIdx: number) => {
-                        const isCurrentCity =
-                          st.stopId === stop.stopId ||
-                          (st.city === stop.city && st.stopIndex === stop.stopIndex);
+                        const isPrior = stopsList.slice(0, sIdx).some((s: any) => s.city === st.city);
+                        const isAdded = Boolean(st.isAdded || isPrior);
+                        const tabBaseName = st.cityName || (isKo ? CITY_KOREAN_NAMES[st.city as SupportedCity] : CITY_ENGLISH_NAMES[st.city as SupportedCity]);
+                        const isCurrentStop = sIdx === stopIdx;
+
                         return (
                           <div
                             key={`${st.stopId || st.city}-${sIdx}`}
                             className={`w-full py-2 px-2.5 rounded-xl text-xs font-black text-left flex items-center justify-between gap-1.5 ${
-                              isCurrentCity
+                              isCurrentStop
                                 ? "bg-white text-slate-900 border border-slate-200/90 shadow-2xs ring-1 ring-slate-900/5"
                                 : "text-slate-500 font-bold"
                             }`}
                           >
                             <div className="flex items-center gap-1.5 min-w-0 truncate">
-                              {isCurrentCity && (
+                              {isCurrentStop && (
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#b93829] shrink-0" />
                               )}
-                              <span className="truncate">{st.cityName}</span>
-                              {st.isAdded && <span className="text-[#b93829] text-[9.5px] ml-0.5">(+)</span>}
+                              <span className="truncate">{tabBaseName}</span>
+                              {isAdded && <span className="text-[#b93829] text-[9.5px] ml-0.5">(+)</span>}
                             </div>
                           </div>
                         );
@@ -587,7 +605,7 @@ export default function ReportPdfDocument({
                   <div className="flex-1 min-w-0">
                     <PdfKakaoCityMap
                       city={city}
-                      cityName={stop.cityName}
+                      cityName={currentStopLabel}
                       spots={displayedSpots}
                       isKo={isKo}
                     />
@@ -602,14 +620,19 @@ export default function ReportPdfDocument({
                   <span>{isKo ? "순번별 방문 타임라인 & 길찾기" : "Optimized Timeline & Route"}</span>
                 </span>
                 <span className="text-neutral-400 font-medium text-[9px]">
-                  {isKo
-                    ? "카카오맵 길찾기 링크를 누르면 지도 상세 경로로 연결됩니다."
-                    : "Click Route to view Kakao Map directions."}
+                  {displayedSpots.length > 0
+                    ? isKo
+                      ? "카카오맵 길찾기 링크를 누르면 지도 상세 경로로 연결됩니다."
+                      : "Click Route to view Kakao Map directions."
+                    : isKo
+                    ? "선택된 별도 관광지가 없는 자유 일정 정차지입니다."
+                    : "Free schedule with no scheduled attractions."}
                 </span>
               </div>
 
-              {/* 4. 하단: 3열 관광지 카드 그리드 (모든 카드 100% 온전히 수록) */}
-              <div className="space-y-2">
+              {/* 4. 하단: 3열 관광지 카드 그리드 (스팟이 없을 경우 독립적인 자유 일정 안내 박스 노출) */}
+              {displayedSpots.length > 0 ? (
+                <div className="space-y-2">
                 {spotGroups.map((group) => {
                   const actName = group.linkedActivity
                     ? (isKo
@@ -706,7 +729,21 @@ export default function ReportPdfDocument({
                 );
               })}
             </div>
-          </div>
+          ) : (
+            <div className="p-8 rounded-2xl bg-slate-50/90 border border-slate-200/80 text-center space-y-1.5 my-3">
+              <p className="text-xs font-bold text-slate-700">
+                {isKo
+                  ? `${currentStopLabel}에 등록된 별도 여행 동선 스팟이 없습니다.`
+                  : `No attractions selected for ${currentStopLabel} yet.`}
+              </p>
+              <p className="text-[11px] text-slate-400">
+                {isKo
+                  ? "추가 일정은 자유 탐방, 환승 이동 및 휴식 일정으로 진행됩니다."
+                  : "This additional stop is designated for free exploration or transit."}
+              </p>
+            </div>
+          )}
+        </div>
 
             {/* 하단 푸터 */}
             <div className="text-right text-[9.5px] text-neutral-400 font-semibold pt-1">

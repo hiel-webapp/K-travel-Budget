@@ -27,7 +27,7 @@ export default function ReportShareBar({ locale }: ReportShareBarProps) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 w-full bg-[#faf9f6] z-40 pb-4 pt-2 print:hidden">
+    <div className="sticky bottom-0 left-0 right-0 w-full bg-[#faf9f6] z-40 py-3 sm:py-4 border-t border-neutral-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] print:hidden">
       <div className="w-[94%] sm:w-[92%] max-w-5xl mx-auto">
         <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl border border-neutral-200/80 shadow-sm">
         {/* Left: Info Text & Bullet Points */}

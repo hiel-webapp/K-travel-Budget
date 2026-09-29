@@ -49,8 +49,8 @@ export interface ReportPdfDocumentProps {
 }
 
 /**
- * 정밀 카카오 스타일 지도 뷰어 (인쇄/PDF에 100% 선명하고 확실하게 출력)
- * 카카오 지도 도로망, 지형 텍스처, 랜드마크, 번호 캡슐 마커 및 카카오 UI를 완벽 재현
+ * 웹 예산 리포트의 스마트 투어 코스 지도와 100% 동일한 카카오 지도 뷰어
+ * 카카오 지도 SDK 인스턴스, 정품 줌 슬라이더, 화이트 알약 핀 마커, 핑크 점선 경로 완벽 일치
  */
 function PdfKakaoCityMap({
   city,
@@ -63,246 +63,114 @@ function PdfKakaoCityMap({
   spots: RouteSpotItem[];
   isKo: boolean;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const centerCoord = CITY_CENTER_COORDINATES[city] || { lat: 37.5665, lng: 126.978 };
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
 
-  // 스팟들의 바운딩 박스 계산
-  const { minLat, maxLat, minLng, maxLng } = useMemo(() => {
-    if (spots.length === 0) {
-      return {
-        minLat: centerCoord.lat - 0.03,
-        maxLat: centerCoord.lat + 0.03,
-        minLng: centerCoord.lng - 0.04,
-        maxLng: centerCoord.lng + 0.04,
-      };
-    }
-    let minLt = Infinity, maxLt = -Infinity, minLg = Infinity, maxLg = -Infinity;
-    spots.forEach((s) => {
-      if (s.lat < minLt) minLt = s.lat;
-      if (s.lat > maxLt) maxLt = s.lat;
-      if (s.lng < minLg) minLg = s.lng;
-      if (s.lng > maxLg) maxLg = s.lng;
-    });
-
-    const latSpan = Math.max(maxLt - minLt, 0.022);
-    const lngSpan = Math.max(maxLg - minLg, 0.032);
-    const padLat = latSpan * 0.2;
-    const padLng = lngSpan * 0.2;
-
-    return {
-      minLat: minLt - padLat,
-      maxLat: maxLt + padLat,
-      minLng: minLg - padLng,
-      maxLng: maxLg + padLng,
-    };
-  }, [spots, centerCoord]);
-
-  // 좌표를 0~100% 뷰포트 비율로 투영
-  const projectedSpots = useMemo(() => {
-    const latSpan = maxLat - minLat || 0.01;
-    const lngSpan = maxLng - minLng || 0.01;
-
-    return spots.map((s) => {
-      const xPct = Math.min(Math.max(((s.lng - minLng) / lngSpan) * 100, 10), 90);
-      const yPct = Math.min(Math.max((1 - (s.lat - minLat) / latSpan) * 100, 12), 88);
-      return {
-        ...s,
-        xPct,
-        yPct,
-      };
-    });
-  }, [spots, minLat, maxLat, minLng, maxLng]);
-
-  // 카카오맵 JS SDK가 마운트되어 있으면 실제 카카오 StaticMap 생성 시도
   useEffect(() => {
-    const el = containerRef.current;
-    if (typeof window !== "undefined" && (window as any).kakao && (window as any).kakao.maps && el && spots.length > 0) {
-      try {
-        const kakao = (window as any).kakao;
-        kakao.maps.load(() => {
-          const markerList = spots.map((sp) => ({
-            position: new kakao.maps.LatLng(sp.lat, sp.lng),
-            text: `${sp.routeOrder}. ${isKo ? sp.nameKo : sp.nameEn}`,
-          }));
-          const opt = {
-            center: new kakao.maps.LatLng((minLat + maxLat) / 2, (minLng + maxLng) / 2),
-            level: city === "SEOUL" ? 5 : 6,
-            marker: markerList,
+    const el = mapContainerRef.current;
+    if (typeof window === "undefined" || !el) return;
+
+    const renderMap = () => {
+      const kakao = (window as any).kakao;
+      if (!kakao || !kakao.maps) return;
+
+      kakao.maps.load(() => {
+        if (!mapContainerRef.current) return;
+
+        try {
+          const centerCoord =
+            spots.length > 0
+              ? new kakao.maps.LatLng(spots[0].lat, spots[0].lng)
+              : new kakao.maps.LatLng(37.5665, 126.978);
+
+          const options = {
+            center: centerCoord,
+            level: 6,
           };
-          el.innerHTML = "";
-          new kakao.maps.StaticMap(el, opt);
-        });
-      } catch (e) {
-        // SDK 렌더 실패 시 기본 정밀 지도 오버레이 유지
-      }
+
+          mapContainerRef.current.innerHTML = "";
+          const map = new kakao.maps.Map(mapContainerRef.current, options);
+          mapInstanceRef.current = map;
+
+          // 1. 웹 화면과 100% 동일한 우측 카카오 정품 줌 슬라이더
+          const zoomControl = new kakao.maps.ZoomControl();
+          map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+          if (spots.length === 0) return;
+
+          const bounds = new kakao.maps.LatLngBounds();
+          const pathCoords: any[] = [];
+
+          // 2. 웹 화면과 100% 동일한 화이트 알약 핀 마커 커스텀 오버레이
+          spots.forEach((spot) => {
+            const pos = new kakao.maps.LatLng(spot.lat, spot.lng);
+            bounds.extend(pos);
+            pathCoords.push(pos);
+
+            const spotName = isKo ? spot.nameKo : spot.nameEn;
+
+            const content = document.createElement("div");
+            content.className = "cursor-default transform -translate-x-1/2 -translate-y-full";
+            content.innerHTML = `
+              <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 4px; background-color: #ffffff; color: #1e293b; padding: 2.5px 7px; border-radius: 9999px; font-weight: 700; font-size: 11px; box-shadow: 0 2px 6px rgba(0,0,0,0.14); border: 1.5px solid #cbd5e1; white-space: nowrap;">
+                  <span style="background: #f1f5f9; color: #475569; width: 15px; height: 15px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800;">${spot.routeOrder}</span>
+                  <span style="font-weight: 600;">${spotName}</span>
+                </div>
+                <div style="width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #cbd5e1;"></div>
+              </div>
+            `;
+
+            const overlay = new kakao.maps.CustomOverlay({
+              position: pos,
+              content,
+              yAnchor: 1,
+              zIndex: 10 + (spot.routeOrder || 1),
+            });
+            overlay.setMap(map);
+          });
+
+          // 3. 웹 화면과 100% 동일한 스팟 간 핑크/레드 점선 이동 경로
+          if (pathCoords.length > 1) {
+            const polyline = new kakao.maps.Polyline({
+              path: pathCoords,
+              strokeWeight: 3.5,
+              strokeColor: "#f43f5e",
+              strokeOpacity: 0.85,
+              strokeStyle: "shortdash",
+            });
+            polyline.setMap(map);
+          }
+
+          // 4. 지도 바운딩 박스 포커스
+          if (spots.length === 1) {
+            map.setCenter(new kakao.maps.LatLng(spots[0].lat, spots[0].lng));
+            map.setLevel(5);
+          } else {
+            map.setBounds(bounds);
+          }
+        } catch (err) {
+          console.error("PDF Kakao Map init error:", err);
+        }
+      });
+    };
+
+    if ((window as any).kakao && (window as any).kakao.maps) {
+      renderMap();
+    } else {
+      const timer = setInterval(() => {
+        if ((window as any).kakao && (window as any).kakao.maps) {
+          clearInterval(timer);
+          renderMap();
+        }
+      }, 300);
+      return () => clearInterval(timer);
     }
-  }, [spots, minLat, maxLat, minLng, maxLng, city, isKo]);
+  }, [spots, city, isKo]);
 
   return (
-    <div className="relative w-full h-[165px] rounded-2xl overflow-hidden border border-[#d6d3c7] bg-[#f4f2ea] shadow-inner select-none">
-      {/* 1. 카카오 StaticMap 타일 삽입용 DOM (클라이언트에서 즉시 렌더) */}
-      <div ref={containerRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
-
-      {/* 2. 카카오 지도 고유의 실제 도로망 & 지형 & 하천 정밀 렌더 레이어 */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-1" preserveAspectRatio="none">
-        {/* 공원 및 녹지 구역 (남산, 북한산, 공원 등) */}
-        <path
-          d="M 180 20 Q 240 10 300 35 Q 360 50 320 90 Q 250 110 190 70 Z"
-          fill="#dcfce7"
-          opacity="0.8"
-        />
-        <path
-          d="M 220 95 Q 260 85 290 105 Q 310 130 270 145 Q 230 140 220 95 Z"
-          fill="#dcfce7"
-          opacity="0.85"
-        />
-
-        {/* 일반 도로망 (흰색 실선 격자) */}
-        <g stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" opacity="0.95">
-          <line x1="-10" y1="40" x2="600" y2="45" />
-          <line x1="-10" y1="75" x2="600" y2="70" />
-          <line x1="-10" y1="110" x2="600" y2="115" />
-          <line x1="-10" y1="140" x2="600" y2="135" />
-          <line x1="80" y1="-10" x2="70" y2="200" />
-          <line x1="160" y1="-10" x2="165" y2="200" />
-          <line x1="250" y1="-10" x2="245" y2="200" />
-          <line x1="340" y1="-10" x2="350" y2="200" />
-          <line x1="430" y1="-10" x2="420" y2="200" />
-        </g>
-
-        {/* 주요 간선도로 (노란색 라인 #fcd34d) */}
-        <g stroke="#fcd34d" strokeWidth="4" strokeLinecap="round" opacity="0.9">
-          <line x1="-10" y1="60" x2="600" y2="60" />
-          <line x1="210" y1="-10" x2="210" y2="200" />
-          <line x1="380" y1="-10" x2="380" y2="200" />
-        </g>
-
-        {/* 고속화도로 (주황색 라인 #fdba74) */}
-        <g stroke="#fdba74" strokeWidth="4.5" strokeLinecap="round" opacity="0.95">
-          <path d="M -10 105 Q 150 115 300 100 T 600 110" fill="none" />
-        </g>
-
-        {/* 한강 또는 하천/해안 곡선 (서울/부산/전주) */}
-        {city === "SEOUL" && (
-          <path
-            d="M -10 125 C 90 105, 170 145, 250 120 C 330 95, 410 135, 600 110"
-            fill="none"
-            stroke="#93c5fd"
-            strokeWidth="16"
-            strokeLinecap="round"
-            opacity="0.8"
-          />
-        )}
-        {city === "BUSAN" && (
-          <path
-            d="M 50 180 C 130 120, 230 140, 330 115 C 410 85, 480 110, 600 70"
-            fill="none"
-            stroke="#93c5fd"
-            strokeWidth="18"
-            strokeLinecap="round"
-            opacity="0.8"
-          />
-        )}
-        {city === "JEONJU" && (
-          <path
-            d="M 120 -10 C 140 60, 160 110, 220 200"
-            fill="none"
-            stroke="#93c5fd"
-            strokeWidth="10"
-            strokeLinecap="round"
-            opacity="0.8"
-          />
-        )}
-
-        {/* 관광지 간 순차 이동 경로 폴리라인 (카카오맵 빨간색 동선 점선) */}
-        {projectedSpots.length > 1 && (
-          <polyline
-            points={projectedSpots.map((s) => `${(s.xPct * 5.2).toFixed(1)},${(s.yPct * 1.65).toFixed(1)}`).join(" ")}
-            fill="none"
-            stroke="#ef4444"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="5,4"
-            opacity="0.95"
-          />
-        )}
-      </svg>
-
-      {/* 3. 지도 지형 텍스트 레이블 (실제 카카오 지도 감성 텍스트) */}
-      <div className="absolute inset-0 pointer-events-none z-1 text-[8px] font-bold text-neutral-400 select-none">
-        {city === "SEOUL" && (
-          <>
-            <span className="absolute left-[38%] top-[12%] text-emerald-700/60">북한산 국립공원</span>
-            <span className="absolute left-[48%] top-[68%] text-emerald-700/60">남산공원</span>
-            <span className="absolute left-[20%] top-[72%] text-blue-600/50">한강</span>
-            <span className="absolute left-[62%] top-[70%] text-blue-600/50">한강</span>
-          </>
-        )}
-        {city === "BUSAN" && (
-          <>
-            <span className="absolute left-[22%] top-[25%] text-emerald-700/60">황령산</span>
-            <span className="absolute left-[70%] top-[45%] text-blue-600/60">해운대해변</span>
-            <span className="absolute left-[48%] top-[75%] text-blue-600/60">광안리해변</span>
-          </>
-        )}
-        {city === "JEONJU" && (
-          <>
-            <span className="absolute left-[30%] top-[70%] text-blue-600/50">전주천</span>
-            <span className="absolute left-[60%] top-[30%] text-emerald-700/60">기린봉</span>
-          </>
-        )}
-      </div>
-
-      {/* 4. 좌측 상단 카카오맵 공식 뱃지 */}
-      <div className="absolute top-2 left-2 flex items-center gap-1 bg-white/95 px-2 py-0.5 rounded shadow-xs border border-neutral-200 z-10">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FEE500] inline-flex items-center justify-center text-[7px] font-black text-[#191919]">
-          k
-        </span>
-        <span className="text-[8.5px] font-black text-[#191919] tracking-tight">kakao 지도</span>
-      </div>
-
-      {/* 5. 우측 상단 줌 컨트롤 UI */}
-      <div className="absolute top-2 right-2 flex flex-col bg-white border border-neutral-300 rounded shadow-xs overflow-hidden z-10">
-        <div className="w-4 h-4 flex items-center justify-center text-[10px] font-bold text-neutral-600 border-b border-neutral-200">
-          +
-        </div>
-        <div className="w-4 h-5 flex items-center justify-center">
-          <div className="w-1 h-3 bg-blue-500 rounded-full" />
-        </div>
-        <div className="w-4 h-4 flex items-center justify-center text-[10px] font-bold text-neutral-600 border-t border-neutral-200">
-          −
-        </div>
-      </div>
-
-      {/* 6. 우측 하단 축척 및 카카오 로고 */}
-      <div className="absolute bottom-1.5 right-2 flex items-center gap-1 text-[8px] text-neutral-600 font-bold bg-white/90 px-1.5 py-0.2 rounded border border-neutral-300/80 z-10">
-        <div className="w-4 h-0.5 border-b border-l border-r border-neutral-600 inline-block mb-0.5" />
-        <span>1km</span>
-        <span className="font-black text-neutral-900">kakao</span>
-      </div>
-
-      {/* 7. 각 스팟의 선명한 핑크/레드 캡슐 마커 */}
-      {projectedSpots.map((spot) => {
-        const spotName = isKo ? spot.nameKo : spot.nameEn;
-        return (
-          <div
-            key={spot.id}
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 bg-[#f43f5e] hover:bg-[#e11d48] text-white border-2 border-white px-2 py-0.5 rounded-full shadow-md z-20 whitespace-nowrap"
-            style={{
-              left: `${spot.xPct}%`,
-              top: `${spot.yPct}%`,
-            }}
-          >
-            <span className="w-3.5 h-3.5 rounded-full bg-white text-[#f43f5e] font-black text-[8px] flex items-center justify-center shrink-0 shadow-2xs">
-              {spot.routeOrder}
-            </span>
-            <span className="text-[9px] font-black tracking-tight truncate max-w-[100px]">
-              {spotName}
-            </span>
-          </div>
-        );
-      })}
+    <div className="relative w-full h-[330px] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-inner select-none">
+      <div ref={mapContainerRef} className="w-full h-full" />
     </div>
   );
 }
@@ -642,74 +510,80 @@ export default function ReportPdfDocument({
         return (
           <div key={`pdf-course-${stop.stopId || `${city}-${stopIdx}`}`} className="pdf-portrait-page">
             <div className="w-full space-y-2 scale-[0.94] origin-top">
-              {/* 1. 최상단 타이틀 섹션 */}
-              <div className="flex items-center justify-between border-b border-neutral-200/80 pb-1.5">
+              {/* 1. 최상단 타이틀 섹션 (웹 화면과 동일한 타이틀 & 서브텍스트) */}
+              <div className="border-b border-neutral-200/80 pb-1.5">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#f43f5e] shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-[#b93829] shrink-0" />
                     <h2 className="text-base font-black text-neutral-900 tracking-tight">
                       {isKo ? "스마트 투어 코스" : "Smart Tour Course"}
                     </h2>
-                    <span className="text-[10px] font-black text-neutral-700 bg-neutral-100 px-2 py-0.5 rounded-md border border-neutral-200/70">
-                      {stop.cityName} {stop.nights > 0 ? `(${stop.nights}${isKo ? "박" : "N"})` : `(${isKo ? "당일" : "Day"})`}
-                    </span>
                   </div>
-                  <p className="text-[10px] text-neutral-500 font-medium leading-none">
+                  <p className="text-[10.5px] text-neutral-500 font-medium leading-none">
                     {isKo
-                      ? "도시별 추천 여행 코스와 최적 이동 동선을 카카오 지도에서 한눈에 확인하세요."
+                      ? "도시별 추천 여행 코스와 최적 이동 동선을 지도에서 한눈에 확인하세요."
                       : "Explore curated travel courses and optimized routes on the map."}
                   </p>
                 </div>
-                <div className="text-[10px] font-bold text-neutral-600 bg-neutral-50 px-2.5 py-1 rounded-lg border border-neutral-200/60">
-                  {isKo ? "경로 스팟" : "Spots"}: <strong className="text-[#f43f5e] font-black">{displayedSpots.length}개소</strong>
-                </div>
               </div>
 
-              {/* 2. 상단 박스: 좌측 도시 탭 + 우측 카카오 지도 */}
-              <div className="bg-white rounded-2xl border border-neutral-200/90 p-2.5 shadow-xs">
+              {/* 2. 상단 박스: 좌측 도시 탭 + 우측 카카오 지도 (웹 화면과 100% 동일한 구조) */}
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-2.5 shadow-xs">
                 <div className="flex flex-row items-stretch gap-2.5 w-full">
-                  {/* 좌측 도시 탭 & 길찾기 버튼 */}
-                  <div className="w-[125px] shrink-0 flex flex-col justify-between py-0.5 pr-2.5 border-r border-neutral-100">
-                    <div className="space-y-1">
-                      {stopsList.map((st: any) => {
+                  {/* 좌측 도시 탭 & 경로 스팟 + 길찾기 버튼 */}
+                  <div className="flex flex-col justify-between p-2.5 rounded-2xl bg-slate-50/80 border border-slate-200/70 w-36 shrink-0">
+                    {/* 도시 탭 리스트 */}
+                    <div className="flex flex-col gap-1.5 w-full">
+                      {stopsList.map((st: any, sIdx: number) => {
                         const isCurrentCity =
                           st.stopId === stop.stopId ||
                           (st.city === stop.city && st.stopIndex === stop.stopIndex);
-                        return isCurrentCity ? (
+                        return (
                           <div
-                            key={st.stopId || st.city}
-                            className="w-full py-1.5 px-2.5 rounded-lg bg-[#191919] text-white font-black text-[11px] text-left shadow-2xs flex items-center justify-between"
+                            key={`${st.stopId || st.city}-${sIdx}`}
+                            className={`w-full py-2 px-2.5 rounded-xl text-xs font-black text-left flex items-center justify-between gap-1.5 ${
+                              isCurrentCity
+                                ? "bg-white text-slate-900 border border-slate-200/90 shadow-2xs ring-1 ring-slate-900/5"
+                                : "text-slate-500 font-bold"
+                            }`}
                           >
-                            <span className="truncate">{st.cityName}</span>
-                            {st.isAdded && <span className="text-[#fca5a5] text-[8.5px] ml-1">(+)</span>}
-                          </div>
-                        ) : (
-                          <div
-                            key={st.stopId || st.city}
-                            className="w-full py-1 px-2.5 rounded-lg text-neutral-500 font-bold text-[10.5px] text-left"
-                          >
-                            <span className="truncate">{st.cityName}</span>
-                            {st.isAdded && <span className="text-[#b93829] text-[8.5px] ml-1">(+)</span>}
+                            <div className="flex items-center gap-1.5 min-w-0 truncate">
+                              {isCurrentCity && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#b93829] shrink-0" />
+                              )}
+                              <span className="truncate">{st.cityName}</span>
+                              {st.isAdded && <span className="text-[#b93829] text-[9.5px] ml-0.5">(+)</span>}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
 
-                    <div className="pt-1.5 border-t border-neutral-100">
-                      <a
-                        href={kakaoDirectUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-[10px] shadow-2xs text-center cursor-pointer no-underline"
-                      >
-                        <span className="text-[10px]">💬</span>
-                        <span>{isKo ? "카카오맵 길찾기" : "Kakao Route"}</span>
-                        <span className="text-[8.5px]">↗</span>
-                      </a>
+                    {/* 지도 왼편 하단: 경로 스팟 n개소 + 카카오맵 길찾기 버튼 (2줄) */}
+                    <div className="pt-2 mt-auto border-t border-neutral-200/80 flex flex-col gap-1.5 w-full">
+                      <div className="text-[11px] font-bold text-neutral-600">
+                        <span>{isKo ? "경로 스팟" : "Spots"}: </span>
+                        <strong className="text-neutral-900 font-black">{displayedSpots.length}개소</strong>
+                      </div>
+
+                      {displayedSpots.length > 0 && (
+                        <a
+                          href={kakaoDirectUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] font-black text-[11px] transition-all shadow-2xs cursor-pointer text-center no-underline"
+                        >
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 3c-4.97 0-9 3.185-9 7.115 0 2.558 1.708 4.8 4.27 6.054l-.865 3.186c-.078.287.213.522.46.368l3.77-2.35c.446.04.9.057 1.365.057 4.97 0 9-3.185 9-7.115S16.97 3 12 3z" />
+                          </svg>
+                          <span className="truncate">{isKo ? "카카오맵 길찾기" : "Kakao Route"}</span>
+                          <span className="text-[10px] shrink-0">↗</span>
+                        </a>
+                      )}
                     </div>
                   </div>
 
-                  {/* 우측 정밀 카카오 스타일 지도 */}
+                  {/* 우측 컴팩트 카카오맵 뷰포트 */}
                   <div className="flex-1 min-w-0">
                     <PdfKakaoCityMap
                       city={city}

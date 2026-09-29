@@ -148,7 +148,7 @@ h1, h2, h3, h4, h5, h6 {
     min-height: 297mm !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
-    padding: 8mm 9mm !important;
+    padding: 12mm 13mm !important;
     page-break-after: always !important;
     break-after: page !important;
     page-break-inside: avoid !important;
@@ -162,12 +162,12 @@ h1, h2, h3, h4, h5, h6 {
 
   /* 첫 페이지: 1페이지 완결형 */
   .pdf-portrait-page-first {
-    padding: 7mm 9mm !important;
+    padding: 12mm 13mm !important;
   }
 
   /* 영수증 페이지: 본문과 토탈 요약 바가 무조건 1페이지에 함께 완결 */
   .pdf-portrait-page-receipt {
-    padding: 7mm 9mm !important;
+    padding: 12mm 13mm !important;
     page-break-after: auto !important;
     break-after: auto !important;
   }

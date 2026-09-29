@@ -169,7 +169,7 @@ function PdfKakaoCityMap({
   }, [spots, city, isKo]);
 
   return (
-    <div className="relative w-full h-[330px] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-inner select-none">
+    <div className="relative w-full h-[300px] rounded-2xl overflow-hidden border border-slate-200/80 bg-slate-100 shadow-inner select-none">
       <div ref={mapContainerRef} className="w-full h-full" />
     </div>
   );
@@ -289,7 +289,7 @@ export default function ReportPdfDocument({
       {/* PAGE 1: 종합 예산 리포트 대시보드 (첨부 이미지 1과 100% 동일, 캡슐 바 완결) */}
       {/* ========================================================================= */}
       <div className="pdf-portrait-page pdf-portrait-page-first">
-        <div className="w-full space-y-3.5 scale-[0.96] origin-top">
+        <div className="w-full space-y-2.5">
           {/* 1. Header Card (첨부 이미지 1의 상단 헤더) */}
           <div className="bg-white rounded-3xl border border-neutral-200/80 px-6 py-3.5 shadow-sm">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
@@ -522,7 +522,7 @@ export default function ReportPdfDocument({
 
         return (
           <div key={`pdf-course-${stop.stopId || `${city}-${stopIdx}`}`} className="pdf-portrait-page">
-            <div className="w-full space-y-2 scale-[0.94] origin-top">
+            <div className="w-full space-y-2 scale-[0.97] origin-top">
               {/* 1. 최상단 타이틀 섹션 (웹 화면과 동일한 타이틀 & 정차지 독립 명칭 표기) */}
               <div className="border-b border-neutral-200/80 pb-1.5">
                 <div className="space-y-0.5">
@@ -757,7 +757,7 @@ export default function ReportPdfDocument({
       {/* PAGE: 스마트 여행 예약 (Booking Action Hub - 하이퍼링크 100% 작동 보장) */}
       {/* ========================================================================= */}
       <div className="pdf-portrait-page">
-        <div className="w-full space-y-3.5 scale-[0.95] origin-top">
+        <div className="w-full space-y-3.5">
           {/* 상단 헤더 */}
           <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
             <div>
@@ -953,7 +953,7 @@ export default function ReportPdfDocument({
         {/* ========================================================================= */}
         {freeSpots.length > 0 && (
           <div className="pdf-portrait-page">
-            <div className="w-full space-y-3 scale-[0.95] origin-top">
+            <div className="w-full space-y-3">
               {/* 상단 헤더 */}
               <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200">
                 <div>
@@ -1016,7 +1016,7 @@ export default function ReportPdfDocument({
       {/* PAGE: 도시별 담은 대표 음식 리스트 (K-FOOD SELECTION - 100% 온전히 수록) */}
       {/* ========================================================================= */}
       <div className="pdf-portrait-page">
-        <div className="w-full space-y-3 scale-[0.95] origin-top">
+        <div className="w-full space-y-3">
           {/* 상단 헤더 */}
           <div className="flex items-center justify-between pb-1.5 border-b border-neutral-200">
             <div>

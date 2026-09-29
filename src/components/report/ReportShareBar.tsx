@@ -22,33 +22,34 @@ export default function ReportShareBar({ locale, draft, preferences }: ReportSha
 
       let shareUrl = window.location.href;
       if (draft) {
-        const encoded = encodePlanToUrl(draft, preferences);
-        if (encoded) {
-          shareUrl = `${window.location.origin}/${locale}/report?plan=${encoded}`;
-        }
-      }
-
-      // 모바일 기기: 네이티브 공유 다이얼로그 (카톡, 문자 등)
-      if (typeof navigator !== "undefined" && navigator.share) {
         try {
-          await navigator.share({
-            title: locale === "ko" ? "HypeHeritage 한국 여행 예산 리포트" : "HypeHeritage Korea Travel Budget Report",
-            text: locale === "ko" ? "내가 계획한 한국 여행 일정과 예상 경비 리포트야! 확인해봐 ✨" : "Check out my planned Korea trip budget report! ✨",
-            url: shareUrl,
+          // 1. 6자리 초단축 ID 발급 시도 (깔끔한 링크)
+          const res = await fetch("/api/share", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ draft, preferences }),
           });
-          return;
-        } catch (shareErr: any) {
-          // 사용자가 취소한 경우가 아니면 클립보드로 복사 진행
-          if (shareErr.name === "AbortError") return;
+          const json = await res.json();
+          if (json.success && json.shareId) {
+            shareUrl = `${window.location.origin}/${locale}/report?share=${json.shareId}`;
+          } else {
+            throw new Error("Short link fallback");
+          }
+        } catch {
+          // 2. 오프라인/통신 실패 시 fallback: 압축 URL
+          const encoded = encodePlanToUrl(draft, preferences);
+          if (encoded) {
+            shareUrl = `${window.location.origin}/${locale}/report?plan=${encoded}`;
+          }
         }
       }
 
-      // PC 브라우저 또는 Web Share 미지원 시 클립보드 복사
+      // 원클릭 클립보드 복사
       await navigator.clipboard.writeText(shareUrl);
       setToastMessage(
         locale === "ko"
-          ? "여행 예산 리포트 링크가 복사되었습니다 ✨"
-          : "Trip budget report link copied to clipboard ✨"
+          ? "여행 예산 리포트 단축 링크가 복사되었습니다 ✨"
+          : "Short trip budget report link copied to clipboard ✨"
       );
       setShowToast(true);
       setTimeout(() => {

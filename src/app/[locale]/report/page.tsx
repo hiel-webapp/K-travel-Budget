@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, Locale } from "src/lib/i18n/locales";
 import { getDictionary } from "src/lib/i18n/get-dictionary";
@@ -6,6 +7,42 @@ import ReportContent from "src/components/ReportContent";
 
 interface PageProps {
   params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const isKo = locale === "ko";
+
+  const title = isKo
+    ? "K-Travel Budget | 한국 여행 예산 리포트"
+    : "K-Travel Budget | Korea Travel Budget Report";
+  const description = isKo
+    ? "내가 계획한 한국 여행 일정과 예상 경비 영수증을 확인해보세요! ✨"
+    : "Check out my planned Korea trip budget report and smart receipt! ✨";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images: [
+        {
+          url: "/images/og-report.jpg",
+          width: 1200,
+          height: 630,
+          alt: "K-Travel Budget Report Cover",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/images/og-report.jpg"],
+    },
+  };
 }
 
 export default async function ReportPage({ params }: PageProps) {

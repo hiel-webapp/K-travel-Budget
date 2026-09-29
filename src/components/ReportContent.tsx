@@ -101,23 +101,49 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   };
 
   useEffect(() => {
-    const handle = requestAnimationFrame(() => {
+    let isCancelled = false;
+
+    async function initializeReport() {
       try {
         let loadedDraft: TripDraft | null = null;
         let loadedPreferences: PlannerPreferences | null = null;
 
-        // 1. URL 공유 파라미터(?plan=...) 확인
-        const planParam = searchParams.get("plan");
-        if (planParam) {
-          const decoded = decodePlanFromUrl(planParam);
-          if (decoded && decoded.draft) {
-            loadedDraft = decoded.draft;
-            loadedPreferences = decoded.preferences;
-            setIsSharedView(true);
+        // 1. 단축 링크 파라미터(?share=...) 확인
+        const shareParam = searchParams.get("share");
+        if (shareParam) {
+          try {
+            const res = await fetch(`/api/share?id=${shareParam}`);
+            const json = await res.json();
+            if (json.success && json.data?.draft) {
+              loadedDraft = {
+                ...json.data.draft,
+                stops: ensureTripStops(json.data.draft),
+              };
+              loadedPreferences = json.data.preferences;
+              if (!isCancelled) setIsSharedView(true);
+            }
+          } catch (shareErr) {
+            console.warn("[Report] Failed to load short share data:", shareErr);
           }
         }
 
-        // 2. URL 파라미터가 없으면 로컬 스토리지에서 로드
+        // 2. 압축 URL 파라미터(?plan=...) 확인 (Fallback)
+        if (!loadedDraft) {
+          const planParam = searchParams.get("plan");
+          if (planParam) {
+            const decoded = decodePlanFromUrl(planParam);
+            if (decoded && decoded.draft) {
+              loadedDraft = {
+                ...decoded.draft,
+                stops: ensureTripStops(decoded.draft),
+              };
+              loadedPreferences = decoded.preferences;
+              if (!isCancelled) setIsSharedView(true);
+            }
+          }
+        }
+
+        // 3. URL 파라미터가 없으면 로컬 스토리지에서 로드
         if (!loadedDraft) {
           loadedDraft = loadTripDraft();
           if (loadedDraft) {
@@ -133,42 +159,49 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
           }
         }
 
+        if (isCancelled) return;
+
         setDraft(loadedDraft);
         if (loadedPreferences) {
           setPreferences(loadedPreferences);
         }
 
-        // 도시별 최신 관광지 DB 카탈로그 프리페치 (플래너와 100% 동일한 DB 명소 입장료 동기화)
+        // 도시별 최신 관광지 DB 카탈로그 프리페치
         if (loadedDraft && Array.isArray(loadedDraft.selectedCities)) {
           loadedDraft.selectedCities.forEach(async (city) => {
-              try {
-                const res = await fetch(`/api/catalog/attractions?city=${city}`);
-                const json = await res.json();
-                const validData = Array.isArray(json.data)
-                  ? json.data.filter((spot: any) => spot.cityCode === city)
-                  : [];
-                if (json.success && validData.length > 0) {
-                  registerCustomAttractionSpots(validData);
-                  setDbAttractionsByCity((prev) => ({
-                    ...prev,
-                    [city]: validData,
-                  }));
-                }
-              } catch (e) {
-                console.warn("[Report] Failed to fetch city attractions for:", city, e);
+            try {
+              const res = await fetch(`/api/catalog/attractions?city=${city}`);
+              const json = await res.json();
+              const validData = Array.isArray(json.data)
+                ? json.data.filter((spot: any) => spot.cityCode === city)
+                : [];
+              if (json.success && validData.length > 0 && !isCancelled) {
+                registerCustomAttractionSpots(validData);
+                setDbAttractionsByCity((prev) => ({
+                  ...prev,
+                  [city]: validData,
+                }));
               }
-            });
-          }
+            } catch (e) {
+              console.warn("[Report] Failed to fetch city attractions for:", city, e);
+            }
+          });
+        }
         setSavedPlaceIds(loadSavedPlaceIds());
         setBudgetPlaces(loadBudgetPlaces());
-      } catch (error) {
-        console.error("Failed to load report data:", error);
+      } catch (err) {
+        console.error("[Report] Initialize error:", err);
       } finally {
-        setIsHydrated(true);
+        if (!isCancelled) setIsHydrated(true);
       }
-    });
-    return () => cancelAnimationFrame(handle);
-  }, []);
+    }
+
+    initializeReport();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [searchParams]);
 
   // 플랜 유효성 검증
   const hasValidPlan = draft && preferences && draft.selectedCities && draft.selectedCities.length > 0;

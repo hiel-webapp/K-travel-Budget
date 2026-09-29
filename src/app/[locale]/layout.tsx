@@ -5,6 +5,7 @@ import { isLocale, Locale } from "src/lib/i18n/locales";
 import { getDictionary } from "src/lib/i18n/get-dictionary";
 import Header from "src/components/Header";
 import Footer from "src/components/Footer";
+import ScrollToTop from "src/components/ScrollToTop";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -66,6 +67,9 @@ export default async function RootLayout({
 
         {/* Permanent Footer */}
         <Footer dict={dict} />
+
+        {/* Global Scroll to Top floating button */}
+        <ScrollToTop />
       </body>
     </html>
   );

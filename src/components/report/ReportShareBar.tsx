@@ -27,28 +27,23 @@ export default function ReportShareBar({ locale }: ReportShareBarProps) {
   };
 
   return (
-    <div className="w-full relative mt-8 print:hidden">
-      <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.06)] transition-all duration-300">
+    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[94%] sm:w-[92%] max-w-5xl print:hidden">
+      <div className="p-3 sm:p-4 px-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-full border border-neutral-200/90 shadow-[0_12px_36px_rgba(0,0,0,0.12)] transition-all duration-300">
         {/* Left: Info Text & Bullet Points */}
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-neutral-900">
-              {locale === "ko" ? "내 여행 예산 리포트 저장 및 공유하기" : "Save & Share Travel Budget Report"}
-            </span>
-            <span className="text-[10px] font-semibold text-teal-800 bg-teal-100/70 px-2 py-0.5 rounded-full">
-              {locale === "ko" ? "원클릭" : "One-Click"}
-            </span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-black text-neutral-900">
+                {locale === "ko" ? "예산 리포트 저장 및 공유" : "Save & Share Budget Report"}
+              </span>
+              <span className="text-[9.5px] font-bold text-teal-800 bg-teal-100/80 px-2 py-0.2 rounded-full hidden sm:inline-block">
+                {locale === "ko" ? "원클릭" : "One-Click"}
+              </span>
+            </div>
+            <p className="text-[10.5px] sm:text-[11px] text-neutral-500 font-medium hidden md:block">
+              {locale === "ko" ? "PDF 인쇄 다운로드 · 플래너 수정 · 실시간 링크 공유" : "Instant PDF print, planner editing, and link sharing"}
+            </p>
           </div>
-          <ul className="text-xs text-neutral-600 space-y-1">
-            <li className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
-              <span>{locale === "ko" ? "동행자와 간편한 일정 링크 실시간 공유" : "Instant link sharing with travel companions"}</span>
-            </li>
-            <li className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
-              <span>{locale === "ko" ? "인쇄 및 PDF 파일로 간편 다운로드 보관" : "Print & download PDF report for offline reference"}</span>
-            </li>
-          </ul>
         </div>
 
         {/* Right: Action Buttons Group */}

@@ -204,7 +204,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
 
   return (
     <>
-      <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 pb-6 space-y-6 text-slate-800 print:hidden">
+      <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 pb-28 sm:pb-32 space-y-6 text-slate-800 print:hidden">
       {/* 1. Header with Route & Metadata (Craft.do 감성의 단정한 글래스 카드) */}
       <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 px-5 py-4 sm:px-6 sm:py-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] print:border-b-2 print:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-neutral-100 pb-4">

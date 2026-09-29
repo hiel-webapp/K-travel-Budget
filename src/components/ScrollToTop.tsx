@@ -35,7 +35,7 @@ export default function ScrollToTop() {
         isVisible
           ? "opacity-100 translate-y-0 pointer-events-auto"
           : "opacity-0 translate-y-6 pointer-events-none"
-      } bottom-24 sm:bottom-28`}
+      } bottom-6 sm:bottom-8`}
     >
       <svg
         className="w-5 h-5 sm:w-5 sm:h-5 text-white stroke-[2.5]"

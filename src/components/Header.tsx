@@ -54,7 +54,7 @@ export default function Header({ locale, dict }: HeaderProps) {
   ] as const;
 
   return (
-    <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[94%] sm:w-[92%] max-w-5xl z-50">
+    <header className="absolute top-4 left-1/2 -translate-x-1/2 w-[94%] sm:w-[92%] max-w-5xl z-30">
       <div
         className={`w-full rounded-full transition-all duration-300 px-3 sm:px-6 md:px-7 ${
           isScrolled

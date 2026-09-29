@@ -27,8 +27,9 @@ export default function ReportShareBar({ locale }: ReportShareBarProps) {
   };
 
   return (
-    <div className="w-full relative mt-10 print:hidden">
-      <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_16px_40px_rgb(0,0,0,0.06)] transition-all duration-300">
+    <div className="fixed bottom-0 left-0 right-0 w-full bg-[#faf9f6] z-40 pb-4 pt-2 print:hidden">
+      <div className="w-[94%] sm:w-[92%] max-w-5xl mx-auto">
+        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white rounded-3xl border border-neutral-200/80 shadow-sm">
         {/* Left: Info Text & Bullet Points */}
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
@@ -90,6 +91,7 @@ export default function ReportShareBar({ locale }: ReportShareBarProps) {
           </button>
         </div>
       </div>
+    </div>
 
       {/* Floating Glassmorphism Toast Notification */}
       {showToast && (

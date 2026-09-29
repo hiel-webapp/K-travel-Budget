@@ -100,7 +100,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Universal print media styling for A4 Report & PDF (Portrait: 210mm x 297mm) */
 @media print {
   @page {
-    size: 210mm 297mm;
+    size: A4 portrait;
     margin: 0;
   }
 
@@ -112,7 +112,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 10pt !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     width: 210mm !important;
     min-height: 0 !important;
@@ -125,11 +125,12 @@ h1, h2, h3, h4, h5, h6 {
   div:has(> .report-pdf-root),
   .min-h-screen,
   body > div {
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 !important;
     min-height: 0 !important;
     height: auto !important;
     background: transparent !important;
+    width: 100% !important;
   }
 
   header,
@@ -149,6 +150,8 @@ h1, h2, h3, h4, h5, h6 {
     box-sizing: border-box !important;
     background: #ffffff !important;
     padding: 12mm 13mm !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     page-break-after: always !important;
     break-after: page !important;
     page-break-inside: avoid !important;
@@ -235,6 +238,8 @@ h1, h2, h3, h4, h5, h6 {
     display: block !important;
     opacity: 1 !important;
     pointer-events: auto !important;
+    width: 210mm !important;
+    margin: 0 auto !important;
   }
 }
 

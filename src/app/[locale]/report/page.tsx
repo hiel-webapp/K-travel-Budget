@@ -20,18 +20,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ? "내가 계획한 한국 여행 일정과 예상 경비 영수증을 확인해보세요! ✨"
     : "Check out my planned Korea trip budget report and smart receipt! ✨";
 
+  const siteUrl = "https://ktravelbudget.com";
+  const ogImageUrl = `${siteUrl}/images/og-report.jpg`;
+
   return {
+    metadataBase: new URL(siteUrl),
     title,
     description,
     openGraph: {
       title,
       description,
+      url: `${siteUrl}/${locale}/report`,
+      siteName: "K-Travel Budget",
+      locale: isKo ? "ko_KR" : "en_US",
       type: "website",
       images: [
         {
-          url: "/images/og-report.jpg",
+          url: ogImageUrl,
+          secureUrl: ogImageUrl,
           width: 1200,
           height: 630,
+          type: "image/jpeg",
           alt: "K-Travel Budget Report Cover",
         },
       ],
@@ -40,7 +49,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: "summary_large_image",
       title,
       description,
-      images: ["/images/og-report.jpg"],
+      images: [ogImageUrl],
     },
   };
 }

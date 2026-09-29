@@ -19,7 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HypeHeritage - Korea Travel Budget Planner",
+  metadataBase: new URL("https://ktravelbudget.com"),
+  title: "K-Travel Budget - Korea Travel Budget Planner",
   description: "Plan your trip to Korea with realistic budget estimation",
 };
 

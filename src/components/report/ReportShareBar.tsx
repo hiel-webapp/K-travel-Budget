@@ -1,28 +1,61 @@
-"use client";
-
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "src/lib/i18n/locales";
+import type { TripDraft } from "src/lib/trip-domain";
+import type { PlannerPreferences } from "src/features/budget/domain/types";
+import { encodePlanToUrl } from "src/lib/share-plan";
 
 interface ReportShareBarProps {
   locale: Locale;
+  draft?: TripDraft | null;
+  preferences?: PlannerPreferences | null;
 }
 
-export default function ReportShareBar({ locale }: ReportShareBarProps) {
+export default function ReportShareBar({ locale, draft, preferences }: ReportShareBarProps) {
   const router = useRouter();
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const handleShare = async () => {
     try {
-      if (typeof window !== "undefined") {
-        await navigator.clipboard.writeText(window.location.href);
-        setShowToast(true);
-        setTimeout(() => {
-          setShowToast(false);
-        }, 2500);
+      if (typeof window === "undefined") return;
+
+      let shareUrl = window.location.href;
+      if (draft) {
+        const encoded = encodePlanToUrl(draft, preferences);
+        if (encoded) {
+          shareUrl = `${window.location.origin}/${locale}/report?plan=${encoded}`;
+        }
       }
+
+      // 모바일 기기: 네이티브 공유 다이얼로그 (카톡, 문자 등)
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({
+            title: locale === "ko" ? "HypeHeritage 한국 여행 예산 리포트" : "HypeHeritage Korea Travel Budget Report",
+            text: locale === "ko" ? "내가 계획한 한국 여행 일정과 예상 경비 리포트야! 확인해봐 ✨" : "Check out my planned Korea trip budget report! ✨",
+            url: shareUrl,
+          });
+          return;
+        } catch (shareErr: any) {
+          // 사용자가 취소한 경우가 아니면 클립보드로 복사 진행
+          if (shareErr.name === "AbortError") return;
+        }
+      }
+
+      // PC 브라우저 또는 Web Share 미지원 시 클립보드 복사
+      await navigator.clipboard.writeText(shareUrl);
+      setToastMessage(
+        locale === "ko"
+          ? "여행 예산 리포트 링크가 복사되었습니다 ✨"
+          : "Trip budget report link copied to clipboard ✨"
+      );
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 2500);
     } catch (err) {
-      console.error("클립보드 복사 실패:", err);
+      console.error("공유 링크 생성 실패:", err);
     }
   };
 
@@ -99,9 +132,9 @@ export default function ReportShareBar({ locale }: ReportShareBarProps) {
           <div className="flex items-center gap-2.5 px-5 py-3 rounded-full bg-neutral-900/90 text-white text-xs sm:text-sm font-semibold backdrop-blur-xl border border-white/20 shadow-[0_12px_36px_rgba(0,0,0,0.18)]">
             <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
             <span>
-              {locale === "ko"
+              {toastMessage || (locale === "ko"
                 ? "여행 예산 리포트 링크가 복사되었습니다 ✨"
-                : "Trip budget report link copied to clipboard ✨"}
+                : "Trip budget report link copied to clipboard ✨")}
             </span>
           </div>
         </div>

@@ -1,13 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   loadTripDraft,
+  saveTripDraft,
+  saveActiveDraft,
   loadPlannerPreferencesEx,
+  savePlannerPreferences,
   loadSavedPlaceIds,
   loadBudgetPlaces,
 } from "../lib/storage-helper";
+import { decodePlanFromUrl } from "../lib/share-plan";
 import { generateInitialBudgetPlan } from "../features/budget/calculations/engine";
 import { calculateFoodBasketPlan, calculateCityFoodBasketPlan } from "../features/budget/calculations/food-engine";
 import { getPersonalizedTrendRecommendations } from "../lib/trend";
@@ -53,6 +57,9 @@ interface ReportContentProps {
 
 export default function ReportContent({ locale, dict }: ReportContentProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isSharedView, setIsSharedView] = useState(false);
+  const [isImported, setIsImported] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [draft, setDraft] = useState<TripDraft | null>(null);
   const [preferences, setPreferences] = useState<PlannerPreferences | null>(null);
@@ -69,27 +76,71 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
     }));
   };
 
+  const handleImportSharedPlan = () => {
+    if (draft) {
+      saveActiveDraft(draft, 1);
+      saveTripDraft(draft);
+      if (preferences) {
+        savePlannerPreferences({
+          accommodationByCity: preferences.accommodationByCity || {},
+          foodBasketSelectionsByStop: preferences.foodBasketSelectionsByStop || {},
+          attractionSelectionsByStop: preferences.attractionSelectionsByStop || {},
+          cityTransitStyles: preferences.cityTransitStyles || {},
+          intercityTransportOverrides: preferences.intercityTransportOverrides || {},
+          shoppingOption: preferences.shoppingOption,
+          shoppingAmountKrw: preferences.shoppingAmountKrw,
+          emergencyFundKrw: preferences.emergencyFundKrw,
+          draft,
+        });
+      }
+      setIsImported(true);
+      setTimeout(() => {
+        router.push(`/${locale}/planner`);
+      }, 700);
+    }
+  };
+
   useEffect(() => {
     const handle = requestAnimationFrame(() => {
       try {
-        const loadedDraft = loadTripDraft();
-        if (loadedDraft) {
-          const draftWithStops: TripDraft = {
-            ...loadedDraft,
-            stops: ensureTripStops(loadedDraft),
-          };
-          setDraft(draftWithStops);
-          const res = loadPlannerPreferencesEx(draftWithStops);
-          if (res.preferences) {
-            setPreferences(res.preferences);
+        let loadedDraft: TripDraft | null = null;
+        let loadedPreferences: PlannerPreferences | null = null;
+
+        // 1. URL 공유 파라미터(?plan=...) 확인
+        const planParam = searchParams.get("plan");
+        if (planParam) {
+          const decoded = decodePlanFromUrl(planParam);
+          if (decoded && decoded.draft) {
+            loadedDraft = decoded.draft;
+            loadedPreferences = decoded.preferences;
+            setIsSharedView(true);
           }
-        } else {
-          setDraft(loadedDraft);
         }
 
-          // 도시별 최신 관광지 DB 카탈로그 프리페치 (플래너와 100% 동일한 DB 명소 입장료 동기화)
-          if (Array.isArray(loadedDraft.selectedCities)) {
-            loadedDraft.selectedCities.forEach(async (city) => {
+        // 2. URL 파라미터가 없으면 로컬 스토리지에서 로드
+        if (!loadedDraft) {
+          loadedDraft = loadTripDraft();
+          if (loadedDraft) {
+            const draftWithStops: TripDraft = {
+              ...loadedDraft,
+              stops: ensureTripStops(loadedDraft),
+            };
+            loadedDraft = draftWithStops;
+            const res = loadPlannerPreferencesEx(draftWithStops);
+            if (res.preferences) {
+              loadedPreferences = res.preferences;
+            }
+          }
+        }
+
+        setDraft(loadedDraft);
+        if (loadedPreferences) {
+          setPreferences(loadedPreferences);
+        }
+
+        // 도시별 최신 관광지 DB 카탈로그 프리페치 (플래너와 100% 동일한 DB 명소 입장료 동기화)
+        if (loadedDraft && Array.isArray(loadedDraft.selectedCities)) {
+          loadedDraft.selectedCities.forEach(async (city) => {
               try {
                 const res = await fetch(`/api/catalog/attractions?city=${city}`);
                 const json = await res.json();
@@ -205,6 +256,32 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
   return (
     <>
       <div className="w-full max-w-6xl mx-auto px-3 sm:px-6 pt-2 pb-6 space-y-6 text-slate-800 print:hidden">
+      {/* 0. Shared Trip Notification Banner (공유 링크 접속 시 노출) */}
+      {isSharedView && (
+        <div className="bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-teal-500/10 border border-teal-500/30 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs animate-in fade-in duration-300">
+          <div className="flex items-center gap-3 text-center sm:text-left">
+            <span className="text-2xl shrink-0">✨</span>
+            <div>
+              <p className="text-xs sm:text-sm font-black text-teal-950">
+                {locale === "ko" ? "동행자가 공유한 여행 예산 리포트입니다." : "This is a shared trip budget report from a travel companion."}
+              </p>
+              <p className="text-[11px] text-teal-700 font-medium">
+                {locale === "ko" ? "내 플래너로 가져와 일정을 자유롭게 편집하고 저장할 수 있습니다." : "Import it into your planner to customize and save."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleImportSharedPlan}
+            className="px-5 py-2.5 rounded-full bg-teal-600 hover:bg-teal-700 active:scale-95 text-white font-bold text-xs shadow-sm transition-all cursor-pointer whitespace-nowrap"
+          >
+            {isImported
+              ? (locale === "ko" ? "가져오기 완료! 이동 중..." : "Imported! Redirecting...")
+              : (locale === "ko" ? "내 플래너로 가져와 수정하기" : "Import & Edit in Planner")}
+          </button>
+        </div>
+      )}
+
       {/* 1. Header with Route & Metadata (Craft.do 감성의 단정한 글래스 카드) */}
       <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-neutral-200/80 px-5 py-4 sm:px-6 sm:py-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)] print:border-b-2 print:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-neutral-100 pb-4">
@@ -866,7 +943,7 @@ export default function ReportContent({ locale, dict }: ReportContentProps) {
       </div>
 
       {/* 4. Bottom Report Storage & Share Bar (인쇄 / PDF / 공유하기 / 링크 복사) */}
-      <ReportShareBar locale={locale} />
+      <ReportShareBar locale={locale} draft={draft} preferences={preferences} />
     </div>
 
     {/* A4 가로(Landscape) 전용 완결형 PDF 인쇄 도큐먼트 */}

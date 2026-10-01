@@ -3611,15 +3611,15 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 md:px-8 space-y-6">
+    <div className="w-full max-w-7xl mx-auto space-y-4 md:space-y-6 pb-20 lg:pb-0">
       <h1 className="sr-only">{dict.common.title}</h1>
 
       {/* Header Banner Section */}
-      <div className="text-center space-y-2 pt-2">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+      <div className="text-center space-y-1.5 md:space-y-2 pt-1 md:pt-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
           {dict.planner.workspaceTitle}
         </h1>
-        <p className="text-xs md:text-sm text-slate-500 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-xs md:text-sm text-slate-500 max-w-2xl mx-auto leading-relaxed px-2">
           {dict.planner.workspaceDescription}
         </p>
       </div>
@@ -3975,8 +3975,8 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
           <div
             className={
               selectedCityTab === "ALL" || selectedCityTab === "TRANSPORT"
-                ? "space-y-6"
-                : "bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-6"
+                ? "space-y-4 sm:space-y-6"
+                : "bg-white p-3.5 sm:p-5 md:p-6 rounded-2xl border border-slate-200/60 shadow-sm space-y-4 sm:space-y-6"
             }
             role="tabpanel"
             id={`cat-panel-${selectedCityTab === "ALL" ? "summary" : selectedCityTab === "TRANSPORT" ? "transport" : activeCategory}`}
@@ -4846,9 +4846,9 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                   {/* 통합 바스켓 대시보드 헤더: 좌측 세로 3단 탭 (중간 최적 사이즈) | 우측 선택된 바스켓 실시간 요약 (세로 중앙 & 상단 완벽 일치) */}
                   <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
                     <div className="flex flex-col sm:flex-row">
-                      {/* 좌측: 세로 3단 카테고리 탭 (숙소, 음식, 관광) - 중간 균형 사이즈 (min-h-[40px]) */}
-                      <div className="sm:w-[155px] md:w-[165px] shrink-0 p-2.5 sm:p-3 bg-slate-50/80 border-b sm:border-b-0 sm:border-r border-slate-200/80 flex flex-col justify-center">
-                        <div className="grid grid-cols-3 sm:grid-cols-1 gap-1.5" role="tablist" aria-label="Budget categories">
+                      {/* 좌측: 세로 3단 카테고리 탭 (숙소, 음식, 관광) - 모바일 3단 가로 그리드 최적화 */}
+                      <div className="sm:w-[155px] md:w-[165px] shrink-0 p-2 sm:p-3 bg-slate-50/80 border-b sm:border-b-0 sm:border-r border-slate-200/80 flex flex-col justify-center">
+                        <div className="grid grid-cols-3 sm:grid-cols-1 gap-1 sm:gap-1.5" role="tablist" aria-label="Budget categories">
                           {(["ACCOMMODATION", "FOOD", "ATTRACTION"] as const).map((cat) => {
                             const effectiveCategory = (activeCategory === "CITY_TRANSPORT" || activeCategory === "EMERGENCY_FUND") ? "ACCOMMODATION" : activeCategory;
                             const isActive = effectiveCategory === cat;
@@ -4861,7 +4861,7 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 aria-selected={isActive}
                                 id={`cat-tab-${cat}`}
                                 onClick={() => setActiveCategory(cat)}
-                                className={`group relative flex flex-col sm:flex-row items-center justify-between min-h-[40px] p-2 sm:px-3 sm:py-2.5 rounded-xl border text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${isActive
+                                className={`group relative flex flex-col sm:flex-row items-center justify-between min-h-[38px] sm:min-h-[40px] p-1.5 sm:px-3 sm:py-2.5 rounded-xl border text-center sm:text-left transition-all duration-150 focus-visible:outline-2 focus-visible:outline-[#e25c5c] cursor-pointer ${isActive
                                     ? "bg-white border-[#e25c5c] shadow-xs ring-1 ring-[#e25c5c]/20 text-[#0f172a]"
                                     : "bg-white/80 border-slate-200/80 text-slate-600 hover:border-slate-300 hover:bg-white"
                                   }`}
@@ -4869,11 +4869,11 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
                                 {isActive && (
                                   <div className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-[#e25c5c] rounded-r-full" />
                                 )}
-                                <span className="text-xs sm:text-[12.5px] font-black tracking-tight text-slate-800">
+                                <span className="text-[11px] sm:text-[12.5px] font-black tracking-tight text-slate-800 truncate">
                                   {data.label}
                                 </span>
                                 <span
-                                  className={`inline-block text-[9.5px] px-1.5 py-0.5 rounded-full transition-colors truncate max-w-[65px] sm:max-w-[70px] leading-tight shrink-0 mt-0.5 sm:mt-0 ${data.isSelected
+                                  className={`inline-block text-[8.5px] sm:text-[9.5px] px-1 sm:px-1.5 py-0.5 rounded-full transition-colors truncate max-w-[48px] sm:max-w-[70px] leading-tight shrink-0 mt-0.5 sm:mt-0 ${data.isSelected
                                       ? "bg-rose-50 text-[#e25c5c] border border-rose-200/80 font-bold"
                                       : "bg-slate-100 text-slate-400 font-medium"
                                     }`}
@@ -6278,6 +6278,40 @@ function HydratedPlannerContent({ locale, dict }: { locale: Locale; dict: Dictio
             </div>
           );
         })()}
+      </div>
+
+      {/* Mobile Sticky Budget Dock (화면 폭 1024px 미만 lg:hidden 전용, PC 완벽 무영향) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 py-2.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+              {locale === "ko" ? "예상 총액" : "Estimated Total"}
+            </span>
+            <span className="text-[10px] text-slate-400">
+              ({draft.totalNights}박 · {draft.adultCount}인)
+            </span>
+          </div>
+          <div className="text-[16px] sm:text-lg font-black text-slate-900 tracking-tight leading-none mt-0.5 truncate">
+            {formatPriceByLocale(finalGrandTotalKrw, locale, usdRate)}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            saveTripDraft(state.draft);
+            persistPreferences({
+              shoppingOption,
+              shoppingCustomInput,
+              occupancyModeByCity,
+            }, state.draft);
+            router.push(`/${locale}/report`);
+          }}
+          className="px-3.5 py-2 rounded-xl bg-[#e25c5c] hover:bg-[#d14b4b] active:scale-95 text-white font-extrabold text-xs shadow-sm flex items-center gap-1 shrink-0 transition-transform cursor-pointer"
+        >
+          <span>{dict.planner.generateReport}</span>
+          <span className="text-xs">→</span>
+        </button>
       </div>
 
       {/* Toast Alert Feedback */}

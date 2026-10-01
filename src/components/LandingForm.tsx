@@ -364,7 +364,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
       {/* 1순위 HERO: 내 생각 즉시 반영 여행 폼 (Mad-libs + 1~3단계 벤토 카드) */}
       <div
         ref={formTopRef}
-        className="w-full max-w-5xl mx-auto bg-white/90 backdrop-blur-md border border-neutral-200/70 rounded-3xl p-5 sm:p-7 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] scroll-mt-6"
+        className="w-full max-w-5xl mx-auto bg-white/90 backdrop-blur-md border border-neutral-200/70 rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] scroll-mt-6"
       >
         {/* ================= PC / TABLET VIEW (!isMobile) ================= */}
         {!isMobile && (
@@ -824,20 +824,20 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
                     {isKo ? `다중 (${draft.selectedCities.length}/4)` : `Multi (${draft.selectedCities.length}/4)`}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 min-[370px]:grid-cols-3 gap-2">
                   {ALL_CITY_OPTIONS.map((cityOpt) => (
                     <button
                       key={cityOpt.key}
                       type="button"
                       onClick={() => toggleCitySelection(cityOpt.key)}
-                      className={`min-h-[44px] px-2 py-2 rounded-xl border text-[13px] transition-all duration-150 ease-out cursor-pointer flex items-center justify-center gap-1 text-center active:scale-[0.97] ${
+                      className={`min-h-[44px] px-2 py-2 rounded-xl border text-[12.5px] min-[370px]:text-[13px] transition-all duration-150 ease-out cursor-pointer flex items-center justify-center gap-1 text-center active:scale-[0.97] ${
                         draft.selectedCities.includes(cityOpt.key)
                           ? "bg-teal-50/80 border-2 border-teal-600 text-teal-900 font-bold shadow-2xs ring-2 ring-teal-500/30 ring-offset-1"
                           : "bg-white border-neutral-200/70 text-neutral-600 font-medium hover:border-neutral-300"
                       }`}
                     >
                       {draft.selectedCities.includes(cityOpt.key) && <span className="text-teal-600 font-bold text-xs">✓</span>}
-                      {isKo ? cityOpt.nameKo : cityOpt.nameEn}
+                      <span className="truncate">{isKo ? cityOpt.nameKo : cityOpt.nameEn}</span>
                     </button>
                   ))}
                 </div>
@@ -848,7 +848,7 @@ export default function LandingForm({ locale, dict, initialPresets }: LandingFor
       </div>
 
       {/* 2순위 SUB / INSPIRATION: 추천 여행 코스 가이드 프리셋 */}
-      <div className="w-full max-w-5xl mx-auto mt-10 pt-8 border-t border-neutral-200/70 mb-8">
+      <div className="w-full max-w-5xl mx-auto mt-6 pt-6 sm:mt-10 sm:pt-8 border-t border-neutral-200/70 mb-8">
         <div className="mb-4 text-center sm:text-left flex flex-col sm:flex-row sm:items-end justify-between gap-2">
           <div>
             <span className="text-[11px] sm:text-xs font-extrabold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200/60 uppercase tracking-wide">

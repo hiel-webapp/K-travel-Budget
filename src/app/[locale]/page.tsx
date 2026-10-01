@@ -20,10 +20,10 @@ export default async function LocalePage({ params }: PageProps) {
   const initialPresets = await getAdminPresets(false);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-start w-full max-w-[1140px] mx-auto px-4 py-6 md:py-10">
+    <div className="flex flex-1 flex-col items-center justify-start w-full max-w-[1140px] mx-auto py-3 md:py-8">
       {/* Brand Title */}
-      <div className="text-center mb-6 md:mb-8 space-y-2 md:space-y-2.5">
-        <h1 className="text-[28px] sm:text-[36px] md:text-[42px] font-extrabold leading-[1.2] tracking-[-0.02em] text-[#1d1d1f]">
+      <div className="text-center mb-5 md:mb-8 space-y-1.5 md:space-y-2.5">
+        <h1 className="text-[24px] sm:text-[32px] md:text-[42px] font-extrabold leading-[1.25] tracking-[-0.02em] text-[#1d1d1f]">
           {locale === "ko" ? "내 한국 여행 예산 만들기" : "Build My Korea Travel Budget"}
         </h1>
         <p className="text-[14px] sm:text-[15px] text-[#86868b] font-normal max-w-xl mx-auto leading-relaxed">

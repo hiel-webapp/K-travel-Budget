@@ -61,7 +61,7 @@ export default async function RootLayout({
         {/* Main Content Area */}
         <main
           id="main-content"
-          className="flex-1 w-full max-w-[1280px] mx-auto px-4 md:px-8 pt-24 md:pt-28 pb-8 flex flex-col justify-start focus:outline-none"
+          className="flex-1 w-full max-w-[1280px] mx-auto px-3.5 sm:px-4 md:px-8 pt-20 sm:pt-22 md:pt-28 pb-8 flex flex-col justify-start focus:outline-none"
         >
           {children}
         </main>
